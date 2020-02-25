@@ -1,2 +1,2 @@
 # pydae
-Environment to solve and analyze Differential-Algebraic Equations
+Environment to solve and analyse Differential-Algebraic Equations
