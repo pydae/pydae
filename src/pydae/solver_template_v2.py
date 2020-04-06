@@ -31,7 +31,7 @@ def daesolver(struct):
         t = struct[i].t
         it_store = struct[i].it_store
         
-        perturbations(t,struct) 
+        #perturbations(t,struct) 
         
         if solver == 1: 
             # forward euler solver  
@@ -191,7 +191,9 @@ def daesolver(struct):
             struct[i]['T'][it_store+1] = t 
             struct[i].X[it_store+1,:] = struct[i].x[:,0] 
             struct[i].Y[it_store+1,:] = struct[i].y[:,0]
+            struct[i].iters[it_store+1,0] = iter
             struct[i].it_store += 1 
+            
     struct[i].t = t
     struct[i].it_store = it_store
-    return struct[i]['T'][:], struct[i].X[:]
+    return t
