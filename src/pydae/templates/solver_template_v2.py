@@ -9,6 +9,7 @@ def daesolver(struct):
 
     N_x = struct[i].N_x
     N_y = struct[i].N_y
+    N_z = struct[i].N_z
 
     decimation = struct[i].decimation 
     eye = np.eye(N_x)
@@ -20,7 +21,7 @@ def daesolver(struct):
         struct[i]['T'][0] = t 
         struct[i].X[0,:] = struct[i].x[:,0]  
         struct[i].Y[0,:] = struct[i].y[:,0]  
-
+        struct[i].Z[0,:] = struct[i].h[:,0]  
 
     solver = struct[i].solvern 
     while t<t_end: 
@@ -191,6 +192,7 @@ def daesolver(struct):
             struct[i]['T'][it_store+1] = t 
             struct[i].X[it_store+1,:] = struct[i].x[:,0] 
             struct[i].Y[it_store+1,:] = struct[i].y[:,0]
+            struct[i].Z[it_store+1,:] = struct[i].h[:,0]
             struct[i].iters[it_store+1,0] = iter
             struct[i].it_store += 1 
             

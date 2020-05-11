@@ -6,6 +6,383 @@ Created on Sat Apr 14 11:53:28 2018
 @author: jmmauricio
 hola
 """
+import numpy as np
+import sympy as sym
+import os
+from collections import deque 
+import pkgutil
+
+def sym_gen_str():
+
+    str = '''\
+params = sys_vars['params']
+u_list = sys_vars['u_list']
+x_list = sys_vars['x_list']
+y_list = sys_vars['y_list']
+for item in params:
+    exec(f"{item} = sym.Symbol('{item}')", globals())
+for item in u_list:
+    exec(f"{item} = sym.Symbol('{item}')", globals())
+for item in x_list:
+    exec(f"{item} = sym.Symbol('{item}')", globals())
+for item in y_list:
+    exec(f"{item} = sym.Symbol('{item}')", globals())  
+sym_func_list = ['sin','cos']
+for item in sym_func_list:
+    exec(f"{item} = sym.{item}", globals()) 
+    '''
+    return str
+
+def sym_gen(sys_vars):
+    """Generates global sympy symbolic variables from a dictionary.
+    
+    Parameters
+    ----------
+    sys_vars : A ``dict`` with the following keys:
+    
+    params: ``dict``: Dictionary of the parameters and their values.
+    u_list: ``list(str)``: List of input variables as strings for the running problem. 
+    x_list: ``list(str)``: List of dynamical states as strings for the running problem.
+    y_list: ``list(str)``: List of algebraic states as strings for the running problem.   
+
+    R = 0.1
+    L = 0.01
+    T_pi = L/R
+    K_p = L/0.01
+
+    params= {'R' : 0.1, 'L':0.01, 'V_max':10.0, 'V_min':0.0, 'K_p':1.0, 'T_pi':0.01, 'K_aw':1.0}
+    u_ini_dict = { 'i_ref':1.0}  # for the initialization problem
+    u_run_dict = { 'i_ref':1.0}  # for the running problem (here initialization and running problem are the same)
+
+    x_list = ['i','xi']
+    y_ini_list = ['y','v']
+    y_run_list = ['y','v']
+
+    sys_vars = {'params':params,
+                'u_list':u_run_dict,
+                'x_list':x_list,
+                'y_run_list':y_run_list}   
+    """    
+
+    params = sys_vars['params']
+    u_list = sys_vars['u_list']
+    x_list = sys_vars['x_list']
+    y_list = sys_vars['y_list']
+
+    for item in params:
+        exec(f"{item} = sym.Symbol('{item}', real=True)", globals())
+    for item in u_list:
+        exec(f"{item} = sym.Symbol('{item}', real=True)", globals())
+    for item in x_list:
+        exec(f"{item} = sym.Symbol('{item}', real=True)", globals())
+    for item in y_list:
+        exec(f"{item} = sym.Symbol('{item}', real=True)", globals())  
+    sym_func_list = ['sin','cos']
+    for item in sym_func_list:
+        exec(f"{item} = sym.{item}", globals()) 
+
+    prueba_a = sym.Symbol('prueba_a')
+    prueba_b = sym.Symbol('prueba_b')
+    return [prueba_a,prueba_b]
+
+    
+        
+def system(sys):
+    y_ini = sym.Matrix(sys['y_ini'])
+    y = sym.Matrix(sys['y'])
+    x = sym.Matrix(sys['x'])
+    u_ini = sym.Matrix(list(sys['u_ini_dict'].keys()))
+    u = sym.Matrix(list(sys['u_run_dict'].keys()))
+
+    f = sym.Matrix(sys['f'])
+    g = sym.Matrix(sys['g'])
+    g_ini = sym.Matrix(sys['g_ini'])
+    
+    h =  sym.Matrix(sys['h'])    
+
+    Fx = f.jacobian(x)
+    Fy = f.jacobian(y)
+    Gx = g.jacobian(x)
+    Gy = g.jacobian(y)
+
+    Fx_ini = f.jacobian(x)
+    Fy_ini = f.jacobian(y_ini)
+    Gx_ini = g.jacobian(x)
+    Gy_ini = g.jacobian(y_ini)
+
+    sys['u_ini_dict'] = sys['u_ini_dict']
+    sys['u_run_dict'] = sys['u_run_dict']
+
+    sys['g']= g    
+    sys['g_ini']= g_ini
+    sys['f']= f
+    sys['y']= y    
+    sys['x']= x
+    sys['g']= g    
+    sys['g_ini']= g_ini
+    sys['f']= f
+    sys['y_ini']= y_ini    
+    sys['x_ini']= x    
+    sys['u_ini']= u_ini    
+    sys['u']= u     
+    sys['h']= h 
+    
+    sys['Fx'] = Fx
+    sys['Fy'] = Fy
+    sys['Gx'] = Gx
+    sys['Gy'] = Gy
+
+    sys['Fx_ini'] = Fx_ini
+    sys['Fy_ini'] = Fy_ini
+    sys['Gx_ini'] = Gx_ini
+    sys['Gy_ini'] = Gy_ini
+    
+    return sys
+
+
+def getIndex(s, i): 
+  
+    # If input is invalid. 
+    if s[i] != '(':
+        return -1
+  
+    # Create a deque to use it as a stack. 
+    d = deque() 
+  
+    # Traverse through all elements 
+    # starting from i. 
+    for k in range(i, len(s)): 
+  
+        # Pop a starting bracket 
+        # for every closing bracket 
+        if s[k] == ')': 
+            d.popleft() 
+  
+        # Push all starting brackets 
+        elif s[k] == '(': 
+            d.append(s[i]) 
+  
+        # If deque becomes empty 
+        if not d: 
+            return k 
+  
+    return -1
+  
+def arg2np(string,function_name):
+    idx_end = 0
+    for it in range(3):
+        if function_name in string[idx_end:]:
+            #print(string[idx_end:])
+            idx_ini = string.find(f'{function_name}(',idx_end)+len(f'{function_name}(')
+            idx_end = getIndex(string, idx_ini-1)
+            string = string.replace(string[idx_ini:idx_end],f'np.array([{string[idx_ini:idx_end]}])')
+    else: pass
+    return string    
+
+def sys2num(sys):
+    
+    params = sys['params']
+    y_ini = sys['y_ini']
+    y = sys['y']
+    x = sys['x']
+    u_ini = sys['u_ini']
+    u_run = sys['u']
+
+    f = sys['f']
+    g = sys['g']
+    g_ini = sys['g_ini']
+    
+    h =  sys['h']    
+
+    Fx = sys['Fx']
+    Fy = sys['Fy']
+    Gx = sys['Gx']
+    Gy = sys['Gy']
+
+    Fx_ini = sys['Fx_ini']
+    Fy_ini = sys['Fy_ini']
+    Gx_ini = sys['Gx_ini']
+    Gy_ini = sys['Gy_ini']
+    
+    
+    N_x = len(x)
+    N_y = len(y)
+    N_z = len(h)
+
+    N_params = len(params)
+    N_inputs = len(u_run)
+
+    name = sys['name']
+
+    run_fun = ''
+    ini_fun = ''
+
+    numba_enable = True
+    tab = '    '
+
+    if numba_enable: run_fun += f'@numba.njit(cache=True)\n'
+    run_fun += f'def run(t,struct,mode):\n\n'
+
+    if numba_enable: ini_fun += f'@numba.njit(cache=True)\n'
+    ini_fun += f'def ini(struct,mode):\n\n'
+
+    run_fun += f'{tab}# Parameters:\n'
+    ini_fun += f'{tab}# Parameters:\n'
+    for item in params:
+        run_fun += f'{tab}{item} = struct[0].{item}\n'
+        ini_fun += f'{tab}{item} = struct[0].{item}\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    run_fun += f'{tab}# Inputs:\n'
+    ini_fun += f'{tab}# Inputs:\n'
+    for item in u_run:
+        run_fun += f'{tab}{item} = struct[0].{item}\n'
+
+    for item in u_ini:    
+        ini_fun += f'{tab}{item} = struct[0].{item}\n'    
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    run_fun += f'{tab}# Dynamical states:\n'
+    ini_fun += f'{tab}# Dynamical states:\n'    
+    for irow in range(N_x):
+        run_fun += f'{tab}{x[irow]} = struct[0].x[{irow},0]\n'
+        ini_fun += f'{tab}{x[irow]} = struct[0].x_ini[{irow},0]\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    
+    run_fun += f'{tab}# Algebraic states:\n'
+    ini_fun += f'{tab}# Algebraic states:\n' 
+    for irow in range(N_y):
+        run_fun += f'{tab}{y[irow]} = struct[0].y[{irow},0]\n'
+        ini_fun += f'{tab}{y_ini[irow]} = struct[0].y_ini[{irow},0]\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    run_fun += f'{tab}# Differential equations:\n'
+    run_fun += f'{tab}if mode == 2:\n\n'
+    run_fun += f'\n'
+    ini_fun += f'{tab}# Differential equations:\n'
+    ini_fun += f'{tab}if mode == 2:\n\n'
+    ini_fun += f'\n'
+    for irow in range(N_x):
+        string = f'{f[irow]}'
+        run_fun += f'{2*tab}struct[0].f[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        ini_fun += f'{2*tab}struct[0].f_ini[{irow},0] = {arg2np(string,"Piecewise")}\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    ## g
+    run_fun += f'{tab}# Algebraic equations:\n'
+    run_fun += f'{tab}if mode == 3:\n\n'
+    run_fun += f'\n'
+    ini_fun += f'{tab}# Algebraic equations:\n'
+    ini_fun += f'{tab}if mode == 3:\n\n'
+    ini_fun += f'\n'
+    for irow in range(N_y):
+        string = f'{g[irow]}'
+        run_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        string = f'{g[irow]}'
+        ini_fun += f'{2*tab}struct[0].g_ini[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    ## outputs
+    run_fun += f'{tab}# Outputs:\n'
+    run_fun += f'{tab}if mode == 3:\n'
+    run_fun += f'\n'
+    ini_fun += f'{tab}# Outputs:\n'
+    ini_fun += f'{tab}if mode == 3:\n'
+    ini_fun += f'\n'
+    for irow in range(N_z):
+        string = f'{h[irow]}'
+        run_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        string = f'{h[irow]}'
+        ini_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    run_fun += f'\n'
+    run_fun += f'{tab}if mode == 10:\n\n'
+    ini_fun += f'\n'
+    ini_fun += f'{tab}if mode == 10:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_x):
+            if not Fx[irow,icol]==0:
+                string = arg2np(f'{Fx[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Fx[{irow},{icol}] = {string}\n'
+                ini_fun += f'{2*tab}struct[0].Fx_ini[{irow},{icol}] = {string}\n'
+
+    run_fun += f'\n'
+    run_fun += f'{tab}if mode == 11:\n\n'
+    ini_fun += f'\n'
+    ini_fun += f'{tab}if mode == 11:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_y):
+            if not Fy[irow,icol]==0:
+                string = arg2np(f'{Fy[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Fy[{irow},{icol}] = {string}\n'
+                string = arg2np(f'{Fy_ini[irow,icol]}',"Piecewise")
+                ini_fun += f'{2*tab}struct[0].Fy_ini[{irow},{icol}] = {string} \n'
+
+    run_fun += f'\n'
+    ini_fun += f'\n'
+    for irow in range(N_y):
+        for icol in range(N_x):
+            if not Gx[irow,icol]==0:
+                string = arg2np(f'{Gx[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Gx[{irow},{icol}] = {string}\n'
+                string = arg2np(f'{Gx[irow,icol]}',"Piecewise")
+                ini_fun += f'{2*tab}struct[0].Gx_ini[{irow},{icol}] = {string}\n'
+
+    run_fun += f'\n'
+    ini_fun += f'\n'
+    for irow in range(N_y):
+        for icol in range(N_y):
+            if not Gy[irow,icol]==0:
+                string = f'{Gy[irow,icol]}'
+                run_fun += f'{2*tab}struct[0].Gy[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+            if not Gy_ini[irow,icol]==0:
+                string = f'{Gy_ini[irow,icol]}'
+                ini_fun += f'{2*tab}struct[0].Gy_ini[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+
+
+    #with open('./class_dae_template.py','r') as fobj:
+    #    class_template = fobj.read()
+    class_template = pkgutil.get_data(__name__, "templates/class_dae_template.py").decode().replace('\r\n','\n') 
+    functions_template = pkgutil.get_data(__name__, "templates/functions_template.py").decode().replace('\r\n','\n') 
+    solver_template = pkgutil.get_data(__name__, "templates/solver_template_v2.py").decode().replace('\r\n','\n') 
+
+    class_template = class_template.replace('{name}',str(name))
+    class_template = class_template.replace('{N_x}',str(N_x)).replace('{N_y}',str(N_y)).replace('{N_z}',str(N_z))
+    class_template = class_template.replace('{x_list}', str([str(item) for item in x]))
+    class_template = class_template.replace('{y_list}', str([str(item) for item in y]))
+    class_template = class_template.replace('{y_ini_list}', str([str(item) for item in y_ini]))
+    class_template = class_template.replace('{params_list}', str([str(item) for item in params]))
+    class_template = class_template.replace('{params_values_list}', str([(params[item]) for item in params]))
+    class_template = class_template.replace('{inputs_ini_list}', str([str(item) for item in u_ini]))
+    class_template = class_template.replace('{inputs_run_list}', str([str(item) for item in u_run]))
+    class_template = class_template.replace('{inputs_ini_values_list}', str([(sys['u_ini_dict'][item]) for item in sys['u_ini_dict']]))
+    class_template = class_template.replace('{inputs_run_values_list}', str([(sys['u_run_dict'][item]) for item in sys['u_run_dict']]))
+
+
+
+
+
+    module = class_template
+    module += '\n'*3
+    module += run_fun
+    module += '\n'*3
+    module += ini_fun
+    module += '\n'*3
+    module += functions_template
+    module += '\n'*3
+    module += solver_template
+
+    with open(f'{name}.py','w') as fobj:
+        fobj.write(module)
+
 
 #sys = {'name':'freq_1',
 #       'params':[
@@ -21,9 +398,7 @@ hola
 #                ]
 #       }
         
-import numpy as np
-import sympy as sym
-import os
+
 
 functions_np = ['sin','cos','sqrt']
 
