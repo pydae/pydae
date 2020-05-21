@@ -30,7 +30,8 @@ def eval_A_ini(system):
     
     A = Fx - Fy @ np.linalg.solve(Gy,Gx)
     
-    
+    system.A = A
+
     return A
 
 
@@ -54,10 +55,10 @@ def damp_report(system):
     for it in range(N_x):
         r = eig[it].real
         i = eig[it].imag
-        string += f'{r:0.4f}  '.rjust(10, ' ') 
-        string += f'{i:0.4f}j'.rjust(10, ' ') 
-        string += f'{freqs[it]:0.4f}'.rjust(10, ' ') 
-        string += f'{zetas[it]:0.4f}'.rjust(10, ' ') 
+        string += f'{r:5.4f}  '.rjust(10, ' ') 
+        string += f'{i:5.4f}j'.rjust(10, ' ') 
+        string += f'{freqs[it]:5.4f}'.rjust(10, ' ') 
+        string += f'{zetas[it]:5.4f}'.rjust(10, ' ') 
 
         string += '\n'
         #'\t{i:0.4f}\t{freqs[it]:0.3f}\t{zetas[it]:0.4f}\n'
@@ -126,10 +127,8 @@ def get_s(syst,bus_name,s_type='cplx'):
     v_dq = get_v(syst,bus_name,v_type='dq_cplx')
     i_dq = get_i(syst,bus_name,i_type='dq_cplx')
 
-
     if s_type == 'cplx':
         s = 3/2*v_dq*np.conj(i_dq)
-
         return s
 
 

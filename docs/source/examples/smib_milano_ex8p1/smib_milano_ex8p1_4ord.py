@@ -22,7 +22,7 @@ class smib_milano_ex8p1_4ord_class:
         self.N_y = 6 
         self.N_z = 1 
         self.N_store = 10000 
-        self.params_list = ['X_d', 'X1d', 'T1d0', 'X_q', 'X1q', 'T1q0', 'R_a', 'X_l', 'H', 'D', 'Omega_b', 'omega_s', 'v_0', 'theta_0'] 
+        self.params_list = ['X_d', 'X1d', 'T1d0', 'X_q', 'X1q', 'T1q0', 'R_a', 'X_line', 'H', 'D', 'Omega_b', 'omega_s', 'v_0', 'theta_0'] 
         self.params_values_list  = [1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 3.5, 1.0, 314.1592653589793, 1.0, 1.0, 0.0] 
         self.inputs_ini_list = ['P_t', 'Q_t'] 
         self.inputs_ini_values_list  = [0.8, 0.2] 
@@ -36,6 +36,10 @@ class smib_milano_ex8p1_4ord_class:
         self.t = 0.0
         self.it = 0
         self.it_store = 0
+
+        self.sopt_root_method='hybr'
+        self.sopt_root_jac=True
+
         self.update() 
 
 
@@ -244,7 +248,7 @@ class smib_milano_ex8p1_4ord_class:
         
         return A
 
-    def simulate(self,events):
+    def simulate(self,events,xy0=0):
         # simulation parameters
         self.struct[0].it = 0       # set time step to zero
         self.struct[0].it_store = 0 # set storage to zero
@@ -258,42 +262,68 @@ class smib_milano_ex8p1_4ord_class:
             
         
         ## compute initial conditions using x and y_ini 
-        xy0 = np.ones(self.N_x+self.N_y)
-        xy = sopt.fsolve(self.ini_problem,xy0 )
-        self.struct[0].x[:,0] = xy[0:self.N_x]
-        self.struct[0].y[:,0] = xy[self.N_x:]
+        if xy0 == 0:
+            xy0 = np.zeros(self.N_x+self.N_y)
+        elif xy0 == 1:
+            xy0 = np.ones(self.N_x+self.N_y)
+        else:
+            xy0 = xy0*np.ones(self.N_x+self.N_y)
 
-        ## y_ini to u_run
-        for item in self.inputs_run_list:
-            if item in self.y_ini_list:
-                self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
+        #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
+        if self.sopt_root_jac:
+            sol = sopt.root(self.ini_problem, xy0, jac=self.ini_dae_jacobian, method=self.sopt_root_method)
+        else:
+            sol = sopt.root(self.ini_problem, xy0, method=self.sopt_root_method)
 
-        ## u_ini to y_run
-        for item in self.inputs_ini_list:
-            if item in self.y_list:
-                self.struct[0].y[self.y_list.index(item)] = self.struct[0][item]
-    
-        ## solve selfem
-        daesolver(self.struct)    # run until first event
+        self.initialization_ok = True
+        if sol.success == False:
+            print('initialization not found!')
+            self.initialization_ok = False
 
-        # simulation run
-        for event in events[1:]:  
-            for item in event:
-                self.struct[0][item] = event[item]
-            daesolver(self.struct)    # run until next event
-            
+            T = self.struct[0]['T'][:self.struct[0].it_store]
+            X = self.struct[0]['X'][:self.struct[0].it_store,:]
+            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
+            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
+            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+
+        if self.initialization_ok:
+            xy = sol.x
+            self.struct[0].x[:,0] = xy[0:self.N_x]
+            self.struct[0].y[:,0] = xy[self.N_x:]
+
+            ## y_ini to u_run
+            for item in self.inputs_run_list:
+                if item in self.y_ini_list:
+                    self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
+
+            ## u_ini to y_run
+            for item in self.inputs_ini_list:
+                if item in self.y_list:
+                    self.struct[0].y[self.y_list.index(item)] = self.struct[0][item]
         
-        # post process result    
-        T = self.struct[0]['T'][:self.struct[0].it_store]
-        X = self.struct[0]['X'][:self.struct[0].it_store,:]
-        Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-        Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-    
-        self.T = T
-        self.X = X
-        self.Y = Y
-        self.Z = Z
+            ## solve selfem
+            daesolver(self.struct)    # run until first event
 
+            # simulation run
+            for event in events[1:]:  
+                for item in event:
+                    self.struct[0][item] = event[item]
+                daesolver(self.struct)    # run until next event
+                
+            
+            # post process result    
+            T = self.struct[0]['T'][:self.struct[0].it_store]
+            X = self.struct[0]['X'][:self.struct[0].it_store,:]
+            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
+            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
+            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+        
+            self.T = T
+            self.X = X
+            self.Y = Y
+            self.Z = Z
+            self.iters = iters
+            
         return T,X,Y,Z
 
 
@@ -308,7 +338,7 @@ def run(t,struct,mode):
     X1q = struct[0].X1q
     T1q0 = struct[0].T1q0
     R_a = struct[0].R_a
-    X_l = struct[0].X_l
+    X_line = struct[0].X_line
     H = struct[0].H
     D = struct[0].D
     Omega_b = struct[0].Omega_b
@@ -349,8 +379,8 @@ def run(t,struct,mode):
 
         struct[0].g[0,0] = R_a*i_q + X1d*i_d - e1q + v_1*cos(delta - theta_1)
         struct[0].g[1,0] = R_a*i_d - X1q*i_q - e1d + v_1*sin(delta - theta_1)
-        struct[0].g[2,0] = P_t + v_0*v_1*sin(theta_0 - theta_1)/X_l
-        struct[0].g[3,0] = Q_t + v_0*v_1*cos(theta_0 - theta_1)/X_l - v_1**2/X_l
+        struct[0].g[2,0] = P_t + v_0*v_1*sin(theta_0 - theta_1)/X_line
+        struct[0].g[3,0] = Q_t + v_0*v_1*cos(theta_0 - theta_1)/X_line - v_1**2/X_line
         struct[0].g[4,0] = -P_t + i_d*v_1*sin(delta - theta_1) + i_q*v_1*cos(delta - theta_1)
         struct[0].g[5,0] = -Q_t + i_d*v_1*cos(delta - theta_1) - i_q*v_1*sin(delta - theta_1)
     
@@ -392,11 +422,11 @@ def run(t,struct,mode):
         struct[0].Gy[1,1] = -X1q
         struct[0].Gy[1,2] = sin(delta - theta_1)
         struct[0].Gy[1,3] = -v_1*cos(delta - theta_1)
-        struct[0].Gy[2,2] = v_0*sin(theta_0 - theta_1)/X_l
-        struct[0].Gy[2,3] = -v_0*v_1*cos(theta_0 - theta_1)/X_l
+        struct[0].Gy[2,2] = v_0*sin(theta_0 - theta_1)/X_line
+        struct[0].Gy[2,3] = -v_0*v_1*cos(theta_0 - theta_1)/X_line
         struct[0].Gy[2,4] = 1
-        struct[0].Gy[3,2] = v_0*cos(theta_0 - theta_1)/X_l - 2*v_1/X_l
-        struct[0].Gy[3,3] = v_0*v_1*sin(theta_0 - theta_1)/X_l
+        struct[0].Gy[3,2] = v_0*cos(theta_0 - theta_1)/X_line - 2*v_1/X_line
+        struct[0].Gy[3,3] = v_0*v_1*sin(theta_0 - theta_1)/X_line
         struct[0].Gy[3,5] = 1
         struct[0].Gy[4,0] = v_1*sin(delta - theta_1)
         struct[0].Gy[4,1] = v_1*cos(delta - theta_1)
@@ -422,7 +452,7 @@ def ini(struct,mode):
     X1q = struct[0].X1q
     T1q0 = struct[0].T1q0
     R_a = struct[0].R_a
-    X_l = struct[0].X_l
+    X_line = struct[0].X_line
     H = struct[0].H
     D = struct[0].D
     Omega_b = struct[0].Omega_b
@@ -463,8 +493,8 @@ def ini(struct,mode):
 
         struct[0].g_ini[0,0] = R_a*i_q + X1d*i_d - e1q + v_1*cos(delta - theta_1)
         struct[0].g_ini[1,0] = R_a*i_d - X1q*i_q - e1d + v_1*sin(delta - theta_1)
-        struct[0].g_ini[2,0] = P_t + v_0*v_1*sin(theta_0 - theta_1)/X_l
-        struct[0].g_ini[3,0] = Q_t + v_0*v_1*cos(theta_0 - theta_1)/X_l - v_1**2/X_l
+        struct[0].g_ini[2,0] = P_t + v_0*v_1*sin(theta_0 - theta_1)/X_line
+        struct[0].g_ini[3,0] = Q_t + v_0*v_1*cos(theta_0 - theta_1)/X_line - v_1**2/X_line
         struct[0].g_ini[4,0] = -P_t + i_d*v_1*sin(delta - theta_1) + i_q*v_1*cos(delta - theta_1)
         struct[0].g_ini[5,0] = -Q_t + i_d*v_1*cos(delta - theta_1) - i_q*v_1*sin(delta - theta_1)
     
@@ -484,12 +514,12 @@ def ini(struct,mode):
 
     if mode == 11:
 
-        struct[0].Fy_ini[1,0] = (-2*R_a*i_d - v_1*sin(delta - theta_1))/(2*H)
-        struct[0].Fy_ini[1,1] = (-2*R_a*i_q - v_1*cos(delta - theta_1))/(2*H)
-        struct[0].Fy_ini[1,2] = (-i_d*sin(delta - theta_1) - i_q*cos(delta - theta_1))/(2*H)
-        struct[0].Fy_ini[1,3] = (i_d*v_1*cos(delta - theta_1) - i_q*v_1*sin(delta - theta_1))/(2*H)
-        struct[0].Fy_ini[2,0] = (X1d - X_d)/T1d0
-        struct[0].Fy_ini[3,1] = (-X1q + X_q)/T1q0
+        struct[0].Fy_ini[1,0] = (-2*R_a*i_d - v_1*sin(delta - theta_1))/(2*H) 
+        struct[0].Fy_ini[1,1] = (-2*R_a*i_q - v_1*cos(delta - theta_1))/(2*H) 
+        struct[0].Fy_ini[1,2] = (-i_d*sin(delta - theta_1) - i_q*cos(delta - theta_1))/(2*H) 
+        struct[0].Fy_ini[1,3] = (i_d*v_1*cos(delta - theta_1) - i_q*v_1*sin(delta - theta_1))/(2*H) 
+        struct[0].Fy_ini[2,0] = (X1d - X_d)/T1d0 
+        struct[0].Fy_ini[3,1] = (-X1q + X_q)/T1q0 
 
         struct[0].Gx_ini[0,0] = -v_1*sin(delta - theta_1)
         struct[0].Gx_ini[0,2] = -1
@@ -506,10 +536,10 @@ def ini(struct,mode):
         struct[0].Gy_ini[1,1] = -X1q
         struct[0].Gy_ini[1,2] = sin(delta - theta_1)
         struct[0].Gy_ini[1,3] = -v_1*cos(delta - theta_1)
-        struct[0].Gy_ini[2,2] = v_0*sin(theta_0 - theta_1)/X_l
-        struct[0].Gy_ini[2,3] = -v_0*v_1*cos(theta_0 - theta_1)/X_l
-        struct[0].Gy_ini[3,2] = v_0*cos(theta_0 - theta_1)/X_l - 2*v_1/X_l
-        struct[0].Gy_ini[3,3] = v_0*v_1*sin(theta_0 - theta_1)/X_l
+        struct[0].Gy_ini[2,2] = v_0*sin(theta_0 - theta_1)/X_line
+        struct[0].Gy_ini[2,3] = -v_0*v_1*cos(theta_0 - theta_1)/X_line
+        struct[0].Gy_ini[3,2] = v_0*cos(theta_0 - theta_1)/X_line - 2*v_1/X_line
+        struct[0].Gy_ini[3,3] = v_0*v_1*sin(theta_0 - theta_1)/X_line
         struct[0].Gy_ini[4,0] = v_1*sin(delta - theta_1)
         struct[0].Gy_ini[4,1] = v_1*cos(delta - theta_1)
         struct[0].Gy_ini[4,2] = i_d*sin(delta - theta_1) + i_q*cos(delta - theta_1)
@@ -530,6 +560,20 @@ def Piecewise(arg):
     for it in range(N-1,-1,-1):
         if arg[it][1]: out = arg[it][0]
     return out
+
+@numba.njit(cache=True)
+def ITE(arg):
+    out = arg[0][1]
+    N = len(arg)
+    for it in range(N-1,-1,-1):
+        if arg[it][1]: out = arg[it][0]
+    return out
+
+
+@numba.njit(cache=True)
+def Abs(x):
+    return np.abs(x)
+
 
 
 @numba.njit(cache=True) 

@@ -5,6 +5,9 @@ import json
 
 sin = np.sin
 cos = np.cos
+atan2 = np.arctan2
+sqrt = np.sqrt 
+
 
 class {name}_class: 
 
@@ -36,6 +39,8 @@ class {name}_class:
         self.t = 0.0
         self.it = 0
         self.it_store = 0
+        self.xy_prev = np.zeros((self.N_x+self.N_y,1))
+        self.initialization_tol = 1e-6
 
         self.sopt_root_method='hybr'
         self.sopt_root_jac=True
@@ -247,6 +252,14 @@ class {name}_class:
         
         
         return A
+    
+    def reset(self):
+        for param,param_value in zip(self.params_list,self.params_values_list):
+            self.struct[0][param] = param_value
+        for input_name,input_value in zip(self.inputs_ini_list,self.inputs_ini_values_list):
+            self.struct[0][input_name] = input_value   
+        for input_name,input_value in zip(self.inputs_run_list,self.inputs_run_values_list):
+            self.struct[0][input_name] = input_value  
 
     def simulate(self,events,xy0=0):
         # simulation parameters
@@ -266,6 +279,8 @@ class {name}_class:
             xy0 = np.zeros(self.N_x+self.N_y)
         elif xy0 == 1:
             xy0 = np.ones(self.N_x+self.N_y)
+        elif xy0 == 'prev':
+            xy0 = self.xy_prev
         else:
             xy0 = xy0*np.ones(self.N_x+self.N_y)
 
@@ -288,6 +303,7 @@ class {name}_class:
 
         if self.initialization_ok:
             xy = sol.x
+            self.xy_prev = xy
             self.struct[0].x[:,0] = xy[0:self.N_x]
             self.struct[0].y[:,0] = xy[self.N_x:]
 
@@ -310,6 +326,84 @@ class {name}_class:
                     self.struct[0][item] = event[item]
                 daesolver(self.struct)    # run until next event
                 
+            
+            # post process result    
+            T = self.struct[0]['T'][:self.struct[0].it_store]
+            X = self.struct[0]['X'][:self.struct[0].it_store,:]
+            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
+            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
+            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+        
+            self.T = T
+            self.X = X
+            self.Y = Y
+            self.Z = Z
+            self.iters = iters
+            
+        return T,X,Y,Z
+    
+
+    def initialize(self,events,xy0=0):
+        # simulation parameters
+        self.struct[0].it = 0       # set time step to zero
+        self.struct[0].it_store = 0 # set storage to zero
+        self.struct[0].t = 0.0      # set time to zero
+                    
+        # initialization
+        it_event = 0
+        event = events[it_event]
+        for item in event:
+            self.struct[0][item] = event[item]
+            
+        
+        ## compute initial conditions using x and y_ini 
+        if xy0 == 0:
+            xy0 = np.zeros(self.N_x+self.N_y)
+        elif xy0 == 1:
+            xy0 = np.ones(self.N_x+self.N_y)
+        elif xy0 == 'prev':
+            xy0 = self.xy_prev
+        else:
+            xy0 = xy0*np.ones(self.N_x+self.N_y)
+
+        #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
+        if self.sopt_root_jac:
+            sol = sopt.root(self.ini_problem, xy0, 
+                            jac=self.ini_dae_jacobian, 
+                            method=self.sopt_root_method, tol=self.initialization_tol)
+        else:
+            sol = sopt.root(self.ini_problem, xy0, method=self.sopt_root_method)
+
+        self.initialization_ok = True
+        if sol.success == False:
+            print('initialization not found!')
+            self.initialization_ok = False
+
+            T = self.struct[0]['T'][:self.struct[0].it_store]
+            X = self.struct[0]['X'][:self.struct[0].it_store,:]
+            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
+            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
+            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+
+        if self.initialization_ok:
+            xy = sol.x
+            self.xy_prev = xy
+            self.struct[0].x[:,0] = xy[0:self.N_x]
+            self.struct[0].y[:,0] = xy[self.N_x:]
+
+            ## y_ini to u_run
+            for item in self.inputs_run_list:
+                if item in self.y_ini_list:
+                    self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
+
+            ## u_ini to y_run
+            for item in self.inputs_ini_list:
+                if item in self.y_list:
+                    self.struct[0].y[self.y_list.index(item)] = self.struct[0][item]
+        
+            # evaluate run jacobians 
+            run(0.0,self.struct,10)
+            run(0.0,self.struct,11)                
             
             # post process result    
             T = self.struct[0]['T'][:self.struct[0].it_store]
