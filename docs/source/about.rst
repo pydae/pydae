@@ -1,5 +1,5 @@
-About poliastro
-===============
+About pydae
+===========
 
 Overview
 --------
