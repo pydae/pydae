@@ -68,7 +68,7 @@ System builder
 
 In the system building step (etapa) the full DAE system have to be provided to the pydae builder. For this porpose the following dictionary have to be crated:
 
-.. code::
+.. code-block:: python
     
     sys_dict = {'name':sys_name,
                 'params_dict':params_dict,
