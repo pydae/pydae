@@ -88,7 +88,7 @@ where:
 
 In case the backward solution is not required the ini can be ignored and the system that have to be provided can be simplified as follows:
 
-.. code::
+.. code-block:: python
     
     sys_dict = {'name':sys_name,
                 'params_dict':params_dict,
