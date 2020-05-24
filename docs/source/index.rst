@@ -24,27 +24,9 @@ Some of its features are:
 * A collection of DAE models for power systems.
 
 
+
 Contents
 --------
-
-.. math::
-
-	\begin{equation}
-	\begin{split} \sf \nonumber
-	\mathbf {\dot x}  & \sf =  \mathbf {f (x,y^{ini},u^{ini}) } \\
-	\mathbf 0 & \sf =  \mathbf {g (x,y^{ini},u^{ini}) }  
-	\end{split}
-	\end{equation}
-
-.. math::
-
-	\begin{equation}
-	\begin{split} \sf \nonumber
-	\mathbf {\dot x}  & \sf =  \mathbf {f (x,y^{run},u^{run}) } \\
-	\mathbf 0 & \sf =  \mathbf {g (x,y^{run},u^{run}) }  
-	\end{split}
-	\end{equation}
-
 
 
 .. toctree::
