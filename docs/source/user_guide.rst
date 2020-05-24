@@ -83,7 +83,7 @@ In the system building step (etapa) the full DAE system have to be provided to t
 
 where:
 
-* :name:`name` is a vector with the dynamic states
+* ``x_list`` is a vector with the dynamic states
 
 
 In case the backward solution is not required the ini can be ignored and the system that have to be provided can be simplified as follows:
