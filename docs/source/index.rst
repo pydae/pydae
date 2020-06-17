@@ -35,3 +35,4 @@ Contents
     about
     getting_started
     user_guide   
+    ssa

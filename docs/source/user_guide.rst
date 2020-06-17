@@ -83,8 +83,13 @@ In the system building step (etapa) the full DAE system have to be provided to t
 
 where:
 
-* ``x_list`` is a vector with the dynamic states
-
+* ``x_list`` is a list with the dynamic states (string elements)
+* ``y_list_ini`` is a list with the algebraic states of the bakward initialization problem (string elements)
+* ``y_list_run`` is a list with the algebraic states of the forward running problem (string elements)
+* ``u_dict_ini`` is a dictionary with the known inputs names and respective values states of the bakward initialization problem (string elements)
+* ``u_dict_run`` is a dictionary with the algebraic states of the forward running problem (string elements)
+* ``f_list`` is a list with the differential equations (sympy symbolic elements)
+* ``g_list`` is a list with the algebraic equations (sympy symbolic elements)
 
 In case the backward solution is not required the ini can be ignored and the system that have to be provided can be simplified as follows:
 

@@ -31,9 +31,10 @@ class {name}_class:
         self.inputs_ini_values_list  = {inputs_ini_values_list} 
         self.inputs_run_list = {inputs_run_list} 
         self.inputs_run_values_list = {inputs_run_values_list} 
+        self.outputs_list = {outputs_list} 
         self.x_list = {x_list} 
-        self.y_list = {y_list} 
-        self.xy_list = self.x_list + self.y_list 
+        self.y_run_list = {y_run_list} 
+        self.xy_list = self.x_list + self.y_run_list 
         self.y_ini_list = {y_ini_list} 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
@@ -41,10 +42,14 @@ class {name}_class:
         self.it_store = 0
         self.xy_prev = np.zeros((self.N_x+self.N_y,1))
         self.initialization_tol = 1e-6
-
+        self.N_u = len(self.inputs_run_list) 
         self.sopt_root_method='hybr'
         self.sopt_root_jac=True
-
+        self.u_ini_list = self.inputs_ini_list
+        self.u_ini_values_list = self.inputs_ini_values_list
+        self.u_run_list = self.inputs_run_list
+        self.u_run_values_list = self.inputs_run_values_list
+        
         self.update() 
 
 
@@ -71,13 +76,10 @@ class {name}_class:
               ('idx', np.int64),
               ('idy', np.int64),
               ('f', np.float64, (self.N_x,1)),
-              ('f_ini', np.float64, (self.N_x,1)),
               ('x', np.float64, (self.N_x,1)),
-              ('x_ini', np.float64, (self.N_x,1)),
               ('x_0', np.float64, (self.N_x,1)),
               ('g', np.float64, (self.N_y,1)),
-              ('g_ini', np.float64, (self.N_y,1)),
-              ('y', np.float64, (self.N_y,1)),
+              ('y_run', np.float64, (self.N_y,1)),
               ('y_ini', np.float64, (self.N_y,1)),
               ('y_0', np.float64, (self.N_y,1)),
               ('h', np.float64, (self.N_z,1)),
@@ -85,6 +87,11 @@ class {name}_class:
               ('Fy', np.float64, (self.N_x,self.N_y)),
               ('Gx', np.float64, (self.N_y,self.N_x)),
               ('Gy', np.float64, (self.N_y,self.N_y)),
+              ('Fu', np.float64, (self.N_x,self.N_u)),
+              ('Gu', np.float64, (self.N_y,self.N_u)),
+              ('Hx', np.float64, (self.N_z,self.N_x)),
+              ('Hy', np.float64, (self.N_z,self.N_y)),
+              ('Hu', np.float64, (self.N_z,self.N_u)),
               ('Fx_ini', np.float64, (self.N_x,self.N_x)),
               ('Fy_ini', np.float64, (self.N_x,self.N_y)),
               ('Gx_ini', np.float64, (self.N_y,self.N_x)),
@@ -116,20 +123,22 @@ class {name}_class:
                 0,                                     # idx
                 0,                                     # idy
                 np.zeros((self.N_x,1)),                # f
-                np.zeros((self.N_x,1)),                # f_ini
                 np.zeros((self.N_x,1)),                # x
-                np.zeros((self.N_x,1)),                # x_ini
                 np.zeros((self.N_x,1)),                # x_0
                 np.zeros((self.N_y,1)),                # g
-                np.zeros((self.N_y,1)),                # g_ini
-                np.zeros((self.N_y,1)),                # y
+                np.zeros((self.N_y,1)),                # y_run
                 np.zeros((self.N_y,1)),                # y_ini
                 np.zeros((self.N_y,1)),                # y_0
                 np.zeros((self.N_z,1)),                # h
                 np.zeros((self.N_x,self.N_x)),         # Fx   
                 np.zeros((self.N_x,self.N_y)),         # Fy 
                 np.zeros((self.N_y,self.N_x)),         # Gx 
-                np.zeros((self.N_y,self.N_y)),         # Fy 
+                np.zeros((self.N_y,self.N_y)),         # Fy
+                np.zeros((self.N_x,self.N_u)),         # Fu 
+                np.zeros((self.N_y,self.N_u)),         # Gu 
+                np.zeros((self.N_z,self.N_x)),         # Hx 
+                np.zeros((self.N_z,self.N_y)),         # Hy 
+                np.zeros((self.N_z,self.N_u)),         # Hu 
                 np.zeros((self.N_x,self.N_x)),         # Fx_ini  
                 np.zeros((self.N_x,self.N_y)),         # Fy_ini 
                 np.zeros((self.N_y,self.N_x)),         # Gx_ini 
@@ -172,24 +181,50 @@ class {name}_class:
 
 
     def ini_problem(self,x):
-        self.struct[0].x_ini[:,0] = x[0:self.N_x]
+        self.struct[0].x[:,0] = x[0:self.N_x]
         self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
         ini(self.struct,2)
         ini(self.struct,3)       
-        fg = np.vstack((self.struct[0].f_ini,self.struct[0].g_ini))[:,0]
+        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
         return fg
 
-    def dae_jacobian(self,x):
+    def run_problem(self,x):
+        t = self.struct[0].t
         self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y[:,0] = x[self.N_x:(self.N_x+self.N_y)]
+        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
+        run(t,self.struct,2)
+        run(t,self.struct,3)
+        run(t,self.struct,10)
+        run(t,self.struct,11)
+        run(t,self.struct,12)
+        run(t,self.struct,13)
+        
+        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
+        return fg
+    
+
+    def run_dae_jacobian(self,x):
+        self.struct[0].x[:,0] = x[0:self.N_x]
+        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
         run(0.0,self.struct,10)
-        run(0.0,self.struct,11)       
+        run(0.0,self.struct,11)     
+        run(0.0,self.struct,12)
+        run(0.0,self.struct,13)
         A_c = np.block([[self.struct[0].Fx,self.struct[0].Fy],
                         [self.struct[0].Gx,self.struct[0].Gy]])
         return A_c
+    
+    def eval_jacobians(self):
+
+        run(0.0,self.struct,10)
+        run(0.0,self.struct,11)  
+        run(0.0,self.struct,12) 
+
+        return 1
+
 
     def ini_dae_jacobian(self,x):
-        self.struct[0].x_ini[:,0] = x[0:self.N_x]
+        self.struct[0].x[:,0] = x[0:self.N_x]
         self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
         ini(self.struct,10)
         ini(self.struct,11)       
@@ -197,16 +232,7 @@ class {name}_class:
                         [self.struct[0].Gx_ini,self.struct[0].Gy_ini]])
         return A_c
 
-    def run_problem(self,x):
-        t = self.struct[0].t
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        run(t,self.struct,2)
-        run(t,self.struct,3)
-        run(t,self.struct,10)
-        run(t,self.struct,11)
-        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
-        return fg
+
 
     def f_ode(self,x):
         self.struct[0].x[:,0] = x
@@ -262,88 +288,82 @@ class {name}_class:
             self.struct[0][input_name] = input_value  
 
     def simulate(self,events,xy0=0):
-        # simulation parameters
-        self.struct[0].it = 0       # set time step to zero
-        self.struct[0].it_store = 0 # set storage to zero
-        self.struct[0].t = 0.0      # set time to zero
-                    
-        # initialization
-        it_event = 0
-        event = events[it_event]
-        for item in event:
-            self.struct[0][item] = event[item]
+        
+        # initialize both the ini and the run system
+        self.initialize(events,xy0=xy0)
+        
+        ## solve 
+        #daesolver(self.struct)    # run until first event
+
+        # simulation run
+        for event in events[1:]:  
+            # make all the desired changes
+            for item in event:
+                self.struct[0][item] = event[item]
+            daesolver(self.struct)    # run until next event
             
         
-        ## compute initial conditions using x and y_ini 
-        if xy0 == 0:
-            xy0 = np.zeros(self.N_x+self.N_y)
-        elif xy0 == 1:
-            xy0 = np.ones(self.N_x+self.N_y)
-        elif xy0 == 'prev':
-            xy0 = self.xy_prev
-        else:
-            xy0 = xy0*np.ones(self.N_x+self.N_y)
-
-        #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-        if self.sopt_root_jac:
-            sol = sopt.root(self.ini_problem, xy0, jac=self.ini_dae_jacobian, method=self.sopt_root_method)
-        else:
-            sol = sopt.root(self.ini_problem, xy0, method=self.sopt_root_method)
-
-        self.initialization_ok = True
-        if sol.success == False:
-            print('initialization not found!')
-            self.initialization_ok = False
-
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-
-        if self.initialization_ok:
-            xy = sol.x
-            self.xy_prev = xy
-            self.struct[0].x[:,0] = xy[0:self.N_x]
-            self.struct[0].y[:,0] = xy[self.N_x:]
-
-            ## y_ini to u_run
-            for item in self.inputs_run_list:
-                if item in self.y_ini_list:
-                    self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
-
-            ## u_ini to y_run
-            for item in self.inputs_ini_list:
-                if item in self.y_list:
-                    self.struct[0].y[self.y_list.index(item)] = self.struct[0][item]
+        T,X,Y,Z = self.post()
         
-            ## solve selfem
-            daesolver(self.struct)    # run until first event
-
-            # simulation run
-            for event in events[1:]:  
-                for item in event:
-                    self.struct[0][item] = event[item]
-                daesolver(self.struct)    # run until next event
-                
-            
-            # post process result    
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-        
-            self.T = T
-            self.X = X
-            self.Y = Y
-            self.Z = Z
-            self.iters = iters
-            
         return T,X,Y,Z
     
+    def run(self,events):
+        
 
+        # simulation run
+        for event in events:  
+            # make all the desired changes
+            for item in event:
+                self.struct[0][item] = event[item]
+            daesolver(self.struct)    # run until next event
+            
+        return 1
+    
+    
+    def post(self):
+        
+        # post process result    
+        T = self.struct[0]['T'][:self.struct[0].it_store]
+        X = self.struct[0]['X'][:self.struct[0].it_store,:]
+        Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
+        Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
+        iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+    
+        self.T = T
+        self.X = X
+        self.Y = Y
+        self.Z = Z
+        self.iters = iters
+        
+        return T,X,Y,Z
+        
+        
     def initialize(self,events,xy0=0):
+        '''
+        
+
+        Parameters
+        ----------
+        events : dictionary 
+            Dictionary with at least 't_end' and all inputs and parameters 
+            that need to be changed.
+        xy0 : float or string, optional
+            0 means all states should be zero as initial guess. 
+            If not zero all the states initial guess are the given input.
+            If 'prev' it uses the last known initialization result as initial guess.
+
+        Returns
+        -------
+        T : TYPE
+            DESCRIPTION.
+        X : TYPE
+            DESCRIPTION.
+        Y : TYPE
+            DESCRIPTION.
+        Z : TYPE
+            DESCRIPTION.
+
+        '''
         # simulation parameters
         self.struct[0].it = 0       # set time step to zero
         self.struct[0].it_store = 0 # set storage to zero
@@ -389,7 +409,7 @@ class {name}_class:
             xy = sol.x
             self.xy_prev = xy
             self.struct[0].x[:,0] = xy[0:self.N_x]
-            self.struct[0].y[:,0] = xy[self.N_x:]
+            self.struct[0].y_run[:,0] = xy[self.N_x:]
 
             ## y_ini to u_run
             for item in self.inputs_run_list:
@@ -398,13 +418,29 @@ class {name}_class:
 
             ## u_ini to y_run
             for item in self.inputs_ini_list:
-                if item in self.y_list:
-                    self.struct[0].y[self.y_list.index(item)] = self.struct[0][item]
-        
+                if item in self.y_run_list:
+                    self.struct[0].y_run[self.y_run_list.index(item)] = self.struct[0][item]
+
+
+            #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
+            if self.sopt_root_jac:
+                sol = sopt.root(self.run_problem, xy0, 
+                                jac=self.run_dae_jacobian, 
+                                method=self.sopt_root_method, tol=self.initialization_tol)
+            else:
+                sol = sopt.root(self.run_problem, xy0, method=self.sopt_root_method)
+
+            # evaluate f and g
+            run(0.0,self.struct,2)
+            run(0.0,self.struct,3)                
+
+            
             # evaluate run jacobians 
             run(0.0,self.struct,10)
             run(0.0,self.struct,11)                
-            
+            run(0.0,self.struct,12) 
+            run(0.0,self.struct,14) 
+             
             # post process result    
             T = self.struct[0]['T'][:self.struct[0].it_store]
             X = self.struct[0]['X'][:self.struct[0].it_store,:]
@@ -419,3 +455,36 @@ class {name}_class:
             self.iters = iters
             
         return T,X,Y,Z
+    
+    
+    def get_value(self,name):
+        if name in self.inputs_run_list:
+            value = self.struct[0][name]
+        if name in self.x_list:
+            idx = self.x_list.index(name)
+            value = self.struct[0].x[idx,0]
+        if name in self.y_run_list:
+            idy = self.y_run_list.index(name)
+            value = self.struct[0].y_run[idy,0]
+        if name in self.params_list:
+            value = self.struct[0][name]
+        if name in self.outputs_list:
+            value = self.struct[0].h[self.outputs_list.index(name),0] 
+
+        return value
+    
+    def get_values(self,name):
+        if name in self.x_list:
+            values = self.X[:,self.x_list.index(name)]
+        if name in self.y_run_list:
+            values = self.Y[:,self.y_run_list.index(name)]
+        if name in self.outputs_list:
+            values = self.Z[:,self.outputs_list.index(name)]
+                        
+        return values
+    
+    def set_value(self,name,value):
+        if name in self.inputs_run_list:
+            self.struct[0][name] = value
+        if name in self.params_list:
+            self.struct[0][name] = value

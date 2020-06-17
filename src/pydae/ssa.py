@@ -8,6 +8,7 @@ Created on Wed Sep  5 20:43:46 2018
 
 import numpy as np
 import pandas as pd
+import scipy
 
 def eval_A(system):
     
@@ -21,6 +22,67 @@ def eval_A(system):
     system.A = A
     
     return A
+
+def eval_ss(system):
+    '''
+    
+    Parameters
+    ----------
+    system : system class
+        object.
+
+    Returns
+    -------
+    A : np.array
+        System A matrix.
+
+    # DAE system        
+    dx = f(x,y,u)
+     0 = g(x,y,u)
+     z = h(x,y,u)
+     
+    # system linealization
+    Ddx = Fx*Dx + Fy*Dy + Fu*Du
+      0 = Gx*Dx + Gy*Dy + Gu*Du
+      z = Hx*Dx + Hy*Dy + Hu*Du
+    
+    Dy = -inv(Gy)*Gx*Dx - inv(Gy)*Gu*Du
+                                     
+    Ddx = Fx*Dx - Fy*inv(Gy*Gx)*Dx - Fy*inv(Gy)*Gu*Du + Fu*Du           
+    Ddx = (Fx - Fy*inv(Gy*Gx))*Dx + (Fu - Fy*inv(Gy)*Gu)*Du
+    
+
+    Dz = Hx*Dx + Hy*Dy + Hu*Du
+    Dz = Hx*Dx - Hy*inv(Gy)*(Gx*Dx) - Hy*inv(Gy)*Gu*Du + Hu*Du
+    Dz = (Hx - Hy*inv(Gy)*(Gx))*Dx + (Hu - Hy*inv(Gy)*Gu)*Du
+
+
+    '''
+    Fx = system.struct[0].Fx
+    Fy = system.struct[0].Fy
+    Gx = system.struct[0].Gx
+    Gy = system.struct[0].Gy
+    
+    Fu = system.struct[0].Fu
+    Gu = system.struct[0].Gu    
+    
+    Hx = system.struct[0].Hx
+    Hy = system.struct[0].Hy  
+    Hu = system.struct[0].Hu 
+    
+    A = Fx - Fy @ np.linalg.solve(Gy,Gx)
+    B = Fu - Fy @ np.linalg.solve(Gy,Gu)
+    C = Hx - Hy @ np.linalg.solve(Gy,Gx)
+    D = Hu - Hy @ np.linalg.solve(Gy,Gu)
+    
+    system.A = A
+    system.B = B
+    system.C = C
+    system.D = D
+    
+    return A
+
+
 
 def eval_A_ini(system):
     
@@ -96,6 +158,17 @@ def participation(system, method='kundur'):
         modes = [f'Mode {it+1}' for it in range(N_x)]
         participation_df = pd.DataFrame(data=participation_matrix,index=modes, columns=system.x_list)
 
+    if method=='milano_transpose':
+        for i in range(N_x):
+            for j in range(N_x):
+    
+                den = np.sum(np.abs(W[j,:])*np.abs(V[:,j]))
+                participation_matrix[j,i] =  np.abs(W[i,j])*np.abs(V[j,i])/den
+                
+        
+        modes = [f'Mode {it+1}' for it in range(N_x)]
+        participation_df = pd.DataFrame(data=participation_matrix,index=system.x_list, columns=modes)
+
     if method=='kundur':
         Phi = V
         Psi = W
@@ -152,6 +225,78 @@ def shape2df(system):
         
     # return string
     
+
+def lqr(A,B,Q,R):
+    """Solve the continuous time lqr controller.
+     
+    dx/dt = A x + B u
+     
+    cost = integral x.T*Q*x + u.T*R*u
+    
+    https://www.mwm.im/lqr-controllers-with-python/
+    """
+    #ref Bertsekas, p.151
+     
+    #first, try to solve the ricatti equation
+    X = np.matrix(scipy.linalg.solve_continuous_are(A, B, Q, R))
+     
+    #compute the LQR gain
+    K = np.matrix(scipy.linalg.inv(R)*(B.T*X))
+     
+    eigVals, eigVecs = scipy.linalg.eig(A-B*K)
+     
+    return K, X, eigVals
+ 
+def dlqr(A,B,Q,R):
+    """Solve the discrete time lqr controller.
+     
+    x[k+1] = A x[k] + B u[k]
+     
+    cost = sum x[k].T*Q*x[k] + u[k].T*R*u[k]
+    
+    https://www.mwm.im/lqr-controllers-with-python/
+    """
+    #ref Bertsekas, p.151
+     
+    #first, try to solve the ricatti equation
+    X = np.matrix(scipy.linalg.solve_discrete_are(A, B, Q, R))
+     
+    #compute the LQR gain
+    K = np.matrix(scipy.linalg.inv(B.T*X*B+R)*(B.T*X*A))
+     
+    eigVals, eigVecs = scipy.linalg.eig(A-B*K)
+     
+    return K, X, eigVals
+
+
+def discretise_time(A, B, dt):
+    '''Compute the exact discretization of the continuous system A,B.
+    
+    Goes from a description 
+     d/dt x(t) = A*x(t) + B*u(t)
+     u(t)  = ud[k] for t in [k*dt, (k+1)*dt)
+    to the description
+     xd[k+1] = Ad*xd[k] + Bd*ud[k]
+    where
+     xd[k] := x(k*dt)
+     
+    Returns: Ad, Bd
+    
+    from: https://github.com/markwmuller/controlpy/blob/master/controlpy/analysis.py
+    '''
+    
+    nstates = A.shape[0]
+    ninputs = B.shape[1]
+
+    M = np.matrix(np.zeros([nstates+ninputs,nstates+ninputs]))
+    M[:nstates,:nstates] = A
+    M[:nstates, nstates:] = B
+    
+    Md = scipy.linalg.expm(M*dt)
+    Ad = Md[:nstates, :nstates]
+    Bd = Md[:nstates, nstates:]
+
+    return Ad, Bd
 
 
     

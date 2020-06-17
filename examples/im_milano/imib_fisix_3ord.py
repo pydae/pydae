@@ -41,7 +41,7 @@ class imib_fisix_3ord_class:
         self.it_store = 0
         self.xy_prev = np.zeros((self.N_x+self.N_y,1))
         self.initialization_tol = 1e-6
-
+        self.N_u = len(self.inputs_run_list) 
         self.sopt_root_method='hybr'
         self.sopt_root_jac=True
 
@@ -85,6 +85,11 @@ class imib_fisix_3ord_class:
               ('Fy', np.float64, (self.N_x,self.N_y)),
               ('Gx', np.float64, (self.N_y,self.N_x)),
               ('Gy', np.float64, (self.N_y,self.N_y)),
+              ('Fu', np.float64, (self.N_x,self.N_u)),
+              ('Gu', np.float64, (self.N_y,self.N_u)),
+              ('Hx', np.float64, (self.N_z,self.N_x)),
+              ('Hy', np.float64, (self.N_z,self.N_y)),
+              ('Hu', np.float64, (self.N_z,self.N_u)),
               ('Fx_ini', np.float64, (self.N_x,self.N_x)),
               ('Fy_ini', np.float64, (self.N_x,self.N_y)),
               ('Gx_ini', np.float64, (self.N_y,self.N_x)),
@@ -129,7 +134,12 @@ class imib_fisix_3ord_class:
                 np.zeros((self.N_x,self.N_x)),         # Fx   
                 np.zeros((self.N_x,self.N_y)),         # Fy 
                 np.zeros((self.N_y,self.N_x)),         # Gx 
-                np.zeros((self.N_y,self.N_y)),         # Fy 
+                np.zeros((self.N_y,self.N_y)),         # Fy
+                np.zeros((self.N_x,self.N_u)),         # Fu 
+                np.zeros((self.N_y,self.N_u)),         # Gu 
+                np.zeros((self.N_z,self.N_x)),         # Hx 
+                np.zeros((self.N_z,self.N_y)),         # Hy 
+                np.zeros((self.N_z,self.N_u)),         # Hu 
                 np.zeros((self.N_x,self.N_x)),         # Fx_ini  
                 np.zeros((self.N_x,self.N_y)),         # Fy_ini 
                 np.zeros((self.N_y,self.N_x)),         # Gx_ini 
@@ -187,6 +197,15 @@ class imib_fisix_3ord_class:
         A_c = np.block([[self.struct[0].Fx,self.struct[0].Fy],
                         [self.struct[0].Gx,self.struct[0].Gy]])
         return A_c
+
+    def eval_jacobians(self):
+
+        run(0.0,self.struct,10)
+        run(0.0,self.struct,11)  
+        run(0.0,self.struct,12) 
+
+        return 1
+
 
     def ini_dae_jacobian(self,x):
         self.struct[0].x_ini[:,0] = x[0:self.N_x]
@@ -262,88 +281,82 @@ class imib_fisix_3ord_class:
             self.struct[0][input_name] = input_value  
 
     def simulate(self,events,xy0=0):
-        # simulation parameters
-        self.struct[0].it = 0       # set time step to zero
-        self.struct[0].it_store = 0 # set storage to zero
-        self.struct[0].t = 0.0      # set time to zero
-                    
-        # initialization
-        it_event = 0
-        event = events[it_event]
-        for item in event:
-            self.struct[0][item] = event[item]
+        
+        # initialize both the ini and the run system
+        self.initialize(events,xy0=xy0)
+        
+        ## solve 
+        daesolver(self.struct)    # run until first event
+
+        # simulation run
+        for event in events[1:]:  
+            # make all the desired changes
+            for item in event:
+                self.struct[0][item] = event[item]
+            daesolver(self.struct)    # run until next event
             
         
-        ## compute initial conditions using x and y_ini 
-        if xy0 == 0:
-            xy0 = np.zeros(self.N_x+self.N_y)
-        elif xy0 == 1:
-            xy0 = np.ones(self.N_x+self.N_y)
-        elif xy0 == 'prev':
-            xy0 = self.xy_prev
-        else:
-            xy0 = xy0*np.ones(self.N_x+self.N_y)
-
-        #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-        if self.sopt_root_jac:
-            sol = sopt.root(self.ini_problem, xy0, jac=self.ini_dae_jacobian, method=self.sopt_root_method)
-        else:
-            sol = sopt.root(self.ini_problem, xy0, method=self.sopt_root_method)
-
-        self.initialization_ok = True
-        if sol.success == False:
-            print('initialization not found!')
-            self.initialization_ok = False
-
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-
-        if self.initialization_ok:
-            xy = sol.x
-            self.xy_prev = xy
-            self.struct[0].x[:,0] = xy[0:self.N_x]
-            self.struct[0].y[:,0] = xy[self.N_x:]
-
-            ## y_ini to u_run
-            for item in self.inputs_run_list:
-                if item in self.y_ini_list:
-                    self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
-
-            ## u_ini to y_run
-            for item in self.inputs_ini_list:
-                if item in self.y_list:
-                    self.struct[0].y[self.y_list.index(item)] = self.struct[0][item]
+        T,X,Y,Z = self.post()
         
-            ## solve selfem
-            daesolver(self.struct)    # run until first event
-
-            # simulation run
-            for event in events[1:]:  
-                for item in event:
-                    self.struct[0][item] = event[item]
-                daesolver(self.struct)    # run until next event
-                
-            
-            # post process result    
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-        
-            self.T = T
-            self.X = X
-            self.Y = Y
-            self.Z = Z
-            self.iters = iters
-            
         return T,X,Y,Z
     
+    def run(self,events):
+        
 
+        # simulation run
+        for event in events:  
+            # make all the desired changes
+            for item in event:
+                self.struct[0][item] = event[item]
+            daesolver(self.struct)    # run until next event
+            
+        return 1
+    
+    
+    def post(self):
+        
+        # post process result    
+        T = self.struct[0]['T'][:self.struct[0].it_store]
+        X = self.struct[0]['X'][:self.struct[0].it_store,:]
+        Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
+        Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
+        iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+    
+        self.T = T
+        self.X = X
+        self.Y = Y
+        self.Z = Z
+        self.iters = iters
+        
+        return T,X,Y,Z
+        
+        
     def initialize(self,events,xy0=0):
+        '''
+        
+
+        Parameters
+        ----------
+        events : dictionary 
+            Dictionary with at least 't_end' and all inputs and parameters 
+            that need to be changed.
+        xy0 : float or string, optional
+            0 means all states should be zero as initial guess. 
+            If not zero all the states initial guess are the given input.
+            If 'prev' it uses the last known initialization result as initial guess.
+
+        Returns
+        -------
+        T : TYPE
+            DESCRIPTION.
+        X : TYPE
+            DESCRIPTION.
+        Y : TYPE
+            DESCRIPTION.
+        Z : TYPE
+            DESCRIPTION.
+
+        '''
         # simulation parameters
         self.struct[0].it = 0       # set time step to zero
         self.struct[0].it_store = 0 # set storage to zero
@@ -404,7 +417,9 @@ class imib_fisix_3ord_class:
             # evaluate run jacobians 
             run(0.0,self.struct,10)
             run(0.0,self.struct,11)                
-            
+            run(0.0,self.struct,12) 
+            run(0.0,self.struct,14) 
+             
             # post process result    
             T = self.struct[0]['T'][:self.struct[0].it_store]
             X = self.struct[0]['X'][:self.struct[0].it_store,:]
@@ -419,6 +434,35 @@ class imib_fisix_3ord_class:
             self.iters = iters
             
         return T,X,Y,Z
+    
+    
+    def get_value(self,name):
+        if name in self.inputs_run_list:
+            value = self.struct[0][name]
+        if name in self.x_list:
+            idx = self.x_list.index(name)
+            value = self.struct[0].x[idx,0]
+        if name in self.y_list:
+            idy = self.y_list.index(name)
+            value = self.struct[0].y[idy,0]
+        if name in self.params_list:
+            value = self.struct[0][name]
+            
+        return value
+    
+    def get_values(self,name):
+        if name in self.x_list:
+            values = self.X[:,self.x_list.index(name)]
+        if name in self.y_list:
+            values = self.Y[:,self.y_list.index(name)]
+            
+        return values
+    
+    def set_value(self,name,value):
+        if name in self.inputs_run_list:
+            self.struct[0][name] = value
+        if name in self.params_list:
+            self.struct[0][name] = value
 
 
 @numba.njit(cache=True)
@@ -550,6 +594,25 @@ def run(t,struct,mode):
         struct[0].Gy[9,7] = -1
         struct[0].Gy[9,8] = 2*B_c*v_h - i_sd*cos(theta_h) - i_sq*sin(theta_h)
         struct[0].Gy[9,9] = i_sd*v_h*sin(theta_h) - i_sq*v_h*cos(theta_h)
+
+    if mode == 12:
+
+        struct[0].Fu[0,0] = 1/(2*H_m)
+
+        struct[0].Gu[4,1] = 0
+
+    if mode == 14:
+
+
+        struct[0].Hy[0,2] = 1.0*I_b*i_sd*(i_sd**2 + i_sq**2)**(-0.5)
+        struct[0].Hy[0,3] = 1.0*I_b*i_sq*(i_sd**2 + i_sq**2)**(-0.5)
+        struct[0].Hy[1,8] = -sin(theta_h)
+        struct[0].Hy[1,9] = -v_h*cos(theta_h)
+        struct[0].Hy[2,8] = cos(theta_h)
+        struct[0].Hy[2,9] = -v_h*sin(theta_h)
+        struct[0].Hy[3,8] = 2*B_c*v_h
+
+        struct[0].Hu[3,1] = v_h**2
 
 
 
@@ -737,92 +800,90 @@ def daesolver(struct):
         struct[i].it += 1
         struct[i].t += Dt
         
-        it = struct[i].it
         t = struct[i].t
-        it_store = struct[i].it_store
-        
+
         #perturbations(t,struct) 
         
-        if solver == 1: 
-            # forward euler solver  
-            run(t,struct, 2)  
-            struct[i].x[:] += Dt*struct[i].f  
+        # if solver == 1: 
+        #     # forward euler solver  
+        #     run(t,struct, 2)  
+        #     struct[i].x[:] += Dt*struct[i].f  
  
-        if solver == 2: 
+        # if solver == 2: 
             
-            # bacward euler solver
-            x_0 = np.copy(struct[i].x[:]) 
-            for j in range(struct[i].imax): 
-                run(t,struct, 2) 
-                run(t,struct, 3) 
-                run(t,struct, 10)  
-                phi =  x_0 + Dt*struct[i].f - struct[i].x 
-                Dx = np.linalg.solve(-(Dt*struct[i].Fx - np.eye(N_x)), phi) 
-                struct[i].x[:] += Dx[:] 
-                if np.max(np.abs(Dx)) < struct[i].itol: break 
-            print(struct[i].f)
+        #     # bacward euler solver
+        #     x_0 = np.copy(struct[i].x[:]) 
+        #     for j in range(struct[i].imax): 
+        #         run(t,struct, 2) 
+        #         run(t,struct, 3) 
+        #         run(t,struct, 10)  
+        #         phi =  x_0 + Dt*struct[i].f - struct[i].x 
+        #         Dx = np.linalg.solve(-(Dt*struct[i].Fx - np.eye(N_x)), phi) 
+        #         struct[i].x[:] += Dx[:] 
+        #         if np.max(np.abs(Dx)) < struct[i].itol: break 
+        #     print(struct[i].f)
  
-        if solver == 3: 
-            # trapezoidal solver
-            run(t,struct, 2) 
-            f_0 = np.copy(struct[i].f[:]) 
-            x_0 = np.copy(struct[i].x[:]) 
-            for j in range(struct[i].imax): 
-                run(t,struct, 10)  
-                phi =  x_0 + 0.5*Dt*(f_0 + struct[i].f) - struct[i].x 
-                Dx = np.linalg.solve(-(0.5*Dt*struct[i].Fx - np.eye(N_x)), phi) 
-                struct[i].x[:] += Dx[:] 
-                run(t,struct, 2) 
-                if np.max(np.abs(Dx)) < struct[i].itol: break 
+        # if solver == 3: 
+        #     # trapezoidal solver
+        #     run(t,struct, 2) 
+        #     f_0 = np.copy(struct[i].f[:]) 
+        #     x_0 = np.copy(struct[i].x[:]) 
+        #     for j in range(struct[i].imax): 
+        #         run(t,struct, 10)  
+        #         phi =  x_0 + 0.5*Dt*(f_0 + struct[i].f) - struct[i].x 
+        #         Dx = np.linalg.solve(-(0.5*Dt*struct[i].Fx - np.eye(N_x)), phi) 
+        #         struct[i].x[:] += Dx[:] 
+        #         run(t,struct, 2) 
+        #         if np.max(np.abs(Dx)) < struct[i].itol: break 
 
-        if solver == 4: # Teapezoidal DAE as in Milano's book
+        # if solver == 4: # Teapezoidal DAE as in Milano's book
 
-            run(t,struct, 2) 
-            run(t,struct, 3) 
+        #     run(t,struct, 2) 
+        #     run(t,struct, 3) 
 
-            x = np.copy(struct[i].x[:]) 
-            y = np.copy(struct[i].y[:]) 
-            f = np.copy(struct[i].f[:]) 
-            g = np.copy(struct[i].g[:]) 
+        #     x = np.copy(struct[i].x[:]) 
+        #     y = np.copy(struct[i].y[:]) 
+        #     f = np.copy(struct[i].f[:]) 
+        #     g = np.copy(struct[i].g[:]) 
             
-            for iter in range(struct[i].imax):
-                run(t,struct, 2) 
-                run(t,struct, 3) 
-                run(t,struct,10) 
-                run(t,struct,11) 
+        #     for iter in range(struct[i].imax):
+        #         run(t,struct, 2) 
+        #         run(t,struct, 3) 
+        #         run(t,struct,10) 
+        #         run(t,struct,11) 
                 
-                x_i = struct[i].x[:] 
-                y_i = struct[i].y[:]  
-                f_i = struct[i].f[:] 
-                g_i = struct[i].g[:]                 
-                F_x_i = struct[i].Fx[:,:]
-                F_y_i = struct[i].Fy[:,:] 
-                G_x_i = struct[i].Gx[:,:] 
-                G_y_i = struct[i].Gy[:,:]                
+        #         x_i = struct[i].x[:] 
+        #         y_i = struct[i].y[:]  
+        #         f_i = struct[i].f[:] 
+        #         g_i = struct[i].g[:]                 
+        #         F_x_i = struct[i].Fx[:,:]
+        #         F_y_i = struct[i].Fy[:,:] 
+        #         G_x_i = struct[i].Gx[:,:] 
+        #         G_y_i = struct[i].Gy[:,:]                
 
-                A_c_i = np.vstack((np.hstack((eye-0.5*Dt*F_x_i, -0.5*Dt*F_y_i)),
-                                   np.hstack((G_x_i,         G_y_i))))
+        #         A_c_i = np.vstack((np.hstack((eye-0.5*Dt*F_x_i, -0.5*Dt*F_y_i)),
+        #                            np.hstack((G_x_i,         G_y_i))))
                      
-                f_n_i = x_i - x - 0.5*Dt*(f_i+f) 
-                # print(t,iter,g_i)
-                Dxy_i = np.linalg.solve(-A_c_i,np.vstack((f_n_i,g_i))) 
+        #         f_n_i = x_i - x - 0.5*Dt*(f_i+f) 
+        #         # print(t,iter,g_i)
+        #         Dxy_i = np.linalg.solve(-A_c_i,np.vstack((f_n_i,g_i))) 
                 
-                x_i = x_i + Dxy_i[0:N_x]
-                y_i = y_i + Dxy_i[N_x:(N_x+N_y)]
+        #         x_i = x_i + Dxy_i[0:N_x]
+        #         y_i = y_i + Dxy_i[N_x:(N_x+N_y)]
 
-                struct[i].x[:] = x_i
-                struct[i].y[:] = y_i
+        #         struct[i].x[:] = x_i
+        #         struct[i].y[:] = y_i
 
-                if np.max(np.abs(Dxy_i[:,0]))<struct[i].itol:
+        #         if np.max(np.abs(Dxy_i[:,0]))<struct[i].itol:
                     
-                    break
+        #             break
                 
-                # if iter>struct[i].imax-2:
+        #         # if iter>struct[i].imax-2:
                     
-                #     print('Convergence problem')
+        #         #     print('Convergence problem')
 
-            struct[i].x[:] = x_i
-            struct[i].y[:] = y_i
+        #     struct[i].x[:] = x_i
+        #     struct[i].y[:] = y_i
             
         if solver == 5: # Teapezoidal DAE as in Milano's book
 
@@ -897,7 +958,8 @@ def daesolver(struct):
             struct[i].y[:] = y_i
                 
         # channels 
-        if it >= it_store*decimation: 
+        it_store = struct[i].it_store
+        if struct[i].it >= it_store*decimation: 
             struct[i]['T'][it_store+1] = t 
             struct[i].X[it_store+1,:] = struct[i].x[:,0] 
             struct[i].Y[it_store+1,:] = struct[i].y[:,0]
@@ -906,5 +968,7 @@ def daesolver(struct):
             struct[i].it_store += 1 
             
     struct[i].t = t
-    struct[i].it_store = it_store
+
     return t
+
+
