@@ -185,6 +185,20 @@ def grid2dae_dq(data_input, park_type='original',dq_name='DQ'):
         f_grid += list(C_e.inv()*dv_dq)
         x_grid_list += list(i_l_dq)
         x_grid_list += list(v_dq)
+        x_list = [str(item) for item in x_grid_list]
+        
+        for gformer in grid_formers:
+            bus = gformer['bus']
+            idx_D = x_list.index(f'v_{bus}_D')
+            f_grid.pop(idx_D)
+            x_grid_list.pop(idx_D)
+            x_list.pop(idx_D)
+            u_grid.update({f'v_{bus}_D':gformer["V_phph"]*np.sqrt(2/3)*np.sin(np.deg2rad(gformer["deg"]))})
+            idx_Q = x_list.index(f'v_{bus}_Q')
+            f_grid.pop(idx_Q)
+            x_grid_list.pop(idx_Q)
+            x_list.pop(idx_Q)
+            u_grid.update({f'v_{bus}_Q':gformer["V_phph"]*np.sqrt(2/3)*np.cos(np.deg2rad(gformer["deg"]))})
         
     if model_type == 'dae':
         f_grid += list(L_e.inv()*di_l_dq)

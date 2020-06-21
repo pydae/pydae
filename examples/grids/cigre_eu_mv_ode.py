@@ -27,15 +27,15 @@ class cigre_eu_mv_ode_class:
         self.N_store = 10000 
         self.params_list = ['R_0102', 'L_0102', 'C_0102', 'R_0203', 'L_0203', 'C_0203', 'R_0304', 'L_0304', 'C_0304', 'R_0308', 'L_0308', 'C_0308', 'R_0405', 'L_0405', 'C_0405', 'R_0506', 'L_0506', 'C_0506', 'R_0607', 'L_0607', 'C_0607', 'R_0708', 'L_0708', 'C_0708', 'R_0809', 'L_0809', 'C_0809', 'R_0910', 'L_0910', 'C_0910', 'R_1011', 'L_1011', 'C_1011', 'i_02_D', 'i_02_Q', 'i_03_D', 'i_03_Q', 'i_04_D', 'i_04_Q', 'i_05_D', 'i_05_Q', 'i_06_D', 'i_06_Q', 'i_07_D', 'i_07_Q', 'i_08_D', 'i_08_Q', 'i_09_D', 'i_09_Q', 'i_10_D', 'i_10_Q', 'i_11_D', 'i_11_Q', 'omega'] 
         self.params_values_list  = [1.41282, 0.0064270585739141526, 4.2631325817165496e-07, 2.21442, 0.01007361663003566, 6.681931209640832e-07, 0.30561, 0.001390250258896324, 9.22166976896133e-08, 0.6513, 0.0029628284205987236, 1.96527388518848e-07, 0.28056000000000003, 0.0012762953196425273, 8.465795197734993e-08, 0.77154, 0.0035098121290169496, 2.3280936793771228e-07, 0.12024, 0.0005469837084182259, 3.628197941886425e-08, 0.8366699999999999, 0.0038060949710768213, 2.5246210678959706e-07, 0.16032, 0.0007293116112243012, 4.837597255848566e-08, 0.38577, 0.0017549060645084748, 1.1640468396885614e-07, 0.16533, 0.0007521025990750605, 4.988772170093834e-08, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 314.1592653589793] 
-        self.inputs_ini_list = ['v_01_D', 'v_01_Q'] 
-        self.inputs_ini_values_list  = [0.0, 16329.931618554521] 
-        self.inputs_run_list = ['v_01_D', 'v_01_Q'] 
-        self.inputs_run_values_list = [0.0, 16329.931618554521] 
-        self.outputs_list = ['i_R06_d'] 
+        self.inputs_ini_list = ['v_01_D', 'v_01_Q', 'u_dummy'] 
+        self.inputs_ini_values_list  = [0.0, 16329.931618554521, 1.0] 
+        self.inputs_run_list = ['v_01_D', 'v_01_Q', 'u_dummy'] 
+        self.inputs_run_values_list = [0.0, 16329.931618554521, 1.0] 
+        self.outputs_list = ['v_01_D'] 
         self.x_list = ['i_l_0102_D', 'i_l_0102_Q', 'i_l_0203_D', 'i_l_0203_Q', 'i_l_0304_D', 'i_l_0304_Q', 'i_l_0308_D', 'i_l_0308_Q', 'i_l_0405_D', 'i_l_0405_Q', 'i_l_0506_D', 'i_l_0506_Q', 'i_l_0607_D', 'i_l_0607_Q', 'i_l_0708_D', 'i_l_0708_Q', 'i_l_0809_D', 'i_l_0809_Q', 'i_l_0910_D', 'i_l_0910_Q', 'i_l_1011_D', 'i_l_1011_Q', 'v_02_D', 'v_02_Q', 'v_03_D', 'v_03_Q', 'v_04_D', 'v_04_Q', 'v_05_D', 'v_05_Q', 'v_06_D', 'v_06_Q', 'v_07_D', 'v_07_Q', 'v_08_D', 'v_08_Q', 'v_09_D', 'v_09_Q', 'v_10_D', 'v_10_Q', 'v_11_D', 'v_11_Q'] 
-        self.y_run_list = ['a'] 
+        self.y_run_list = ['y_dummy'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['a'] 
+        self.y_ini_list = ['y_dummy'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -296,7 +296,7 @@ class cigre_eu_mv_ode_class:
         #daesolver(self.struct)    # run until first event
 
         # simulation run
-        for event in events:  
+        for event in events[1:]:  
             # make all the desired changes
             for item in event:
                 self.struct[0][item] = event[item]
@@ -552,6 +552,7 @@ def run(t,struct,mode):
     # Inputs:
     v_01_D = struct[0].v_01_D
     v_01_Q = struct[0].v_01_Q
+    u_dummy = struct[0].u_dummy
     
     # Dynamical states:
     i_l_0102_D = struct[0].x[0,0]
@@ -598,217 +599,217 @@ def run(t,struct,mode):
     v_11_Q = struct[0].x[41,0]
     
     # Algebraic states:
-    a = struct[0].y_run[0,0]
+    y_dummy = struct[0].y_run[0,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (-L_0102*i_l_0102_Q*omega - R_0102*i_l_0102_D + v_01_D - v_02_D)/L_0102
-        struct[0].f[1,0] = (L_0102*i_l_0102_D*omega - R_0102*i_l_0102_Q + v_01_Q - v_02_Q)/L_0102
-        struct[0].f[2,0] = (-L_0203*i_l_0203_Q*omega - R_0203*i_l_0203_D + v_02_D - v_03_D)/L_0203
-        struct[0].f[3,0] = (L_0203*i_l_0203_D*omega - R_0203*i_l_0203_Q + v_02_Q - v_03_Q)/L_0203
-        struct[0].f[4,0] = (-L_0304*i_l_0304_Q*omega - R_0304*i_l_0304_D + v_03_D - v_04_D)/L_0304
-        struct[0].f[5,0] = (L_0304*i_l_0304_D*omega - R_0304*i_l_0304_Q + v_03_Q - v_04_Q)/L_0304
-        struct[0].f[6,0] = (-L_0308*i_l_0308_Q*omega - R_0308*i_l_0308_D + v_03_D - v_08_D)/L_0308
-        struct[0].f[7,0] = (L_0308*i_l_0308_D*omega - R_0308*i_l_0308_Q + v_03_Q - v_08_Q)/L_0308
-        struct[0].f[8,0] = (-L_0405*i_l_0405_Q*omega - R_0405*i_l_0405_D + v_04_D - v_05_D)/L_0405
-        struct[0].f[9,0] = (L_0405*i_l_0405_D*omega - R_0405*i_l_0405_Q + v_04_Q - v_05_Q)/L_0405
-        struct[0].f[10,0] = (-L_0506*i_l_0506_Q*omega - R_0506*i_l_0506_D + v_05_D - v_06_D)/L_0506
-        struct[0].f[11,0] = (L_0506*i_l_0506_D*omega - R_0506*i_l_0506_Q + v_05_Q - v_06_Q)/L_0506
-        struct[0].f[12,0] = (-L_0607*i_l_0607_Q*omega - R_0607*i_l_0607_D + v_06_D - v_07_D)/L_0607
-        struct[0].f[13,0] = (L_0607*i_l_0607_D*omega - R_0607*i_l_0607_Q + v_06_Q - v_07_Q)/L_0607
-        struct[0].f[14,0] = (-L_0708*i_l_0708_Q*omega - R_0708*i_l_0708_D + v_07_D - v_08_D)/L_0708
-        struct[0].f[15,0] = (L_0708*i_l_0708_D*omega - R_0708*i_l_0708_Q + v_07_Q - v_08_Q)/L_0708
-        struct[0].f[16,0] = (-L_0809*i_l_0809_Q*omega - R_0809*i_l_0809_D + v_08_D - v_09_D)/L_0809
-        struct[0].f[17,0] = (L_0809*i_l_0809_D*omega - R_0809*i_l_0809_Q + v_08_Q - v_09_Q)/L_0809
-        struct[0].f[18,0] = (-L_0910*i_l_0910_Q*omega - R_0910*i_l_0910_D + v_09_D - v_10_D)/L_0910
-        struct[0].f[19,0] = (L_0910*i_l_0910_D*omega - R_0910*i_l_0910_Q + v_09_Q - v_10_Q)/L_0910
-        struct[0].f[20,0] = (-L_1011*i_l_1011_Q*omega - R_1011*i_l_1011_D + v_10_D - v_11_D)/L_1011
-        struct[0].f[21,0] = (L_1011*i_l_1011_D*omega - R_1011*i_l_1011_Q + v_10_Q - v_11_Q)/L_1011
-        struct[0].f[22,0] = (i_02_D + i_l_0102_D - i_l_0203_D + omega*v_02_Q*(-C_0102/2 - C_0203/2))/(C_0102/2 + C_0203/2)
-        struct[0].f[23,0] = (i_02_Q + i_l_0102_Q - i_l_0203_Q - omega*v_02_D*(-C_0102/2 - C_0203/2))/(C_0102/2 + C_0203/2)
-        struct[0].f[24,0] = (i_03_D + i_l_0203_D - i_l_0304_D - i_l_0308_D + omega*v_03_Q*(-C_0203/2 - C_0304/2 - C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].f[25,0] = (i_03_Q + i_l_0203_Q - i_l_0304_Q - i_l_0308_Q - omega*v_03_D*(-C_0203/2 - C_0304/2 - C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].f[26,0] = (i_04_D + i_l_0304_D - i_l_0405_D + omega*v_04_Q*(-C_0304/2 - C_0405/2))/(C_0304/2 + C_0405/2)
-        struct[0].f[27,0] = (i_04_Q + i_l_0304_Q - i_l_0405_Q - omega*v_04_D*(-C_0304/2 - C_0405/2))/(C_0304/2 + C_0405/2)
-        struct[0].f[28,0] = (i_05_D + i_l_0405_D - i_l_0506_D + omega*v_05_Q*(-C_0405/2 - C_0506/2))/(C_0405/2 + C_0506/2)
-        struct[0].f[29,0] = (i_05_Q + i_l_0405_Q - i_l_0506_Q - omega*v_05_D*(-C_0405/2 - C_0506/2))/(C_0405/2 + C_0506/2)
-        struct[0].f[30,0] = (i_06_D + i_l_0506_D - i_l_0607_D + omega*v_06_Q*(-C_0506/2 - C_0607/2))/(C_0506/2 + C_0607/2)
-        struct[0].f[31,0] = (i_06_Q + i_l_0506_Q - i_l_0607_Q - omega*v_06_D*(-C_0506/2 - C_0607/2))/(C_0506/2 + C_0607/2)
-        struct[0].f[32,0] = (i_07_D + i_l_0607_D - i_l_0708_D + omega*v_07_Q*(-C_0607/2 - C_0708/2))/(C_0607/2 + C_0708/2)
-        struct[0].f[33,0] = (i_07_Q + i_l_0607_Q - i_l_0708_Q - omega*v_07_D*(-C_0607/2 - C_0708/2))/(C_0607/2 + C_0708/2)
-        struct[0].f[34,0] = (i_08_D + i_l_0308_D + i_l_0708_D - i_l_0809_D + omega*v_08_Q*(-C_0308/2 - C_0708/2 - C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].f[35,0] = (i_08_Q + i_l_0308_Q + i_l_0708_Q - i_l_0809_Q - omega*v_08_D*(-C_0308/2 - C_0708/2 - C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].f[36,0] = (i_09_D + i_l_0809_D - i_l_0910_D + omega*v_09_Q*(-C_0809/2 - C_0910/2))/(C_0809/2 + C_0910/2)
-        struct[0].f[37,0] = (i_09_Q + i_l_0809_Q - i_l_0910_Q - omega*v_09_D*(-C_0809/2 - C_0910/2))/(C_0809/2 + C_0910/2)
-        struct[0].f[38,0] = (i_10_D + i_l_0910_D - i_l_1011_D + omega*v_10_Q*(-C_0910/2 - C_1011/2))/(C_0910/2 + C_1011/2)
-        struct[0].f[39,0] = (i_10_Q + i_l_0910_Q - i_l_1011_Q - omega*v_10_D*(-C_0910/2 - C_1011/2))/(C_0910/2 + C_1011/2)
-        struct[0].f[40,0] = 2*(-C_1011*omega*v_11_Q/2 + i_11_D + i_l_1011_D)/C_1011
-        struct[0].f[41,0] = 2*(C_1011*omega*v_11_D/2 + i_11_Q + i_l_1011_Q)/C_1011
+        struct[0].f[0,0] = (L_0102*i_l_0102_Q*omega - R_0102*i_l_0102_D + v_01_D - v_02_D)/L_0102
+        struct[0].f[1,0] = (-L_0102*i_l_0102_D*omega - R_0102*i_l_0102_Q + v_01_Q - v_02_Q)/L_0102
+        struct[0].f[2,0] = (L_0203*i_l_0203_Q*omega - R_0203*i_l_0203_D + v_02_D - v_03_D)/L_0203
+        struct[0].f[3,0] = (-L_0203*i_l_0203_D*omega - R_0203*i_l_0203_Q + v_02_Q - v_03_Q)/L_0203
+        struct[0].f[4,0] = (L_0304*i_l_0304_Q*omega - R_0304*i_l_0304_D + v_03_D - v_04_D)/L_0304
+        struct[0].f[5,0] = (-L_0304*i_l_0304_D*omega - R_0304*i_l_0304_Q + v_03_Q - v_04_Q)/L_0304
+        struct[0].f[6,0] = (L_0308*i_l_0308_Q*omega - R_0308*i_l_0308_D + v_03_D - v_08_D)/L_0308
+        struct[0].f[7,0] = (-L_0308*i_l_0308_D*omega - R_0308*i_l_0308_Q + v_03_Q - v_08_Q)/L_0308
+        struct[0].f[8,0] = (L_0405*i_l_0405_Q*omega - R_0405*i_l_0405_D + v_04_D - v_05_D)/L_0405
+        struct[0].f[9,0] = (-L_0405*i_l_0405_D*omega - R_0405*i_l_0405_Q + v_04_Q - v_05_Q)/L_0405
+        struct[0].f[10,0] = (L_0506*i_l_0506_Q*omega - R_0506*i_l_0506_D + v_05_D - v_06_D)/L_0506
+        struct[0].f[11,0] = (-L_0506*i_l_0506_D*omega - R_0506*i_l_0506_Q + v_05_Q - v_06_Q)/L_0506
+        struct[0].f[12,0] = (L_0607*i_l_0607_Q*omega - R_0607*i_l_0607_D + v_06_D - v_07_D)/L_0607
+        struct[0].f[13,0] = (-L_0607*i_l_0607_D*omega - R_0607*i_l_0607_Q + v_06_Q - v_07_Q)/L_0607
+        struct[0].f[14,0] = (L_0708*i_l_0708_Q*omega - R_0708*i_l_0708_D + v_07_D - v_08_D)/L_0708
+        struct[0].f[15,0] = (-L_0708*i_l_0708_D*omega - R_0708*i_l_0708_Q + v_07_Q - v_08_Q)/L_0708
+        struct[0].f[16,0] = (L_0809*i_l_0809_Q*omega - R_0809*i_l_0809_D + v_08_D - v_09_D)/L_0809
+        struct[0].f[17,0] = (-L_0809*i_l_0809_D*omega - R_0809*i_l_0809_Q + v_08_Q - v_09_Q)/L_0809
+        struct[0].f[18,0] = (L_0910*i_l_0910_Q*omega - R_0910*i_l_0910_D + v_09_D - v_10_D)/L_0910
+        struct[0].f[19,0] = (-L_0910*i_l_0910_D*omega - R_0910*i_l_0910_Q + v_09_Q - v_10_Q)/L_0910
+        struct[0].f[20,0] = (L_1011*i_l_1011_Q*omega - R_1011*i_l_1011_D + v_10_D - v_11_D)/L_1011
+        struct[0].f[21,0] = (-L_1011*i_l_1011_D*omega - R_1011*i_l_1011_Q + v_10_Q - v_11_Q)/L_1011
+        struct[0].f[22,0] = (i_02_D + i_l_0102_D - i_l_0203_D + omega*v_02_Q*(C_0102/2 + C_0203/2))/(C_0102/2 + C_0203/2)
+        struct[0].f[23,0] = (i_02_Q + i_l_0102_Q - i_l_0203_Q - omega*v_02_D*(C_0102/2 + C_0203/2))/(C_0102/2 + C_0203/2)
+        struct[0].f[24,0] = (i_03_D + i_l_0203_D - i_l_0304_D - i_l_0308_D + omega*v_03_Q*(C_0203/2 + C_0304/2 + C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].f[25,0] = (i_03_Q + i_l_0203_Q - i_l_0304_Q - i_l_0308_Q - omega*v_03_D*(C_0203/2 + C_0304/2 + C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].f[26,0] = (i_04_D + i_l_0304_D - i_l_0405_D + omega*v_04_Q*(C_0304/2 + C_0405/2))/(C_0304/2 + C_0405/2)
+        struct[0].f[27,0] = (i_04_Q + i_l_0304_Q - i_l_0405_Q - omega*v_04_D*(C_0304/2 + C_0405/2))/(C_0304/2 + C_0405/2)
+        struct[0].f[28,0] = (i_05_D + i_l_0405_D - i_l_0506_D + omega*v_05_Q*(C_0405/2 + C_0506/2))/(C_0405/2 + C_0506/2)
+        struct[0].f[29,0] = (i_05_Q + i_l_0405_Q - i_l_0506_Q - omega*v_05_D*(C_0405/2 + C_0506/2))/(C_0405/2 + C_0506/2)
+        struct[0].f[30,0] = (i_06_D + i_l_0506_D - i_l_0607_D + omega*v_06_Q*(C_0506/2 + C_0607/2))/(C_0506/2 + C_0607/2)
+        struct[0].f[31,0] = (i_06_Q + i_l_0506_Q - i_l_0607_Q - omega*v_06_D*(C_0506/2 + C_0607/2))/(C_0506/2 + C_0607/2)
+        struct[0].f[32,0] = (i_07_D + i_l_0607_D - i_l_0708_D + omega*v_07_Q*(C_0607/2 + C_0708/2))/(C_0607/2 + C_0708/2)
+        struct[0].f[33,0] = (i_07_Q + i_l_0607_Q - i_l_0708_Q - omega*v_07_D*(C_0607/2 + C_0708/2))/(C_0607/2 + C_0708/2)
+        struct[0].f[34,0] = (i_08_D + i_l_0308_D + i_l_0708_D - i_l_0809_D + omega*v_08_Q*(C_0308/2 + C_0708/2 + C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].f[35,0] = (i_08_Q + i_l_0308_Q + i_l_0708_Q - i_l_0809_Q - omega*v_08_D*(C_0308/2 + C_0708/2 + C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].f[36,0] = (i_09_D + i_l_0809_D - i_l_0910_D + omega*v_09_Q*(C_0809/2 + C_0910/2))/(C_0809/2 + C_0910/2)
+        struct[0].f[37,0] = (i_09_Q + i_l_0809_Q - i_l_0910_Q - omega*v_09_D*(C_0809/2 + C_0910/2))/(C_0809/2 + C_0910/2)
+        struct[0].f[38,0] = (i_10_D + i_l_0910_D - i_l_1011_D + omega*v_10_Q*(C_0910/2 + C_1011/2))/(C_0910/2 + C_1011/2)
+        struct[0].f[39,0] = (i_10_Q + i_l_0910_Q - i_l_1011_Q - omega*v_10_D*(C_0910/2 + C_1011/2))/(C_0910/2 + C_1011/2)
+        struct[0].f[40,0] = 2*(C_1011*omega*v_11_Q/2 + i_11_D + i_l_1011_D)/C_1011
+        struct[0].f[41,0] = 2*(-C_1011*omega*v_11_D/2 + i_11_Q + i_l_1011_Q)/C_1011
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = 1 - a
+        struct[0].g[0,0] = u_dummy - y_dummy
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = a
+        struct[0].h[0,0] = v_01_D
     
 
     if mode == 10:
 
         struct[0].Fx[0,0] = -R_0102/L_0102
-        struct[0].Fx[0,1] = -omega
+        struct[0].Fx[0,1] = omega
         struct[0].Fx[0,22] = -1/L_0102
-        struct[0].Fx[1,0] = omega
+        struct[0].Fx[1,0] = -omega
         struct[0].Fx[1,1] = -R_0102/L_0102
         struct[0].Fx[1,23] = -1/L_0102
         struct[0].Fx[2,2] = -R_0203/L_0203
-        struct[0].Fx[2,3] = -omega
+        struct[0].Fx[2,3] = omega
         struct[0].Fx[2,22] = 1/L_0203
         struct[0].Fx[2,24] = -1/L_0203
-        struct[0].Fx[3,2] = omega
+        struct[0].Fx[3,2] = -omega
         struct[0].Fx[3,3] = -R_0203/L_0203
         struct[0].Fx[3,23] = 1/L_0203
         struct[0].Fx[3,25] = -1/L_0203
         struct[0].Fx[4,4] = -R_0304/L_0304
-        struct[0].Fx[4,5] = -omega
+        struct[0].Fx[4,5] = omega
         struct[0].Fx[4,24] = 1/L_0304
         struct[0].Fx[4,26] = -1/L_0304
-        struct[0].Fx[5,4] = omega
+        struct[0].Fx[5,4] = -omega
         struct[0].Fx[5,5] = -R_0304/L_0304
         struct[0].Fx[5,25] = 1/L_0304
         struct[0].Fx[5,27] = -1/L_0304
         struct[0].Fx[6,6] = -R_0308/L_0308
-        struct[0].Fx[6,7] = -omega
+        struct[0].Fx[6,7] = omega
         struct[0].Fx[6,24] = 1/L_0308
         struct[0].Fx[6,34] = -1/L_0308
-        struct[0].Fx[7,6] = omega
+        struct[0].Fx[7,6] = -omega
         struct[0].Fx[7,7] = -R_0308/L_0308
         struct[0].Fx[7,25] = 1/L_0308
         struct[0].Fx[7,35] = -1/L_0308
         struct[0].Fx[8,8] = -R_0405/L_0405
-        struct[0].Fx[8,9] = -omega
+        struct[0].Fx[8,9] = omega
         struct[0].Fx[8,26] = 1/L_0405
         struct[0].Fx[8,28] = -1/L_0405
-        struct[0].Fx[9,8] = omega
+        struct[0].Fx[9,8] = -omega
         struct[0].Fx[9,9] = -R_0405/L_0405
         struct[0].Fx[9,27] = 1/L_0405
         struct[0].Fx[9,29] = -1/L_0405
         struct[0].Fx[10,10] = -R_0506/L_0506
-        struct[0].Fx[10,11] = -omega
+        struct[0].Fx[10,11] = omega
         struct[0].Fx[10,28] = 1/L_0506
         struct[0].Fx[10,30] = -1/L_0506
-        struct[0].Fx[11,10] = omega
+        struct[0].Fx[11,10] = -omega
         struct[0].Fx[11,11] = -R_0506/L_0506
         struct[0].Fx[11,29] = 1/L_0506
         struct[0].Fx[11,31] = -1/L_0506
         struct[0].Fx[12,12] = -R_0607/L_0607
-        struct[0].Fx[12,13] = -omega
+        struct[0].Fx[12,13] = omega
         struct[0].Fx[12,30] = 1/L_0607
         struct[0].Fx[12,32] = -1/L_0607
-        struct[0].Fx[13,12] = omega
+        struct[0].Fx[13,12] = -omega
         struct[0].Fx[13,13] = -R_0607/L_0607
         struct[0].Fx[13,31] = 1/L_0607
         struct[0].Fx[13,33] = -1/L_0607
         struct[0].Fx[14,14] = -R_0708/L_0708
-        struct[0].Fx[14,15] = -omega
+        struct[0].Fx[14,15] = omega
         struct[0].Fx[14,32] = 1/L_0708
         struct[0].Fx[14,34] = -1/L_0708
-        struct[0].Fx[15,14] = omega
+        struct[0].Fx[15,14] = -omega
         struct[0].Fx[15,15] = -R_0708/L_0708
         struct[0].Fx[15,33] = 1/L_0708
         struct[0].Fx[15,35] = -1/L_0708
         struct[0].Fx[16,16] = -R_0809/L_0809
-        struct[0].Fx[16,17] = -omega
+        struct[0].Fx[16,17] = omega
         struct[0].Fx[16,34] = 1/L_0809
         struct[0].Fx[16,36] = -1/L_0809
-        struct[0].Fx[17,16] = omega
+        struct[0].Fx[17,16] = -omega
         struct[0].Fx[17,17] = -R_0809/L_0809
         struct[0].Fx[17,35] = 1/L_0809
         struct[0].Fx[17,37] = -1/L_0809
         struct[0].Fx[18,18] = -R_0910/L_0910
-        struct[0].Fx[18,19] = -omega
+        struct[0].Fx[18,19] = omega
         struct[0].Fx[18,36] = 1/L_0910
         struct[0].Fx[18,38] = -1/L_0910
-        struct[0].Fx[19,18] = omega
+        struct[0].Fx[19,18] = -omega
         struct[0].Fx[19,19] = -R_0910/L_0910
         struct[0].Fx[19,37] = 1/L_0910
         struct[0].Fx[19,39] = -1/L_0910
         struct[0].Fx[20,20] = -R_1011/L_1011
-        struct[0].Fx[20,21] = -omega
+        struct[0].Fx[20,21] = omega
         struct[0].Fx[20,38] = 1/L_1011
         struct[0].Fx[20,40] = -1/L_1011
-        struct[0].Fx[21,20] = omega
+        struct[0].Fx[21,20] = -omega
         struct[0].Fx[21,21] = -R_1011/L_1011
         struct[0].Fx[21,39] = 1/L_1011
         struct[0].Fx[21,41] = -1/L_1011
         struct[0].Fx[22,0] = 1/(C_0102/2 + C_0203/2)
         struct[0].Fx[22,2] = -1/(C_0102/2 + C_0203/2)
-        struct[0].Fx[22,23] = omega*(-C_0102/2 - C_0203/2)/(C_0102/2 + C_0203/2)
+        struct[0].Fx[22,23] = omega
         struct[0].Fx[23,1] = 1/(C_0102/2 + C_0203/2)
         struct[0].Fx[23,3] = -1/(C_0102/2 + C_0203/2)
-        struct[0].Fx[23,22] = -omega*(-C_0102/2 - C_0203/2)/(C_0102/2 + C_0203/2)
+        struct[0].Fx[23,22] = -omega
         struct[0].Fx[24,2] = 1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx[24,4] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx[24,6] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].Fx[24,25] = omega*(-C_0203/2 - C_0304/2 - C_0308/2)/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].Fx[24,25] = omega
         struct[0].Fx[25,3] = 1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx[25,5] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx[25,7] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].Fx[25,24] = -omega*(-C_0203/2 - C_0304/2 - C_0308/2)/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].Fx[25,24] = -omega
         struct[0].Fx[26,4] = 1/(C_0304/2 + C_0405/2)
         struct[0].Fx[26,8] = -1/(C_0304/2 + C_0405/2)
-        struct[0].Fx[26,27] = omega*(-C_0304/2 - C_0405/2)/(C_0304/2 + C_0405/2)
+        struct[0].Fx[26,27] = omega
         struct[0].Fx[27,5] = 1/(C_0304/2 + C_0405/2)
         struct[0].Fx[27,9] = -1/(C_0304/2 + C_0405/2)
-        struct[0].Fx[27,26] = -omega*(-C_0304/2 - C_0405/2)/(C_0304/2 + C_0405/2)
+        struct[0].Fx[27,26] = -omega
         struct[0].Fx[28,8] = 1/(C_0405/2 + C_0506/2)
         struct[0].Fx[28,10] = -1/(C_0405/2 + C_0506/2)
-        struct[0].Fx[28,29] = omega*(-C_0405/2 - C_0506/2)/(C_0405/2 + C_0506/2)
+        struct[0].Fx[28,29] = omega
         struct[0].Fx[29,9] = 1/(C_0405/2 + C_0506/2)
         struct[0].Fx[29,11] = -1/(C_0405/2 + C_0506/2)
-        struct[0].Fx[29,28] = -omega*(-C_0405/2 - C_0506/2)/(C_0405/2 + C_0506/2)
+        struct[0].Fx[29,28] = -omega
         struct[0].Fx[30,10] = 1/(C_0506/2 + C_0607/2)
         struct[0].Fx[30,12] = -1/(C_0506/2 + C_0607/2)
-        struct[0].Fx[30,31] = omega*(-C_0506/2 - C_0607/2)/(C_0506/2 + C_0607/2)
+        struct[0].Fx[30,31] = omega
         struct[0].Fx[31,11] = 1/(C_0506/2 + C_0607/2)
         struct[0].Fx[31,13] = -1/(C_0506/2 + C_0607/2)
-        struct[0].Fx[31,30] = -omega*(-C_0506/2 - C_0607/2)/(C_0506/2 + C_0607/2)
+        struct[0].Fx[31,30] = -omega
         struct[0].Fx[32,12] = 1/(C_0607/2 + C_0708/2)
         struct[0].Fx[32,14] = -1/(C_0607/2 + C_0708/2)
-        struct[0].Fx[32,33] = omega*(-C_0607/2 - C_0708/2)/(C_0607/2 + C_0708/2)
+        struct[0].Fx[32,33] = omega
         struct[0].Fx[33,13] = 1/(C_0607/2 + C_0708/2)
         struct[0].Fx[33,15] = -1/(C_0607/2 + C_0708/2)
-        struct[0].Fx[33,32] = -omega*(-C_0607/2 - C_0708/2)/(C_0607/2 + C_0708/2)
+        struct[0].Fx[33,32] = -omega
         struct[0].Fx[34,6] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx[34,14] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx[34,16] = -1/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].Fx[34,35] = omega*(-C_0308/2 - C_0708/2 - C_0809/2)/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].Fx[34,35] = omega
         struct[0].Fx[35,7] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx[35,15] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx[35,17] = -1/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].Fx[35,34] = -omega*(-C_0308/2 - C_0708/2 - C_0809/2)/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].Fx[35,34] = -omega
         struct[0].Fx[36,16] = 1/(C_0809/2 + C_0910/2)
         struct[0].Fx[36,18] = -1/(C_0809/2 + C_0910/2)
-        struct[0].Fx[36,37] = omega*(-C_0809/2 - C_0910/2)/(C_0809/2 + C_0910/2)
+        struct[0].Fx[36,37] = omega
         struct[0].Fx[37,17] = 1/(C_0809/2 + C_0910/2)
         struct[0].Fx[37,19] = -1/(C_0809/2 + C_0910/2)
-        struct[0].Fx[37,36] = -omega*(-C_0809/2 - C_0910/2)/(C_0809/2 + C_0910/2)
+        struct[0].Fx[37,36] = -omega
         struct[0].Fx[38,18] = 1/(C_0910/2 + C_1011/2)
         struct[0].Fx[38,20] = -1/(C_0910/2 + C_1011/2)
-        struct[0].Fx[38,39] = omega*(-C_0910/2 - C_1011/2)/(C_0910/2 + C_1011/2)
+        struct[0].Fx[38,39] = omega
         struct[0].Fx[39,19] = 1/(C_0910/2 + C_1011/2)
         struct[0].Fx[39,21] = -1/(C_0910/2 + C_1011/2)
-        struct[0].Fx[39,38] = -omega*(-C_0910/2 - C_1011/2)/(C_0910/2 + C_1011/2)
+        struct[0].Fx[39,38] = -omega
         struct[0].Fx[40,20] = 2/C_1011
-        struct[0].Fx[40,41] = -omega
+        struct[0].Fx[40,41] = omega
         struct[0].Fx[41,21] = 2/C_1011
-        struct[0].Fx[41,40] = omega
+        struct[0].Fx[41,40] = -omega
 
     if mode == 11:
 
@@ -819,9 +820,9 @@ def run(t,struct,mode):
     if mode > 12:
 
 
+        struct[0].Gu[0,2] = 1
 
 
-        struct[0].Hy[0,0] = 1
 
 
 
@@ -888,6 +889,7 @@ def ini(struct,mode):
     # Inputs:
     v_01_D = struct[0].v_01_D
     v_01_Q = struct[0].v_01_Q
+    u_dummy = struct[0].u_dummy
     
     # Dynamical states:
     i_l_0102_D = struct[0].x[0,0]
@@ -934,217 +936,217 @@ def ini(struct,mode):
     v_11_Q = struct[0].x[41,0]
     
     # Algebraic states:
-    a = struct[0].y_ini[0,0]
+    y_dummy = struct[0].y_ini[0,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (-L_0102*i_l_0102_Q*omega - R_0102*i_l_0102_D + v_01_D - v_02_D)/L_0102
-        struct[0].f[1,0] = (L_0102*i_l_0102_D*omega - R_0102*i_l_0102_Q + v_01_Q - v_02_Q)/L_0102
-        struct[0].f[2,0] = (-L_0203*i_l_0203_Q*omega - R_0203*i_l_0203_D + v_02_D - v_03_D)/L_0203
-        struct[0].f[3,0] = (L_0203*i_l_0203_D*omega - R_0203*i_l_0203_Q + v_02_Q - v_03_Q)/L_0203
-        struct[0].f[4,0] = (-L_0304*i_l_0304_Q*omega - R_0304*i_l_0304_D + v_03_D - v_04_D)/L_0304
-        struct[0].f[5,0] = (L_0304*i_l_0304_D*omega - R_0304*i_l_0304_Q + v_03_Q - v_04_Q)/L_0304
-        struct[0].f[6,0] = (-L_0308*i_l_0308_Q*omega - R_0308*i_l_0308_D + v_03_D - v_08_D)/L_0308
-        struct[0].f[7,0] = (L_0308*i_l_0308_D*omega - R_0308*i_l_0308_Q + v_03_Q - v_08_Q)/L_0308
-        struct[0].f[8,0] = (-L_0405*i_l_0405_Q*omega - R_0405*i_l_0405_D + v_04_D - v_05_D)/L_0405
-        struct[0].f[9,0] = (L_0405*i_l_0405_D*omega - R_0405*i_l_0405_Q + v_04_Q - v_05_Q)/L_0405
-        struct[0].f[10,0] = (-L_0506*i_l_0506_Q*omega - R_0506*i_l_0506_D + v_05_D - v_06_D)/L_0506
-        struct[0].f[11,0] = (L_0506*i_l_0506_D*omega - R_0506*i_l_0506_Q + v_05_Q - v_06_Q)/L_0506
-        struct[0].f[12,0] = (-L_0607*i_l_0607_Q*omega - R_0607*i_l_0607_D + v_06_D - v_07_D)/L_0607
-        struct[0].f[13,0] = (L_0607*i_l_0607_D*omega - R_0607*i_l_0607_Q + v_06_Q - v_07_Q)/L_0607
-        struct[0].f[14,0] = (-L_0708*i_l_0708_Q*omega - R_0708*i_l_0708_D + v_07_D - v_08_D)/L_0708
-        struct[0].f[15,0] = (L_0708*i_l_0708_D*omega - R_0708*i_l_0708_Q + v_07_Q - v_08_Q)/L_0708
-        struct[0].f[16,0] = (-L_0809*i_l_0809_Q*omega - R_0809*i_l_0809_D + v_08_D - v_09_D)/L_0809
-        struct[0].f[17,0] = (L_0809*i_l_0809_D*omega - R_0809*i_l_0809_Q + v_08_Q - v_09_Q)/L_0809
-        struct[0].f[18,0] = (-L_0910*i_l_0910_Q*omega - R_0910*i_l_0910_D + v_09_D - v_10_D)/L_0910
-        struct[0].f[19,0] = (L_0910*i_l_0910_D*omega - R_0910*i_l_0910_Q + v_09_Q - v_10_Q)/L_0910
-        struct[0].f[20,0] = (-L_1011*i_l_1011_Q*omega - R_1011*i_l_1011_D + v_10_D - v_11_D)/L_1011
-        struct[0].f[21,0] = (L_1011*i_l_1011_D*omega - R_1011*i_l_1011_Q + v_10_Q - v_11_Q)/L_1011
-        struct[0].f[22,0] = (i_02_D + i_l_0102_D - i_l_0203_D + omega*v_02_Q*(-C_0102/2 - C_0203/2))/(C_0102/2 + C_0203/2)
-        struct[0].f[23,0] = (i_02_Q + i_l_0102_Q - i_l_0203_Q - omega*v_02_D*(-C_0102/2 - C_0203/2))/(C_0102/2 + C_0203/2)
-        struct[0].f[24,0] = (i_03_D + i_l_0203_D - i_l_0304_D - i_l_0308_D + omega*v_03_Q*(-C_0203/2 - C_0304/2 - C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].f[25,0] = (i_03_Q + i_l_0203_Q - i_l_0304_Q - i_l_0308_Q - omega*v_03_D*(-C_0203/2 - C_0304/2 - C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].f[26,0] = (i_04_D + i_l_0304_D - i_l_0405_D + omega*v_04_Q*(-C_0304/2 - C_0405/2))/(C_0304/2 + C_0405/2)
-        struct[0].f[27,0] = (i_04_Q + i_l_0304_Q - i_l_0405_Q - omega*v_04_D*(-C_0304/2 - C_0405/2))/(C_0304/2 + C_0405/2)
-        struct[0].f[28,0] = (i_05_D + i_l_0405_D - i_l_0506_D + omega*v_05_Q*(-C_0405/2 - C_0506/2))/(C_0405/2 + C_0506/2)
-        struct[0].f[29,0] = (i_05_Q + i_l_0405_Q - i_l_0506_Q - omega*v_05_D*(-C_0405/2 - C_0506/2))/(C_0405/2 + C_0506/2)
-        struct[0].f[30,0] = (i_06_D + i_l_0506_D - i_l_0607_D + omega*v_06_Q*(-C_0506/2 - C_0607/2))/(C_0506/2 + C_0607/2)
-        struct[0].f[31,0] = (i_06_Q + i_l_0506_Q - i_l_0607_Q - omega*v_06_D*(-C_0506/2 - C_0607/2))/(C_0506/2 + C_0607/2)
-        struct[0].f[32,0] = (i_07_D + i_l_0607_D - i_l_0708_D + omega*v_07_Q*(-C_0607/2 - C_0708/2))/(C_0607/2 + C_0708/2)
-        struct[0].f[33,0] = (i_07_Q + i_l_0607_Q - i_l_0708_Q - omega*v_07_D*(-C_0607/2 - C_0708/2))/(C_0607/2 + C_0708/2)
-        struct[0].f[34,0] = (i_08_D + i_l_0308_D + i_l_0708_D - i_l_0809_D + omega*v_08_Q*(-C_0308/2 - C_0708/2 - C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].f[35,0] = (i_08_Q + i_l_0308_Q + i_l_0708_Q - i_l_0809_Q - omega*v_08_D*(-C_0308/2 - C_0708/2 - C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].f[36,0] = (i_09_D + i_l_0809_D - i_l_0910_D + omega*v_09_Q*(-C_0809/2 - C_0910/2))/(C_0809/2 + C_0910/2)
-        struct[0].f[37,0] = (i_09_Q + i_l_0809_Q - i_l_0910_Q - omega*v_09_D*(-C_0809/2 - C_0910/2))/(C_0809/2 + C_0910/2)
-        struct[0].f[38,0] = (i_10_D + i_l_0910_D - i_l_1011_D + omega*v_10_Q*(-C_0910/2 - C_1011/2))/(C_0910/2 + C_1011/2)
-        struct[0].f[39,0] = (i_10_Q + i_l_0910_Q - i_l_1011_Q - omega*v_10_D*(-C_0910/2 - C_1011/2))/(C_0910/2 + C_1011/2)
-        struct[0].f[40,0] = 2*(-C_1011*omega*v_11_Q/2 + i_11_D + i_l_1011_D)/C_1011
-        struct[0].f[41,0] = 2*(C_1011*omega*v_11_D/2 + i_11_Q + i_l_1011_Q)/C_1011
+        struct[0].f[0,0] = (L_0102*i_l_0102_Q*omega - R_0102*i_l_0102_D + v_01_D - v_02_D)/L_0102
+        struct[0].f[1,0] = (-L_0102*i_l_0102_D*omega - R_0102*i_l_0102_Q + v_01_Q - v_02_Q)/L_0102
+        struct[0].f[2,0] = (L_0203*i_l_0203_Q*omega - R_0203*i_l_0203_D + v_02_D - v_03_D)/L_0203
+        struct[0].f[3,0] = (-L_0203*i_l_0203_D*omega - R_0203*i_l_0203_Q + v_02_Q - v_03_Q)/L_0203
+        struct[0].f[4,0] = (L_0304*i_l_0304_Q*omega - R_0304*i_l_0304_D + v_03_D - v_04_D)/L_0304
+        struct[0].f[5,0] = (-L_0304*i_l_0304_D*omega - R_0304*i_l_0304_Q + v_03_Q - v_04_Q)/L_0304
+        struct[0].f[6,0] = (L_0308*i_l_0308_Q*omega - R_0308*i_l_0308_D + v_03_D - v_08_D)/L_0308
+        struct[0].f[7,0] = (-L_0308*i_l_0308_D*omega - R_0308*i_l_0308_Q + v_03_Q - v_08_Q)/L_0308
+        struct[0].f[8,0] = (L_0405*i_l_0405_Q*omega - R_0405*i_l_0405_D + v_04_D - v_05_D)/L_0405
+        struct[0].f[9,0] = (-L_0405*i_l_0405_D*omega - R_0405*i_l_0405_Q + v_04_Q - v_05_Q)/L_0405
+        struct[0].f[10,0] = (L_0506*i_l_0506_Q*omega - R_0506*i_l_0506_D + v_05_D - v_06_D)/L_0506
+        struct[0].f[11,0] = (-L_0506*i_l_0506_D*omega - R_0506*i_l_0506_Q + v_05_Q - v_06_Q)/L_0506
+        struct[0].f[12,0] = (L_0607*i_l_0607_Q*omega - R_0607*i_l_0607_D + v_06_D - v_07_D)/L_0607
+        struct[0].f[13,0] = (-L_0607*i_l_0607_D*omega - R_0607*i_l_0607_Q + v_06_Q - v_07_Q)/L_0607
+        struct[0].f[14,0] = (L_0708*i_l_0708_Q*omega - R_0708*i_l_0708_D + v_07_D - v_08_D)/L_0708
+        struct[0].f[15,0] = (-L_0708*i_l_0708_D*omega - R_0708*i_l_0708_Q + v_07_Q - v_08_Q)/L_0708
+        struct[0].f[16,0] = (L_0809*i_l_0809_Q*omega - R_0809*i_l_0809_D + v_08_D - v_09_D)/L_0809
+        struct[0].f[17,0] = (-L_0809*i_l_0809_D*omega - R_0809*i_l_0809_Q + v_08_Q - v_09_Q)/L_0809
+        struct[0].f[18,0] = (L_0910*i_l_0910_Q*omega - R_0910*i_l_0910_D + v_09_D - v_10_D)/L_0910
+        struct[0].f[19,0] = (-L_0910*i_l_0910_D*omega - R_0910*i_l_0910_Q + v_09_Q - v_10_Q)/L_0910
+        struct[0].f[20,0] = (L_1011*i_l_1011_Q*omega - R_1011*i_l_1011_D + v_10_D - v_11_D)/L_1011
+        struct[0].f[21,0] = (-L_1011*i_l_1011_D*omega - R_1011*i_l_1011_Q + v_10_Q - v_11_Q)/L_1011
+        struct[0].f[22,0] = (i_02_D + i_l_0102_D - i_l_0203_D + omega*v_02_Q*(C_0102/2 + C_0203/2))/(C_0102/2 + C_0203/2)
+        struct[0].f[23,0] = (i_02_Q + i_l_0102_Q - i_l_0203_Q - omega*v_02_D*(C_0102/2 + C_0203/2))/(C_0102/2 + C_0203/2)
+        struct[0].f[24,0] = (i_03_D + i_l_0203_D - i_l_0304_D - i_l_0308_D + omega*v_03_Q*(C_0203/2 + C_0304/2 + C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].f[25,0] = (i_03_Q + i_l_0203_Q - i_l_0304_Q - i_l_0308_Q - omega*v_03_D*(C_0203/2 + C_0304/2 + C_0308/2))/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].f[26,0] = (i_04_D + i_l_0304_D - i_l_0405_D + omega*v_04_Q*(C_0304/2 + C_0405/2))/(C_0304/2 + C_0405/2)
+        struct[0].f[27,0] = (i_04_Q + i_l_0304_Q - i_l_0405_Q - omega*v_04_D*(C_0304/2 + C_0405/2))/(C_0304/2 + C_0405/2)
+        struct[0].f[28,0] = (i_05_D + i_l_0405_D - i_l_0506_D + omega*v_05_Q*(C_0405/2 + C_0506/2))/(C_0405/2 + C_0506/2)
+        struct[0].f[29,0] = (i_05_Q + i_l_0405_Q - i_l_0506_Q - omega*v_05_D*(C_0405/2 + C_0506/2))/(C_0405/2 + C_0506/2)
+        struct[0].f[30,0] = (i_06_D + i_l_0506_D - i_l_0607_D + omega*v_06_Q*(C_0506/2 + C_0607/2))/(C_0506/2 + C_0607/2)
+        struct[0].f[31,0] = (i_06_Q + i_l_0506_Q - i_l_0607_Q - omega*v_06_D*(C_0506/2 + C_0607/2))/(C_0506/2 + C_0607/2)
+        struct[0].f[32,0] = (i_07_D + i_l_0607_D - i_l_0708_D + omega*v_07_Q*(C_0607/2 + C_0708/2))/(C_0607/2 + C_0708/2)
+        struct[0].f[33,0] = (i_07_Q + i_l_0607_Q - i_l_0708_Q - omega*v_07_D*(C_0607/2 + C_0708/2))/(C_0607/2 + C_0708/2)
+        struct[0].f[34,0] = (i_08_D + i_l_0308_D + i_l_0708_D - i_l_0809_D + omega*v_08_Q*(C_0308/2 + C_0708/2 + C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].f[35,0] = (i_08_Q + i_l_0308_Q + i_l_0708_Q - i_l_0809_Q - omega*v_08_D*(C_0308/2 + C_0708/2 + C_0809/2))/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].f[36,0] = (i_09_D + i_l_0809_D - i_l_0910_D + omega*v_09_Q*(C_0809/2 + C_0910/2))/(C_0809/2 + C_0910/2)
+        struct[0].f[37,0] = (i_09_Q + i_l_0809_Q - i_l_0910_Q - omega*v_09_D*(C_0809/2 + C_0910/2))/(C_0809/2 + C_0910/2)
+        struct[0].f[38,0] = (i_10_D + i_l_0910_D - i_l_1011_D + omega*v_10_Q*(C_0910/2 + C_1011/2))/(C_0910/2 + C_1011/2)
+        struct[0].f[39,0] = (i_10_Q + i_l_0910_Q - i_l_1011_Q - omega*v_10_D*(C_0910/2 + C_1011/2))/(C_0910/2 + C_1011/2)
+        struct[0].f[40,0] = 2*(C_1011*omega*v_11_Q/2 + i_11_D + i_l_1011_D)/C_1011
+        struct[0].f[41,0] = 2*(-C_1011*omega*v_11_D/2 + i_11_Q + i_l_1011_Q)/C_1011
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = 1 - a
+        struct[0].g[0,0] = u_dummy - y_dummy
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = a
+        struct[0].h[0,0] = v_01_D
     
 
     if mode == 10:
 
         struct[0].Fx_ini[0,0] = -R_0102/L_0102
-        struct[0].Fx_ini[0,1] = -omega
+        struct[0].Fx_ini[0,1] = omega
         struct[0].Fx_ini[0,22] = -1/L_0102
-        struct[0].Fx_ini[1,0] = omega
+        struct[0].Fx_ini[1,0] = -omega
         struct[0].Fx_ini[1,1] = -R_0102/L_0102
         struct[0].Fx_ini[1,23] = -1/L_0102
         struct[0].Fx_ini[2,2] = -R_0203/L_0203
-        struct[0].Fx_ini[2,3] = -omega
+        struct[0].Fx_ini[2,3] = omega
         struct[0].Fx_ini[2,22] = 1/L_0203
         struct[0].Fx_ini[2,24] = -1/L_0203
-        struct[0].Fx_ini[3,2] = omega
+        struct[0].Fx_ini[3,2] = -omega
         struct[0].Fx_ini[3,3] = -R_0203/L_0203
         struct[0].Fx_ini[3,23] = 1/L_0203
         struct[0].Fx_ini[3,25] = -1/L_0203
         struct[0].Fx_ini[4,4] = -R_0304/L_0304
-        struct[0].Fx_ini[4,5] = -omega
+        struct[0].Fx_ini[4,5] = omega
         struct[0].Fx_ini[4,24] = 1/L_0304
         struct[0].Fx_ini[4,26] = -1/L_0304
-        struct[0].Fx_ini[5,4] = omega
+        struct[0].Fx_ini[5,4] = -omega
         struct[0].Fx_ini[5,5] = -R_0304/L_0304
         struct[0].Fx_ini[5,25] = 1/L_0304
         struct[0].Fx_ini[5,27] = -1/L_0304
         struct[0].Fx_ini[6,6] = -R_0308/L_0308
-        struct[0].Fx_ini[6,7] = -omega
+        struct[0].Fx_ini[6,7] = omega
         struct[0].Fx_ini[6,24] = 1/L_0308
         struct[0].Fx_ini[6,34] = -1/L_0308
-        struct[0].Fx_ini[7,6] = omega
+        struct[0].Fx_ini[7,6] = -omega
         struct[0].Fx_ini[7,7] = -R_0308/L_0308
         struct[0].Fx_ini[7,25] = 1/L_0308
         struct[0].Fx_ini[7,35] = -1/L_0308
         struct[0].Fx_ini[8,8] = -R_0405/L_0405
-        struct[0].Fx_ini[8,9] = -omega
+        struct[0].Fx_ini[8,9] = omega
         struct[0].Fx_ini[8,26] = 1/L_0405
         struct[0].Fx_ini[8,28] = -1/L_0405
-        struct[0].Fx_ini[9,8] = omega
+        struct[0].Fx_ini[9,8] = -omega
         struct[0].Fx_ini[9,9] = -R_0405/L_0405
         struct[0].Fx_ini[9,27] = 1/L_0405
         struct[0].Fx_ini[9,29] = -1/L_0405
         struct[0].Fx_ini[10,10] = -R_0506/L_0506
-        struct[0].Fx_ini[10,11] = -omega
+        struct[0].Fx_ini[10,11] = omega
         struct[0].Fx_ini[10,28] = 1/L_0506
         struct[0].Fx_ini[10,30] = -1/L_0506
-        struct[0].Fx_ini[11,10] = omega
+        struct[0].Fx_ini[11,10] = -omega
         struct[0].Fx_ini[11,11] = -R_0506/L_0506
         struct[0].Fx_ini[11,29] = 1/L_0506
         struct[0].Fx_ini[11,31] = -1/L_0506
         struct[0].Fx_ini[12,12] = -R_0607/L_0607
-        struct[0].Fx_ini[12,13] = -omega
+        struct[0].Fx_ini[12,13] = omega
         struct[0].Fx_ini[12,30] = 1/L_0607
         struct[0].Fx_ini[12,32] = -1/L_0607
-        struct[0].Fx_ini[13,12] = omega
+        struct[0].Fx_ini[13,12] = -omega
         struct[0].Fx_ini[13,13] = -R_0607/L_0607
         struct[0].Fx_ini[13,31] = 1/L_0607
         struct[0].Fx_ini[13,33] = -1/L_0607
         struct[0].Fx_ini[14,14] = -R_0708/L_0708
-        struct[0].Fx_ini[14,15] = -omega
+        struct[0].Fx_ini[14,15] = omega
         struct[0].Fx_ini[14,32] = 1/L_0708
         struct[0].Fx_ini[14,34] = -1/L_0708
-        struct[0].Fx_ini[15,14] = omega
+        struct[0].Fx_ini[15,14] = -omega
         struct[0].Fx_ini[15,15] = -R_0708/L_0708
         struct[0].Fx_ini[15,33] = 1/L_0708
         struct[0].Fx_ini[15,35] = -1/L_0708
         struct[0].Fx_ini[16,16] = -R_0809/L_0809
-        struct[0].Fx_ini[16,17] = -omega
+        struct[0].Fx_ini[16,17] = omega
         struct[0].Fx_ini[16,34] = 1/L_0809
         struct[0].Fx_ini[16,36] = -1/L_0809
-        struct[0].Fx_ini[17,16] = omega
+        struct[0].Fx_ini[17,16] = -omega
         struct[0].Fx_ini[17,17] = -R_0809/L_0809
         struct[0].Fx_ini[17,35] = 1/L_0809
         struct[0].Fx_ini[17,37] = -1/L_0809
         struct[0].Fx_ini[18,18] = -R_0910/L_0910
-        struct[0].Fx_ini[18,19] = -omega
+        struct[0].Fx_ini[18,19] = omega
         struct[0].Fx_ini[18,36] = 1/L_0910
         struct[0].Fx_ini[18,38] = -1/L_0910
-        struct[0].Fx_ini[19,18] = omega
+        struct[0].Fx_ini[19,18] = -omega
         struct[0].Fx_ini[19,19] = -R_0910/L_0910
         struct[0].Fx_ini[19,37] = 1/L_0910
         struct[0].Fx_ini[19,39] = -1/L_0910
         struct[0].Fx_ini[20,20] = -R_1011/L_1011
-        struct[0].Fx_ini[20,21] = -omega
+        struct[0].Fx_ini[20,21] = omega
         struct[0].Fx_ini[20,38] = 1/L_1011
         struct[0].Fx_ini[20,40] = -1/L_1011
-        struct[0].Fx_ini[21,20] = omega
+        struct[0].Fx_ini[21,20] = -omega
         struct[0].Fx_ini[21,21] = -R_1011/L_1011
         struct[0].Fx_ini[21,39] = 1/L_1011
         struct[0].Fx_ini[21,41] = -1/L_1011
         struct[0].Fx_ini[22,0] = 1/(C_0102/2 + C_0203/2)
         struct[0].Fx_ini[22,2] = -1/(C_0102/2 + C_0203/2)
-        struct[0].Fx_ini[22,23] = omega*(-C_0102/2 - C_0203/2)/(C_0102/2 + C_0203/2)
+        struct[0].Fx_ini[22,23] = omega
         struct[0].Fx_ini[23,1] = 1/(C_0102/2 + C_0203/2)
         struct[0].Fx_ini[23,3] = -1/(C_0102/2 + C_0203/2)
-        struct[0].Fx_ini[23,22] = -omega*(-C_0102/2 - C_0203/2)/(C_0102/2 + C_0203/2)
+        struct[0].Fx_ini[23,22] = -omega
         struct[0].Fx_ini[24,2] = 1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx_ini[24,4] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx_ini[24,6] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].Fx_ini[24,25] = omega*(-C_0203/2 - C_0304/2 - C_0308/2)/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].Fx_ini[24,25] = omega
         struct[0].Fx_ini[25,3] = 1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx_ini[25,5] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
         struct[0].Fx_ini[25,7] = -1/(C_0203/2 + C_0304/2 + C_0308/2)
-        struct[0].Fx_ini[25,24] = -omega*(-C_0203/2 - C_0304/2 - C_0308/2)/(C_0203/2 + C_0304/2 + C_0308/2)
+        struct[0].Fx_ini[25,24] = -omega
         struct[0].Fx_ini[26,4] = 1/(C_0304/2 + C_0405/2)
         struct[0].Fx_ini[26,8] = -1/(C_0304/2 + C_0405/2)
-        struct[0].Fx_ini[26,27] = omega*(-C_0304/2 - C_0405/2)/(C_0304/2 + C_0405/2)
+        struct[0].Fx_ini[26,27] = omega
         struct[0].Fx_ini[27,5] = 1/(C_0304/2 + C_0405/2)
         struct[0].Fx_ini[27,9] = -1/(C_0304/2 + C_0405/2)
-        struct[0].Fx_ini[27,26] = -omega*(-C_0304/2 - C_0405/2)/(C_0304/2 + C_0405/2)
+        struct[0].Fx_ini[27,26] = -omega
         struct[0].Fx_ini[28,8] = 1/(C_0405/2 + C_0506/2)
         struct[0].Fx_ini[28,10] = -1/(C_0405/2 + C_0506/2)
-        struct[0].Fx_ini[28,29] = omega*(-C_0405/2 - C_0506/2)/(C_0405/2 + C_0506/2)
+        struct[0].Fx_ini[28,29] = omega
         struct[0].Fx_ini[29,9] = 1/(C_0405/2 + C_0506/2)
         struct[0].Fx_ini[29,11] = -1/(C_0405/2 + C_0506/2)
-        struct[0].Fx_ini[29,28] = -omega*(-C_0405/2 - C_0506/2)/(C_0405/2 + C_0506/2)
+        struct[0].Fx_ini[29,28] = -omega
         struct[0].Fx_ini[30,10] = 1/(C_0506/2 + C_0607/2)
         struct[0].Fx_ini[30,12] = -1/(C_0506/2 + C_0607/2)
-        struct[0].Fx_ini[30,31] = omega*(-C_0506/2 - C_0607/2)/(C_0506/2 + C_0607/2)
+        struct[0].Fx_ini[30,31] = omega
         struct[0].Fx_ini[31,11] = 1/(C_0506/2 + C_0607/2)
         struct[0].Fx_ini[31,13] = -1/(C_0506/2 + C_0607/2)
-        struct[0].Fx_ini[31,30] = -omega*(-C_0506/2 - C_0607/2)/(C_0506/2 + C_0607/2)
+        struct[0].Fx_ini[31,30] = -omega
         struct[0].Fx_ini[32,12] = 1/(C_0607/2 + C_0708/2)
         struct[0].Fx_ini[32,14] = -1/(C_0607/2 + C_0708/2)
-        struct[0].Fx_ini[32,33] = omega*(-C_0607/2 - C_0708/2)/(C_0607/2 + C_0708/2)
+        struct[0].Fx_ini[32,33] = omega
         struct[0].Fx_ini[33,13] = 1/(C_0607/2 + C_0708/2)
         struct[0].Fx_ini[33,15] = -1/(C_0607/2 + C_0708/2)
-        struct[0].Fx_ini[33,32] = -omega*(-C_0607/2 - C_0708/2)/(C_0607/2 + C_0708/2)
+        struct[0].Fx_ini[33,32] = -omega
         struct[0].Fx_ini[34,6] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx_ini[34,14] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx_ini[34,16] = -1/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].Fx_ini[34,35] = omega*(-C_0308/2 - C_0708/2 - C_0809/2)/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].Fx_ini[34,35] = omega
         struct[0].Fx_ini[35,7] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx_ini[35,15] = 1/(C_0308/2 + C_0708/2 + C_0809/2)
         struct[0].Fx_ini[35,17] = -1/(C_0308/2 + C_0708/2 + C_0809/2)
-        struct[0].Fx_ini[35,34] = -omega*(-C_0308/2 - C_0708/2 - C_0809/2)/(C_0308/2 + C_0708/2 + C_0809/2)
+        struct[0].Fx_ini[35,34] = -omega
         struct[0].Fx_ini[36,16] = 1/(C_0809/2 + C_0910/2)
         struct[0].Fx_ini[36,18] = -1/(C_0809/2 + C_0910/2)
-        struct[0].Fx_ini[36,37] = omega*(-C_0809/2 - C_0910/2)/(C_0809/2 + C_0910/2)
+        struct[0].Fx_ini[36,37] = omega
         struct[0].Fx_ini[37,17] = 1/(C_0809/2 + C_0910/2)
         struct[0].Fx_ini[37,19] = -1/(C_0809/2 + C_0910/2)
-        struct[0].Fx_ini[37,36] = -omega*(-C_0809/2 - C_0910/2)/(C_0809/2 + C_0910/2)
+        struct[0].Fx_ini[37,36] = -omega
         struct[0].Fx_ini[38,18] = 1/(C_0910/2 + C_1011/2)
         struct[0].Fx_ini[38,20] = -1/(C_0910/2 + C_1011/2)
-        struct[0].Fx_ini[38,39] = omega*(-C_0910/2 - C_1011/2)/(C_0910/2 + C_1011/2)
+        struct[0].Fx_ini[38,39] = omega
         struct[0].Fx_ini[39,19] = 1/(C_0910/2 + C_1011/2)
         struct[0].Fx_ini[39,21] = -1/(C_0910/2 + C_1011/2)
-        struct[0].Fx_ini[39,38] = -omega*(-C_0910/2 - C_1011/2)/(C_0910/2 + C_1011/2)
+        struct[0].Fx_ini[39,38] = -omega
         struct[0].Fx_ini[40,20] = 2/C_1011
-        struct[0].Fx_ini[40,41] = -omega
+        struct[0].Fx_ini[40,41] = omega
         struct[0].Fx_ini[41,21] = 2/C_1011
-        struct[0].Fx_ini[41,40] = omega
+        struct[0].Fx_ini[41,40] = -omega
 
     if mode == 11:
 

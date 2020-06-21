@@ -87,7 +87,27 @@ def sym_gen(sys_vars):
     return [prueba_a,prueba_b]
 
     
+def check_system(sys):
+    
+    if len(sys['f_list']) == 0:
+        print('system without dynamic equations, adding dummy dynamic equation')
+        x_dummy,u_dummy = sym.symbols('x_dummy,u_dummy')
+        sys['x_list'] = ['x_dummy']
+        sys['f_list'] = [u_dummy-x_dummy]
+        sys['u_ini_dict'].update({'u_dummy':1.0})
+        sys['u_run_dict'].update({'u_dummy':1.0})
+
+    if len(sys['g_list']) == 0:
+        print('system without algebraic equations, adding dummy algebraic equation')
+        y_dummy,u_dummy = sym.symbols('y_dummy,u_dummy')
         
+        sys['g_list'] = [u_dummy-y_dummy]
+        sys['y_ini_list'] = ['y_dummy']
+        sys['y_run_list'] = ['y_dummy']
+        sys['u_ini_dict'].update({'u_dummy':1.0})
+        sys['u_run_dict'].update({'u_dummy':1.0})
+
+       
 def system(sys):
     '''
     
@@ -112,6 +132,7 @@ def system(sys):
         DESCRIPTION.
 
     '''
+    check_system(sys)
     
     f = sym.Matrix(sys['f_list'])
     g = sym.Matrix(sys['g_list'])
