@@ -183,9 +183,9 @@ def grid2dae_dq(data_input, park_type='original',dq_name='DQ'):
     if model_type == 'ode':
         f_grid += list(L_e.inv()*di_l_dq)
         f_grid += list(C_e.inv()*dv_dq)
-        x_grid_list += list(i_l_dq)
-        x_grid_list += list(v_dq)
-        x_list = [str(item) for item in x_grid_list]
+        x_grid_list += list(i_l_dq)                    # items as sym.Symbol
+        x_grid_list += list(v_dq)                      # items as sym.Symbol
+        x_list = [str(item) for item in x_grid_list]   # items as str
         
         for gformer in grid_formers:
             bus = gformer['bus']
@@ -203,20 +203,23 @@ def grid2dae_dq(data_input, park_type='original',dq_name='DQ'):
     if model_type == 'dae':
         f_grid += list(L_e.inv()*di_l_dq)
         g_grid += list(dv_dq)
-        x_grid_list += list(i_l_dq)
-        y_grid_list += list(v_dq)
-
+        x_grid_list += list(i_l_dq)                   # items as sym.Symbol
+        y_grid_list += list(v_dq)                     # items as sym.Symbol
+        x_list = [str(item) for item in x_grid_list]  # items as str
+        y_list = [str(item) for item in y_grid_list]  # items as str
+        
         for gformer in grid_formers:
-            N_i_branch = len(list(i_l_dq))
-            idx_gformer = buses_list.index(gformer['bus'])
-            y_grid_list[2*idx_gformer] = i_list[2*idx_gformer]
-            y_grid_list[2*idx_gformer+1] = i_list[2*idx_gformer+1]
-
-            bus_name = gformer['bus']
-            phi = np.deg2rad(gformer['deg'])
-            v_d = np.sin(phi)*gformer['V_phph']*np.sqrt(2/3)
-            v_q = np.cos(phi)*gformer['V_phph']*np.sqrt(2/3)
-            u_grid.update({f'v_{bus_name}_{D_}':v_d,f'v_{bus_name}_{Q_}':v_q})
+            bus = gformer['bus']
+            idx_D = y_list.index(f'v_{bus}_D')
+            g_grid.pop(idx_D)
+            y_grid_list.pop(idx_D)
+            y_list.pop(idx_D)
+            u_grid.update({f'v_{bus}_D':gformer["V_phph"]*np.sqrt(2/3)*np.sin(np.deg2rad(gformer["deg"]))})
+            idx_Q = y_list.index(f'v_{bus}_Q')
+            g_grid.pop(idx_Q)
+            y_grid_list.pop(idx_Q)
+            y_list.pop(idx_Q)
+            u_grid.update({f'v_{bus}_Q':gformer["V_phph"]*np.sqrt(2/3)*np.cos(np.deg2rad(gformer["deg"]))})
             
             
     if model_type == 'ae':

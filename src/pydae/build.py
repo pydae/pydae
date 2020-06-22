@@ -414,6 +414,7 @@ def sys2num(sys):
 
 
     # Fu and Gu
+    nonzero = 0
     run_fun += f'\n'
     run_fun += f'{tab}if mode > 12:\n\n'
     for irow in range(N_x):
@@ -421,6 +422,7 @@ def sys2num(sys):
             if not Fu_run[irow,icol]==0:
                 string = arg2np(f'{Fu_run[irow,icol]}',"Piecewise")
                 run_fun += f'{2*tab}struct[0].Fu[{irow},{icol}] = {string}\n'
+                nonzero += 1
              
                 
     run_fun += f'\n'
@@ -429,7 +431,7 @@ def sys2num(sys):
             if not Gu_run[irow,icol]==0:
                 string = arg2np(f'{Gu_run[irow,icol]}',"Piecewise")
                 run_fun += f'{2*tab}struct[0].Gu[{irow},{icol}] = {string}\n'
-
+                nonzero += 1
 
     # Hx, Hy and Hu
     run_fun += f'\n'
@@ -438,6 +440,7 @@ def sys2num(sys):
             if not Hx_run[irow,icol]==0:
                 string = arg2np(f'{Hx_run[irow,icol]}',"Piecewise")
                 run_fun += f'{2*tab}struct[0].Hx[{irow},{icol}] = {string}\n'
+                nonzero += 1
                 
     run_fun += f'\n'
     for irow in range(N_z):
@@ -445,13 +448,22 @@ def sys2num(sys):
             if not Hy_run[irow,icol]==0:
                 string = arg2np(f'{Hy_run[irow,icol]}',"Piecewise")
                 run_fun += f'{2*tab}struct[0].Hy[{irow},{icol}] = {string}\n'
+                nonzero += 1
                                 
     run_fun += f'\n'
     for irow in range(N_z):
         for icol in range(N_u):
             if not Hu_run[irow,icol]==0:
                 string = arg2np(f'{Hu_run[irow,icol]}',"Piecewise")
-                run_fun += f'{2*tab}struct[0].Hu[{irow},{icol}] = {string}\n'                
+                run_fun += f'{2*tab}struct[0].Hu[{irow},{icol}] = {string}\n'
+                nonzero += 1              
+ 
+
+
+    if nonzero==0: 
+        print('jacobians respect u = 0')
+        
+        run_fun += f'{2*tab}pass\n'                 
                 
                 
     #with open('./class_dae_template.py','r') as fobj:
