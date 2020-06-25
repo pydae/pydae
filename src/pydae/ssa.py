@@ -42,19 +42,19 @@ def eval_ss(system):
      z = h(x,y,u)
      
     # system linealization
-    Ddx = Fx*Dx + Fy*Dy + Fu*Du
-      0 = Gx*Dx + Gy*Dy + Gu*Du
-      z = Hx*Dx + Hy*Dy + Hu*Du
+    Δdx = Fx*Δx + Fy*Δy + Fu*Δu
+      0 = Gx*Δx + Gy*Δy + Gu*Δu
+     Δz = Hx*Δx + Hy*Δy + Hu*Δu
     
-    Dy = -inv(Gy)*Gx*Dx - inv(Gy)*Gu*Du
+    Δy = -inv(Gy)*Gx*Dx - inv(Gy)*Gu*Du
                                      
-    Ddx = Fx*Dx - Fy*inv(Gy*Gx)*Dx - Fy*inv(Gy)*Gu*Du + Fu*Du           
-    Ddx = (Fx - Fy*inv(Gy*Gx))*Dx + (Fu - Fy*inv(Gy)*Gu)*Du
+    Δdx = Fx*Dx - Fy*inv(Gy*Gx)*Δx - Fy*inv(Gy)*Gu*Δu + Fu*Δu           
+    Δdx = (Fx - Fy*inv(Gy*Gx))*Δx + (Fu - Fy*inv(Gy)*Gu)*Δu
     
 
-    Dz = Hx*Dx + Hy*Dy + Hu*Du
-    Dz = Hx*Dx - Hy*inv(Gy)*(Gx*Dx) - Hy*inv(Gy)*Gu*Du + Hu*Du
-    Dz = (Hx - Hy*inv(Gy)*(Gx))*Dx + (Hu - Hy*inv(Gy)*Gu)*Du
+    Δz = Hx*Dx + Hy*Δy + Hu*Δu
+    Δz = Hx*Dx - Hy*inv(Gy)*(Gx*Δx) - Hy*inv(Gy)*Gu*Du + Hu*Δu
+    Δz = (Hx - Hy*inv(Gy)*(Gx))*Δx + (Hu - Hy*inv(Gy)*Gu)*Δu
 
 
     '''

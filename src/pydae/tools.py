@@ -73,8 +73,8 @@ def get_v(syst,bus_name,v_type='rms_phph'):
     v_q_name = f'v_{bus_name}_q'
 
     if v_d_name in syst.y_list:
-        v_d = Y[-1,syst.y_list.index(v_d_name)]
-        v_q = Y[-1,syst.y_list.index(v_q_name)]
+        v_d = Y[-1,syst.y_run_list.index(v_d_name)]
+        v_q = Y[-1,syst.y_run_list.index(v_q_name)]
     elif  v_d_name in syst.x_list:
         v_d = X[-1,syst.x_list.index(v_d_name)]
         v_q = X[-1,syst.x_list.index(v_q_name)]
