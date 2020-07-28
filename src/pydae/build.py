@@ -16,7 +16,10 @@ import pkgutil
 def sym_gen_str():
 
     str = '''\
-params = sys_vars['params']
+import sympy as sym
+
+if 'params' in sys_vars: params = sys_vars['params']
+if 'params_dict' in sys_vars: params = sys_vars['params_dict']
 u_list = sys_vars['u_list']
 x_list = sys_vars['x_list']
 y_list = sys_vars['y_list']
@@ -65,7 +68,7 @@ def sym_gen(sys_vars):
                 'y_run_list':y_run_list}   
     """    
 
-    params = sys_vars['params']
+    params = sys_vars['params_dict']
     u_list = sys_vars['u_list']
     x_list = sys_vars['x_list']
     y_list = sys_vars['y_list']
@@ -82,9 +85,8 @@ def sym_gen(sys_vars):
     for item in sym_func_list:
         exec(f"{item} = sym.{item}", globals()) 
 
-    prueba_a = sym.Symbol('prueba_a')
-    prueba_b = sym.Symbol('prueba_b')
-    return [prueba_a,prueba_b]
+
+    return sys_vars
 
     
 def check_system(sys):
@@ -134,14 +136,16 @@ def system(sys):
     '''
     check_system(sys)
     
-    f = sym.Matrix(sys['f_list'])
-    g = sym.Matrix(sys['g_list'])
-    x = sym.Matrix(sys['x_list'])
-    y_ini = sym.Matrix(sys['y_ini_list'])
-    y_run = sym.Matrix(sys['y_run_list'])
-    u_ini = sym.Matrix(list(sys['u_ini_dict'].keys()))
-    u_run = sym.Matrix(list(sys['u_run_dict'].keys()))  
-    h =  sym.Matrix(list(sys['h_dict'].values()))     
+    f = sym.Matrix(sys['f_list']).T
+    g = sym.Matrix(sys['g_list']).T
+    x = sym.Matrix(sys['x_list']).T
+    y_ini = sym.Matrix(sys['y_ini_list']).T
+    y_run = sym.Matrix(sys['y_run_list']).T
+    u_ini = sym.Matrix(list(sys['u_ini_dict'].keys()), real=True)
+    
+    u_run_list = [sym.Symbol(item,real=True) for item in list(sys['u_run_dict'].keys())]
+    u_run = sym.Matrix(u_run_list).T 
+    h =  sym.Matrix(list(sys['h_dict'].values())).T     
 
     Fx_run = f.jacobian(x)
     Fy_run = f.jacobian(y_run)

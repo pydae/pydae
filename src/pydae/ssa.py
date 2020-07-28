@@ -299,7 +299,46 @@ def discretise_time(A, B, dt):
     return Ad, Bd
 
 
+def acker(A,B,poles):
+    '''
+    This function is a copy from the original in: https://github.com/python-control/python-control
+    but it allows to work with complex A and B matrices. It is experimental and the original should be
+    considered
     
+    
+    ----------
+    A : numpy array_like (complex can be used)
+        Dynamics amatrix of the system
+    B : numpy array_like (complex can be used)
+        Input matrix of the system
+    poles : numpy array_like
+        Desired eigenvalue locations.
+
+    Returns
+    -------
+    K : numpy array_like
+        Gain such that A - B K has eigenvalues given in p.
+
+    '''
+    
+    
+    N_x = np.shape(A)[0]
+    
+    ctrb = np.hstack([B] + [np.dot(np.linalg.matrix_power(A, i), B)
+                                             for i in range(1, N_x)])
+
+    # Compute the desired characteristic polynomial
+    p = np.real(np.poly(poles))
+
+    n = np.size(p)
+    pmat = p[n-1] * np.linalg.matrix_power(A, 0)
+    for i in np.arange(1,n):
+        pmat = pmat + np.dot(p[n-i-1], np.linalg.matrix_power(A, i))
+    K = np.linalg.solve(ctrb, pmat)
+
+    K = K[-1][:]                # Extract the last row            # Extract the last row
+    
+    return K    
     
 if __name__ == "__main__":
     

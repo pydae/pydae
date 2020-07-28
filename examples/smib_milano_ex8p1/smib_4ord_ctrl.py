@@ -296,7 +296,7 @@ class smib_4ord_ctrl_class:
         #daesolver(self.struct)    # run until first event
 
         # simulation run
-        for event in events:  
+        for event in events[1:]:  
             # make all the desired changes
             for item in event:
                 self.struct[0][item] = event[item]
@@ -338,7 +338,7 @@ class smib_4ord_ctrl_class:
         return T,X,Y,Z
         
         
-    def initialize(self,events,xy0=0):
+    def initialize(self,events=[{}],xy0=0):
         '''
         
 
@@ -454,7 +454,7 @@ class smib_4ord_ctrl_class:
             self.Z = Z
             self.iters = iters
             
-        return T,X,Y,Z
+        return self.initialization_ok
     
     
     def get_value(self,name):
@@ -488,6 +488,21 @@ class smib_4ord_ctrl_class:
             self.struct[0][name] = value
         if name in self.params_list:
             self.struct[0][name] = value
+            
+    def report_x(self,value_format='5.2f'):
+        for item in self.x_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_y(self,value_format='5.2f'):
+        for item in self.y_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def report_u(self,value_format='5.2f'):
+        for item in self.inputs_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def get_x(self):
+        return self.struct[0].x
 
 
 @numba.njit(cache=True)

@@ -338,7 +338,7 @@ class {name}_class:
         return T,X,Y,Z
         
         
-    def initialize(self,events,xy0=0):
+    def initialize(self,events=[{}],xy0=0):
         '''
         
 
@@ -454,7 +454,7 @@ class {name}_class:
             self.Z = Z
             self.iters = iters
             
-        return T,X,Y,Z
+        return self.initialization_ok
     
     
     def get_value(self,name):
@@ -482,9 +482,48 @@ class {name}_class:
             values = self.Z[:,self.outputs_list.index(name)]
                         
         return values
+
+    def get_mvalue(self,names):
+        '''
+
+        Parameters
+        ----------
+        names : list
+            list of variables names to return each value.
+
+        Returns
+        -------
+        mvalue : TYPE
+            list of value of each variable.
+
+        '''
+        mvalue = []
+        for name in names:
+            mvalue += [self.get_value(name)]
+                        
+        return mvalue
     
     def set_value(self,name,value):
         if name in self.inputs_run_list:
             self.struct[0][name] = value
         if name in self.params_list:
             self.struct[0][name] = value
+            
+    def report_x(self,value_format='5.2f'):
+        for item in self.x_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_y(self,value_format='5.2f'):
+        for item in self.y_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def report_u(self,value_format='5.2f'):
+        for item in self.inputs_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_z(self,value_format='5.2f'):
+        for item in self.outputs_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def get_x(self):
+        return self.struct[0].x

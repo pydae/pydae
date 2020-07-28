@@ -430,7 +430,168 @@ def grid2dae(nodes_list,V_node,I_node,Y_iv,inv_Y_ii,load_buses):
     return y_list,g_list,y_0_list,u_dict
 
 
+
+def dcgrid2dae(data_input):
+    vscs = data_input['grid_formers']
+    park_type='original'
+    dq_name='DQ'
+
+    if dq_name == 'DQ':
+        D_ = 'D'
+        Q_ = 'Q'        
+
+    if type(data_input) == str:
+        json_file = data_input
+        json_data = open(json_file).read().replace("'",'"')
+        data = json.loads(json_data)
+    elif type(data_input) == dict:
+        data = data_input
+
+    data_processing(data)
+    model_type = data['system']['model_type']
+    buses = data['buses']
+    lines = data['lines']
+    loads = data['loads']
+    grid_formers = data['grid_formers']
+
+    buses_list = [item['bus'] for item in buses]
+    load_buses_list = [item['bus'] for item in loads]
+    gformers_buses_list = [item['bus'] for item in grid_formers]
+
+    params = {}
+    u_grid = {}
+    f_grid = []
+    g_grid = []
+    y_grid_list = []
+    x_grid_list = []
+    x_list = []
+    y_list = []
+    h_dict = {}
+
+    omega = sym.Symbol('omega', real=True)
+    M = len(lines) # total number of branches
+    N = len(buses) # total number of buses
+    A_k = sym.Matrix.zeros(M,cols=N)
+
+    i_line_list = []
+    i_list = []
+    v_list = []
+    R_list = []
+    L_list = []
+    C_list = [0]*N
+
+    itl = 0
+    for line in lines:
+        sub_name = f"{line['bus_j']}{line['bus_k']}"
+
+        idx_bus_j = buses_list.index(line['bus_j'])
+        idx_bus_k = buses_list.index(line['bus_k'])
+
+        A_k[itl,idx_bus_j] =  1
+        A_k[itl,idx_bus_k] = -1
+
+        bus_j = line['bus_j']
+        bus_k = line['bus_k']    
+
+        R_ij = sym.Symbol(f'R_{sub_name}', real=True)
+        L_ij = sym.Symbol(f'L_{sub_name}', real=True)
+
+        R_list += [R_ij]
+        L_list += [L_ij]
+
+        i_line = sym.Symbol(f'i_l_{sub_name}', real=True)
+        i_line_list += [i_line]
+
+        C_ij = sym.Symbol(f'C_{sub_name}', real=True)
+        C_list[idx_bus_j] += C_ij/2
+        C_list[idx_bus_k] += C_ij/2
+
+        # parameters
+        R_name = f'R_{sub_name}'
+        R_value = line['R']
+        L_name = f'L_{sub_name}'
+        L_value = line['L']
+        C_name = f'C_{sub_name}'
+        C_value = line['C']
+
+        params.update({R_name:R_value,L_name:L_value,C_name:C_value})
+
+        itl += 1
+
+
+    C_e_list = []
+    for item in C_list:
+        C_e_list += [item]
+        C_e_list += [item]
+
+    for bus in buses:
+        bus_name = bus['bus']
+        v = sym.Symbol(f'v_{bus_name}', real=True)
+        i = sym.Symbol(f'i_{bus_name}', real=True)
+
+        v_list += [v]
+        i_list += [i]
+
+
+    i_line = sym.Matrix(i_line_list)
+    R_e = sym.Matrix.diag(R_list)
+    L_e = sym.Matrix.diag(L_list)
+
+    v  = sym.Matrix(v_list)
+    i  = sym.Matrix(i_list)
+    def T(P):
+        u = TensorProduct(sym.Matrix.eye(P),sym.Matrix([1,0]).T)
+        l = TensorProduct(sym.Matrix.eye(P),sym.Matrix([0,1]).T)
+        return sym.Matrix([u,l])
+
+    A_e = sym.Matrix.diag([A_k])
+
+    if park_type == 'fisix':
+        di_l_dq =  (-R_e  @ i_line + A_e @ v)
+        dv =  ( - A_e.T @ i_line + i)
+    if park_type == 'original':
+        di_line =  (-(R_e) @ i_line + A_e @ v)
+        dv =  (- A_e.T @ i_line + i)
+
+    if model_type == 'ae':
+        g_grid += list(di_line)
+        g_grid += list(dv)
+        y_grid_list += list(i_line_list)
+        y_grid_list += list(v)
+
+        for gformer in grid_formers:
+            N_i_branch = len(list(i_line_list))
+            idx_gformer = buses_list.index(gformer['bus'])
+            y_grid_list[N_i_branch+idx_gformer] = i_list[idx_gformer]
+
+            bus_name = gformer['bus']
+            phi = np.deg2rad(gformer['deg'])
+            v_d = np.sin(phi)*gformer['V_phph']*np.sqrt(2/3)
+            v_q = np.cos(phi)*gformer['V_phph']*np.sqrt(2/3)
+            u_grid.update({f'v_{bus_name}_{D_}':v_d,f'v_{bus_name}_{Q_}':v_q})
+        
+    return {'f':f_grid,'g':g_grid,
+            'x':x_grid_list,'y':y_grid_list, 'x_list':x_list,
+            'u':u_grid,'params':params,'v_list':v_list}
+
+
 def vsg2dae(data,grid_dae):
+    '''
+    
+
+    Parameters
+    ----------
+    data : TYPE
+        DESCRIPTION.
+    grid_dae : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    dict
+        DESCRIPTION.
+
+    '''
     
     sin = sym.sin
     cos = sym.cos
@@ -1003,3 +1164,55 @@ def vsg2dae(data,grid_dae):
             'x_list':x_vsg,'y_list':y_vsg,
             'u_run_dict':u_vsg,'params_dict':params_vsg,'h_dict':h_vsg,
             'omega_coi':omega_coi}
+
+def dcrail2dae(data_input,dcgrid_dae):
+    h_dict = {}
+    sections = data_input['sections']
+    g_grid = dcgrid_dae['g']
+    y_grid_list = dcgrid_dae['y']
+    f_grid = dcgrid_dae['f'] 
+    x_grid_list  = dcgrid_dae['x'] 
+
+    for section in sections:
+
+        nodes_i = section['nodes_i']
+
+        for node in nodes_i:
+            v = sym.Symbol(f'v_{node}', real=True)
+            i = sym.Symbol(f'i_{node}', real=True)
+            p = sym.Symbol(f'p_{node}', real=True)
+            g_grid += [-p + v*i]
+            y_grid_list += [i]
+
+    for section in sections:
+
+        nodes_v = section['nodes_v']
+
+        for node in nodes_v:
+            v = sym.Symbol(f'v_{node}', real=True)
+            i = sym.Symbol(f'i_{node}', real=True)
+            p = sym.Symbol(f'p_{node}', real=True)
+            h_dict.update({f'p_{node}':v*i})
+            h_dict.update({f'v_{node}':v})
+
+    for section in sections[1:]:
+
+        nodes_v = section['nodes_v']
+
+        node = nodes_v[0]
+        v_nom = sym.Symbol(f'v_nom', real=True)
+        v = sym.Symbol(f'v_{node}', real=True)
+        i = sym.Symbol(f'i_{node}', real=True)
+        v_ref = sym.Symbol(f'v_ref_{node}', real=True)
+        T_v = sym.Symbol(f'T_v', real=True)
+        K_r = sym.Symbol(f'K_r', real=True)
+        Dv_r = sym.Symbol(f'Dv_r_{node}', real=True)
+        p = v*i
+        v_ref = v_nom - K_r*p - Dv_r    # v_nom = nominal voltage, K_r*p: power droop, Dv_r remote input
+        f_grid += [1/0.02*(v_ref-v)]
+        x_grid_list += [v]
+        
+    dcgrid_dae.update({'h_dict':h_dict})
+
+
+    
