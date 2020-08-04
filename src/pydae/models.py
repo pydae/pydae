@@ -1209,7 +1209,7 @@ def dcrail2dae(data_input,dcgrid_dae):
         Dv_r = sym.Symbol(f'Dv_r_{node}', real=True)
         p = v*i
         v_ref = v_nom - K_r*p - Dv_r    # v_nom = nominal voltage, K_r*p: power droop, Dv_r remote input
-        f_grid += [1/T_v*(v_ref-v)]
+        f_grid += [1/T_v*(v_ref-v)]  # gracias por el cambio
         x_grid_list += [v]
         
     dcgrid_dae.update({'h_dict':h_dict})
