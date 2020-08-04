@@ -30,40 +30,22 @@ def trains_update(t,trains,trips):
         'left': {'times': t_left,'positions': x_left,'powers': p_left},
          }
     '''
-    
-    t_right = trips['right']['times']
-    x_right = trips['right']['positions']
-    p_right = trips['right']['powers'] 
-
-    t_left = trips['left']['times']
-    x_left = trips['left']['positions'] 
-    p_left = trips['left']['powers'] 
-    
     # train positions and powers updates
     train_positions = []
     train_powers = []
     train_idxs = []
     train_idts = []
     for train in trains:
-        # trajectory when train goes to the right
-        if train['direction']=='right':  
-            if t>train['t_ini']*60:           
-                if t<(train['t_ini']*60+t_right[-1]):  
-                    train_idt = np.argmin(t_right<(t-train['t_ini']*60))  
-                    train_positions += [x_right[train_idt]]
-                    train_powers    += [p_right[train_idt]]
-#                    train_idxs  += [np.argmin(x<x_right[train_idt])]
-                    train_idts  += [train_idt]
-        # trajectory when train goes to the left
-        if train['direction']=='left':    
-            if t>train['t_ini']*60:   
-                if t<(train['t_ini']*60+t_left[-1]):         
-                    train_idt = np.argmin(t_left<(t-train['t_ini']*60))
-                    train_positions += [x_left[train_idt]]
-                    train_powers    += [p_left[train_idt]]
-#                    train_idxs    += [np.argmin(x<x_left[train_idt])]
-                    train_idts  += [train_idt]
-    
+        if t>train['t_ini']*60:  # the train started the trip
+            trip = train['trip']
+            t_trip = trips[trip]['times']
+            if t<(train['t_ini']*60+t_trip[-1]):   # the train if still travelling 
+                x_trip = trips[trip]['positions']
+                p_trip = trips[trip]['powers']
+                train_idt = np.argmin(t_trip<(t-train['t_ini']*60)) 
+                train_positions += [x_trip[train_idt]]
+                train_powers    += [p_trip[train_idt]]
+                train_idts  += [train_idt]   
     
     return train_positions,train_powers
 
@@ -150,13 +132,16 @@ def trains2params(sections,train_positions_list,train_powers_list,r_m):
             params_dict.update({f'R_{j}{k}':r_m*section['sub_length'][i_sub]})
 
     # train powers to nodes_i
+    i_sec = 0
     for section in sections:
         nodes_i = section['nodes_i']
         T_powers = section['T_power']
         for it in range(section['N_tnodes']):           
             params_dict.update({f'p_{nodes_i[it]}':0.0})
-        for it in range(section['N_trains']):           
-            params_dict.update({f'p_{nodes_i[it]}':-T_powers[it]})
+        for it in range(section['N_trains']):       
+            if i_sec == 0: params_dict.update({f'p_{nodes_i[it+1]}':-T_powers[it]})
+            if i_sec >  0: params_dict.update({f'p_{nodes_i[it]}':-T_powers[it]})
+        i_sec += 1
 
     nodes_dict = {}
     abs_length = 0.0
