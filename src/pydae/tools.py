@@ -10,7 +10,7 @@ import numpy as np
 import json
 
 
-def save(json_file,dictionary):
+def save(json_file,dictionary, sort_keys=False, indent=4):
     '''
     Convert dictionary to json and save it in json_file path.
 
@@ -29,7 +29,7 @@ def save(json_file,dictionary):
 
     json_file = './trains_5vsc_params.json'
     
-    data_json = json.dumps(dictionary)    
+    data_json = json.dumps(dictionary, sort_keys=False, indent=4)    
     with open(json_file, 'w') as fobj:
         fobj.write(data_json)
 
