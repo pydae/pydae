@@ -306,12 +306,13 @@ def grid2dae_dq(data_input, park_type='original',dq_name='DQ'):
 
 
 
-def grid2dae(nodes_list,V_node,I_node,Y_iv,inv_Y_ii,load_buses):
+def grid2dae(grid,nodes_list,V_node,I_node,Y_iv,inv_Y_ii,load_buses):
     
     N_v = Y_iv.shape[1]   # number of nodes with known voltages
     I_node_sym_list = []
     V_node_sym_list = []
     v_list = []
+    v_m_list = []
     i_list = []
     v_list_str = []
     i_list_str = []
@@ -334,6 +335,8 @@ def grid2dae(nodes_list,V_node,I_node,Y_iv,inv_Y_ii,load_buses):
 
         v_list += [v_real,v_imag]  
         i_list += [i_real,i_imag]
+        
+        v_m_list += [(v_real**2+v_imag**2)**0.5]
 
         v_list_str += [str(v_real),str(v_imag)]
         i_list_str += [str(i_real),str(i_imag)]
@@ -408,29 +411,47 @@ def grid2dae(nodes_list,V_node,I_node,Y_iv,inv_Y_ii,load_buses):
         g_list += [sym.re(i_a+i_b+i_c+i_n)]
         g_list += [sym.im(i_a+i_b+i_c+i_n)]
 
-        buses_list = [bus['bus'] for bus in grid_1.buses]
+        buses_list = [bus['bus'] for bus in grid.buses]
 
         for phase in ['a','b','c']:
             i_real,i_imag = sym.symbols(f'i_{bus}_{phase}_r,i_{bus}_{phase}_i', real=True)
             y_list += [i_real,i_imag]
-            i_cplx = I_node[grid_1.nodes.index(f'{bus}.{a2n[phase]}')][0]
+            i_cplx = I_node[grid.nodes.index(f'{bus}.{a2n[phase]}')][0]
             y_0_list += [i_cplx.real,i_cplx.imag]
             u_dict.pop(f'i_{bus}_{phase}_r')
             u_dict.pop(f'i_{bus}_{phase}_i')
-            p_value = grid_1.buses[buses_list.index(bus)][f'p_{phase}']
-            q_value = grid_1.buses[buses_list.index(bus)][f'q_{phase}']
+            p_value = grid.buses[buses_list.index(bus)][f'p_{phase}']
+            q_value = grid.buses[buses_list.index(bus)][f'q_{phase}']
             u_dict.update({f'p_{bus}_{phase}':p_value})
             u_dict.update({f'q_{bus}_{phase}':q_value})
 
         i_real,i_imag = sym.symbols(f'i_{bus}_n_r,i_{bus}_n_i', real=True)
         y_list += [i_real,i_imag]    
-        i_cplx = I_node[grid_1.nodes.index(f'{bus}.{a2n["n"]}')][0]
+        i_cplx = I_node[grid.nodes.index(f'{bus}.{a2n["n"]}')][0]
         y_0_list += [i_cplx.real,i_cplx.imag]
         
-    return y_list,g_list,y_0_list,u_dict
+    return y_list,g_list,y_0_list,u_dict,v_list,v_m_list
 
 
+def pydgrid2pydae(grid,load_buses):
+    
+    nodes_list = grid.nodes
+    I_node = grid.I_node
+    V_node = grid.V_node
+    Y_vv = grid.Y_vv
+    Y_ii = grid.Y_ii.toarray()
+    Y_iv = grid.Y_iv
+    Y_vi = grid.Y_vi
+    inv_Y_ii = np.linalg.inv(Y_ii)
+    N_nz_nodes = grid.params_pf[0].N_nz_nodes
+    N_v = grid.params_pf[0].N_nodes_v
 
+    
+    y_list,g_list,y_0_list,u_dict,v_list,v_m_list = grid2dae(grid,nodes_list,V_node,I_node,Y_iv,inv_Y_ii,load_buses)    
+    
+    return {'g':g_list,'y':y_list,
+            'u':u_dict,'y_0_list':y_0_list,'v_list':v_list,'v_m_list':v_m_list}    
+    
 def dcgrid2dae(data_input):
     vscs = data_input['grid_formers']
     park_type='original'
