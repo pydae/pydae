@@ -398,7 +398,12 @@ def pydgrid2pydae(grid):
     u_dict = dict(zip(v_list_str[:2*N_v],v_num_list[:2*N_v]))
     u_dict.update(dict(zip(i_list_str[2*N_v:],i_num_list[2*N_v:])))
 
-    for load in grid.loads:
+    if hasattr(grid,'loads'):
+        loads = grid.loads
+    else:
+        loads = []
+    
+    for load in loads:
         if load['type'] == '1P+N':
             bus_name = load['bus']
             phase_1 = str(load['bus_nodes'][0])
@@ -503,9 +508,69 @@ def pydgrid2pydae(grid):
             y_list += [i_real,i_imag]    
             i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n["n"]}')][0]
             y_0_list += [i_cplx.real,i_cplx.imag]
+            
+            
+    if hasattr(grid,'grid_feeders'):
+        gfeeders = grid.grid_feeders
+    else:
+        gfeeders = []
 
+    for gfeeder in gfeeders:
+    
+        bus_name = gfeeder['bus']
+        
+        v_a = V_node_sym_list[nodes_list.index(f'{bus_name}.1')]
+        v_b = V_node_sym_list[nodes_list.index(f'{bus_name}.2')]
+        v_c = V_node_sym_list[nodes_list.index(f'{bus_name}.3')]
+        #v_n = V_node_sym_list[nodes_list.index(f'{bus_name}.4')]
+
+        i_a = I_node_sym_list[nodes_list.index(f'{bus_name}.1')]
+        i_b = I_node_sym_list[nodes_list.index(f'{bus_name}.2')]
+        i_c = I_node_sym_list[nodes_list.index(f'{bus_name}.3')]
+        #i_n = I_node_sym_list[nodes_list.index(f'{bus_name}.4')]
+
+        #v_an = v_a - v_n
+        #v_bn = v_b - v_n
+        #v_cn = v_c - v_n
+
+        s_a = v_a*sym.conjugate(i_a)
+        s_b = v_b*sym.conjugate(i_b)
+        s_c = v_c*sym.conjugate(i_c)
+
+        #s = s_a + s_b + s_c
+        p_a,p_b,p_c = sym.symbols(f'p_{bus_name}_a,p_{bus_name}_b,p_{bus_name}_c')
+        q_a,q_b,q_c = sym.symbols(f'q_{bus_name}_a,q_{bus_name}_b,q_{bus_name}_c')
+        g_list += [-p_a + sym.re(s_a)]
+        g_list += [-p_b + sym.re(s_b)]
+        g_list += [-p_c + sym.re(s_c)]
+        g_list += [-q_a + sym.im(s_a)]
+        g_list += [-q_b + sym.im(s_b)]
+        g_list += [-q_c + sym.im(s_c)]
+
+#        g_list += [sym.re(i_a+i_b+i_c+i_n)]
+#        g_list += [sym.im(i_a+i_b+i_c+i_n)]
+
+        for phase in ['a','b','c']:
+            i_real,i_imag = sym.symbols(f'i_{bus_name}_{phase}_r,i_{bus_name}_{phase}_i', real=True)
+            y_list += [i_real,i_imag]
+            i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n[phase]}')][0]
+            y_0_list += [i_cplx.real,i_cplx.imag]
+            u_dict.pop(f'i_{bus_name}_{phase}_r')
+            u_dict.pop(f'i_{bus_name}_{phase}_i')
+            p_value = grid.buses[buses_list.index(bus_name)][f'p_{phase}']
+            q_value = grid.buses[buses_list.index(bus_name)][f'q_{phase}']
+            u_dict.update({f'p_{bus_name}_{phase}':p_value})
+            u_dict.update({f'q_{bus_name}_{phase}':q_value})
+
+        #i_real,i_imag = sym.symbols(f'i_{bus_name}_n_r,i_{bus_name}_n_i', real=True)
+        #y_list += [i_real,i_imag]    
+        #i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n["n"]}')][0]
+        #y_0_list += [i_cplx.real,i_cplx.imag]
+            
+            
     f_list = []   
     x_list = []    
+    
     return {'g':g_list,'y':y_list,'f':f_list,'x':x_list,
             'u':u_dict,'y_0_list':y_0_list,'v_list':v_list,'v_m_list':v_m_list,'v_cplx_list':v_cplx_list,
             'h_v_m_dict':h_v_m_dict}   
