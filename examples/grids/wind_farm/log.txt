@@ -1,0 +1,8 @@
+5 transformer to read 
+Transformer Dyg11_3w read  
+Transformer Dyg11_3w read  
+Transformer Dyg11_3w read  
+Transformer Dyg11_3w read  
+Transformer Dyg11_3w read  
+Transformers read in: 0.001 sYs calc 0.017
+inv_Y_ii 0.000
