@@ -9,7 +9,6 @@ bug: if there is not jacobian add pass to the if mode == 12:
 """
 import numpy as np
 import sympy as sym
-import os
 from collections import deque 
 import pkgutil
 
@@ -253,7 +252,6 @@ def sys2num(sys):
     Gx_run = sys['Gx_run']
     Gy_run = sys['Gy_run']
 
-    Fx_ini = sys['Fx_ini']
     Fy_ini = sys['Fy_ini']
     Gx_ini = sys['Gx_ini']
     Gy_ini = sys['Gy_ini']
@@ -271,9 +269,6 @@ def sys2num(sys):
     N_u = len(u_run)
     N_z = len(h)
 
-    N_params = len(params)
-    N_inputs = len(u_run)
-
     name = sys['name']
 
     run_fun = ''
@@ -284,13 +279,13 @@ def sys2num(sys):
     numba_enable = True
     tab = '    '
 
-    if numba_enable: run_fun += f'@numba.njit(cache=True)\n'
-    run_fun += f'def run(t,struct,mode):\n\n'
-    run_nn_fun += f'def run_nn(t,struct,mode):\n\n'
+    if numba_enable: run_fun += '@numba.njit(cache=True)\n'
+    run_fun += 'def run(t,struct,mode):\n\n'
+    run_nn_fun += 'def run_nn(t,struct,mode):\n\n'
 
-    if numba_enable: ini_fun += f'@numba.njit(cache=True)\n'
-    ini_fun += f'def ini(struct,mode):\n\n'
-    ini_nn_fun += f'def ini(struct,mode):\n\n'
+    if numba_enable: ini_fun += '@numba.njit(cache=True)\n'
+    ini_fun += 'def ini(struct,mode):\n\n'
+    ini_nn_fun += 'def ini_nn(struct,mode):\n\n'
 
     ## Parameters
     run_fun += f'{tab}# Parameters:\n'
@@ -357,10 +352,10 @@ def sys2num(sys):
     # f: differential equations
     run_fun += f'{tab}# Differential equations:\n'
     run_fun += f'{tab}if mode == 2:\n\n'
-    run_fun += f'\n'
+    run_fun += '\n'
     ini_fun += f'{tab}# Differential equations:\n'
     ini_fun += f'{tab}if mode == 2:\n\n'
-    ini_fun += f'\n'
+    ini_fun += '\n'
     for irow in range(N_x):
         string = f'{f[irow]}'
         run_fun += f'{2*tab}struct[0].f[{irow},0] = {arg2np(string,"Piecewise")}\n'
@@ -370,10 +365,10 @@ def sys2num(sys):
 
     run_nn_fun += f'{tab}# Differential equations:\n'
     run_nn_fun += f'{tab}if mode == 2:\n\n'
-    run_nn_fun += f'\n'
+    run_nn_fun += '\n'
     ini_nn_fun += f'{tab}# Differential equations:\n'
     ini_nn_fun += f'{tab}if mode == 2:\n\n'
-    ini_nn_fun += f'\n'
+    ini_nn_fun += '\n'
     for irow in range(N_x):
         string = f'{f[irow]}'
         run_nn_fun += f'{2*tab}struct[0].f[{irow},0] = {arg2np(string,"Piecewise")}\n'
@@ -385,10 +380,10 @@ def sys2num(sys):
     ## g
     run_fun += f'{tab}# Algebraic equations:\n'
     run_fun += f'{tab}if mode == 3:\n\n'
-    run_fun += f'\n'
+    run_fun += '\n'
     ini_fun += f'{tab}# Algebraic equations:\n'
     ini_fun += f'{tab}if mode == 3:\n\n'
-    ini_fun += f'\n'
+    ini_fun += '\n'
     for irow in range(N_y):
         string = f'{g[irow]}'
         run_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
@@ -399,10 +394,10 @@ def sys2num(sys):
     
     run_nn_fun += f'{tab}# Algebraic equations:\n'
     run_nn_fun += f'{tab}if mode == 3:\n\n'
-    run_nn_fun += f'\n'
+    run_nn_fun += '\n'
     ini_nn_fun += f'{tab}# Algebraic equations:\n'
     ini_nn_fun += f'{tab}if mode == 3:\n\n'
-    ini_nn_fun += f'\n'
+    ini_nn_fun += '\n'
     for irow in range(N_y):
         string = f'{g[irow]}'
         run_nn_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
@@ -414,26 +409,29 @@ def sys2num(sys):
     
 
     ## outputs
+    N_z = 0
     run_fun += f'{tab}# Outputs:\n'
     run_fun += f'{tab}if mode == 3:\n'
-    run_fun += f'\n'
+    run_fun += '\n'
     ini_fun += f'{tab}# Outputs:\n'
     ini_fun += f'{tab}if mode == 3:\n'
-    ini_fun += f'\n'
+    ini_fun += '\n'
     for irow in range(N_z):
         string = f'{h[irow]}'
         run_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
         string = f'{h[irow]}'
-        ini_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+        ini_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'  
+        N_z += 1
     run_fun += f'{tab}\n'
     ini_fun += f'{tab}\n'
-
+    
+   
     run_nn_fun += f'{tab}# Outputs:\n'
     run_nn_fun += f'{tab}if mode == 3:\n'
-    run_nn_fun += f'\n'
+    run_nn_fun += '\n'
     ini_nn_fun += f'{tab}# Outputs:\n'
     ini_nn_fun += f'{tab}if mode == 3:\n'
-    ini_nn_fun += f'\n'
+    ini_nn_fun += '\n'
     for irow in range(N_z):
         string = f'{h[irow]}'
         run_nn_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
@@ -442,12 +440,23 @@ def sys2num(sys):
     run_nn_fun += f'{tab}\n'
     ini_nn_fun += f'{tab}\n'
     
-
+    if N_z==0: 
+        run_fun +=  f'{2*tab}pass\n' 
+        ini_fun +=  f'{2*tab}pass\n' 
+        run_nn_fun +=  f'{2*tab}pass\n' 
+        ini_nn_fun +=  f'{2*tab}pass\n'     
+    
     # jacobians
+    ## mode = 10 (F_x):    
+
+    N_10 = 0  # in order to add "pass" in case mode=10 elements are null
+    N_10_nn = 0  # in order to add "pass" in case mode=10 elements are null
+
+    
     ## Fx
-    run_fun += f'\n'
+    run_fun += '\n'
     run_fun += f'{tab}if mode == 10:\n\n'
-    ini_fun += f'\n'
+    ini_fun += '\n'
     ini_fun += f'{tab}if mode == 10:\n\n'
     for irow in range(N_x):
         for icol in range(N_x):
@@ -456,10 +465,12 @@ def sys2num(sys):
                 run_fun += f'{2*tab}struct[0].Fx[{irow},{icol}] = {string}\n'            
                 string = arg2np(f'{Fx_run[irow,icol]}',"Piecewise")  
                 ini_fun += f'{2*tab}struct[0].Fx_ini[{irow},{icol}] = {string}\n'
+                N_10 += 1
+                
     ## Fx without numba
-    run_nn_fun += f'\n'
+    run_nn_fun += '\n'
     run_nn_fun += f'{tab}if mode == 10:\n\n'
-    ini_nn_fun += f'\n'
+    ini_nn_fun += '\n'
     ini_nn_fun += f'{tab}if mode == 10:\n\n'
     for irow in range(N_x):
         for icol in range(N_x):
@@ -468,38 +479,63 @@ def sys2num(sys):
                 run_nn_fun += f'{2*tab}struct[0].Fx[{irow},{icol}] = {string}\n'            
                 string = arg2np(f'{Fx_run[irow,icol]}',"Piecewise")  
                 ini_nn_fun += f'{2*tab}struct[0].Fx_ini[{irow},{icol}] = {string}\n'
-                
+                N_10_nn += 1                
+
+    if N_10==0:
+        run_fun +=  f'{2*tab}pass\n' 
+        ini_fun +=  f'{2*tab}pass\n' 
+    
+    if N_10_nn==0: 
+        run_nn_fun +=  f'{2*tab}pass\n' 
+        ini_nn_fun +=  f'{2*tab}pass\n' 
+    
+    
+    # mode = 11 (F_y,G_x,G_y):    
+
+    N_11_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_ini = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_ini = 0  # in order to add "pass" in case mode=11 elements are null
+
+        
     ## Fy
-    run_fun += f'\n'
+    run_fun += '\n'
     run_fun += f'{tab}if mode == 11:\n\n'
-    ini_fun += f'\n'
+    ini_fun += '\n'
     ini_fun += f'{tab}if mode == 11:\n\n'
     for irow in range(N_x):
         for icol in range(N_y):
             if not Fy_ini[irow,icol]==0:  # Fy_ini
                 string = arg2np(f'{Fy_ini[irow,icol]}',"Piecewise")
                 ini_fun += f'{2*tab}struct[0].Fy_ini[{irow},{icol}] = {string} \n'
+                N_11_ini += 1
             if not Fy_run[irow,icol]==0:  # Fy_run 
                 string = arg2np(f'{Fy_run[irow,icol]}',"Piecewise")
                 run_fun += f'{2*tab}struct[0].Fy[{irow},{icol}] = {string}\n'
+                N_11_run +=1
+                
+
                 
     ## Fy without numba
-    run_nn_fun += f'\n'
+    run_nn_fun += '\n'
     run_nn_fun += f'{tab}if mode == 11:\n\n'
-    ini_nn_fun += f'\n'
+    ini_nn_fun += '\n'
     ini_nn_fun += f'{tab}if mode == 11:\n\n'
     for irow in range(N_x):
         for icol in range(N_y):
             if not Fy_ini[irow,icol]==0:  # Fy_ini
                 string = arg2np(f'{Fy_ini[irow,icol]}',"Piecewise")
                 ini_nn_fun += f'{2*tab}struct[0].Fy_ini[{irow},{icol}] = {string} \n'
+                N_11_nn_ini += 1
             if not Fy_run[irow,icol]==0:  # Fy_run 
                 string = arg2np(f'{Fy_run[irow,icol]}',"Piecewise")
                 run_nn_fun += f'{2*tab}struct[0].Fy[{irow},{icol}] = {string}\n'
+                N_11_nn_run +=1  
+
                 
     ## Gx
-    run_fun += f'\n'
-    ini_fun += f'\n'
+    run_fun += '\n'
+    ini_fun += '\n'
     for irow in range(N_y):
         for icol in range(N_x):
             if not Gx_run[irow,icol]==0: # Gx_run = Gx_ini
@@ -507,34 +543,53 @@ def sys2num(sys):
                 run_fun += f'{2*tab}struct[0].Gx[{irow},{icol}] = {string}\n'
                 string = arg2np(f'{Gx_ini[irow,icol]}',"Piecewise")
                 ini_fun += f'{2*tab}struct[0].Gx_ini[{irow},{icol}] = {string}\n'
+                N_11_run +=1 
 
     ## Gy
-    run_fun += f'\n'
-    ini_fun += f'\n'
+    run_fun += '\n'
+    ini_fun += '\n'
     for irow in range(N_y):
         for icol in range(N_y):  
             if not Gy_run[irow,icol].is_number:  # Gy_run
                 string = f'{Gy_run[irow,icol]}'
                 run_fun += f'{2*tab}struct[0].Gy[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_run +=1 
             if not Gy_ini[irow,icol].is_number:  # Gy_ini
                 string = f'{Gy_ini[irow,icol]}'
                 ini_fun += f'{2*tab}struct[0].Gy_ini[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_ini +=1 
+                
     ## Gy without numba
-    run_nn_fun += f'\n'
-    ini_nn_fun += f'\n'
+    run_nn_fun += '\n'
+    ini_nn_fun += '\n'
     for irow in range(N_y):
         for icol in range(N_y):  
             if not Gy_run[irow,icol] == 0:  # Gy_run
                 string = f'{Gy_run[irow,icol]}'
                 run_nn_fun += f'{2*tab}struct[0].Gy[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_nn_run += 1
             if not Gy_ini[irow,icol] == 0:  # Gy_ini
                 string = f'{Gy_ini[irow,icol]}'
                 ini_nn_fun += f'{2*tab}struct[0].Gy_ini[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_nn_ini += 1
+    if N_11_ini==0: ini_fun +=  f'{2*tab}pass\n'
+    if N_11_run==0: run_fun +=  f'{2*tab}pass\n'
+    if N_11_nn_ini==0: ini_nn_fun +=  f'{2*tab}pass\n'
+    if N_11_nn_run==0: run_nn_fun +=  f'{2*tab}pass\n'   
+    
+    # mode > 12 (F_u,G_u,H_x,H_y,H_u):    
 
+    N_11_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_ini = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_ini = 0  # in order to add "pass" in case mode=11 elements are null
 
+    
     # Fu and Gu
     nonzero = 0
-    run_fun += f'\n'
+    nonzero_nn = 0
+
+    run_fun += '\n'
     run_fun += f'{tab}if mode > 12:\n\n'
     for irow in range(N_x):
         for icol in range(N_u):
@@ -544,7 +599,7 @@ def sys2num(sys):
                 nonzero += 1
              
                 
-    run_fun += f'\n'
+    run_fun += '\n'
     for irow in range(N_y):
         for icol in range(N_u):
             if not Gu_run[irow,icol].is_number:
@@ -552,16 +607,16 @@ def sys2num(sys):
                 run_fun += f'{2*tab}struct[0].Gu[{irow},{icol}] = {string}\n'
                 nonzero += 1
 
-    run_nn_fun += f'\n'
+    run_nn_fun += '\n'
     for irow in range(N_y):
         for icol in range(N_u):
             if not Gu_run[irow,icol] == 0:
                 string = arg2np(f'{Gu_run[irow,icol]}',"Piecewise")
                 run_nn_fun += f'{2*tab}struct[0].Gu[{irow},{icol}] = {string}\n'
-                nonzero += 1
+                nonzero_nn += 1
                 
     # Hx, Hy and Hu
-    run_fun += f'\n'
+    run_fun += '\n'
     for irow in range(N_z):
         for icol in range(N_x):
             if not Hx_run[irow,icol]==0:
@@ -569,7 +624,7 @@ def sys2num(sys):
                 run_fun += f'{2*tab}struct[0].Hx[{irow},{icol}] = {string}\n'
                 nonzero += 1
                 
-    run_fun += f'\n'
+    run_fun += '\n'
     for irow in range(N_z):
         for icol in range(N_y):
             if not Hy_run[irow,icol]==0:
@@ -577,7 +632,470 @@ def sys2num(sys):
                 run_fun += f'{2*tab}struct[0].Hy[{irow},{icol}] = {string}\n'
                 nonzero += 1
                                 
-    run_fun += f'\n'
+    run_fun += '\n'
+    for irow in range(N_z):
+        for icol in range(N_u):
+            if not Hu_run[irow,icol]==0:
+                string = arg2np(f'{Hu_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Hu[{irow},{icol}] = {string}\n'
+                nonzero += 1              
+ 
+
+
+    if nonzero==0: 
+        print('jacobians respect u = 0')
+        
+        run_fun += f'{2*tab}pass\n'                 
+                
+                
+    #with open('./class_dae_template.py','r') as fobj:
+    #    class_template = fobj.read()
+    class_template = pkgutil.get_data(__name__, "templates/class_dae_template.py").decode().replace('\r\n','\n') 
+    functions_template = pkgutil.get_data(__name__, "templates/functions_template.py").decode().replace('\r\n','\n') 
+    solver_template = pkgutil.get_data(__name__, "templates/solver_template_v2.py").decode().replace('\r\n','\n') 
+
+    class_template = class_template.replace('{name}',str(name))
+    class_template = class_template.replace('{N_x}',str(N_x)).replace('{N_y}',str(N_y)).replace('{N_z}',str(N_z))
+    class_template = class_template.replace('{x_list}', str([str(item) for item in x]))
+    class_template = class_template.replace('{y_run_list}', str([str(item) for item in y_run]))
+    class_template = class_template.replace('{y_ini_list}', str([str(item) for item in y_ini]))
+    class_template = class_template.replace('{params_list}', str([str(item) for item in params]))
+    class_template = class_template.replace('{params_values_list}', str([(params[item]) for item in params]))
+    class_template = class_template.replace('{inputs_ini_list}', str([str(item) for item in u_ini]))
+    class_template = class_template.replace('{inputs_run_list}', str([str(item) for item in u_run]))
+    class_template = class_template.replace('{inputs_ini_values_list}', str([(sys['u_ini_dict'][item]) for item in sys['u_ini_dict']]))
+    class_template = class_template.replace('{inputs_run_values_list}', str([(sys['u_run_dict'][item]) for item in sys['u_run_dict']]))
+    class_template = class_template.replace('{outputs_list}', str([str(item) for item in h_dict]))
+
+    module = class_template
+    module += '\n'*3
+    module += ini_fun
+    module += '\n'*3
+    module += run_fun
+    module += '\n'*3
+    module += ini_nn_fun
+    module += '\n'*3
+    module += run_nn_fun
+    module += '\n'*3
+    module += functions_template
+    module += '\n'*3
+    module += solver_template
+
+    with open(f'{name}.py','w') as fobj:
+        fobj.write(module)
+
+    
+    
+
+
+
+
+def sys2num2(sys):
+    
+    params = sys['params_dict']
+    h_dict = sys['h_dict']
+        
+    x = sys['x']
+    y_ini = sys['y_ini']
+    y_run = sys['y_run']
+
+    u_ini = sys['u_ini']
+    u_run = sys['u_run']
+
+    f = sys['f']
+    g = sys['g']   
+    h =  sys['h']    
+
+    Fx_run = sys['Fx_run']
+    Fy_run = sys['Fy_run']
+    Gx_run = sys['Gx_run']
+    Gy_run = sys['Gy_run']
+
+    Fy_ini = sys['Fy_ini']
+    Gx_ini = sys['Gx_ini']
+    Gy_ini = sys['Gy_ini']
+
+    Fu_run = sys['Fu_run'] 
+    Gu_run = sys['Gu_run'] 
+    
+    Hx_run = sys['Hx_run'] 
+    Hy_run = sys['Hy_run'] 
+    Hu_run = sys['Hu_run']
+
+    
+    N_x = len(x)
+    N_y = len(y_run)
+    N_u = len(u_run)
+    N_z = len(h)
+
+    name = sys['name']
+
+    run_fun = ''
+    ini_fun = ''
+    run_nn_fun = ''
+    ini_nn_fun = ''
+    
+    numba_enable = True
+    tab = '    '
+
+    if numba_enable: run_fun += '@numba.njit(cache=True)\n'
+    run_fun += 'def run(t,struct,mode):\n\n'
+    run_nn_fun += 'def run_nn(t,struct,mode):\n\n'
+
+    if numba_enable: ini_fun += '@numba.njit(cache=True)\n'
+    ini_fun += 'def ini(params,u,x,y_ini,f,g,Fx_ini,Fy_ini,Gx_ini,Gy_ini,Fu,Gu,Hx,Hy,Hu,mode):\n\n'
+    ini_nn_fun += 'def ini_nn(struct,mode):\n\n'
+
+    ## Parameters
+    run_fun += f'{tab}# Parameters:\n'
+    ini_fun += f'{tab}# Parameters:\n'
+    run_nn_fun += f'{tab}# Parameters:\n'
+    ini_nn_fun += f'{tab}# Parameters:\n'
+    iparam = 0
+    for item in params:
+        run_fun += f'{tab}{item} = struct[0].{item}\n'
+        ini_fun += f'{tab}{item} = params[{iparam}]\n'
+        run_nn_fun += f'{tab}{item} = struct[0].{item}\n'
+        ini_nn_fun += f'{tab}{item} = struct[0].{item}\n'
+        iparam += 1
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+ 
+    ## Inputs
+    run_fun += f'{tab}# Inputs:\n'
+    ini_fun += f'{tab}# Inputs:\n'
+    run_nn_fun += f'{tab}# Inputs:\n'
+    ini_nn_fun += f'{tab}# Inputs:\n'
+    iinput = 0
+    for item in u_run:
+        run_fun += f'{tab}{item} = struct[0].{item}\n'
+        run_nn_fun += f'{tab}{item} = struct[0].{item}\n'
+    for item in u_ini:    
+        ini_fun += f'{tab}{item} = u[{iinput}]\n'    
+        ini_nn_fun += f'{tab}{item} = struct[0].{item}\n'  
+        iinput += 1
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+    
+    
+    ## Dynamical states
+    run_fun += f'{tab}# Dynamical states:\n'
+    ini_fun += f'{tab}# Dynamical states:\n'  
+    run_nn_fun += f'{tab}# Dynamical states:\n'
+    ini_nn_fun += f'{tab}# Dynamical states:\n'  
+    for irow in range(N_x):
+        run_fun += f'{tab}{x[irow]} = struct[0].x[{irow},0]\n'
+        ini_fun += f'{tab}{x[irow]} = x[{irow},0]\n'
+        run_nn_fun += f'{tab}{x[irow]} = struct[0].x[{irow},0]\n'
+        ini_nn_fun += f'{tab}{x[irow]} = struct[0].x[{irow},0]\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+
+    ## Algebraic states    
+    run_fun += f'{tab}# Algebraic states:\n'
+    ini_fun += f'{tab}# Algebraic states:\n' 
+    run_nn_fun += f'{tab}# Algebraic states:\n'
+    ini_nn_fun += f'{tab}# Algebraic states:\n'
+    for irow in range(N_y):
+        run_fun += f'{tab}{y_run[irow]} = struct[0].y_run[{irow},0]\n'
+        ini_fun += f'{tab}{y_ini[irow]} = y_ini[{irow},0]\n'
+        run_nn_fun += f'{tab}{y_run[irow]} = struct[0].y_run[{irow},0]\n'
+        ini_nn_fun += f'{tab}{y_ini[irow]} = struct[0].y_ini[{irow},0]\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+    
+    # f: differential equations
+    run_fun += f'{tab}# Differential equations:\n'
+    run_fun += f'{tab}if mode == 2:\n\n'
+    run_fun += '\n'
+    ini_fun += f'{tab}# Differential equations:\n'
+    ini_fun += f'{tab}if mode == 2:\n\n'
+    ini_fun += '\n'
+    for irow in range(N_x):
+        string = f'{f[irow]}'
+        run_fun += f'{2*tab}struct[0].f[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        ini_fun += f'{2*tab}f[{irow},0] = {arg2np(string,"Piecewise")}\n'
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+
+    run_nn_fun += f'{tab}# Differential equations:\n'
+    run_nn_fun += f'{tab}if mode == 2:\n\n'
+    run_nn_fun += '\n'
+    ini_nn_fun += f'{tab}# Differential equations:\n'
+    ini_nn_fun += f'{tab}if mode == 2:\n\n'
+    ini_nn_fun += '\n'
+    for irow in range(N_x):
+        string = f'{f[irow]}'
+        run_nn_fun += f'{2*tab}struct[0].f[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        ini_nn_fun += f'{2*tab}struct[0].f[{irow},0] = {arg2np(string,"Piecewise")}\n'
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+    
+    
+    ## g
+    run_fun += f'{tab}# Algebraic equations:\n'
+    run_fun += f'{tab}if mode == 3:\n\n'
+    run_fun += '\n'
+    ini_fun += f'{tab}# Algebraic equations:\n'
+    ini_fun += f'{tab}if mode == 3:\n\n'
+    ini_fun += '\n'
+    for irow in range(N_y):
+        string = f'{g[irow]}'
+        run_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        string = f'{g[irow]}'
+        ini_fun += f'{2*tab}g[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    
+    run_nn_fun += f'{tab}# Algebraic equations:\n'
+    run_nn_fun += f'{tab}if mode == 3:\n\n'
+    run_nn_fun += '\n'
+    ini_nn_fun += f'{tab}# Algebraic equations:\n'
+    ini_nn_fun += f'{tab}if mode == 3:\n\n'
+    ini_nn_fun += '\n'
+    for irow in range(N_y):
+        string = f'{g[irow]}'
+        run_nn_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        string = f'{g[irow]}'
+        ini_nn_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+    
+    
+
+    ## outputs
+    N_z = 0
+    run_fun += f'{tab}# Outputs:\n'
+    run_fun += f'{tab}if mode == 3:\n'
+    run_fun += '\n'
+    ini_fun += f'{tab}# Outputs:\n'
+    ini_fun += f'{tab}if mode == 3:\n'
+    ini_fun += '\n'
+    for irow in range(N_z):
+        string = f'{h[irow]}'
+        run_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        string = f'{h[irow]}'
+        ini_fun += f'{2*tab}h[{irow},0] = {arg2np(string,"Piecewise")}\n'  
+        N_z += 1
+    run_fun += f'{tab}\n'
+    ini_fun += f'{tab}\n'
+    
+   
+    run_nn_fun += f'{tab}# Outputs:\n'
+    run_nn_fun += f'{tab}if mode == 3:\n'
+    run_nn_fun += '\n'
+    ini_nn_fun += f'{tab}# Outputs:\n'
+    ini_nn_fun += f'{tab}if mode == 3:\n'
+    ini_nn_fun += '\n'
+    for irow in range(N_z):
+        string = f'{h[irow]}'
+        run_nn_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
+        string = f'{h[irow]}'
+        ini_fun += f'{2*tab}h[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+    run_nn_fun += f'{tab}\n'
+    ini_nn_fun += f'{tab}\n'
+    
+    if N_z==0: 
+        run_fun +=  f'{2*tab}pass\n' 
+        ini_fun +=  f'{2*tab}pass\n' 
+        run_nn_fun +=  f'{2*tab}pass\n' 
+        ini_nn_fun +=  f'{2*tab}pass\n'     
+    
+    # jacobians
+    ## mode = 10 (F_x):    
+
+    N_10 = 0  # in order to add "pass" in case mode=10 elements are null
+    N_10_nn = 0  # in order to add "pass" in case mode=10 elements are null
+
+    
+    ## Fx
+    run_fun += '\n'
+    run_fun += f'{tab}if mode == 10:\n\n'
+    ini_fun += '\n'
+    ini_fun += f'{tab}if mode == 10:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_x):
+            if not Fx_run[irow,icol].is_number:  # Fx_run = Fx_ini
+                string = arg2np(f'{Fx_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Fx[{irow},{icol}] = {string}\n'            
+                string = arg2np(f'{Fx_run[irow,icol]}',"Piecewise")  
+                ini_fun += f'{2*tab}Fx_ini[{irow},{icol}] = {string}\n'
+                N_10 += 1
+                
+    ## Fx without numba
+    run_nn_fun += '\n'
+    run_nn_fun += f'{tab}if mode == 10:\n\n'
+    ini_nn_fun += '\n'
+    ini_nn_fun += f'{tab}if mode == 10:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_x):
+            if not Fx_run[irow,icol] == 0:  # Fx_run = Fx_ini
+                string = arg2np(f'{Fx_run[irow,icol]}',"Piecewise")
+                run_nn_fun += f'{2*tab}struct[0].Fx[{irow},{icol}] = {string}\n'            
+                string = arg2np(f'{Fx_run[irow,icol]}',"Piecewise")  
+                ini_nn_fun += f'{2*tab}struct[0].Fx_ini[{irow},{icol}] = {string}\n'
+                N_10_nn += 1                
+
+    if N_10==0:
+        run_fun +=  f'{2*tab}pass\n' 
+        ini_fun +=  f'{2*tab}pass\n' 
+    
+    if N_10_nn==0: 
+        run_nn_fun +=  f'{2*tab}pass\n' 
+        ini_nn_fun +=  f'{2*tab}pass\n' 
+    
+    
+    # mode = 11 (F_y,G_x,G_y):    
+
+    N_11_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_ini = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_ini = 0  # in order to add "pass" in case mode=11 elements are null
+
+        
+    ## Fy
+    run_fun += '\n'
+    run_fun += f'{tab}if mode == 11:\n\n'
+    ini_fun += '\n'
+    ini_fun += f'{tab}if mode == 11:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_y):
+            if not Fy_ini[irow,icol]==0:  # Fy_ini
+                string = arg2np(f'{Fy_ini[irow,icol]}',"Piecewise")
+                ini_fun += f'{2*tab}Fy_ini[{irow},{icol}] = {string} \n'
+                N_11_ini += 1
+            if not Fy_run[irow,icol]==0:  # Fy_run 
+                string = arg2np(f'{Fy_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Fy[{irow},{icol}] = {string}\n'
+                N_11_run +=1
+                
+
+                
+    ## Fy without numba
+    run_nn_fun += '\n'
+    run_nn_fun += f'{tab}if mode == 11:\n\n'
+    ini_nn_fun += '\n'
+    ini_nn_fun += f'{tab}if mode == 11:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_y):
+            if not Fy_ini[irow,icol]==0:  # Fy_ini
+                string = arg2np(f'{Fy_ini[irow,icol]}',"Piecewise")
+                ini_nn_fun += f'{2*tab}struct[0].Fy_ini[{irow},{icol}] = {string} \n'
+                N_11_nn_ini += 1
+            if not Fy_run[irow,icol]==0:  # Fy_run 
+                string = arg2np(f'{Fy_run[irow,icol]}',"Piecewise")
+                run_nn_fun += f'{2*tab}struct[0].Fy[{irow},{icol}] = {string}\n'
+                N_11_nn_run +=1  
+
+                
+    ## Gx
+    run_fun += '\n'
+    ini_fun += '\n'
+    for irow in range(N_y):
+        for icol in range(N_x):
+            if not Gx_run[irow,icol]==0: # Gx_run = Gx_ini
+                string = arg2np(f'{Gx_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Gx[{irow},{icol}] = {string}\n'
+                string = arg2np(f'{Gx_ini[irow,icol]}',"Piecewise")
+                ini_fun += f'{2*tab}Gx_ini[{irow},{icol}] = {string}\n'
+                N_11_run +=1 
+
+    ## Gy
+    run_fun += '\n'
+    ini_fun += '\n'
+    for irow in range(N_y):
+        for icol in range(N_y):  
+            if not Gy_run[irow,icol].is_number:  # Gy_run
+                string = f'{Gy_run[irow,icol]}'
+                run_fun += f'{2*tab}struct[0].Gy[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_run +=1 
+            if not Gy_ini[irow,icol].is_number:  # Gy_ini
+                string = f'{Gy_ini[irow,icol]}'
+                ini_fun += f'{2*tab}Gy_ini[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_ini +=1 
+                
+    ## Gy without numba
+    run_nn_fun += '\n'
+    ini_nn_fun += '\n'
+    for irow in range(N_y):
+        for icol in range(N_y):  
+            if not Gy_run[irow,icol] == 0:  # Gy_run
+                string = f'{Gy_run[irow,icol]}'
+                run_nn_fun += f'{2*tab}struct[0].Gy[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_nn_run += 1
+            if not Gy_ini[irow,icol] == 0:  # Gy_ini
+                string = f'{Gy_ini[irow,icol]}'
+                ini_nn_fun += f'{2*tab}struct[0].Gy_ini[{irow},{icol}] = {arg2np(string,"Piecewise")}\n'
+                N_11_nn_ini += 1
+    if N_11_ini==0: ini_fun +=  f'{2*tab}pass\n'
+    if N_11_run==0: run_fun +=  f'{2*tab}pass\n'
+    if N_11_nn_ini==0: ini_nn_fun +=  f'{2*tab}pass\n'
+    if N_11_nn_run==0: run_nn_fun +=  f'{2*tab}pass\n'   
+    
+    # mode > 12 (F_u,G_u,H_x,H_y,H_u):    
+
+    N_11_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_ini = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_run = 0  # in order to add "pass" in case mode=11 elements are null
+    N_11_nn_ini = 0  # in order to add "pass" in case mode=11 elements are null
+
+    
+    # Fu and Gu
+    nonzero = 0
+    nonzero_nn = 0
+
+    run_fun += '\n'
+    run_fun += f'{tab}if mode > 12:\n\n'
+    for irow in range(N_x):
+        for icol in range(N_u):
+            if not Fu_run[irow,icol]==0:
+                string = arg2np(f'{Fu_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Fu[{irow},{icol}] = {string}\n'
+                nonzero += 1
+             
+                
+    run_fun += '\n'
+    for irow in range(N_y):
+        for icol in range(N_u):
+            if not Gu_run[irow,icol].is_number:
+                string = arg2np(f'{Gu_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Gu[{irow},{icol}] = {string}\n'
+                nonzero += 1
+
+    run_nn_fun += '\n'
+    for irow in range(N_y):
+        for icol in range(N_u):
+            if not Gu_run[irow,icol] == 0:
+                string = arg2np(f'{Gu_run[irow,icol]}',"Piecewise")
+                run_nn_fun += f'{2*tab}struct[0].Gu[{irow},{icol}] = {string}\n'
+                nonzero_nn += 1
+                
+    # Hx, Hy and Hu
+    run_fun += '\n'
+    for irow in range(N_z):
+        for icol in range(N_x):
+            if not Hx_run[irow,icol]==0:
+                string = arg2np(f'{Hx_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Hx[{irow},{icol}] = {string}\n'
+                nonzero += 1
+                
+    run_fun += '\n'
+    for irow in range(N_z):
+        for icol in range(N_y):
+            if not Hy_run[irow,icol]==0:
+                string = arg2np(f'{Hy_run[irow,icol]}',"Piecewise")
+                run_fun += f'{2*tab}struct[0].Hy[{irow},{icol}] = {string}\n'
+                nonzero += 1
+                                
+    run_fun += '\n'
     for irow in range(N_z):
         for icol in range(N_u):
             if not Hu_run[irow,icol]==0:
@@ -658,3 +1176,4 @@ if __name__ == "__main__":
     exec(sym_gen_str())  # exec to generate the required symbolic varables and constants
     
 
+ 

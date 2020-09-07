@@ -213,6 +213,16 @@ class {name}_class:
         A_c = np.block([[self.struct[0].Fx,self.struct[0].Fy],
                         [self.struct[0].Gx,self.struct[0].Gy]])
         return A_c
+
+    def run_dae_jacobian_nn(self,x):
+        self.struct[0].x[:,0] = x[0:self.N_x]
+        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
+        run_nn(0.0,self.struct,10)
+        run_nn(0.0,self.struct,11)     
+        run_nn(0.0,self.struct,12)
+        run_nn(0.0,self.struct,13)
+ 
+
     
     def eval_jacobians(self):
 
@@ -232,7 +242,12 @@ class {name}_class:
                         [self.struct[0].Gx_ini,self.struct[0].Gy_ini]])
         return A_c
 
-
+    def ini_dae_jacobian_nn(self,x):
+        self.struct[0].x[:,0] = x[0:self.N_x]
+        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
+        ini_nn(self.struct,10)
+        ini_nn(self.struct,11)       
+ 
 
     def f_ode(self,x):
         self.struct[0].x[:,0] = x
@@ -387,6 +402,9 @@ class {name}_class:
             xy0 = xy0*np.ones(self.N_x+self.N_y)
 
         #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
+        self.ini_dae_jacobian_nn(xy0)
+        self.run_dae_jacobian_nn(xy0)
+        
         if self.sopt_root_jac:
             sol = sopt.root(self.ini_problem, xy0, 
                             jac=self.ini_dae_jacobian, 
