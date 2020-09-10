@@ -107,7 +107,16 @@ def check_system(sys):
         sys['y_run_list'] = ['y_dummy']
         sys['u_ini_dict'].update({'u_dummy':1.0})
         sys['u_run_dict'].update({'u_dummy':1.0})
+        
+    y_ini_set = set(sys['y_ini_list'])
+    contains_duplicates = len(sys['y_ini_list']) != len(y_ini_set)
+    if contains_duplicates:
+        print('error: y_ini contains duplicates')
 
+    y_set = set(sys['y_run_list'])
+    contains_duplicates = len(sys['y_run_list']) != len(y_set)
+    if contains_duplicates:
+        print('error: y_run contains duplicates')
        
 def system(sys):
     '''
@@ -267,7 +276,7 @@ def sys2num(sys):
     N_x = len(x)
     N_y = len(y_run)
     N_u = len(u_run)
-    N_z = len(h)
+    N_z = len(h_dict)
 
     name = sys['name']
 
@@ -409,19 +418,18 @@ def sys2num(sys):
     
 
     ## outputs
-    N_z = 0
     run_fun += f'{tab}# Outputs:\n'
     run_fun += f'{tab}if mode == 3:\n'
     run_fun += '\n'
     ini_fun += f'{tab}# Outputs:\n'
     ini_fun += f'{tab}if mode == 3:\n'
     ini_fun += '\n'
-    for irow in range(N_z):
-        string = f'{h[irow]}'
+    irow = 0
+    for item in h_dict:
+        string = f'{h_dict[item]}'
         run_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
-        string = f'{h[irow]}'
         ini_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'  
-        N_z += 1
+        irow += 1
     run_fun += f'{tab}\n'
     ini_fun += f'{tab}\n'
     
@@ -432,11 +440,12 @@ def sys2num(sys):
     ini_nn_fun += f'{tab}# Outputs:\n'
     ini_nn_fun += f'{tab}if mode == 3:\n'
     ini_nn_fun += '\n'
-    for irow in range(N_z):
-        string = f'{h[irow]}'
+    irow = 0
+    for item in h_dict:
+        string = f'{h_dict[item]}'
         run_nn_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'
-        string = f'{h[irow]}'
-        ini_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+        ini_nn_fun += f'{2*tab}struct[0].h[{irow},0] = {arg2np(string,"Piecewise")}\n' 
+        irow += 1
     run_nn_fun += f'{tab}\n'
     ini_nn_fun += f'{tab}\n'
     

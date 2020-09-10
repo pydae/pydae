@@ -307,6 +307,7 @@ def grid2dae_dq(data_input, park_type='original',dq_name='DQ'):
 
 def pydgrid2pydae(grid):
     
+    buses_name_list = [item['bus'] for item in grid.buses]
     nodes_list = grid.nodes
     I_node = grid.I_node
     V_node = grid.V_node
@@ -335,6 +336,7 @@ def pydgrid2pydae(grid):
     h_i_m_dict = {}
     xy_0_dict = {}
     params_dict = {}
+    h_dict = {}
     
     n2a = {'1':'a','2':'b','3':'c','4':'n'}
     a2n = {'a':'1','b':'2','c':'3','n':'4'}
@@ -387,8 +389,9 @@ def pydgrid2pydae(grid):
     inv_Y_ii = inv_Y_ii_re+sym.I*inv_Y_ii_im
 
     I_aux = ( I_known_sym - Y_iv @ V_known_sym)  
-    g_cplx = -V_unknown_sym + inv_Y_ii @ I_aux
-
+    #g_cplx = -V_unknown_sym + inv_Y_ii @ I_aux
+    g_cplx = -Y_ii @ V_unknown_sym + I_aux
+    
     g_list = []
     for item in g_cplx:
         g_list += [sym.re(item)]
@@ -408,6 +411,20 @@ def pydgrid2pydae(grid):
     u_dict = dict(zip(v_list_str[:2*N_v],v_num_list[:2*N_v]))
     u_dict.update(dict(zip(i_list_str[2*N_v:],i_num_list[2*N_v:])))
     
+    # to make grid former voltage input an output
+    grid_formers = grid.grid_formers
+    
+    for gformer in grid_formers:
+        if 'monitor' in gformer:
+            if gformer['monitor']:
+                bus_name = gformer['bus']
+                for phase in ['a','b','c']:
+                    v_real = sym.Symbol(f"v_{bus_name}_{phase}_r", real=True)
+                    v_imag = sym.Symbol(f"v_{bus_name}_{phase}_i", real=True)    
+        
+                    h_dict.update({f'{v_real}':v_real})
+                    h_dict.update({f'{v_imag}':v_imag})
+
     
     lines = grid.lines
     
@@ -452,31 +469,64 @@ def pydgrid2pydae(grid):
         N_conductors = len(line['bus_j_nodes'])
         
         if N_conductors == 3:
+            if 'monitor' in line:
+                if line['monitor']:
                                
-            bus_j_name = line['bus_j']
-            bus_k_name = line['bus_k']
-            i_l_a_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_r")
-            i_l_a_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_i")
-            i_l_b_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_r")
-            i_l_b_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_i")
-            i_l_c_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_r")
-            i_l_c_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_i")
-            g_list += [-i_l_a_r + sym.re(I_lines[it_single_line+0,0])]
-            g_list += [-i_l_a_i + sym.im(I_lines[it_single_line+0,0])]
-            g_list += [-i_l_b_r + sym.re(I_lines[it_single_line+1,0])]
-            g_list += [-i_l_b_i + sym.im(I_lines[it_single_line+1,0])]
-            g_list += [-i_l_c_r + sym.re(I_lines[it_single_line+2,0])]
-            g_list += [-i_l_c_i + sym.im(I_lines[it_single_line+2,0])]
-            y_list += [i_l_a_r]
-            y_list += [i_l_a_i]
-            y_list += [i_l_b_r]
-            y_list += [i_l_b_i]
-            y_list += [i_l_c_r]
-            y_list += [i_l_c_i]    
-            print(i_l_a_r,I_lines[it_single_line+0,0])
+                    bus_j_name = line['bus_j']
+                    bus_k_name = line['bus_k']
+                    i_l_a_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_r")
+                    i_l_a_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_i")
+                    i_l_b_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_r")
+                    i_l_b_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_i")
+                    i_l_c_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_r")
+                    i_l_c_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_i")
+                    g_list += [-i_l_a_r + sym.re(I_lines[it_single_line+0,0])]
+                    g_list += [-i_l_a_i + sym.im(I_lines[it_single_line+0,0])]
+                    g_list += [-i_l_b_r + sym.re(I_lines[it_single_line+1,0])]
+                    g_list += [-i_l_b_i + sym.im(I_lines[it_single_line+1,0])]
+                    g_list += [-i_l_c_r + sym.re(I_lines[it_single_line+2,0])]
+                    g_list += [-i_l_c_i + sym.im(I_lines[it_single_line+2,0])]
+                    y_list += [i_l_a_r]
+                    y_list += [i_l_a_i]
+                    y_list += [i_l_b_r]
+                    y_list += [i_l_b_i]
+                    y_list += [i_l_c_r]
+                    y_list += [i_l_c_i]    
             if line['type'] == 'z': it_single_line += N_conductors
             if line['type'] == 'pi': it_single_line += 3*N_conductors
-        
+
+        if N_conductors == 4:
+            if 'monitor' in line:
+                if line['monitor']:
+                               
+                    bus_j_name = line['bus_j']
+                    bus_k_name = line['bus_k']
+                    i_l_a_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_r")
+                    i_l_a_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_i")
+                    i_l_b_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_r")
+                    i_l_b_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_i")
+                    i_l_c_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_r")
+                    i_l_c_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_i")
+                    i_l_n_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_n_r")
+                    i_l_n_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_n_i")
+                    g_list += [-i_l_a_r + sym.re(I_lines[it_single_line+0,0])]
+                    g_list += [-i_l_a_i + sym.im(I_lines[it_single_line+0,0])]
+                    g_list += [-i_l_b_r + sym.re(I_lines[it_single_line+1,0])]
+                    g_list += [-i_l_b_i + sym.im(I_lines[it_single_line+1,0])]
+                    g_list += [-i_l_c_r + sym.re(I_lines[it_single_line+2,0])]
+                    g_list += [-i_l_c_i + sym.im(I_lines[it_single_line+2,0])]
+                    g_list += [-i_l_n_r + i_l_a_r + i_l_b_r + i_l_c_r ]
+                    g_list += [-i_l_n_i + i_l_a_i + i_l_b_i + i_l_c_i ]
+                    y_list += [i_l_a_r]
+                    y_list += [i_l_a_i]
+                    y_list += [i_l_b_r]
+                    y_list += [i_l_b_i]
+                    y_list += [i_l_c_r]
+                    y_list += [i_l_c_i] 
+                    y_list += [i_l_n_r]
+                    y_list += [i_l_n_i]
+            if line['type'] == 'z': it_single_line += N_conductors
+            if line['type'] == 'pi': it_single_line += 3*N_conductors        
 
     if hasattr(grid,'loads'):
         loads = grid.loads
@@ -653,7 +703,7 @@ def pydgrid2pydae(grid):
         
         if 'ctrl_mode' in gfeeder:
             if gfeeder['ctrl_mode'] == 'ctrl_4':    
-                print(gfeeder)
+
                 
                 # Q control
                 u_dict.update({f'p_ref_{bus_name}':p_total_value})
@@ -684,20 +734,24 @@ def pydgrid2pydae(grid):
                 
                 # V control
                 
-                ## voltage module
-                bus_name_mv = bus_name.replace('lv','mv')
+                ## compute voltage module
+                bus_name_mv = gfeeder['vctrl_buses'][1]
                 v_m_lv,v_m_mv = sym.symbols(f'v_m_{bus_name},v_m_{bus_name_mv}', real=True)
                 V_base,V_base_mv,S_base = sym.symbols(f'V_base_{bus_name},V_base_{bus_name_mv},S_base_{bus_name}', real=True)
                 u_ctrl_v = sym.Symbol(f'u_ctrl_v_{bus_name}', real=True)
 
                 v_a_lv =   V_node_sym_list[nodes_list.index(f'{bus_name}.1')]
-                v_a_mv =   V_node_sym_list[nodes_list.index(f'{bus_name_mv}.1')]
                 g_list += [-v_m_lv + (sym.re(v_a_lv)**2 + sym.im(v_a_lv)**2)**0.5/V_base]
-                g_list += [-v_m_mv + (sym.re(v_a_mv)**2 + sym.im(v_a_mv)**2)**0.5/V_base_mv]
                 y_list += [v_m_lv]
-                y_list += [v_m_mv]
                 xy_0_dict.update({f'{v_m_lv}':1.0})
-                xy_0_dict.update({f'{v_m_mv}':1.0})
+                
+                v_a_mv =   V_node_sym_list[nodes_list.index(f'{bus_name_mv}.1')]
+                if not v_m_mv in y_list:
+                    g_list += [-v_m_mv + (sym.re(v_a_mv)**2 + sym.im(v_a_mv)**2)**0.5/V_base_mv]
+                    y_list += [v_m_mv]
+                    xy_0_dict.update({f'{v_m_mv}':1.0})
+                    
+                
                 params_dict.update({f'u_ctrl_v_{bus_name}':0.0})
                 
                 ## V -> q PI
@@ -706,7 +760,13 @@ def pydgrid2pydae(grid):
                 i_reac_ref,I_max = sym.symbols(f'i_reac_ref_{bus_name},I_max_{bus_name}', real=True)
 
                 params_dict.update({f'K_p_v_{bus_name}':0.1,f'K_i_v_{bus_name}':0.1,})
-                params_dict.update({f'V_base_{bus_name}':400,f'V_base_{bus_name_mv}':20e3/np.sqrt(3),f'S_base_{bus_name}':2e6,f'{I_max}':0.5})
+                
+                
+
+                U_base_1 = grid.buses[buses_name_list.index(bus_name)]['U_kV']*1000
+                U_base_2 = grid.buses[buses_name_list.index(bus_name_mv)]['U_kV']*1000
+
+                params_dict.update({f'V_base_{bus_name}':U_base_1/np.sqrt(3),f'V_base_{bus_name_mv}':U_base_1/np.sqrt(3),f'S_base_{bus_name}':2e6,f'{I_max}':0.5})
                 v_ref = v_loc_ref + Dv_r
                 epsilon_v = v_ref - (v_m_lv*(1.0-u_ctrl_v) + v_m_mv*u_ctrl_v)
                # f_list += [epsilon_v]
@@ -732,7 +792,7 @@ def pydgrid2pydae(grid):
     return {'g':g_list,'y':y_list,'f':f_list,'x':x_list,
             'params':params_dict,'xy_0_dict':xy_0_dict,
             'u':u_dict,'x_0_list':x_0_list,'y_0_list':y_0_list,'v_list':v_list,'v_m_list':v_m_list,'v_cplx_list':v_cplx_list,
-            'h_v_m_dict':h_v_m_dict}   
+            'h_dict':h_dict,'h_v_m_dict':h_v_m_dict}   
 
 
  

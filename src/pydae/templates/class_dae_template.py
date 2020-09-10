@@ -162,6 +162,10 @@ class {name}_class:
         values += [item for item in self.inputs_run_values_list]
 
         self.struct = np.rec.array([tuple(values)], dtype=np.dtype(dt))
+        
+        xy0 = np.zeros((self.N_x+self.N_y,))
+        self.ini_dae_jacobian_nn(xy0)
+        self.run_dae_jacobian_nn(xy0)
 
     def load_params(self,data_input):
 
@@ -402,8 +406,7 @@ class {name}_class:
             xy0 = xy0*np.ones(self.N_x+self.N_y)
 
         #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-        self.ini_dae_jacobian_nn(xy0)
-        self.run_dae_jacobian_nn(xy0)
+
         
         if self.sopt_root_jac:
             sol = sopt.root(self.ini_problem, xy0, 
