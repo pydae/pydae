@@ -673,3 +673,106 @@ def plot_results(grid):
     show(p)
     
     return p
+
+
+def get_flow(grid_obj,bus_j,bus_k,mode='total',model='pydgrid_pydae'):
+    if model == 'pydgrid_pydae':
+        v_a   = grid_obj.get_values(f'v_{bus_j}_a_r') + 1j* grid_obj.get_values(f'v_{bus_j}_a_i')
+        i_l_a = grid_obj.get_values(f'i_l_{bus_j}_{bus_k}_a_r') + 1j* grid_obj.get_values(f'i_l_{bus_j}_{bus_k}_a_i')
+        v_b   = grid_obj.get_values(f'v_{bus_j}_b_r') + 1j* grid_obj.get_values(f'v_{bus_j}_b_i')
+        i_l_b = grid_obj.get_values(f'i_l_{bus_j}_{bus_k}_b_r') + 1j* grid_obj.get_values(f'i_l_{bus_j}_{bus_k}_b_i')
+        v_c   = grid_obj.get_values(f'v_{bus_j}_c_r') + 1j* grid_obj.get_values(f'v_{bus_j}_c_i')
+        i_l_c = grid_obj.get_values(f'i_l_{bus_j}_{bus_k}_c_r') + 1j* grid_obj.get_values(f'i_l_{bus_j}_{bus_k}_c_i')
+        s_a = v_a*np.conj(i_l_a)
+        s_b = v_b*np.conj(i_l_b)
+        s_c = v_c*np.conj(i_l_c)
+
+        if mode == 'total':
+            s_t = s_a + s_b + s_c
+            return s_t
+        if mode == 'abc':
+            return s_a,s_b,s_c
+        
+def set_voltage(grid_obj,bus_name,voltage,phase):
+    '''
+    Set new power to a grid feeder.
+
+    Parameters
+    ----------
+    grid_obj : object of pydgrid.grid class
+    bus_name : string
+        name of the grid feeder bus.
+    voltage : real escalar
+        phase-phase RMS voltage magnitude
+    phase : real escalar.
+        phase angle in degree.
+
+    Returns
+    -------
+    None.
+
+    '''
+
+ 
+    v_a = voltage/np.sqrt(3)*np.exp(1j*np.deg2rad(phase))
+    v_b = voltage/np.sqrt(3)*np.exp(1j*np.deg2rad(phase-240))
+    v_c = voltage/np.sqrt(3)*np.exp(1j*np.deg2rad(phase-120))
+    grid_obj.set_value(f'v_{bus_name}_a_r',v_a.real)
+    grid_obj.set_value(f'v_{bus_name}_a_i',v_a.imag)
+    grid_obj.set_value(f'v_{bus_name}_b_r',v_b.real)
+    grid_obj.set_value(f'v_{bus_name}_b_i',v_b.imag)
+    grid_obj.set_value(f'v_{bus_name}_c_r',v_c.real)
+    grid_obj.set_value(f'v_{bus_name}_c_i',v_c.imag)
+    
+def phasor2inst(grid_obj,bus_name,magnitude='v',to_bus='',phases=['a','b','c'],Freq = 50,Dt=1e-4):
+    
+    omega = 2*np.pi*Freq
+    out = []
+    
+    if magnitude == 'v':
+        for ph in phases:
+            Times = np.arange(0.0,grid_obj.T[-1,0],Dt)
+            R = grid_obj.get_values(f'{magnitude}_{bus_name}_{ph}_r') 
+            I = grid_obj.get_values(f'{magnitude}_{bus_name}_{ph}_i')
+            R_ = np.interp(Times,grid_obj.T[:,0],R)
+            I_ = np.interp(Times,grid_obj.T[:,0],I)
+            R_I = R_ + 1j*I_
+            cplx = np.sqrt(2)*np.exp(1j*omega*Times)*R_I
+            out += [cplx.real]
+
+    if magnitude == 'iline':
+        for ph in phases:
+            Times = np.arange(0.0,grid_obj.T[-1,0],Dt)
+            R = grid_obj.get_values(f'i_l_{bus_name}_{to_bus}_{ph}_r') 
+            I = grid_obj.get_values(f'i_l_{bus_name}_{to_bus}_{ph}_i')
+            R_ = np.interp(Times,grid_obj.T[:,0],R)
+            I_ = np.interp(Times,grid_obj.T[:,0],I)
+            R_I = R_ + 1j*I_
+            cplx = np.sqrt(2)*np.exp(1j*omega*Times)*R_I
+            out += [cplx.real]
+
+    return Times,out
+
+
+def get_voltage(grid_obj,bus_name):
+    '''
+    Get voltage module of a bus.
+
+    Parameters
+    ----------
+    grid_obj : object of pydae class
+    bus_name : string
+        name of the bus.
+
+    Returns
+    -------
+    phase-ground voltage module (V).
+
+    '''
+    v_a = syst.get_value(f'v_{bus_name}_a_r') + 1j* syst.get_value(f'v_{bus_name}_a_i')
+    U_meas = np.abs(v_a) 
+    
+    return U_meas
+
+
+
