@@ -27,11 +27,18 @@ class grid(object):
             A_conect = data['A_conect']
             nodes_list = data['nodes_list']
             node_sorter = data['node_sorter']
+            Y_vv = data['Y_vv']
+            Y_vi = data['Y_vi']        
+            N_v = int(data['N_v']) 
+
             
         self.nodes_list = nodes_list
         self.Y_primitive = Y_primitive
         self.A_conect = A_conect
         self.node_sorter = node_sorter
+        self.Y_vv = Y_vv
+        self.Y_vi = Y_vi
+        self.N_v = N_v
 
         json_file = 'grid_data.json'
         json_file = json_file
@@ -50,21 +57,43 @@ class grid(object):
 
         
     def dae2vi(self):
+        '''
+        For obtaining line currents from node voltages after power flow is solved.
+
+        Returns
+        -------
+        None.
+
+        '''
         n2a = {'1':'a','2':'b','3':'c','4':'n'}
         V_node_list = []
-        I_node_list = []        
+        I_node_list = []
+      
         for item in self.nodes_list:
             bus_name,phase_name = item.split('.')
-            i = get_i(self.syst,bus_name,phase_name=n2a[phase_name],i_type='phasor',dq_name='ri')
-            I_node_list += [i]
+            #i = get_i(self.syst,bus_name,phase_name=n2a[phase_name],i_type='phasor',dq_name='ri')
+            #I_node_list += [i]
             v = get_v(self.syst,bus_name,phase_name=n2a[phase_name],v_type='phasor',dq_name='ri')
             V_node_list += [v]
 
-        I_node = np.array(I_node_list).reshape(len(I_node_list),1)
-        V_node = np.array(V_node_list).reshape(len(V_node_list),1)
-        self.I_node = I_node
-        self.V_node = V_node
+        for item in self.nodes_list[self.N_v:]:
+            bus_name,phase_name = item.split('.')
+            i = get_i(self.syst,bus_name,phase_name=n2a[phase_name],i_type='phasor',dq_name='ri')
+            I_node_list += [i]
+ 
 
+        V_node = np.array(V_node_list).reshape(len(V_node_list),1)
+        
+        V_known = np.copy(V_node[:self.N_v])
+        V_unknown = np.copy(V_node[self.N_v:])
+        I_unknown = self.Y_vv @ V_known + self.Y_vi @ V_unknown
+        #self.I_node = I_node
+        self.V_node = V_node
+        self.I_unknown = I_unknown
+        self.I_known = np.array(I_node_list).reshape(len(I_node_list),1)
+
+        self.I_node = np.vstack((self.I_unknown,self.I_known))
+        
         I_lines = self.Y_primitive @ self.A_conect.T @ self.V_node
         self.I_lines = I_lines
         
@@ -81,7 +110,7 @@ class grid(object):
         S_sorted = []
         start_node = 0
         self.V_results = self.V_node
-        self.I_results = self.I_node
+        # self.I_results = self.I_node
         
         V_sorted = self.V_node[self.node_sorter]
         I_sorted = self.I_node[self.node_sorter]   
@@ -723,6 +752,43 @@ def set_voltage(grid_obj,bus_name,voltage,phase):
     grid_obj.set_value(f'v_{bus_name}_b_i',v_b.imag)
     grid_obj.set_value(f'v_{bus_name}_c_r',v_c.real)
     grid_obj.set_value(f'v_{bus_name}_c_i',v_c.imag)
+ 
+def set_voltages(grid_obj,bus_name,voltages,phases):
+    '''
+    Set new power to a grid feeder.
+
+    Parameters
+    ----------
+    grid_obj : object of pydgrid.grid class
+    bus_name : string
+        name of the grid feeder bus.
+    voltage : real escalar
+        phase-phase RMS voltage magnitude
+    phase : real escalar.
+        phase angle in degree.
+
+    Returns
+    -------
+    None.
+
+    '''
+
+    if isinstance(phases, list):
+        v_a = voltages[0]*np.exp(1j*np.deg2rad(phases[0]))
+        v_b = voltages[1]*np.exp(1j*np.deg2rad(phases[1]))
+        v_c = voltages[2]*np.exp(1j*np.deg2rad(phases[2]))
+    else:
+        v_a = voltages[0]*np.exp(1j*np.deg2rad(phases))
+        v_b = voltages[1]*np.exp(1j*np.deg2rad(phases-240))
+        v_c = voltages[2]*np.exp(1j*np.deg2rad(phases-120))    
+    
+    grid_obj.set_value(f'v_{bus_name}_a_r',v_a.real)
+    grid_obj.set_value(f'v_{bus_name}_a_i',v_a.imag)
+    grid_obj.set_value(f'v_{bus_name}_b_r',v_b.real)
+    grid_obj.set_value(f'v_{bus_name}_b_i',v_b.imag)
+    grid_obj.set_value(f'v_{bus_name}_c_r',v_c.real)
+    grid_obj.set_value(f'v_{bus_name}_c_i',v_c.imag)
+    
     
 def phasor2inst(grid_obj,bus_name,magnitude='v',to_bus='',phases=['a','b','c'],Freq = 50,Dt=1e-4):
     
@@ -769,7 +835,7 @@ def get_voltage(grid_obj,bus_name):
     phase-ground voltage module (V).
 
     '''
-    v_a = syst.get_value(f'v_{bus_name}_a_r') + 1j* syst.get_value(f'v_{bus_name}_a_i')
+    v_a = syst.get_value(f'v_{bus_name}_a_r') + 1j* grid_obj.get_value(f'v_{bus_name}_a_i')
     U_meas = np.abs(v_a) 
     
     return U_meas

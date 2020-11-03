@@ -22,20 +22,20 @@ class grid_3bus_lv_class:
         self.solvern = 5 
         self.imax = 100 
         self.N_x = 1
-        self.N_y = 32 
-        self.N_z = 1 
+        self.N_y = 20 
+        self.N_z = 12 
         self.N_store = 10000 
-        self.params_list = ['a'] 
-        self.params_values_list  = [1] 
+        self.params_list = [] 
+        self.params_values_list  = [] 
         self.inputs_ini_list = ['v_B1_a_r', 'v_B1_a_i', 'v_B1_b_r', 'v_B1_b_i', 'v_B1_c_r', 'v_B1_c_i', 'v_B3_a_r', 'v_B3_a_i', 'v_B3_b_r', 'v_B3_b_i', 'v_B3_c_r', 'v_B3_c_i', 'i_B2_n_r', 'i_B2_n_i', 'i_B1_n_r', 'i_B1_n_i', 'i_B3_n_r', 'i_B3_n_i', 'p_B2_a', 'q_B2_a', 'p_B2_b', 'q_B2_b', 'p_B2_c', 'q_B2_c', 'u_dummy'] 
-        self.inputs_ini_values_list  = [231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 20.43523392392958, 937.8520295787625, 0.0, 0.0, 0.0, 0.0, -84999.99999999999, -52678.26876426369, -85000.0, -52678.26876426369, -255000.00000000006, -158034.80629279112, 1.0] 
+        self.inputs_ini_values_list  = [231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 20.435233933984186, 937.8520294705252, 0.0, 0.0, 0.0, 0.0, -85000.00000316024, -52678.26876267415, -85000.000000934, -52678.268767692425, -254999.9999782921, -158034.80628283994, 1.0] 
         self.inputs_run_list = ['v_B1_a_r', 'v_B1_a_i', 'v_B1_b_r', 'v_B1_b_i', 'v_B1_c_r', 'v_B1_c_i', 'v_B3_a_r', 'v_B3_a_i', 'v_B3_b_r', 'v_B3_b_i', 'v_B3_c_r', 'v_B3_c_i', 'i_B2_n_r', 'i_B2_n_i', 'i_B1_n_r', 'i_B1_n_i', 'i_B3_n_r', 'i_B3_n_i', 'p_B2_a', 'q_B2_a', 'p_B2_b', 'q_B2_b', 'p_B2_c', 'q_B2_c', 'u_dummy'] 
-        self.inputs_run_values_list = [231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 20.43523392392958, 937.8520295787625, 0.0, 0.0, 0.0, 0.0, -84999.99999999999, -52678.26876426369, -85000.0, -52678.26876426369, -255000.00000000006, -158034.80629279112, 1.0] 
-        self.outputs_list = ['x_dummy'] 
+        self.inputs_run_values_list = [231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 231.0, 0.0, -115.49999999999994, -200.05186827420533, -115.5000000000001, 200.05186827420528, 20.435233933984186, 937.8520294705252, 0.0, 0.0, 0.0, 0.0, -85000.00000316024, -52678.26876267415, -85000.000000934, -52678.268767692425, -254999.9999782921, -158034.80628283994, 1.0] 
+        self.outputs_list = ['v_B1_a_m', 'v_B1_b_m', 'v_B1_c_m', 'v_B3_a_m', 'v_B3_b_m', 'v_B3_c_m', 'v_B2_a_m', 'v_B2_b_m', 'v_B2_c_m', 'v_B2_n_m', 'v_B1_n_m', 'v_B3_n_m'] 
         self.x_list = ['x_dummy'] 
-        self.y_run_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B3_n_r', 'v_B3_n_i', 'i_B1_a_r', 'i_B1_a_i', 'i_B1_b_r', 'i_B1_b_i', 'i_B1_c_r', 'i_B1_c_i', 'i_B3_a_r', 'i_B3_a_i', 'i_B3_b_r', 'i_B3_b_i', 'i_B3_c_r', 'i_B3_c_i', 'i_B2_a_r', 'i_B2_a_i', 'i_B2_b_r', 'i_B2_b_i', 'i_B2_c_r', 'i_B2_c_i', 'i_B2_n_r', 'i_B2_n_i'] 
+        self.y_run_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B3_n_r', 'v_B3_n_i', 'i_B2_a_r', 'i_B2_a_i', 'i_B2_b_r', 'i_B2_b_i', 'i_B2_c_r', 'i_B2_c_i', 'i_B2_n_r', 'i_B2_n_i'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B3_n_r', 'v_B3_n_i', 'i_B1_a_r', 'i_B1_a_i', 'i_B1_b_r', 'i_B1_b_i', 'i_B1_c_r', 'i_B1_c_i', 'i_B3_a_r', 'i_B3_a_i', 'i_B3_b_r', 'i_B3_b_i', 'i_B3_c_r', 'i_B3_c_i', 'i_B2_a_r', 'i_B2_a_i', 'i_B2_b_r', 'i_B2_b_i', 'i_B2_c_r', 'i_B2_c_i', 'i_B2_n_r', 'i_B2_n_i'] 
+        self.y_ini_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B3_n_r', 'v_B3_n_i', 'i_B2_a_r', 'i_B2_a_i', 'i_B2_b_r', 'i_B2_b_i', 'i_B2_c_r', 'i_B2_c_i', 'i_B2_n_r', 'i_B2_n_i'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -162,6 +162,10 @@ class grid_3bus_lv_class:
         values += [item for item in self.inputs_run_values_list]
 
         self.struct = np.rec.array([tuple(values)], dtype=np.dtype(dt))
+        
+        xy0 = np.zeros((self.N_x+self.N_y,))
+        self.ini_dae_jacobian_nn(xy0)
+        self.run_dae_jacobian_nn(xy0)
 
     def load_params(self,data_input):
 
@@ -213,6 +217,16 @@ class grid_3bus_lv_class:
         A_c = np.block([[self.struct[0].Fx,self.struct[0].Fy],
                         [self.struct[0].Gx,self.struct[0].Gy]])
         return A_c
+
+    def run_dae_jacobian_nn(self,x):
+        self.struct[0].x[:,0] = x[0:self.N_x]
+        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
+        run_nn(0.0,self.struct,10)
+        run_nn(0.0,self.struct,11)     
+        run_nn(0.0,self.struct,12)
+        run_nn(0.0,self.struct,13)
+ 
+
     
     def eval_jacobians(self):
 
@@ -232,7 +246,12 @@ class grid_3bus_lv_class:
                         [self.struct[0].Gx_ini,self.struct[0].Gy_ini]])
         return A_c
 
-
+    def ini_dae_jacobian_nn(self,x):
+        self.struct[0].x[:,0] = x[0:self.N_x]
+        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
+        ini_nn(self.struct,10)
+        ini_nn(self.struct,11)       
+ 
 
     def f_ode(self,x):
         self.struct[0].x[:,0] = x
@@ -338,7 +357,7 @@ class grid_3bus_lv_class:
         return T,X,Y,Z
         
         
-    def initialize(self,events,xy0=0):
+    def initialize(self,events=[{}],xy0=0):
         '''
         
 
@@ -387,6 +406,8 @@ class grid_3bus_lv_class:
             xy0 = xy0*np.ones(self.N_x+self.N_y)
 
         #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
+
+        
         if self.sopt_root_jac:
             sol = sopt.root(self.ini_problem, xy0, 
                             jac=self.ini_dae_jacobian, 
@@ -454,7 +475,7 @@ class grid_3bus_lv_class:
             self.Z = Z
             self.iters = iters
             
-        return T,X,Y,Z
+        return self.initialization_ok
     
     
     def get_value(self,name):
@@ -482,280 +503,57 @@ class grid_3bus_lv_class:
             values = self.Z[:,self.outputs_list.index(name)]
                         
         return values
+
+    def get_mvalue(self,names):
+        '''
+
+        Parameters
+        ----------
+        names : list
+            list of variables names to return each value.
+
+        Returns
+        -------
+        mvalue : TYPE
+            list of value of each variable.
+
+        '''
+        mvalue = []
+        for name in names:
+            mvalue += [self.get_value(name)]
+                        
+        return mvalue
     
     def set_value(self,name,value):
         if name in self.inputs_run_list:
             self.struct[0][name] = value
         if name in self.params_list:
             self.struct[0][name] = value
+            
+    def report_x(self,value_format='5.2f'):
+        for item in self.x_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
 
+    def report_y(self,value_format='5.2f'):
+        for item in self.y_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def report_u(self,value_format='5.2f'):
+        for item in self.inputs_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
 
-@numba.njit(cache=True)
-def run(t,struct,mode):
-
-    # Parameters:
-    a = struct[0].a
-    
-    # Inputs:
-    v_B1_a_r = struct[0].v_B1_a_r
-    v_B1_a_i = struct[0].v_B1_a_i
-    v_B1_b_r = struct[0].v_B1_b_r
-    v_B1_b_i = struct[0].v_B1_b_i
-    v_B1_c_r = struct[0].v_B1_c_r
-    v_B1_c_i = struct[0].v_B1_c_i
-    v_B3_a_r = struct[0].v_B3_a_r
-    v_B3_a_i = struct[0].v_B3_a_i
-    v_B3_b_r = struct[0].v_B3_b_r
-    v_B3_b_i = struct[0].v_B3_b_i
-    v_B3_c_r = struct[0].v_B3_c_r
-    v_B3_c_i = struct[0].v_B3_c_i
-    i_B2_n_r = struct[0].i_B2_n_r
-    i_B2_n_i = struct[0].i_B2_n_i
-    i_B1_n_r = struct[0].i_B1_n_r
-    i_B1_n_i = struct[0].i_B1_n_i
-    i_B3_n_r = struct[0].i_B3_n_r
-    i_B3_n_i = struct[0].i_B3_n_i
-    p_B2_a = struct[0].p_B2_a
-    q_B2_a = struct[0].q_B2_a
-    p_B2_b = struct[0].p_B2_b
-    q_B2_b = struct[0].q_B2_b
-    p_B2_c = struct[0].p_B2_c
-    q_B2_c = struct[0].q_B2_c
-    u_dummy = struct[0].u_dummy
-    
-    # Dynamical states:
-    x_dummy = struct[0].x[0,0]
-    
-    # Algebraic states:
-    v_B2_a_r = struct[0].y_run[0,0]
-    v_B2_a_i = struct[0].y_run[1,0]
-    v_B2_b_r = struct[0].y_run[2,0]
-    v_B2_b_i = struct[0].y_run[3,0]
-    v_B2_c_r = struct[0].y_run[4,0]
-    v_B2_c_i = struct[0].y_run[5,0]
-    v_B2_n_r = struct[0].y_run[6,0]
-    v_B2_n_i = struct[0].y_run[7,0]
-    v_B1_n_r = struct[0].y_run[8,0]
-    v_B1_n_i = struct[0].y_run[9,0]
-    v_B3_n_r = struct[0].y_run[10,0]
-    v_B3_n_i = struct[0].y_run[11,0]
-    i_B1_a_r = struct[0].y_run[12,0]
-    i_B1_a_i = struct[0].y_run[13,0]
-    i_B1_b_r = struct[0].y_run[14,0]
-    i_B1_b_i = struct[0].y_run[15,0]
-    i_B1_c_r = struct[0].y_run[16,0]
-    i_B1_c_i = struct[0].y_run[17,0]
-    i_B3_a_r = struct[0].y_run[18,0]
-    i_B3_a_i = struct[0].y_run[19,0]
-    i_B3_b_r = struct[0].y_run[20,0]
-    i_B3_b_i = struct[0].y_run[21,0]
-    i_B3_c_r = struct[0].y_run[22,0]
-    i_B3_c_i = struct[0].y_run[23,0]
-    i_B2_a_r = struct[0].y_run[24,0]
-    i_B2_a_i = struct[0].y_run[25,0]
-    i_B2_b_r = struct[0].y_run[26,0]
-    i_B2_b_i = struct[0].y_run[27,0]
-    i_B2_c_r = struct[0].y_run[28,0]
-    i_B2_c_i = struct[0].y_run[29,0]
-    i_B2_n_r = struct[0].y_run[30,0]
-    i_B2_n_i = struct[0].y_run[31,0]
-    
-    # Differential equations:
-    if mode == 2:
-
-
-        struct[0].f[0,0] = u_dummy - x_dummy
-    
-    # Algebraic equations:
-    if mode == 3:
-
-
-        struct[0].g[0,0] = -0.00266666666666667*i_B2_a_i + 0.00556666666666667*i_B2_a_r + 0.666666666666667*v_B1_a_r - v_B2_a_r + 0.333333333333333*v_B3_a_r
-        struct[0].g[1,0] = 0.00556666666666667*i_B2_a_i + 0.00266666666666667*i_B2_a_r + 0.666666666666667*v_B1_a_i - v_B2_a_i + 0.333333333333333*v_B3_a_i
-        struct[0].g[2,0] = -0.00266666666666667*i_B2_b_i + 0.00556666666666667*i_B2_b_r + 0.666666666666667*v_B1_b_r - v_B2_b_r + 0.333333333333333*v_B3_b_r
-        struct[0].g[3,0] = 0.00556666666666667*i_B2_b_i + 0.00266666666666667*i_B2_b_r + 0.666666666666667*v_B1_b_i - v_B2_b_i + 0.333333333333333*v_B3_b_i
-        struct[0].g[4,0] = -0.00266666666666667*i_B2_c_i + 0.00556666666666667*i_B2_c_r + 0.666666666666667*v_B1_c_r - v_B2_c_r + 0.333333333333333*v_B3_c_r
-        struct[0].g[5,0] = 0.00556666666666667*i_B2_c_i + 0.00266666666666667*i_B2_c_r + 0.666666666666667*v_B1_c_i - v_B2_c_i + 0.333333333333333*v_B3_c_i
-        struct[0].g[6,0] = -4.56776131163261e-6*i_B1_n_i + 0.000656370171376695*i_B1_n_r - 0.00266818925377054*i_B2_n_i + 0.00611879005712557*i_B2_n_r + 4.56776131163266e-6*i_B3_n_i + 0.000343629828623305*i_B3_n_r - v_B2_n_r
-        struct[0].g[7,0] = 0.000656370171376695*i_B1_n_i + 4.56776131163261e-6*i_B1_n_r + 0.00611879005712557*i_B2_n_i + 0.00266818925377054*i_B2_n_r + 0.000343629828623305*i_B3_n_i - 4.56776131163266e-6*i_B3_n_r - v_B2_n_i
-        struct[0].g[8,0] = -1.3703283934898e-5*i_B1_n_i + 0.000969110514130084*i_B1_n_r - 4.56776131163266e-6*i_B2_n_i + 0.000656370171376695*i_B2_n_r + 1.3703283934898e-5*i_B3_n_i + 3.08894858699159e-5*i_B3_n_r - v_B1_n_r
-        struct[0].g[9,0] = 0.000969110514130084*i_B1_n_i + 1.3703283934898e-5*i_B1_n_r + 0.000656370171376695*i_B2_n_i + 4.56776131163266e-6*i_B2_n_r + 3.08894858699159e-5*i_B3_n_i - 1.3703283934898e-5*i_B3_n_r - v_B1_n_i
-        struct[0].g[10,0] = 1.3703283934898e-5*i_B1_n_i + 3.08894858699159e-5*i_B1_n_r + 4.56776131163266e-6*i_B2_n_i + 0.000343629828623305*i_B2_n_r - 1.3703283934898e-5*i_B3_n_i + 0.000969110514130084*i_B3_n_r - v_B3_n_r
-        struct[0].g[11,0] = 3.08894858699159e-5*i_B1_n_i - 1.3703283934898e-5*i_B1_n_r + 0.000343629828623305*i_B2_n_i - 4.56776131163266e-6*i_B2_n_r + 0.000969110514130084*i_B3_n_i + 1.3703283934898e-5*i_B3_n_r - v_B3_n_i
-        struct[0].g[12,0] = -i_B1_a_r + 46.6621948729913*v_B1_a_i + 97.4073317973694*v_B1_a_r - 46.6621948729913*v_B2_a_i - 97.4073317973694*v_B2_a_r
-        struct[0].g[13,0] = -i_B1_a_i + 97.4073317973694*v_B1_a_i - 46.6621948729913*v_B1_a_r - 97.4073317973694*v_B2_a_i + 46.6621948729913*v_B2_a_r
-        struct[0].g[14,0] = -i_B1_b_r + 46.6621948729913*v_B1_b_i + 97.4073317973694*v_B1_b_r - 46.6621948729913*v_B2_b_i - 97.4073317973694*v_B2_b_r
-        struct[0].g[15,0] = -i_B1_b_i + 97.4073317973694*v_B1_b_i - 46.6621948729913*v_B1_b_r - 97.4073317973694*v_B2_b_i + 46.6621948729913*v_B2_b_r
-        struct[0].g[16,0] = -i_B1_c_r + 46.6621948729913*v_B1_c_i + 97.4073317973694*v_B1_c_r - 46.6621948729913*v_B2_c_i - 97.4073317973694*v_B2_c_r
-        struct[0].g[17,0] = -i_B1_c_i + 97.4073317973694*v_B1_c_i - 46.6621948729913*v_B1_c_r - 97.4073317973694*v_B2_c_i + 46.6621948729913*v_B2_c_r
-        struct[0].g[18,0] = -i_B3_a_r - 23.3310974364957*v_B2_a_i - 48.7036658986847*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
-        struct[0].g[19,0] = -i_B3_a_i - 48.7036658986847*v_B2_a_i + 23.3310974364957*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
-        struct[0].g[20,0] = -i_B3_b_r - 23.3310974364957*v_B2_b_i - 48.7036658986847*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
-        struct[0].g[21,0] = -i_B3_b_i - 48.7036658986847*v_B2_b_i + 23.3310974364957*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
-        struct[0].g[22,0] = -i_B3_c_r - 23.3310974364957*v_B2_c_i - 48.7036658986847*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
-        struct[0].g[23,0] = -i_B3_c_i - 48.7036658986847*v_B2_c_i + 23.3310974364957*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
-        struct[0].g[24,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r + p_B2_a
-        struct[0].g[25,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r + p_B2_b
-        struct[0].g[26,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r + p_B2_c
-        struct[0].g[27,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i + q_B2_a
-        struct[0].g[28,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i + q_B2_b
-        struct[0].g[29,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i + q_B2_c
-        struct[0].g[30,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
-        struct[0].g[31,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = x_dummy
-    
-
-    if mode == 10:
-
-        struct[0].Fx[0,0] = -1
-
-    if mode == 11:
-
-
-
-        struct[0].Gy[0,0] = -1
-        struct[0].Gy[0,24] = 0.00556666666666667
-        struct[0].Gy[0,25] = -0.00266666666666667
-        struct[0].Gy[1,1] = -1
-        struct[0].Gy[1,24] = 0.00266666666666667
-        struct[0].Gy[1,25] = 0.00556666666666667
-        struct[0].Gy[2,2] = -1
-        struct[0].Gy[2,26] = 0.00556666666666667
-        struct[0].Gy[2,27] = -0.00266666666666667
-        struct[0].Gy[3,3] = -1
-        struct[0].Gy[3,26] = 0.00266666666666667
-        struct[0].Gy[3,27] = 0.00556666666666667
-        struct[0].Gy[4,4] = -1
-        struct[0].Gy[4,28] = 0.00556666666666667
-        struct[0].Gy[4,29] = -0.00266666666666667
-        struct[0].Gy[5,5] = -1
-        struct[0].Gy[5,28] = 0.00266666666666667
-        struct[0].Gy[5,29] = 0.00556666666666667
-        struct[0].Gy[6,6] = -1
-        struct[0].Gy[6,30] = 0.00611879005712557
-        struct[0].Gy[6,31] = -0.00266818925377054
-        struct[0].Gy[7,7] = -1
-        struct[0].Gy[7,30] = 0.00266818925377054
-        struct[0].Gy[7,31] = 0.00611879005712557
-        struct[0].Gy[8,8] = -1
-        struct[0].Gy[8,30] = 0.000656370171376695
-        struct[0].Gy[8,31] = -0.00000456776131163266
-        struct[0].Gy[9,9] = -1
-        struct[0].Gy[9,30] = 0.00000456776131163266
-        struct[0].Gy[9,31] = 0.000656370171376695
-        struct[0].Gy[10,10] = -1
-        struct[0].Gy[10,30] = 0.000343629828623305
-        struct[0].Gy[10,31] = 0.00000456776131163266
-        struct[0].Gy[11,11] = -1
-        struct[0].Gy[11,30] = -0.00000456776131163266
-        struct[0].Gy[11,31] = 0.000343629828623305
-        struct[0].Gy[12,0] = -97.4073317973694
-        struct[0].Gy[12,1] = -46.6621948729913
-        struct[0].Gy[12,12] = -1
-        struct[0].Gy[13,0] = 46.6621948729913
-        struct[0].Gy[13,1] = -97.4073317973694
-        struct[0].Gy[13,13] = -1
-        struct[0].Gy[14,2] = -97.4073317973694
-        struct[0].Gy[14,3] = -46.6621948729913
-        struct[0].Gy[14,14] = -1
-        struct[0].Gy[15,2] = 46.6621948729913
-        struct[0].Gy[15,3] = -97.4073317973694
-        struct[0].Gy[15,15] = -1
-        struct[0].Gy[16,4] = -97.4073317973694
-        struct[0].Gy[16,5] = -46.6621948729913
-        struct[0].Gy[16,16] = -1
-        struct[0].Gy[17,4] = 46.6621948729913
-        struct[0].Gy[17,5] = -97.4073317973694
-        struct[0].Gy[17,17] = -1
-        struct[0].Gy[18,0] = -48.7036658986847
-        struct[0].Gy[18,1] = -23.3310974364957
-        struct[0].Gy[18,18] = -1
-        struct[0].Gy[19,0] = 23.3310974364957
-        struct[0].Gy[19,1] = -48.7036658986847
-        struct[0].Gy[19,19] = -1
-        struct[0].Gy[20,2] = -48.7036658986847
-        struct[0].Gy[20,3] = -23.3310974364957
-        struct[0].Gy[20,20] = -1
-        struct[0].Gy[21,2] = 23.3310974364957
-        struct[0].Gy[21,3] = -48.7036658986847
-        struct[0].Gy[21,21] = -1
-        struct[0].Gy[22,4] = -48.7036658986847
-        struct[0].Gy[22,5] = -23.3310974364957
-        struct[0].Gy[22,22] = -1
-        struct[0].Gy[23,4] = 23.3310974364957
-        struct[0].Gy[23,5] = -48.7036658986847
-        struct[0].Gy[23,23] = -1
-        struct[0].Gy[24,0] = i_B2_a_r
-        struct[0].Gy[24,1] = i_B2_a_i
-        struct[0].Gy[24,6] = -i_B2_a_r
-        struct[0].Gy[24,7] = -i_B2_a_i
-        struct[0].Gy[24,24] = v_B2_a_r - v_B2_n_r
-        struct[0].Gy[24,25] = v_B2_a_i - v_B2_n_i
-        struct[0].Gy[25,2] = i_B2_b_r
-        struct[0].Gy[25,3] = i_B2_b_i
-        struct[0].Gy[25,6] = -i_B2_b_r
-        struct[0].Gy[25,7] = -i_B2_b_i
-        struct[0].Gy[25,26] = v_B2_b_r - v_B2_n_r
-        struct[0].Gy[25,27] = v_B2_b_i - v_B2_n_i
-        struct[0].Gy[26,4] = i_B2_c_r
-        struct[0].Gy[26,5] = i_B2_c_i
-        struct[0].Gy[26,6] = -i_B2_c_r
-        struct[0].Gy[26,7] = -i_B2_c_i
-        struct[0].Gy[26,28] = v_B2_c_r - v_B2_n_r
-        struct[0].Gy[26,29] = v_B2_c_i - v_B2_n_i
-        struct[0].Gy[27,0] = -i_B2_a_i
-        struct[0].Gy[27,1] = i_B2_a_r
-        struct[0].Gy[27,6] = i_B2_a_i
-        struct[0].Gy[27,7] = -i_B2_a_r
-        struct[0].Gy[27,24] = v_B2_a_i - v_B2_n_i
-        struct[0].Gy[27,25] = -v_B2_a_r + v_B2_n_r
-        struct[0].Gy[28,2] = -i_B2_b_i
-        struct[0].Gy[28,3] = i_B2_b_r
-        struct[0].Gy[28,6] = i_B2_b_i
-        struct[0].Gy[28,7] = -i_B2_b_r
-        struct[0].Gy[28,26] = v_B2_b_i - v_B2_n_i
-        struct[0].Gy[28,27] = -v_B2_b_r + v_B2_n_r
-        struct[0].Gy[29,4] = -i_B2_c_i
-        struct[0].Gy[29,5] = i_B2_c_r
-        struct[0].Gy[29,6] = i_B2_c_i
-        struct[0].Gy[29,7] = -i_B2_c_r
-        struct[0].Gy[29,28] = v_B2_c_i - v_B2_n_i
-        struct[0].Gy[29,29] = -v_B2_c_r + v_B2_n_r
-        struct[0].Gy[30,24] = 1
-        struct[0].Gy[30,26] = 1
-        struct[0].Gy[30,28] = 1
-        struct[0].Gy[30,30] = 1
-        struct[0].Gy[31,25] = 1
-        struct[0].Gy[31,27] = 1
-        struct[0].Gy[31,29] = 1
-        struct[0].Gy[31,31] = 1
-
-    if mode > 12:
-
-        struct[0].Fu[0,24] = 1
-
-        struct[0].Gu[24,18] = 1
-        struct[0].Gu[25,20] = 1
-        struct[0].Gu[26,22] = 1
-        struct[0].Gu[27,19] = 1
-        struct[0].Gu[28,21] = 1
-        struct[0].Gu[29,23] = 1
-
-        struct[0].Hx[0,0] = 1
-
-
-
+    def report_z(self,value_format='5.2f'):
+        for item in self.outputs_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def get_x(self):
+        return self.struct[0].x
 
 
 @numba.njit(cache=True)
 def ini(struct,mode):
 
     # Parameters:
-    a = struct[0].a
     
     # Inputs:
     v_B1_a_r = struct[0].v_B1_a_r
@@ -800,26 +598,14 @@ def ini(struct,mode):
     v_B1_n_i = struct[0].y_ini[9,0]
     v_B3_n_r = struct[0].y_ini[10,0]
     v_B3_n_i = struct[0].y_ini[11,0]
-    i_B1_a_r = struct[0].y_ini[12,0]
-    i_B1_a_i = struct[0].y_ini[13,0]
-    i_B1_b_r = struct[0].y_ini[14,0]
-    i_B1_b_i = struct[0].y_ini[15,0]
-    i_B1_c_r = struct[0].y_ini[16,0]
-    i_B1_c_i = struct[0].y_ini[17,0]
-    i_B3_a_r = struct[0].y_ini[18,0]
-    i_B3_a_i = struct[0].y_ini[19,0]
-    i_B3_b_r = struct[0].y_ini[20,0]
-    i_B3_b_i = struct[0].y_ini[21,0]
-    i_B3_c_r = struct[0].y_ini[22,0]
-    i_B3_c_i = struct[0].y_ini[23,0]
-    i_B2_a_r = struct[0].y_ini[24,0]
-    i_B2_a_i = struct[0].y_ini[25,0]
-    i_B2_b_r = struct[0].y_ini[26,0]
-    i_B2_b_i = struct[0].y_ini[27,0]
-    i_B2_c_r = struct[0].y_ini[28,0]
-    i_B2_c_i = struct[0].y_ini[29,0]
-    i_B2_n_r = struct[0].y_ini[30,0]
-    i_B2_n_i = struct[0].y_ini[31,0]
+    i_B2_a_r = struct[0].y_ini[12,0]
+    i_B2_a_i = struct[0].y_ini[13,0]
+    i_B2_b_r = struct[0].y_ini[14,0]
+    i_B2_b_i = struct[0].y_ini[15,0]
+    i_B2_c_r = struct[0].y_ini[16,0]
+    i_B2_c_i = struct[0].y_ini[17,0]
+    i_B2_n_r = struct[0].y_ini[18,0]
+    i_B2_n_i = struct[0].y_ini[19,0]
     
     # Differential equations:
     if mode == 2:
@@ -831,43 +617,376 @@ def ini(struct,mode):
     if mode == 3:
 
 
-        struct[0].g[0,0] = -0.00266666666666667*i_B2_a_i + 0.00556666666666667*i_B2_a_r + 0.666666666666667*v_B1_a_r - v_B2_a_r + 0.333333333333333*v_B3_a_r
-        struct[0].g[1,0] = 0.00556666666666667*i_B2_a_i + 0.00266666666666667*i_B2_a_r + 0.666666666666667*v_B1_a_i - v_B2_a_i + 0.333333333333333*v_B3_a_i
-        struct[0].g[2,0] = -0.00266666666666667*i_B2_b_i + 0.00556666666666667*i_B2_b_r + 0.666666666666667*v_B1_b_r - v_B2_b_r + 0.333333333333333*v_B3_b_r
-        struct[0].g[3,0] = 0.00556666666666667*i_B2_b_i + 0.00266666666666667*i_B2_b_r + 0.666666666666667*v_B1_b_i - v_B2_b_i + 0.333333333333333*v_B3_b_i
-        struct[0].g[4,0] = -0.00266666666666667*i_B2_c_i + 0.00556666666666667*i_B2_c_r + 0.666666666666667*v_B1_c_r - v_B2_c_r + 0.333333333333333*v_B3_c_r
-        struct[0].g[5,0] = 0.00556666666666667*i_B2_c_i + 0.00266666666666667*i_B2_c_r + 0.666666666666667*v_B1_c_i - v_B2_c_i + 0.333333333333333*v_B3_c_i
-        struct[0].g[6,0] = -4.56776131163261e-6*i_B1_n_i + 0.000656370171376695*i_B1_n_r - 0.00266818925377054*i_B2_n_i + 0.00611879005712557*i_B2_n_r + 4.56776131163266e-6*i_B3_n_i + 0.000343629828623305*i_B3_n_r - v_B2_n_r
-        struct[0].g[7,0] = 0.000656370171376695*i_B1_n_i + 4.56776131163261e-6*i_B1_n_r + 0.00611879005712557*i_B2_n_i + 0.00266818925377054*i_B2_n_r + 0.000343629828623305*i_B3_n_i - 4.56776131163266e-6*i_B3_n_r - v_B2_n_i
-        struct[0].g[8,0] = -1.3703283934898e-5*i_B1_n_i + 0.000969110514130084*i_B1_n_r - 4.56776131163266e-6*i_B2_n_i + 0.000656370171376695*i_B2_n_r + 1.3703283934898e-5*i_B3_n_i + 3.08894858699159e-5*i_B3_n_r - v_B1_n_r
-        struct[0].g[9,0] = 0.000969110514130084*i_B1_n_i + 1.3703283934898e-5*i_B1_n_r + 0.000656370171376695*i_B2_n_i + 4.56776131163266e-6*i_B2_n_r + 3.08894858699159e-5*i_B3_n_i - 1.3703283934898e-5*i_B3_n_r - v_B1_n_i
-        struct[0].g[10,0] = 1.3703283934898e-5*i_B1_n_i + 3.08894858699159e-5*i_B1_n_r + 4.56776131163266e-6*i_B2_n_i + 0.000343629828623305*i_B2_n_r - 1.3703283934898e-5*i_B3_n_i + 0.000969110514130084*i_B3_n_r - v_B3_n_r
-        struct[0].g[11,0] = 3.08894858699159e-5*i_B1_n_i - 1.3703283934898e-5*i_B1_n_r + 0.000343629828623305*i_B2_n_i - 4.56776131163266e-6*i_B2_n_r + 0.000969110514130084*i_B3_n_i + 1.3703283934898e-5*i_B3_n_r - v_B3_n_i
-        struct[0].g[12,0] = -i_B1_a_r + 46.6621948729913*v_B1_a_i + 97.4073317973694*v_B1_a_r - 46.6621948729913*v_B2_a_i - 97.4073317973694*v_B2_a_r
-        struct[0].g[13,0] = -i_B1_a_i + 97.4073317973694*v_B1_a_i - 46.6621948729913*v_B1_a_r - 97.4073317973694*v_B2_a_i + 46.6621948729913*v_B2_a_r
-        struct[0].g[14,0] = -i_B1_b_r + 46.6621948729913*v_B1_b_i + 97.4073317973694*v_B1_b_r - 46.6621948729913*v_B2_b_i - 97.4073317973694*v_B2_b_r
-        struct[0].g[15,0] = -i_B1_b_i + 97.4073317973694*v_B1_b_i - 46.6621948729913*v_B1_b_r - 97.4073317973694*v_B2_b_i + 46.6621948729913*v_B2_b_r
-        struct[0].g[16,0] = -i_B1_c_r + 46.6621948729913*v_B1_c_i + 97.4073317973694*v_B1_c_r - 46.6621948729913*v_B2_c_i - 97.4073317973694*v_B2_c_r
-        struct[0].g[17,0] = -i_B1_c_i + 97.4073317973694*v_B1_c_i - 46.6621948729913*v_B1_c_r - 97.4073317973694*v_B2_c_i + 46.6621948729913*v_B2_c_r
-        struct[0].g[18,0] = -i_B3_a_r - 23.3310974364957*v_B2_a_i - 48.7036658986847*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
-        struct[0].g[19,0] = -i_B3_a_i - 48.7036658986847*v_B2_a_i + 23.3310974364957*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
-        struct[0].g[20,0] = -i_B3_b_r - 23.3310974364957*v_B2_b_i - 48.7036658986847*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
-        struct[0].g[21,0] = -i_B3_b_i - 48.7036658986847*v_B2_b_i + 23.3310974364957*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
-        struct[0].g[22,0] = -i_B3_c_r - 23.3310974364957*v_B2_c_i - 48.7036658986847*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
-        struct[0].g[23,0] = -i_B3_c_i - 48.7036658986847*v_B2_c_i + 23.3310974364957*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
-        struct[0].g[24,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r + p_B2_a
-        struct[0].g[25,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r + p_B2_b
-        struct[0].g[26,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r + p_B2_c
-        struct[0].g[27,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i + q_B2_a
-        struct[0].g[28,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i + q_B2_b
-        struct[0].g[29,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i + q_B2_c
-        struct[0].g[30,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
-        struct[0].g[31,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
+        struct[0].g[0,0] = i_B2_a_r + 46.6621948729913*v_B1_a_i + 97.4073317973694*v_B1_a_r - 69.993292309487*v_B2_a_i - 146.110997696054*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
+        struct[0].g[1,0] = i_B2_a_i + 97.4073317973694*v_B1_a_i - 46.6621948729913*v_B1_a_r - 146.110997696054*v_B2_a_i + 69.993292309487*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
+        struct[0].g[2,0] = i_B2_b_r + 46.6621948729913*v_B1_b_i + 97.4073317973694*v_B1_b_r - 69.993292309487*v_B2_b_i - 146.110997696054*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
+        struct[0].g[3,0] = i_B2_b_i + 97.4073317973694*v_B1_b_i - 46.6621948729913*v_B1_b_r - 146.110997696054*v_B2_b_i + 69.993292309487*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
+        struct[0].g[4,0] = i_B2_c_r + 46.6621948729913*v_B1_c_i + 97.4073317973694*v_B1_c_r - 69.993292309487*v_B2_c_i - 146.110997696054*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
+        struct[0].g[5,0] = i_B2_c_i + 97.4073317973694*v_B1_c_i - 46.6621948729913*v_B1_c_r - 146.110997696054*v_B2_c_i + 69.993292309487*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
+        struct[0].g[6,0] = i_B2_n_r + 46.6621948729913*v_B1_n_i + 97.4073317973694*v_B1_n_r - 69.993292309487*v_B2_n_i - 146.110997696054*v_B2_n_r + 23.3310974364957*v_B3_n_i + 48.7036658986847*v_B3_n_r
+        struct[0].g[7,0] = i_B2_n_i + 97.4073317973694*v_B1_n_i - 46.6621948729913*v_B1_n_r - 146.110997696054*v_B2_n_i + 69.993292309487*v_B2_n_r + 48.7036658986847*v_B3_n_i - 23.3310974364957*v_B3_n_r
+        struct[0].g[8,0] = i_B1_n_r - 46.6621948729913*v_B1_n_i - 1097.40733179737*v_B1_n_r + 46.6621948729913*v_B2_n_i + 97.4073317973694*v_B2_n_r
+        struct[0].g[9,0] = i_B1_n_i - 1097.40733179737*v_B1_n_i + 46.6621948729913*v_B1_n_r + 97.4073317973694*v_B2_n_i - 46.6621948729913*v_B2_n_r
+        struct[0].g[10,0] = i_B3_n_r + 23.3310974364957*v_B2_n_i + 48.7036658986847*v_B2_n_r - 23.3310974364957*v_B3_n_i - 1048.70366589868*v_B3_n_r
+        struct[0].g[11,0] = i_B3_n_i + 48.7036658986847*v_B2_n_i - 23.3310974364957*v_B2_n_r - 1048.70366589868*v_B3_n_i + 23.3310974364957*v_B3_n_r
+        struct[0].g[12,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r + p_B2_a
+        struct[0].g[13,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r + p_B2_b
+        struct[0].g[14,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r + p_B2_c
+        struct[0].g[15,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i + q_B2_a
+        struct[0].g[16,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i + q_B2_b
+        struct[0].g[17,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i + q_B2_c
+        struct[0].g[18,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
+        struct[0].g[19,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = x_dummy
+        struct[0].h[0,0] = (v_B1_a_i**2 + v_B1_a_r**2)**0.5
+        struct[0].h[1,0] = (v_B1_b_i**2 + v_B1_b_r**2)**0.5
+        struct[0].h[2,0] = (v_B1_c_i**2 + v_B1_c_r**2)**0.5
+        struct[0].h[3,0] = (v_B3_a_i**2 + v_B3_a_r**2)**0.5
+        struct[0].h[4,0] = (v_B3_b_i**2 + v_B3_b_r**2)**0.5
+        struct[0].h[5,0] = (v_B3_c_i**2 + v_B3_c_r**2)**0.5
+        struct[0].h[6,0] = (v_B2_a_i**2 + v_B2_a_r**2)**0.5
+        struct[0].h[7,0] = (v_B2_b_i**2 + v_B2_b_r**2)**0.5
+        struct[0].h[8,0] = (v_B2_c_i**2 + v_B2_c_r**2)**0.5
+        struct[0].h[9,0] = (v_B2_n_i**2 + v_B2_n_r**2)**0.5
+        struct[0].h[10,0] = (v_B1_n_i**2 + v_B1_n_r**2)**0.5
+        struct[0].h[11,0] = (v_B3_n_i**2 + v_B3_n_r**2)**0.5
+    
+
+    if mode == 10:
+
+        pass
+
+    if mode == 11:
+
+
+
+        struct[0].Gy_ini[12,0] = i_B2_a_r
+        struct[0].Gy_ini[12,1] = i_B2_a_i
+        struct[0].Gy_ini[12,6] = -i_B2_a_r
+        struct[0].Gy_ini[12,7] = -i_B2_a_i
+        struct[0].Gy_ini[12,12] = v_B2_a_r - v_B2_n_r
+        struct[0].Gy_ini[12,13] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy_ini[13,2] = i_B2_b_r
+        struct[0].Gy_ini[13,3] = i_B2_b_i
+        struct[0].Gy_ini[13,6] = -i_B2_b_r
+        struct[0].Gy_ini[13,7] = -i_B2_b_i
+        struct[0].Gy_ini[13,14] = v_B2_b_r - v_B2_n_r
+        struct[0].Gy_ini[13,15] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy_ini[14,4] = i_B2_c_r
+        struct[0].Gy_ini[14,5] = i_B2_c_i
+        struct[0].Gy_ini[14,6] = -i_B2_c_r
+        struct[0].Gy_ini[14,7] = -i_B2_c_i
+        struct[0].Gy_ini[14,16] = v_B2_c_r - v_B2_n_r
+        struct[0].Gy_ini[14,17] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy_ini[15,0] = -i_B2_a_i
+        struct[0].Gy_ini[15,1] = i_B2_a_r
+        struct[0].Gy_ini[15,6] = i_B2_a_i
+        struct[0].Gy_ini[15,7] = -i_B2_a_r
+        struct[0].Gy_ini[15,12] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy_ini[15,13] = -v_B2_a_r + v_B2_n_r
+        struct[0].Gy_ini[16,2] = -i_B2_b_i
+        struct[0].Gy_ini[16,3] = i_B2_b_r
+        struct[0].Gy_ini[16,6] = i_B2_b_i
+        struct[0].Gy_ini[16,7] = -i_B2_b_r
+        struct[0].Gy_ini[16,14] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy_ini[16,15] = -v_B2_b_r + v_B2_n_r
+        struct[0].Gy_ini[17,4] = -i_B2_c_i
+        struct[0].Gy_ini[17,5] = i_B2_c_r
+        struct[0].Gy_ini[17,6] = i_B2_c_i
+        struct[0].Gy_ini[17,7] = -i_B2_c_r
+        struct[0].Gy_ini[17,16] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy_ini[17,17] = -v_B2_c_r + v_B2_n_r
+
+
+
+@numba.njit(cache=True)
+def run(t,struct,mode):
+
+    # Parameters:
+    
+    # Inputs:
+    v_B1_a_r = struct[0].v_B1_a_r
+    v_B1_a_i = struct[0].v_B1_a_i
+    v_B1_b_r = struct[0].v_B1_b_r
+    v_B1_b_i = struct[0].v_B1_b_i
+    v_B1_c_r = struct[0].v_B1_c_r
+    v_B1_c_i = struct[0].v_B1_c_i
+    v_B3_a_r = struct[0].v_B3_a_r
+    v_B3_a_i = struct[0].v_B3_a_i
+    v_B3_b_r = struct[0].v_B3_b_r
+    v_B3_b_i = struct[0].v_B3_b_i
+    v_B3_c_r = struct[0].v_B3_c_r
+    v_B3_c_i = struct[0].v_B3_c_i
+    i_B2_n_r = struct[0].i_B2_n_r
+    i_B2_n_i = struct[0].i_B2_n_i
+    i_B1_n_r = struct[0].i_B1_n_r
+    i_B1_n_i = struct[0].i_B1_n_i
+    i_B3_n_r = struct[0].i_B3_n_r
+    i_B3_n_i = struct[0].i_B3_n_i
+    p_B2_a = struct[0].p_B2_a
+    q_B2_a = struct[0].q_B2_a
+    p_B2_b = struct[0].p_B2_b
+    q_B2_b = struct[0].q_B2_b
+    p_B2_c = struct[0].p_B2_c
+    q_B2_c = struct[0].q_B2_c
+    u_dummy = struct[0].u_dummy
+    
+    # Dynamical states:
+    x_dummy = struct[0].x[0,0]
+    
+    # Algebraic states:
+    v_B2_a_r = struct[0].y_run[0,0]
+    v_B2_a_i = struct[0].y_run[1,0]
+    v_B2_b_r = struct[0].y_run[2,0]
+    v_B2_b_i = struct[0].y_run[3,0]
+    v_B2_c_r = struct[0].y_run[4,0]
+    v_B2_c_i = struct[0].y_run[5,0]
+    v_B2_n_r = struct[0].y_run[6,0]
+    v_B2_n_i = struct[0].y_run[7,0]
+    v_B1_n_r = struct[0].y_run[8,0]
+    v_B1_n_i = struct[0].y_run[9,0]
+    v_B3_n_r = struct[0].y_run[10,0]
+    v_B3_n_i = struct[0].y_run[11,0]
+    i_B2_a_r = struct[0].y_run[12,0]
+    i_B2_a_i = struct[0].y_run[13,0]
+    i_B2_b_r = struct[0].y_run[14,0]
+    i_B2_b_i = struct[0].y_run[15,0]
+    i_B2_c_r = struct[0].y_run[16,0]
+    i_B2_c_i = struct[0].y_run[17,0]
+    i_B2_n_r = struct[0].y_run[18,0]
+    i_B2_n_i = struct[0].y_run[19,0]
+    
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = u_dummy - x_dummy
+    
+    # Algebraic equations:
+    if mode == 3:
+
+
+        struct[0].g[0,0] = i_B2_a_r + 46.6621948729913*v_B1_a_i + 97.4073317973694*v_B1_a_r - 69.993292309487*v_B2_a_i - 146.110997696054*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
+        struct[0].g[1,0] = i_B2_a_i + 97.4073317973694*v_B1_a_i - 46.6621948729913*v_B1_a_r - 146.110997696054*v_B2_a_i + 69.993292309487*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
+        struct[0].g[2,0] = i_B2_b_r + 46.6621948729913*v_B1_b_i + 97.4073317973694*v_B1_b_r - 69.993292309487*v_B2_b_i - 146.110997696054*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
+        struct[0].g[3,0] = i_B2_b_i + 97.4073317973694*v_B1_b_i - 46.6621948729913*v_B1_b_r - 146.110997696054*v_B2_b_i + 69.993292309487*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
+        struct[0].g[4,0] = i_B2_c_r + 46.6621948729913*v_B1_c_i + 97.4073317973694*v_B1_c_r - 69.993292309487*v_B2_c_i - 146.110997696054*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
+        struct[0].g[5,0] = i_B2_c_i + 97.4073317973694*v_B1_c_i - 46.6621948729913*v_B1_c_r - 146.110997696054*v_B2_c_i + 69.993292309487*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
+        struct[0].g[6,0] = i_B2_n_r + 46.6621948729913*v_B1_n_i + 97.4073317973694*v_B1_n_r - 69.993292309487*v_B2_n_i - 146.110997696054*v_B2_n_r + 23.3310974364957*v_B3_n_i + 48.7036658986847*v_B3_n_r
+        struct[0].g[7,0] = i_B2_n_i + 97.4073317973694*v_B1_n_i - 46.6621948729913*v_B1_n_r - 146.110997696054*v_B2_n_i + 69.993292309487*v_B2_n_r + 48.7036658986847*v_B3_n_i - 23.3310974364957*v_B3_n_r
+        struct[0].g[8,0] = i_B1_n_r - 46.6621948729913*v_B1_n_i - 1097.40733179737*v_B1_n_r + 46.6621948729913*v_B2_n_i + 97.4073317973694*v_B2_n_r
+        struct[0].g[9,0] = i_B1_n_i - 1097.40733179737*v_B1_n_i + 46.6621948729913*v_B1_n_r + 97.4073317973694*v_B2_n_i - 46.6621948729913*v_B2_n_r
+        struct[0].g[10,0] = i_B3_n_r + 23.3310974364957*v_B2_n_i + 48.7036658986847*v_B2_n_r - 23.3310974364957*v_B3_n_i - 1048.70366589868*v_B3_n_r
+        struct[0].g[11,0] = i_B3_n_i + 48.7036658986847*v_B2_n_i - 23.3310974364957*v_B2_n_r - 1048.70366589868*v_B3_n_i + 23.3310974364957*v_B3_n_r
+        struct[0].g[12,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r + p_B2_a
+        struct[0].g[13,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r + p_B2_b
+        struct[0].g[14,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r + p_B2_c
+        struct[0].g[15,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i + q_B2_a
+        struct[0].g[16,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i + q_B2_b
+        struct[0].g[17,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i + q_B2_c
+        struct[0].g[18,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
+        struct[0].g[19,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = (v_B1_a_i**2 + v_B1_a_r**2)**0.5
+        struct[0].h[1,0] = (v_B1_b_i**2 + v_B1_b_r**2)**0.5
+        struct[0].h[2,0] = (v_B1_c_i**2 + v_B1_c_r**2)**0.5
+        struct[0].h[3,0] = (v_B3_a_i**2 + v_B3_a_r**2)**0.5
+        struct[0].h[4,0] = (v_B3_b_i**2 + v_B3_b_r**2)**0.5
+        struct[0].h[5,0] = (v_B3_c_i**2 + v_B3_c_r**2)**0.5
+        struct[0].h[6,0] = (v_B2_a_i**2 + v_B2_a_r**2)**0.5
+        struct[0].h[7,0] = (v_B2_b_i**2 + v_B2_b_r**2)**0.5
+        struct[0].h[8,0] = (v_B2_c_i**2 + v_B2_c_r**2)**0.5
+        struct[0].h[9,0] = (v_B2_n_i**2 + v_B2_n_r**2)**0.5
+        struct[0].h[10,0] = (v_B1_n_i**2 + v_B1_n_r**2)**0.5
+        struct[0].h[11,0] = (v_B3_n_i**2 + v_B3_n_r**2)**0.5
+    
+
+    if mode == 10:
+
+        pass
+
+    if mode == 11:
+
+
+
+        struct[0].Gy[12,0] = i_B2_a_r
+        struct[0].Gy[12,1] = i_B2_a_i
+        struct[0].Gy[12,6] = -i_B2_a_r
+        struct[0].Gy[12,7] = -i_B2_a_i
+        struct[0].Gy[12,12] = v_B2_a_r - v_B2_n_r
+        struct[0].Gy[12,13] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy[13,2] = i_B2_b_r
+        struct[0].Gy[13,3] = i_B2_b_i
+        struct[0].Gy[13,6] = -i_B2_b_r
+        struct[0].Gy[13,7] = -i_B2_b_i
+        struct[0].Gy[13,14] = v_B2_b_r - v_B2_n_r
+        struct[0].Gy[13,15] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy[14,4] = i_B2_c_r
+        struct[0].Gy[14,5] = i_B2_c_i
+        struct[0].Gy[14,6] = -i_B2_c_r
+        struct[0].Gy[14,7] = -i_B2_c_i
+        struct[0].Gy[14,16] = v_B2_c_r - v_B2_n_r
+        struct[0].Gy[14,17] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy[15,0] = -i_B2_a_i
+        struct[0].Gy[15,1] = i_B2_a_r
+        struct[0].Gy[15,6] = i_B2_a_i
+        struct[0].Gy[15,7] = -i_B2_a_r
+        struct[0].Gy[15,12] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy[15,13] = -v_B2_a_r + v_B2_n_r
+        struct[0].Gy[16,2] = -i_B2_b_i
+        struct[0].Gy[16,3] = i_B2_b_r
+        struct[0].Gy[16,6] = i_B2_b_i
+        struct[0].Gy[16,7] = -i_B2_b_r
+        struct[0].Gy[16,14] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy[16,15] = -v_B2_b_r + v_B2_n_r
+        struct[0].Gy[17,4] = -i_B2_c_i
+        struct[0].Gy[17,5] = i_B2_c_r
+        struct[0].Gy[17,6] = i_B2_c_i
+        struct[0].Gy[17,7] = -i_B2_c_r
+        struct[0].Gy[17,16] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy[17,17] = -v_B2_c_r + v_B2_n_r
+
+    if mode > 12:
+
+
+
+
+        struct[0].Hy[6,0] = 1.0*v_B2_a_r*(v_B2_a_i**2 + v_B2_a_r**2)**(-0.5)
+        struct[0].Hy[6,1] = 1.0*v_B2_a_i*(v_B2_a_i**2 + v_B2_a_r**2)**(-0.5)
+        struct[0].Hy[7,2] = 1.0*v_B2_b_r*(v_B2_b_i**2 + v_B2_b_r**2)**(-0.5)
+        struct[0].Hy[7,3] = 1.0*v_B2_b_i*(v_B2_b_i**2 + v_B2_b_r**2)**(-0.5)
+        struct[0].Hy[8,4] = 1.0*v_B2_c_r*(v_B2_c_i**2 + v_B2_c_r**2)**(-0.5)
+        struct[0].Hy[8,5] = 1.0*v_B2_c_i*(v_B2_c_i**2 + v_B2_c_r**2)**(-0.5)
+        struct[0].Hy[9,6] = 1.0*v_B2_n_r*(v_B2_n_i**2 + v_B2_n_r**2)**(-0.5)
+        struct[0].Hy[9,7] = 1.0*v_B2_n_i*(v_B2_n_i**2 + v_B2_n_r**2)**(-0.5)
+        struct[0].Hy[10,8] = 1.0*v_B1_n_r*(v_B1_n_i**2 + v_B1_n_r**2)**(-0.5)
+        struct[0].Hy[10,9] = 1.0*v_B1_n_i*(v_B1_n_i**2 + v_B1_n_r**2)**(-0.5)
+        struct[0].Hy[11,10] = 1.0*v_B3_n_r*(v_B3_n_i**2 + v_B3_n_r**2)**(-0.5)
+        struct[0].Hy[11,11] = 1.0*v_B3_n_i*(v_B3_n_i**2 + v_B3_n_r**2)**(-0.5)
+
+        struct[0].Hu[0,0] = 1.0*v_B1_a_r*(v_B1_a_i**2 + v_B1_a_r**2)**(-0.5)
+        struct[0].Hu[0,1] = 1.0*v_B1_a_i*(v_B1_a_i**2 + v_B1_a_r**2)**(-0.5)
+        struct[0].Hu[1,2] = 1.0*v_B1_b_r*(v_B1_b_i**2 + v_B1_b_r**2)**(-0.5)
+        struct[0].Hu[1,3] = 1.0*v_B1_b_i*(v_B1_b_i**2 + v_B1_b_r**2)**(-0.5)
+        struct[0].Hu[2,4] = 1.0*v_B1_c_r*(v_B1_c_i**2 + v_B1_c_r**2)**(-0.5)
+        struct[0].Hu[2,5] = 1.0*v_B1_c_i*(v_B1_c_i**2 + v_B1_c_r**2)**(-0.5)
+        struct[0].Hu[3,6] = 1.0*v_B3_a_r*(v_B3_a_i**2 + v_B3_a_r**2)**(-0.5)
+        struct[0].Hu[3,7] = 1.0*v_B3_a_i*(v_B3_a_i**2 + v_B3_a_r**2)**(-0.5)
+        struct[0].Hu[4,8] = 1.0*v_B3_b_r*(v_B3_b_i**2 + v_B3_b_r**2)**(-0.5)
+        struct[0].Hu[4,9] = 1.0*v_B3_b_i*(v_B3_b_i**2 + v_B3_b_r**2)**(-0.5)
+        struct[0].Hu[5,10] = 1.0*v_B3_c_r*(v_B3_c_i**2 + v_B3_c_r**2)**(-0.5)
+        struct[0].Hu[5,11] = 1.0*v_B3_c_i*(v_B3_c_i**2 + v_B3_c_r**2)**(-0.5)
+
+
+
+def ini_nn(struct,mode):
+
+    # Parameters:
+    
+    # Inputs:
+    v_B1_a_r = struct[0].v_B1_a_r
+    v_B1_a_i = struct[0].v_B1_a_i
+    v_B1_b_r = struct[0].v_B1_b_r
+    v_B1_b_i = struct[0].v_B1_b_i
+    v_B1_c_r = struct[0].v_B1_c_r
+    v_B1_c_i = struct[0].v_B1_c_i
+    v_B3_a_r = struct[0].v_B3_a_r
+    v_B3_a_i = struct[0].v_B3_a_i
+    v_B3_b_r = struct[0].v_B3_b_r
+    v_B3_b_i = struct[0].v_B3_b_i
+    v_B3_c_r = struct[0].v_B3_c_r
+    v_B3_c_i = struct[0].v_B3_c_i
+    i_B2_n_r = struct[0].i_B2_n_r
+    i_B2_n_i = struct[0].i_B2_n_i
+    i_B1_n_r = struct[0].i_B1_n_r
+    i_B1_n_i = struct[0].i_B1_n_i
+    i_B3_n_r = struct[0].i_B3_n_r
+    i_B3_n_i = struct[0].i_B3_n_i
+    p_B2_a = struct[0].p_B2_a
+    q_B2_a = struct[0].q_B2_a
+    p_B2_b = struct[0].p_B2_b
+    q_B2_b = struct[0].q_B2_b
+    p_B2_c = struct[0].p_B2_c
+    q_B2_c = struct[0].q_B2_c
+    u_dummy = struct[0].u_dummy
+    
+    # Dynamical states:
+    x_dummy = struct[0].x[0,0]
+    
+    # Algebraic states:
+    v_B2_a_r = struct[0].y_ini[0,0]
+    v_B2_a_i = struct[0].y_ini[1,0]
+    v_B2_b_r = struct[0].y_ini[2,0]
+    v_B2_b_i = struct[0].y_ini[3,0]
+    v_B2_c_r = struct[0].y_ini[4,0]
+    v_B2_c_i = struct[0].y_ini[5,0]
+    v_B2_n_r = struct[0].y_ini[6,0]
+    v_B2_n_i = struct[0].y_ini[7,0]
+    v_B1_n_r = struct[0].y_ini[8,0]
+    v_B1_n_i = struct[0].y_ini[9,0]
+    v_B3_n_r = struct[0].y_ini[10,0]
+    v_B3_n_i = struct[0].y_ini[11,0]
+    i_B2_a_r = struct[0].y_ini[12,0]
+    i_B2_a_i = struct[0].y_ini[13,0]
+    i_B2_b_r = struct[0].y_ini[14,0]
+    i_B2_b_i = struct[0].y_ini[15,0]
+    i_B2_c_r = struct[0].y_ini[16,0]
+    i_B2_c_i = struct[0].y_ini[17,0]
+    i_B2_n_r = struct[0].y_ini[18,0]
+    i_B2_n_i = struct[0].y_ini[19,0]
+    
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = u_dummy - x_dummy
+    
+    # Algebraic equations:
+    if mode == 3:
+
+
+        struct[0].g[0,0] = i_B2_a_r + 46.6621948729913*v_B1_a_i + 97.4073317973694*v_B1_a_r - 69.993292309487*v_B2_a_i - 146.110997696054*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
+        struct[0].g[1,0] = i_B2_a_i + 97.4073317973694*v_B1_a_i - 46.6621948729913*v_B1_a_r - 146.110997696054*v_B2_a_i + 69.993292309487*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
+        struct[0].g[2,0] = i_B2_b_r + 46.6621948729913*v_B1_b_i + 97.4073317973694*v_B1_b_r - 69.993292309487*v_B2_b_i - 146.110997696054*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
+        struct[0].g[3,0] = i_B2_b_i + 97.4073317973694*v_B1_b_i - 46.6621948729913*v_B1_b_r - 146.110997696054*v_B2_b_i + 69.993292309487*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
+        struct[0].g[4,0] = i_B2_c_r + 46.6621948729913*v_B1_c_i + 97.4073317973694*v_B1_c_r - 69.993292309487*v_B2_c_i - 146.110997696054*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
+        struct[0].g[5,0] = i_B2_c_i + 97.4073317973694*v_B1_c_i - 46.6621948729913*v_B1_c_r - 146.110997696054*v_B2_c_i + 69.993292309487*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
+        struct[0].g[6,0] = i_B2_n_r + 46.6621948729913*v_B1_n_i + 97.4073317973694*v_B1_n_r - 69.993292309487*v_B2_n_i - 146.110997696054*v_B2_n_r + 23.3310974364957*v_B3_n_i + 48.7036658986847*v_B3_n_r
+        struct[0].g[7,0] = i_B2_n_i + 97.4073317973694*v_B1_n_i - 46.6621948729913*v_B1_n_r - 146.110997696054*v_B2_n_i + 69.993292309487*v_B2_n_r + 48.7036658986847*v_B3_n_i - 23.3310974364957*v_B3_n_r
+        struct[0].g[8,0] = i_B1_n_r - 46.6621948729913*v_B1_n_i - 1097.40733179737*v_B1_n_r + 46.6621948729913*v_B2_n_i + 97.4073317973694*v_B2_n_r
+        struct[0].g[9,0] = i_B1_n_i - 1097.40733179737*v_B1_n_i + 46.6621948729913*v_B1_n_r + 97.4073317973694*v_B2_n_i - 46.6621948729913*v_B2_n_r
+        struct[0].g[10,0] = i_B3_n_r + 23.3310974364957*v_B2_n_i + 48.7036658986847*v_B2_n_r - 23.3310974364957*v_B3_n_i - 1048.70366589868*v_B3_n_r
+        struct[0].g[11,0] = i_B3_n_i + 48.7036658986847*v_B2_n_i - 23.3310974364957*v_B2_n_r - 1048.70366589868*v_B3_n_i + 23.3310974364957*v_B3_n_r
+        struct[0].g[12,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r + p_B2_a
+        struct[0].g[13,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r + p_B2_b
+        struct[0].g[14,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r + p_B2_c
+        struct[0].g[15,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i + q_B2_a
+        struct[0].g[16,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i + q_B2_b
+        struct[0].g[17,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i + q_B2_c
+        struct[0].g[18,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
+        struct[0].g[19,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = (v_B1_a_i**2 + v_B1_a_r**2)**0.5
+        struct[0].h[1,0] = (v_B1_b_i**2 + v_B1_b_r**2)**0.5
+        struct[0].h[2,0] = (v_B1_c_i**2 + v_B1_c_r**2)**0.5
+        struct[0].h[3,0] = (v_B3_a_i**2 + v_B3_a_r**2)**0.5
+        struct[0].h[4,0] = (v_B3_b_i**2 + v_B3_b_r**2)**0.5
+        struct[0].h[5,0] = (v_B3_c_i**2 + v_B3_c_r**2)**0.5
+        struct[0].h[6,0] = (v_B2_a_i**2 + v_B2_a_r**2)**0.5
+        struct[0].h[7,0] = (v_B2_b_i**2 + v_B2_b_r**2)**0.5
+        struct[0].h[8,0] = (v_B2_c_i**2 + v_B2_c_r**2)**0.5
+        struct[0].h[9,0] = (v_B2_n_i**2 + v_B2_n_r**2)**0.5
+        struct[0].h[10,0] = (v_B1_n_i**2 + v_B1_n_r**2)**0.5
+        struct[0].h[11,0] = (v_B3_n_i**2 + v_B3_n_r**2)**0.5
     
 
     if mode == 10:
@@ -877,123 +996,343 @@ def ini(struct,mode):
     if mode == 11:
 
 
+        struct[0].Gy_ini[0,0] = -146.110997696054
+        struct[0].Gy_ini[0,1] = -69.9932923094870
+        struct[0].Gy_ini[0,12] = 1
+        struct[0].Gy_ini[1,0] = 69.9932923094870
+        struct[0].Gy_ini[1,1] = -146.110997696054
+        struct[0].Gy_ini[1,13] = 1
+        struct[0].Gy_ini[2,2] = -146.110997696054
+        struct[0].Gy_ini[2,3] = -69.9932923094870
+        struct[0].Gy_ini[2,14] = 1
+        struct[0].Gy_ini[3,2] = 69.9932923094870
+        struct[0].Gy_ini[3,3] = -146.110997696054
+        struct[0].Gy_ini[3,15] = 1
+        struct[0].Gy_ini[4,4] = -146.110997696054
+        struct[0].Gy_ini[4,5] = -69.9932923094870
+        struct[0].Gy_ini[4,16] = 1
+        struct[0].Gy_ini[5,4] = 69.9932923094870
+        struct[0].Gy_ini[5,5] = -146.110997696054
+        struct[0].Gy_ini[5,17] = 1
+        struct[0].Gy_ini[6,6] = -146.110997696054
+        struct[0].Gy_ini[6,7] = -69.9932923094870
+        struct[0].Gy_ini[6,8] = 97.4073317973694
+        struct[0].Gy_ini[6,9] = 46.6621948729913
+        struct[0].Gy_ini[6,10] = 48.7036658986847
+        struct[0].Gy_ini[6,11] = 23.3310974364957
+        struct[0].Gy_ini[6,18] = 1
+        struct[0].Gy_ini[7,6] = 69.9932923094870
+        struct[0].Gy_ini[7,7] = -146.110997696054
+        struct[0].Gy_ini[7,8] = -46.6621948729913
+        struct[0].Gy_ini[7,9] = 97.4073317973694
+        struct[0].Gy_ini[7,10] = -23.3310974364957
+        struct[0].Gy_ini[7,11] = 48.7036658986847
+        struct[0].Gy_ini[7,19] = 1
+        struct[0].Gy_ini[8,6] = 97.4073317973694
+        struct[0].Gy_ini[8,7] = 46.6621948729913
+        struct[0].Gy_ini[8,8] = -1097.40733179737
+        struct[0].Gy_ini[8,9] = -46.6621948729913
+        struct[0].Gy_ini[9,6] = -46.6621948729913
+        struct[0].Gy_ini[9,7] = 97.4073317973694
+        struct[0].Gy_ini[9,8] = 46.6621948729913
+        struct[0].Gy_ini[9,9] = -1097.40733179737
+        struct[0].Gy_ini[10,6] = 48.7036658986847
+        struct[0].Gy_ini[10,7] = 23.3310974364957
+        struct[0].Gy_ini[10,10] = -1048.70366589868
+        struct[0].Gy_ini[10,11] = -23.3310974364957
+        struct[0].Gy_ini[11,6] = -23.3310974364957
+        struct[0].Gy_ini[11,7] = 48.7036658986847
+        struct[0].Gy_ini[11,10] = 23.3310974364957
+        struct[0].Gy_ini[11,11] = -1048.70366589868
+        struct[0].Gy_ini[12,0] = i_B2_a_r
+        struct[0].Gy_ini[12,1] = i_B2_a_i
+        struct[0].Gy_ini[12,6] = -i_B2_a_r
+        struct[0].Gy_ini[12,7] = -i_B2_a_i
+        struct[0].Gy_ini[12,12] = v_B2_a_r - v_B2_n_r
+        struct[0].Gy_ini[12,13] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy_ini[13,2] = i_B2_b_r
+        struct[0].Gy_ini[13,3] = i_B2_b_i
+        struct[0].Gy_ini[13,6] = -i_B2_b_r
+        struct[0].Gy_ini[13,7] = -i_B2_b_i
+        struct[0].Gy_ini[13,14] = v_B2_b_r - v_B2_n_r
+        struct[0].Gy_ini[13,15] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy_ini[14,4] = i_B2_c_r
+        struct[0].Gy_ini[14,5] = i_B2_c_i
+        struct[0].Gy_ini[14,6] = -i_B2_c_r
+        struct[0].Gy_ini[14,7] = -i_B2_c_i
+        struct[0].Gy_ini[14,16] = v_B2_c_r - v_B2_n_r
+        struct[0].Gy_ini[14,17] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy_ini[15,0] = -i_B2_a_i
+        struct[0].Gy_ini[15,1] = i_B2_a_r
+        struct[0].Gy_ini[15,6] = i_B2_a_i
+        struct[0].Gy_ini[15,7] = -i_B2_a_r
+        struct[0].Gy_ini[15,12] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy_ini[15,13] = -v_B2_a_r + v_B2_n_r
+        struct[0].Gy_ini[16,2] = -i_B2_b_i
+        struct[0].Gy_ini[16,3] = i_B2_b_r
+        struct[0].Gy_ini[16,6] = i_B2_b_i
+        struct[0].Gy_ini[16,7] = -i_B2_b_r
+        struct[0].Gy_ini[16,14] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy_ini[16,15] = -v_B2_b_r + v_B2_n_r
+        struct[0].Gy_ini[17,4] = -i_B2_c_i
+        struct[0].Gy_ini[17,5] = i_B2_c_r
+        struct[0].Gy_ini[17,6] = i_B2_c_i
+        struct[0].Gy_ini[17,7] = -i_B2_c_r
+        struct[0].Gy_ini[17,16] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy_ini[17,17] = -v_B2_c_r + v_B2_n_r
+        struct[0].Gy_ini[18,12] = 1
+        struct[0].Gy_ini[18,14] = 1
+        struct[0].Gy_ini[18,16] = 1
+        struct[0].Gy_ini[18,18] = 1
+        struct[0].Gy_ini[19,13] = 1
+        struct[0].Gy_ini[19,15] = 1
+        struct[0].Gy_ini[19,17] = 1
+        struct[0].Gy_ini[19,19] = 1
 
-        struct[0].Gy_ini[0,0] = -1
-        struct[0].Gy_ini[0,24] = 0.00556666666666667
-        struct[0].Gy_ini[0,25] = -0.00266666666666667
-        struct[0].Gy_ini[1,1] = -1
-        struct[0].Gy_ini[1,24] = 0.00266666666666667
-        struct[0].Gy_ini[1,25] = 0.00556666666666667
-        struct[0].Gy_ini[2,2] = -1
-        struct[0].Gy_ini[2,26] = 0.00556666666666667
-        struct[0].Gy_ini[2,27] = -0.00266666666666667
-        struct[0].Gy_ini[3,3] = -1
-        struct[0].Gy_ini[3,26] = 0.00266666666666667
-        struct[0].Gy_ini[3,27] = 0.00556666666666667
-        struct[0].Gy_ini[4,4] = -1
-        struct[0].Gy_ini[4,28] = 0.00556666666666667
-        struct[0].Gy_ini[4,29] = -0.00266666666666667
-        struct[0].Gy_ini[5,5] = -1
-        struct[0].Gy_ini[5,28] = 0.00266666666666667
-        struct[0].Gy_ini[5,29] = 0.00556666666666667
-        struct[0].Gy_ini[6,6] = -1
-        struct[0].Gy_ini[6,30] = 0.00611879005712557
-        struct[0].Gy_ini[6,31] = -0.00266818925377054
-        struct[0].Gy_ini[7,7] = -1
-        struct[0].Gy_ini[7,30] = 0.00266818925377054
-        struct[0].Gy_ini[7,31] = 0.00611879005712557
-        struct[0].Gy_ini[8,8] = -1
-        struct[0].Gy_ini[8,30] = 0.000656370171376695
-        struct[0].Gy_ini[8,31] = -0.00000456776131163266
-        struct[0].Gy_ini[9,9] = -1
-        struct[0].Gy_ini[9,30] = 0.00000456776131163266
-        struct[0].Gy_ini[9,31] = 0.000656370171376695
-        struct[0].Gy_ini[10,10] = -1
-        struct[0].Gy_ini[10,30] = 0.000343629828623305
-        struct[0].Gy_ini[10,31] = 0.00000456776131163266
-        struct[0].Gy_ini[11,11] = -1
-        struct[0].Gy_ini[11,30] = -0.00000456776131163266
-        struct[0].Gy_ini[11,31] = 0.000343629828623305
-        struct[0].Gy_ini[12,0] = -97.4073317973694
-        struct[0].Gy_ini[12,1] = -46.6621948729913
-        struct[0].Gy_ini[12,12] = -1
-        struct[0].Gy_ini[13,0] = 46.6621948729913
-        struct[0].Gy_ini[13,1] = -97.4073317973694
-        struct[0].Gy_ini[13,13] = -1
-        struct[0].Gy_ini[14,2] = -97.4073317973694
-        struct[0].Gy_ini[14,3] = -46.6621948729913
-        struct[0].Gy_ini[14,14] = -1
-        struct[0].Gy_ini[15,2] = 46.6621948729913
-        struct[0].Gy_ini[15,3] = -97.4073317973694
-        struct[0].Gy_ini[15,15] = -1
-        struct[0].Gy_ini[16,4] = -97.4073317973694
-        struct[0].Gy_ini[16,5] = -46.6621948729913
-        struct[0].Gy_ini[16,16] = -1
-        struct[0].Gy_ini[17,4] = 46.6621948729913
-        struct[0].Gy_ini[17,5] = -97.4073317973694
-        struct[0].Gy_ini[17,17] = -1
-        struct[0].Gy_ini[18,0] = -48.7036658986847
-        struct[0].Gy_ini[18,1] = -23.3310974364957
-        struct[0].Gy_ini[18,18] = -1
-        struct[0].Gy_ini[19,0] = 23.3310974364957
-        struct[0].Gy_ini[19,1] = -48.7036658986847
-        struct[0].Gy_ini[19,19] = -1
-        struct[0].Gy_ini[20,2] = -48.7036658986847
-        struct[0].Gy_ini[20,3] = -23.3310974364957
-        struct[0].Gy_ini[20,20] = -1
-        struct[0].Gy_ini[21,2] = 23.3310974364957
-        struct[0].Gy_ini[21,3] = -48.7036658986847
-        struct[0].Gy_ini[21,21] = -1
-        struct[0].Gy_ini[22,4] = -48.7036658986847
-        struct[0].Gy_ini[22,5] = -23.3310974364957
-        struct[0].Gy_ini[22,22] = -1
-        struct[0].Gy_ini[23,4] = 23.3310974364957
-        struct[0].Gy_ini[23,5] = -48.7036658986847
-        struct[0].Gy_ini[23,23] = -1
-        struct[0].Gy_ini[24,0] = i_B2_a_r
-        struct[0].Gy_ini[24,1] = i_B2_a_i
-        struct[0].Gy_ini[24,6] = -i_B2_a_r
-        struct[0].Gy_ini[24,7] = -i_B2_a_i
-        struct[0].Gy_ini[24,24] = v_B2_a_r - v_B2_n_r
-        struct[0].Gy_ini[24,25] = v_B2_a_i - v_B2_n_i
-        struct[0].Gy_ini[25,2] = i_B2_b_r
-        struct[0].Gy_ini[25,3] = i_B2_b_i
-        struct[0].Gy_ini[25,6] = -i_B2_b_r
-        struct[0].Gy_ini[25,7] = -i_B2_b_i
-        struct[0].Gy_ini[25,26] = v_B2_b_r - v_B2_n_r
-        struct[0].Gy_ini[25,27] = v_B2_b_i - v_B2_n_i
-        struct[0].Gy_ini[26,4] = i_B2_c_r
-        struct[0].Gy_ini[26,5] = i_B2_c_i
-        struct[0].Gy_ini[26,6] = -i_B2_c_r
-        struct[0].Gy_ini[26,7] = -i_B2_c_i
-        struct[0].Gy_ini[26,28] = v_B2_c_r - v_B2_n_r
-        struct[0].Gy_ini[26,29] = v_B2_c_i - v_B2_n_i
-        struct[0].Gy_ini[27,0] = -i_B2_a_i
-        struct[0].Gy_ini[27,1] = i_B2_a_r
-        struct[0].Gy_ini[27,6] = i_B2_a_i
-        struct[0].Gy_ini[27,7] = -i_B2_a_r
-        struct[0].Gy_ini[27,24] = v_B2_a_i - v_B2_n_i
-        struct[0].Gy_ini[27,25] = -v_B2_a_r + v_B2_n_r
-        struct[0].Gy_ini[28,2] = -i_B2_b_i
-        struct[0].Gy_ini[28,3] = i_B2_b_r
-        struct[0].Gy_ini[28,6] = i_B2_b_i
-        struct[0].Gy_ini[28,7] = -i_B2_b_r
-        struct[0].Gy_ini[28,26] = v_B2_b_i - v_B2_n_i
-        struct[0].Gy_ini[28,27] = -v_B2_b_r + v_B2_n_r
-        struct[0].Gy_ini[29,4] = -i_B2_c_i
-        struct[0].Gy_ini[29,5] = i_B2_c_r
-        struct[0].Gy_ini[29,6] = i_B2_c_i
-        struct[0].Gy_ini[29,7] = -i_B2_c_r
-        struct[0].Gy_ini[29,28] = v_B2_c_i - v_B2_n_i
-        struct[0].Gy_ini[29,29] = -v_B2_c_r + v_B2_n_r
-        struct[0].Gy_ini[30,24] = 1
-        struct[0].Gy_ini[30,26] = 1
-        struct[0].Gy_ini[30,28] = 1
-        struct[0].Gy_ini[30,30] = 1
-        struct[0].Gy_ini[31,25] = 1
-        struct[0].Gy_ini[31,27] = 1
-        struct[0].Gy_ini[31,29] = 1
-        struct[0].Gy_ini[31,31] = 1
+
+
+def run_nn(t,struct,mode):
+
+    # Parameters:
+    
+    # Inputs:
+    v_B1_a_r = struct[0].v_B1_a_r
+    v_B1_a_i = struct[0].v_B1_a_i
+    v_B1_b_r = struct[0].v_B1_b_r
+    v_B1_b_i = struct[0].v_B1_b_i
+    v_B1_c_r = struct[0].v_B1_c_r
+    v_B1_c_i = struct[0].v_B1_c_i
+    v_B3_a_r = struct[0].v_B3_a_r
+    v_B3_a_i = struct[0].v_B3_a_i
+    v_B3_b_r = struct[0].v_B3_b_r
+    v_B3_b_i = struct[0].v_B3_b_i
+    v_B3_c_r = struct[0].v_B3_c_r
+    v_B3_c_i = struct[0].v_B3_c_i
+    i_B2_n_r = struct[0].i_B2_n_r
+    i_B2_n_i = struct[0].i_B2_n_i
+    i_B1_n_r = struct[0].i_B1_n_r
+    i_B1_n_i = struct[0].i_B1_n_i
+    i_B3_n_r = struct[0].i_B3_n_r
+    i_B3_n_i = struct[0].i_B3_n_i
+    p_B2_a = struct[0].p_B2_a
+    q_B2_a = struct[0].q_B2_a
+    p_B2_b = struct[0].p_B2_b
+    q_B2_b = struct[0].q_B2_b
+    p_B2_c = struct[0].p_B2_c
+    q_B2_c = struct[0].q_B2_c
+    u_dummy = struct[0].u_dummy
+    
+    # Dynamical states:
+    x_dummy = struct[0].x[0,0]
+    
+    # Algebraic states:
+    v_B2_a_r = struct[0].y_run[0,0]
+    v_B2_a_i = struct[0].y_run[1,0]
+    v_B2_b_r = struct[0].y_run[2,0]
+    v_B2_b_i = struct[0].y_run[3,0]
+    v_B2_c_r = struct[0].y_run[4,0]
+    v_B2_c_i = struct[0].y_run[5,0]
+    v_B2_n_r = struct[0].y_run[6,0]
+    v_B2_n_i = struct[0].y_run[7,0]
+    v_B1_n_r = struct[0].y_run[8,0]
+    v_B1_n_i = struct[0].y_run[9,0]
+    v_B3_n_r = struct[0].y_run[10,0]
+    v_B3_n_i = struct[0].y_run[11,0]
+    i_B2_a_r = struct[0].y_run[12,0]
+    i_B2_a_i = struct[0].y_run[13,0]
+    i_B2_b_r = struct[0].y_run[14,0]
+    i_B2_b_i = struct[0].y_run[15,0]
+    i_B2_c_r = struct[0].y_run[16,0]
+    i_B2_c_i = struct[0].y_run[17,0]
+    i_B2_n_r = struct[0].y_run[18,0]
+    i_B2_n_i = struct[0].y_run[19,0]
+    
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = u_dummy - x_dummy
+    
+    # Algebraic equations:
+    if mode == 3:
+
+
+        struct[0].g[0,0] = i_B2_a_r + 46.6621948729913*v_B1_a_i + 97.4073317973694*v_B1_a_r - 69.993292309487*v_B2_a_i - 146.110997696054*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
+        struct[0].g[1,0] = i_B2_a_i + 97.4073317973694*v_B1_a_i - 46.6621948729913*v_B1_a_r - 146.110997696054*v_B2_a_i + 69.993292309487*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
+        struct[0].g[2,0] = i_B2_b_r + 46.6621948729913*v_B1_b_i + 97.4073317973694*v_B1_b_r - 69.993292309487*v_B2_b_i - 146.110997696054*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
+        struct[0].g[3,0] = i_B2_b_i + 97.4073317973694*v_B1_b_i - 46.6621948729913*v_B1_b_r - 146.110997696054*v_B2_b_i + 69.993292309487*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
+        struct[0].g[4,0] = i_B2_c_r + 46.6621948729913*v_B1_c_i + 97.4073317973694*v_B1_c_r - 69.993292309487*v_B2_c_i - 146.110997696054*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
+        struct[0].g[5,0] = i_B2_c_i + 97.4073317973694*v_B1_c_i - 46.6621948729913*v_B1_c_r - 146.110997696054*v_B2_c_i + 69.993292309487*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
+        struct[0].g[6,0] = i_B2_n_r + 46.6621948729913*v_B1_n_i + 97.4073317973694*v_B1_n_r - 69.993292309487*v_B2_n_i - 146.110997696054*v_B2_n_r + 23.3310974364957*v_B3_n_i + 48.7036658986847*v_B3_n_r
+        struct[0].g[7,0] = i_B2_n_i + 97.4073317973694*v_B1_n_i - 46.6621948729913*v_B1_n_r - 146.110997696054*v_B2_n_i + 69.993292309487*v_B2_n_r + 48.7036658986847*v_B3_n_i - 23.3310974364957*v_B3_n_r
+        struct[0].g[8,0] = i_B1_n_r - 46.6621948729913*v_B1_n_i - 1097.40733179737*v_B1_n_r + 46.6621948729913*v_B2_n_i + 97.4073317973694*v_B2_n_r
+        struct[0].g[9,0] = i_B1_n_i - 1097.40733179737*v_B1_n_i + 46.6621948729913*v_B1_n_r + 97.4073317973694*v_B2_n_i - 46.6621948729913*v_B2_n_r
+        struct[0].g[10,0] = i_B3_n_r + 23.3310974364957*v_B2_n_i + 48.7036658986847*v_B2_n_r - 23.3310974364957*v_B3_n_i - 1048.70366589868*v_B3_n_r
+        struct[0].g[11,0] = i_B3_n_i + 48.7036658986847*v_B2_n_i - 23.3310974364957*v_B2_n_r - 1048.70366589868*v_B3_n_i + 23.3310974364957*v_B3_n_r
+        struct[0].g[12,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r + p_B2_a
+        struct[0].g[13,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r + p_B2_b
+        struct[0].g[14,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r + p_B2_c
+        struct[0].g[15,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i + q_B2_a
+        struct[0].g[16,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i + q_B2_b
+        struct[0].g[17,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i + q_B2_c
+        struct[0].g[18,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
+        struct[0].g[19,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = (v_B1_a_i**2 + v_B1_a_r**2)**0.5
+        struct[0].h[1,0] = (v_B1_b_i**2 + v_B1_b_r**2)**0.5
+        struct[0].h[2,0] = (v_B1_c_i**2 + v_B1_c_r**2)**0.5
+        struct[0].h[3,0] = (v_B3_a_i**2 + v_B3_a_r**2)**0.5
+        struct[0].h[4,0] = (v_B3_b_i**2 + v_B3_b_r**2)**0.5
+        struct[0].h[5,0] = (v_B3_c_i**2 + v_B3_c_r**2)**0.5
+        struct[0].h[6,0] = (v_B2_a_i**2 + v_B2_a_r**2)**0.5
+        struct[0].h[7,0] = (v_B2_b_i**2 + v_B2_b_r**2)**0.5
+        struct[0].h[8,0] = (v_B2_c_i**2 + v_B2_c_r**2)**0.5
+        struct[0].h[9,0] = (v_B2_n_i**2 + v_B2_n_r**2)**0.5
+        struct[0].h[10,0] = (v_B1_n_i**2 + v_B1_n_r**2)**0.5
+        struct[0].h[11,0] = (v_B3_n_i**2 + v_B3_n_r**2)**0.5
+    
+
+    if mode == 10:
+
+        struct[0].Fx[0,0] = -1
+
+    if mode == 11:
+
+
+        struct[0].Gy[0,0] = -146.110997696054
+        struct[0].Gy[0,1] = -69.9932923094870
+        struct[0].Gy[0,12] = 1
+        struct[0].Gy[1,0] = 69.9932923094870
+        struct[0].Gy[1,1] = -146.110997696054
+        struct[0].Gy[1,13] = 1
+        struct[0].Gy[2,2] = -146.110997696054
+        struct[0].Gy[2,3] = -69.9932923094870
+        struct[0].Gy[2,14] = 1
+        struct[0].Gy[3,2] = 69.9932923094870
+        struct[0].Gy[3,3] = -146.110997696054
+        struct[0].Gy[3,15] = 1
+        struct[0].Gy[4,4] = -146.110997696054
+        struct[0].Gy[4,5] = -69.9932923094870
+        struct[0].Gy[4,16] = 1
+        struct[0].Gy[5,4] = 69.9932923094870
+        struct[0].Gy[5,5] = -146.110997696054
+        struct[0].Gy[5,17] = 1
+        struct[0].Gy[6,6] = -146.110997696054
+        struct[0].Gy[6,7] = -69.9932923094870
+        struct[0].Gy[6,8] = 97.4073317973694
+        struct[0].Gy[6,9] = 46.6621948729913
+        struct[0].Gy[6,10] = 48.7036658986847
+        struct[0].Gy[6,11] = 23.3310974364957
+        struct[0].Gy[6,18] = 1
+        struct[0].Gy[7,6] = 69.9932923094870
+        struct[0].Gy[7,7] = -146.110997696054
+        struct[0].Gy[7,8] = -46.6621948729913
+        struct[0].Gy[7,9] = 97.4073317973694
+        struct[0].Gy[7,10] = -23.3310974364957
+        struct[0].Gy[7,11] = 48.7036658986847
+        struct[0].Gy[7,19] = 1
+        struct[0].Gy[8,6] = 97.4073317973694
+        struct[0].Gy[8,7] = 46.6621948729913
+        struct[0].Gy[8,8] = -1097.40733179737
+        struct[0].Gy[8,9] = -46.6621948729913
+        struct[0].Gy[9,6] = -46.6621948729913
+        struct[0].Gy[9,7] = 97.4073317973694
+        struct[0].Gy[9,8] = 46.6621948729913
+        struct[0].Gy[9,9] = -1097.40733179737
+        struct[0].Gy[10,6] = 48.7036658986847
+        struct[0].Gy[10,7] = 23.3310974364957
+        struct[0].Gy[10,10] = -1048.70366589868
+        struct[0].Gy[10,11] = -23.3310974364957
+        struct[0].Gy[11,6] = -23.3310974364957
+        struct[0].Gy[11,7] = 48.7036658986847
+        struct[0].Gy[11,10] = 23.3310974364957
+        struct[0].Gy[11,11] = -1048.70366589868
+        struct[0].Gy[12,0] = i_B2_a_r
+        struct[0].Gy[12,1] = i_B2_a_i
+        struct[0].Gy[12,6] = -i_B2_a_r
+        struct[0].Gy[12,7] = -i_B2_a_i
+        struct[0].Gy[12,12] = v_B2_a_r - v_B2_n_r
+        struct[0].Gy[12,13] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy[13,2] = i_B2_b_r
+        struct[0].Gy[13,3] = i_B2_b_i
+        struct[0].Gy[13,6] = -i_B2_b_r
+        struct[0].Gy[13,7] = -i_B2_b_i
+        struct[0].Gy[13,14] = v_B2_b_r - v_B2_n_r
+        struct[0].Gy[13,15] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy[14,4] = i_B2_c_r
+        struct[0].Gy[14,5] = i_B2_c_i
+        struct[0].Gy[14,6] = -i_B2_c_r
+        struct[0].Gy[14,7] = -i_B2_c_i
+        struct[0].Gy[14,16] = v_B2_c_r - v_B2_n_r
+        struct[0].Gy[14,17] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy[15,0] = -i_B2_a_i
+        struct[0].Gy[15,1] = i_B2_a_r
+        struct[0].Gy[15,6] = i_B2_a_i
+        struct[0].Gy[15,7] = -i_B2_a_r
+        struct[0].Gy[15,12] = v_B2_a_i - v_B2_n_i
+        struct[0].Gy[15,13] = -v_B2_a_r + v_B2_n_r
+        struct[0].Gy[16,2] = -i_B2_b_i
+        struct[0].Gy[16,3] = i_B2_b_r
+        struct[0].Gy[16,6] = i_B2_b_i
+        struct[0].Gy[16,7] = -i_B2_b_r
+        struct[0].Gy[16,14] = v_B2_b_i - v_B2_n_i
+        struct[0].Gy[16,15] = -v_B2_b_r + v_B2_n_r
+        struct[0].Gy[17,4] = -i_B2_c_i
+        struct[0].Gy[17,5] = i_B2_c_r
+        struct[0].Gy[17,6] = i_B2_c_i
+        struct[0].Gy[17,7] = -i_B2_c_r
+        struct[0].Gy[17,16] = v_B2_c_i - v_B2_n_i
+        struct[0].Gy[17,17] = -v_B2_c_r + v_B2_n_r
+        struct[0].Gy[18,12] = 1
+        struct[0].Gy[18,14] = 1
+        struct[0].Gy[18,16] = 1
+        struct[0].Gy[18,18] = 1
+        struct[0].Gy[19,13] = 1
+        struct[0].Gy[19,15] = 1
+        struct[0].Gy[19,17] = 1
+        struct[0].Gy[19,19] = 1
+
+        struct[0].Gu[0,0] = 97.4073317973694
+        struct[0].Gu[0,1] = 46.6621948729913
+        struct[0].Gu[0,6] = 48.7036658986847
+        struct[0].Gu[0,7] = 23.3310974364957
+        struct[0].Gu[1,0] = -46.6621948729913
+        struct[0].Gu[1,1] = 97.4073317973694
+        struct[0].Gu[1,6] = -23.3310974364957
+        struct[0].Gu[1,7] = 48.7036658986847
+        struct[0].Gu[2,2] = 97.4073317973694
+        struct[0].Gu[2,3] = 46.6621948729913
+        struct[0].Gu[2,8] = 48.7036658986847
+        struct[0].Gu[2,9] = 23.3310974364957
+        struct[0].Gu[3,2] = -46.6621948729913
+        struct[0].Gu[3,3] = 97.4073317973694
+        struct[0].Gu[3,8] = -23.3310974364957
+        struct[0].Gu[3,9] = 48.7036658986847
+        struct[0].Gu[4,4] = 97.4073317973694
+        struct[0].Gu[4,5] = 46.6621948729913
+        struct[0].Gu[4,10] = 48.7036658986847
+        struct[0].Gu[4,11] = 23.3310974364957
+        struct[0].Gu[5,4] = -46.6621948729913
+        struct[0].Gu[5,5] = 97.4073317973694
+        struct[0].Gu[5,10] = -23.3310974364957
+        struct[0].Gu[5,11] = 48.7036658986847
+        struct[0].Gu[6,12] = 1
+        struct[0].Gu[7,13] = 1
+        struct[0].Gu[8,14] = 1
+        struct[0].Gu[9,15] = 1
+        struct[0].Gu[10,16] = 1
+        struct[0].Gu[11,17] = 1
+        struct[0].Gu[12,18] = 1
+        struct[0].Gu[13,20] = 1
+        struct[0].Gu[14,22] = 1
+        struct[0].Gu[15,19] = 1
+        struct[0].Gu[16,21] = 1
+        struct[0].Gu[17,23] = 1
+        struct[0].Gu[18,12] = 1
+        struct[0].Gu[19,13] = 1
 
 
 

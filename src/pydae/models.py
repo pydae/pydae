@@ -612,12 +612,12 @@ def pydgrid2pydae(grid):
             s = s_a + s_b + s_c
             p_a,p_b,p_c = sym.symbols(f'p_{bus_name}_a,p_{bus_name}_b,p_{bus_name}_c', real=True)
             q_a,q_b,q_c = sym.symbols(f'q_{bus_name}_a,q_{bus_name}_b,q_{bus_name}_c', real=True)
-            g_list += [p_a + sym.re(s_a)]
-            g_list += [p_b + sym.re(s_b)]
-            g_list += [p_c + sym.re(s_c)]
-            g_list += [q_a + sym.im(s_a)]
-            g_list += [q_b + sym.im(s_b)]
-            g_list += [q_c + sym.im(s_c)]
+            g_list += [-p_a + sym.re(s_a)]
+            g_list += [-p_b + sym.re(s_b)]
+            g_list += [-p_c + sym.re(s_c)]
+            g_list += [-q_a + sym.im(s_a)]
+            g_list += [-q_b + sym.im(s_b)]
+            g_list += [-q_c + sym.im(s_c)]
 
             g_list += [sym.re(i_a+i_b+i_c+i_n)]
             g_list += [sym.im(i_a+i_b+i_c+i_n)]
