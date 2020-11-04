@@ -356,7 +356,29 @@ class {name}_class:
         
         return T,X,Y,Z
         
-        
+    def save_0(self,file_name = 'xy_0.json'):
+        xy_0_dict = {}
+        for item in self.x_list:
+            xy_0_dict.update({item:self.get_value(item)})
+        for item in self.y_ini_list:
+            xy_0_dict.update({item:self.get_value(item)})
+    
+        xy_0_str = json.dumps(xy_0_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(xy_0_str)
+
+    def load_0(self,file_name = 'xy_0.json'):
+        with open(file_name) as fobj:
+            xy_0_str = fobj.read()
+        xy_0_dict = json.loads(xy_0_str)
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_prev[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_prev[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]
+                
+            
     def initialize(self,events=[{}],xy0=0):
         '''
         
@@ -396,14 +418,19 @@ class {name}_class:
             
         
         ## compute initial conditions using x and y_ini 
-        if xy0 == 0:
-            xy0 = np.zeros(self.N_x+self.N_y)
-        elif xy0 == 1:
-            xy0 = np.ones(self.N_x+self.N_y)
-        elif xy0 == 'prev':
-            xy0 = self.xy_prev
+        if type(xy0) == str:
+            if xy0 == 'prev':
+                xy0 = self.xy_prev
+            else:
+                self.load_0(xy0)
+                xy0 = self.xy_prev
         else:
-            xy0 = xy0*np.ones(self.N_x+self.N_y)
+            if xy0 == 0:
+                xy0 = np.zeros(self.N_x+self.N_y)
+            elif xy0 == 1:
+                xy0 = np.ones(self.N_x+self.N_y)
+            else:
+                xy0 = xy0*np.ones(self.N_x+self.N_y)
 
         #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
 
