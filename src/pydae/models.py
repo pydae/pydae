@@ -702,6 +702,38 @@ def pydgrid2pydae(grid):
         
         
         if 'ctrl_mode' in gfeeder:
+            
+            if gfeeder['ctrl_mode'] == 'pq':    
+
+                
+                # Q control
+                u_dict.update({f'p_ref_{bus_name}':p_total_value})
+                u_dict.update({f'q_ref_{bus_name}':q_total_value})
+                u_dict.update({f'T_pq_{bus_name}':0.2})
+                p_ref,q_ref,T_pq = sym.symbols(f'p_ref_{bus_name},q_ref_{bus_name},T_pq_{bus_name}', real=True)
+
+                f_list += [1/T_pq*(-p_a + p_ref/3)]
+                f_list += [1/T_pq*(-p_b + p_ref/3)]
+                f_list += [1/T_pq*(-p_c + p_ref/3)]
+                
+                f_list += [1/T_pq*(-q_a + q_ref/3)]
+                f_list += [1/T_pq*(-q_b + q_ref/3)]
+                f_list += [1/T_pq*(-q_c + q_ref/3)]
+                
+                x_list += [p_a]
+                x_list += [p_b]
+                x_list += [p_c]
+                
+                x_list += [q_a]
+                x_list += [q_b]
+                x_list += [q_c]
+                
+                x_0_list += [p_total_value/3]*3
+                xy_0_dict.update({f'{p_a}':p_total_value/3,f'{p_b}':p_total_value/3,f'{p_c}':p_total_value/3})
+                xy_0_dict.update({f'{q_a}':q_total_value/3,f'{q_b}':q_total_value/3,f'{q_c}':q_total_value/3})
+                               
+
+            
             if gfeeder['ctrl_mode'] == 'ctrl_4':    
 
                 
