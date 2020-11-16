@@ -357,7 +357,11 @@ def sys2num(sys):
     ini_fun += f'{tab}\n'
     run_nn_fun += f'{tab}\n'
     ini_nn_fun += f'{tab}\n'
-    
+
+    for it,item in zip(range(N_u),u_run):
+        run_fun += f'{tab}struct[0].u_run[{it},0] = {item}\n'
+        
+        
     # f: differential equations
     run_fun += f'{tab}# Differential equations:\n'
     run_fun += f'{tab}if mode == 2:\n\n'
@@ -389,17 +393,40 @@ def sys2num(sys):
     ## g
     run_fun += f'{tab}# Algebraic equations:\n'
     run_fun += f'{tab}if mode == 3:\n\n'
+    run_fun += f'{2*tab}g_n = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)\n'
     run_fun += '\n'
     ini_fun += f'{tab}# Algebraic equations:\n'
     ini_fun += f'{tab}if mode == 3:\n\n'
+    ini_fun += f'{2*tab}g_n = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)\n'
     ini_fun += '\n'
     for irow in range(N_y):
-        string = f'{g[irow]}'
-        run_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
-        string = f'{g[irow]}'
-        ini_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+
+        res_run = (Gy_run[irow,:] * y_run.T)[0] + (Gu_run[irow,:] * u_run.T)[0] - g[irow] 
+        res_ini = (Gy_ini[irow,:] * y_ini.T)[0] - g[irow] 
+        if res_run == 0:
+            run_fun += f'{2*tab}struct[0].g[{irow},0] = g_n[{irow},0]\n'
+        else:
+            string = f'{g[irow]}'
+            run_fun += f'{2*tab}struct[0].g[{irow},0] = {string}\n'
+            
+        if res_ini == 0:
+            ini_fun += f'{2*tab}struct[0].g[{irow},0] = g_n[{irow},0]\n'
+        else:
+            string = f'{g[irow]}'
+            ini_fun += f'{2*tab}struct[0].g[{irow},0] = {string}\n'    
     run_fun += f'{tab}\n'
     ini_fun += f'{tab}\n'
+
+    #     res = (Gy_run[irow,:] * y_run[irow,:].T)[0] - g[irow] 
+    #     if res == 0:
+    #         run_fun += f'{(Gy_run[irow,:] * y_run[irow,:].T)[0]}\n'
+    #     else:
+    #         string = f'{g[irow]}'
+    #         run_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
+    #     string = f'{g[irow]}'
+    #     ini_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'    
+    # run_fun += f'{tab}\n'
+    # ini_fun += f'{tab}\n'
     
     run_nn_fun += f'{tab}# Algebraic equations:\n'
     run_nn_fun += f'{tab}if mode == 3:\n\n'

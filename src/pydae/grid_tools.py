@@ -10,6 +10,7 @@ import numpy as np
 from pydae.tools import get_v,get_i,get_s
 import json
 from collections import namedtuple
+import numba 
 
 class grid(object):
     
@@ -835,10 +836,93 @@ def get_voltage(grid_obj,bus_name):
     phase-ground voltage module (V).
 
     '''
-    v_a = syst.get_value(f'v_{bus_name}_a_r') + 1j* grid_obj.get_value(f'v_{bus_name}_a_i')
+    v_a = grid_obj.get_value(f'v_{bus_name}_a_r') + 1j* grid_obj.get_value(f'v_{bus_name}_a_i')
     U_meas = np.abs(v_a) 
     
     return U_meas
 
 
+@numba.njit(cache=True)
+def abc2pq(times,v_a,v_b,v_c,i_a,i_b,i_c,omega=2*np.pi*50,theta_0=0.0):
+    N_t = len(times)
+    Dt = times[1]-times[0] 
+    p = np.zeros((N_t,1))
+    q = np.zeros((N_t,1))
+    for it in range(len(times)):
 
+        theta = Dt*it*omega + theta_0
+        v_abc = np.array([[v_a[it]],[v_b[it]],[v_c[it]]])
+        T_p = 2.0/3.0*np.array([[ np.cos(theta), np.cos(theta-2.0/3.0*np.pi), np.cos(theta+2.0/3.0*np.pi)],
+                                [-np.sin(theta),-np.sin(theta-2.0/3.0*np.pi),-np.sin(theta+2.0/3.0*np.pi)]])
+
+        dq=T_p@v_abc;
+        
+        v_d = dq[0]
+        v_q = dq[1]
+
+        theta = Dt*it*omega + theta_0
+        i_abc = np.array([[i_a[it]],[i_b[it]],[i_c[it]]])
+        T_p = 2.0/3.0*np.array([[ np.cos(theta), np.cos(theta-2.0/3.0*np.pi), np.cos(theta+2.0/3.0*np.pi)],
+                                [-np.sin(theta),-np.sin(theta-2.0/3.0*np.pi),-np.sin(theta+2.0/3.0*np.pi)]])
+
+        i_dq=T_p@i_abc;
+        
+        i_d = i_dq[0]
+        i_q = i_dq[1]
+    
+        p[it] = 3/2*(v_d*i_d + v_q*i_q)
+        q[it] = 3/2*(v_d*i_q - v_q*i_d)
+    return p,q
+
+
+@numba.njit(cache=True)
+def abc2dq(times,v_a,v_b,v_c,i_a,i_b,i_c,omega=2*np.pi*50,theta_0=0.0,K_p=0.1,K_i=20.0,T_f=20.0e-3):
+
+    N_t = len(times)
+    Dt = times[1]-times[0] 
+
+    v_d = np.zeros((N_t,1))
+    v_q = np.zeros((N_t,1))
+    i_d = np.zeros((N_t,1))
+    i_q = np.zeros((N_t,1))
+    p = np.zeros((N_t,1))
+    q = np.zeros((N_t,1))
+    
+    theta = 0.0
+    xi = 0.0
+    theta_pll = np.zeros((N_t,1)) 
+    omega_pll = np.zeros((N_t,1)) 
+    dq = np.zeros((2,1)) 
+    idx = np.argmax(times>0.08)
+
+    theta_pll[0,0] = theta_0
+    #omega_pll = np.zeros((N_t,1)) 
+    
+    
+    for it in range(len(times)-1):
+
+        theta = theta_pll[it,0]
+        v_abc = np.array([[v_a[it]],[v_b[it]],[v_c[it]]])
+        i_abc = np.array([[i_a[it]],[i_b[it]],[i_c[it]]])
+        T_p = 2.0/3.0*np.array([[ np.cos(theta), np.cos(theta-2.0/3.0*np.pi), np.cos(theta+2.0/3.0*np.pi)],
+                                [-np.sin(theta),-np.sin(theta-2.0/3.0*np.pi),-np.sin(theta+2.0/3.0*np.pi)]])
+    
+
+        v_dq = T_p@v_abc;
+        i_dq = T_p@i_abc;
+        
+        v_d[it+1,0] = v_d[it,0] + Dt/T_f*(v_dq[0,0] - v_d[it,0])
+        v_q[it+1,0] = v_q[it,0] + Dt/T_f*(v_dq[1,0] - v_q[it,0])
+        i_d[it+1,0] = i_d[it,0] + Dt/T_f*(i_dq[0,0] - i_d[it,0])
+        i_q[it+1,0] = i_q[it,0] + Dt/T_f*(i_dq[1,0] - i_q[it,0])
+        
+        p[it] = 3/2*(v_d[it+1,0] *i_d[it+1,0]  + v_q[it+1,0] *i_q[it+1,0] )
+        q[it] = 3/2*(v_q[it+1,0] *i_d[it+1,0]  - v_d[it+1,0] *i_q[it+1,0] )
+        
+        xi += Dt*v_dq[0,0]
+        omega_pll[it,0] = K_p * v_dq[0,0] + K_i * xi + omega
+        
+        theta_pll[it+1,0] += theta_pll[it,0] + Dt*(omega_pll[it,0])
+
+    omega_pll[it+1,0] = K_p * v_dq[0,0] + K_i * xi + omega
+    return theta_pll,omega_pll,v_d,v_q,i_d,i_q,p,q

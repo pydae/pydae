@@ -49,7 +49,7 @@ class grid_4bus4wire_class:
         self.u_ini_values_list = self.inputs_ini_values_list
         self.u_run_list = self.inputs_run_list
         self.u_run_values_list = self.inputs_run_values_list
-        
+        self.N_u = len(self.u_run_list)
         self.update() 
 
 
@@ -81,6 +81,7 @@ class grid_4bus4wire_class:
               ('g', np.float64, (self.N_y,1)),
               ('y_run', np.float64, (self.N_y,1)),
               ('y_ini', np.float64, (self.N_y,1)),
+              ('u_run', np.float64, (self.N_u,1)),
               ('y_0', np.float64, (self.N_y,1)),
               ('h', np.float64, (self.N_z,1)),
               ('Fx', np.float64, (self.N_x,self.N_x)),
@@ -128,6 +129,7 @@ class grid_4bus4wire_class:
                 np.zeros((self.N_y,1)),                # g
                 np.zeros((self.N_y,1)),                # y_run
                 np.zeros((self.N_y,1)),                # y_ini
+                np.zeros((self.N_u,1)),                # u_run
                 np.zeros((self.N_y,1)),                # y_0
                 np.zeros((self.N_z,1)),                # h
                 np.zeros((self.N_x,self.N_x)),         # Fx   
@@ -356,7 +358,29 @@ class grid_4bus4wire_class:
         
         return T,X,Y,Z
         
-        
+    def save_0(self,file_name = 'xy_0.json'):
+        xy_0_dict = {}
+        for item in self.x_list:
+            xy_0_dict.update({item:self.get_value(item)})
+        for item in self.y_ini_list:
+            xy_0_dict.update({item:self.get_value(item)})
+    
+        xy_0_str = json.dumps(xy_0_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(xy_0_str)
+
+    def load_0(self,file_name = 'xy_0.json'):
+        with open(file_name) as fobj:
+            xy_0_str = fobj.read()
+        xy_0_dict = json.loads(xy_0_str)
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_prev[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_prev[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]
+                
+            
     def initialize(self,events=[{}],xy0=0):
         '''
         
@@ -396,14 +420,19 @@ class grid_4bus4wire_class:
             
         
         ## compute initial conditions using x and y_ini 
-        if xy0 == 0:
-            xy0 = np.zeros(self.N_x+self.N_y)
-        elif xy0 == 1:
-            xy0 = np.ones(self.N_x+self.N_y)
-        elif xy0 == 'prev':
-            xy0 = self.xy_prev
+        if type(xy0) == str:
+            if xy0 == 'prev':
+                xy0 = self.xy_prev
+            else:
+                self.load_0(xy0)
+                xy0 = self.xy_prev
         else:
-            xy0 = xy0*np.ones(self.N_x+self.N_y)
+            if xy0 == 0:
+                xy0 = np.zeros(self.N_x+self.N_y)
+            elif xy0 == 1:
+                xy0 = np.ones(self.N_x+self.N_y)
+            else:
+                xy0 = xy0*np.ones(self.N_x+self.N_y)
 
         #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
 
@@ -640,6 +669,7 @@ def ini(struct,mode):
     # Algebraic equations:
     if mode == 3:
 
+        g_n = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
 
         struct[0].g[0,0] = i_B2_a_r + 116.655487182478*v_B1_a_i + 243.518329493424*v_B1_a_r - 139.986584618974*v_B2_a_i - 292.221995392108*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
         struct[0].g[1,0] = i_B2_a_i + 243.518329493424*v_B1_a_i - 116.655487182478*v_B1_a_r - 292.221995392108*v_B2_a_i + 139.986584618974*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
@@ -647,16 +677,16 @@ def ini(struct,mode):
         struct[0].g[3,0] = i_B2_b_i + 243.518329493424*v_B1_b_i - 116.655487182478*v_B1_b_r - 292.221995392108*v_B2_b_i + 139.986584618974*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
         struct[0].g[4,0] = i_B2_c_r + 116.655487182478*v_B1_c_i + 243.518329493424*v_B1_c_r - 139.986584618974*v_B2_c_i - 292.221995392108*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
         struct[0].g[5,0] = i_B2_c_i + 243.518329493424*v_B1_c_i - 116.655487182478*v_B1_c_r - 292.221995392108*v_B2_c_i + 139.986584618974*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
-        struct[0].g[6,0] = i_B2_n_r + 116.655487182478*v_B1_n_i + 243.518329493424*v_B1_n_r - 139.986584618974*v_B2_n_i - 292.221995392108*v_B2_n_r + 23.3310974364957*v_B3_n_i + 48.7036658986847*v_B3_n_r
-        struct[0].g[7,0] = i_B2_n_i + 243.518329493424*v_B1_n_i - 116.655487182478*v_B1_n_r - 292.221995392108*v_B2_n_i + 139.986584618974*v_B2_n_r + 48.7036658986847*v_B3_n_i - 23.3310974364957*v_B3_n_r
+        struct[0].g[6,0] = g_n[6,0]
+        struct[0].g[7,0] = g_n[7,0]
         struct[0].g[8,0] = i_B3_a_r + 23.3310974364957*v_B2_a_i + 48.7036658986847*v_B2_a_r - 139.986584618974*v_B3_a_i - 292.221995392108*v_B3_a_r + 116.655487182478*v_B4_a_i + 243.518329493424*v_B4_a_r
         struct[0].g[9,0] = i_B3_a_i + 48.7036658986847*v_B2_a_i - 23.3310974364957*v_B2_a_r - 292.221995392108*v_B3_a_i + 139.986584618974*v_B3_a_r + 243.518329493424*v_B4_a_i - 116.655487182478*v_B4_a_r
         struct[0].g[10,0] = i_B3_b_r + 23.3310974364957*v_B2_b_i + 48.7036658986847*v_B2_b_r - 139.986584618974*v_B3_b_i - 292.221995392108*v_B3_b_r + 116.655487182478*v_B4_b_i + 243.518329493424*v_B4_b_r
         struct[0].g[11,0] = i_B3_b_i + 48.7036658986847*v_B2_b_i - 23.3310974364957*v_B2_b_r - 292.221995392108*v_B3_b_i + 139.986584618974*v_B3_b_r + 243.518329493424*v_B4_b_i - 116.655487182478*v_B4_b_r
         struct[0].g[12,0] = i_B3_c_r + 23.3310974364957*v_B2_c_i + 48.7036658986847*v_B2_c_r - 139.986584618974*v_B3_c_i - 292.221995392108*v_B3_c_r + 116.655487182478*v_B4_c_i + 243.518329493424*v_B4_c_r
         struct[0].g[13,0] = i_B3_c_i + 48.7036658986847*v_B2_c_i - 23.3310974364957*v_B2_c_r - 292.221995392108*v_B3_c_i + 139.986584618974*v_B3_c_r + 243.518329493424*v_B4_c_i - 116.655487182478*v_B4_c_r
-        struct[0].g[14,0] = i_B3_n_r + 23.3310974364957*v_B2_n_i + 48.7036658986847*v_B2_n_r - 139.986584618974*v_B3_n_i - 292.221995392108*v_B3_n_r + 116.655487182478*v_B4_n_i + 243.518329493424*v_B4_n_r
-        struct[0].g[15,0] = i_B3_n_i + 48.7036658986847*v_B2_n_i - 23.3310974364957*v_B2_n_r - 292.221995392108*v_B3_n_i + 139.986584618974*v_B3_n_r + 243.518329493424*v_B4_n_i - 116.655487182478*v_B4_n_r
+        struct[0].g[14,0] = g_n[14,0]
+        struct[0].g[15,0] = g_n[15,0]
         struct[0].g[16,0] = i_B1_n_r - 116.655487182478*v_B1_n_i - 1243.51832949342*v_B1_n_r + 116.655487182478*v_B2_n_i + 243.518329493424*v_B2_n_r
         struct[0].g[17,0] = i_B1_n_i - 1243.51832949342*v_B1_n_i + 116.655487182478*v_B1_n_r + 243.518329493424*v_B2_n_i - 116.655487182478*v_B2_n_r
         struct[0].g[18,0] = i_B4_n_r + 116.655487182478*v_B3_n_i + 243.518329493424*v_B3_n_r - 116.655487182478*v_B4_n_i - 1243.51832949342*v_B4_n_r
@@ -667,16 +697,16 @@ def ini(struct,mode):
         struct[0].g[23,0] = -i_B2_a_i*v_B2_a_r + i_B2_a_i*v_B2_n_r + i_B2_a_r*v_B2_a_i - i_B2_a_r*v_B2_n_i - q_B2_a
         struct[0].g[24,0] = -i_B2_b_i*v_B2_b_r + i_B2_b_i*v_B2_n_r + i_B2_b_r*v_B2_b_i - i_B2_b_r*v_B2_n_i - q_B2_b
         struct[0].g[25,0] = -i_B2_c_i*v_B2_c_r + i_B2_c_i*v_B2_n_r + i_B2_c_r*v_B2_c_i - i_B2_c_r*v_B2_n_i - q_B2_c
-        struct[0].g[26,0] = i_B2_a_r + i_B2_b_r + i_B2_c_r + i_B2_n_r
-        struct[0].g[27,0] = i_B2_a_i + i_B2_b_i + i_B2_c_i + i_B2_n_i
+        struct[0].g[26,0] = g_n[26,0]
+        struct[0].g[27,0] = g_n[27,0]
         struct[0].g[28,0] = i_B3_a_i*v_B3_a_i - i_B3_a_i*v_B3_n_i + i_B3_a_r*v_B3_a_r - i_B3_a_r*v_B3_n_r - p_B3_a
         struct[0].g[29,0] = i_B3_b_i*v_B3_b_i - i_B3_b_i*v_B3_n_i + i_B3_b_r*v_B3_b_r - i_B3_b_r*v_B3_n_r - p_B3_b
         struct[0].g[30,0] = i_B3_c_i*v_B3_c_i - i_B3_c_i*v_B3_n_i + i_B3_c_r*v_B3_c_r - i_B3_c_r*v_B3_n_r - p_B3_c
         struct[0].g[31,0] = -i_B3_a_i*v_B3_a_r + i_B3_a_i*v_B3_n_r + i_B3_a_r*v_B3_a_i - i_B3_a_r*v_B3_n_i - q_B3_a
         struct[0].g[32,0] = -i_B3_b_i*v_B3_b_r + i_B3_b_i*v_B3_n_r + i_B3_b_r*v_B3_b_i - i_B3_b_r*v_B3_n_i - q_B3_b
         struct[0].g[33,0] = -i_B3_c_i*v_B3_c_r + i_B3_c_i*v_B3_n_r + i_B3_c_r*v_B3_c_i - i_B3_c_r*v_B3_n_i - q_B3_c
-        struct[0].g[34,0] = i_B3_a_r + i_B3_b_r + i_B3_c_r + i_B3_n_r
-        struct[0].g[35,0] = i_B3_a_i + i_B3_b_i + i_B3_c_i + i_B3_n_i
+        struct[0].g[34,0] = g_n[34,0]
+        struct[0].g[35,0] = g_n[35,0]
     
     # Outputs:
     if mode == 3:
@@ -863,6 +893,39 @@ def run(t,struct,mode):
     i_B3_n_r = struct[0].y_run[34,0]
     i_B3_n_i = struct[0].y_run[35,0]
     
+    struct[0].u_run[0,0] = v_B1_a_r
+    struct[0].u_run[1,0] = v_B1_a_i
+    struct[0].u_run[2,0] = v_B1_b_r
+    struct[0].u_run[3,0] = v_B1_b_i
+    struct[0].u_run[4,0] = v_B1_c_r
+    struct[0].u_run[5,0] = v_B1_c_i
+    struct[0].u_run[6,0] = v_B4_a_r
+    struct[0].u_run[7,0] = v_B4_a_i
+    struct[0].u_run[8,0] = v_B4_b_r
+    struct[0].u_run[9,0] = v_B4_b_i
+    struct[0].u_run[10,0] = v_B4_c_r
+    struct[0].u_run[11,0] = v_B4_c_i
+    struct[0].u_run[12,0] = i_B2_n_r
+    struct[0].u_run[13,0] = i_B2_n_i
+    struct[0].u_run[14,0] = i_B3_n_r
+    struct[0].u_run[15,0] = i_B3_n_i
+    struct[0].u_run[16,0] = i_B1_n_r
+    struct[0].u_run[17,0] = i_B1_n_i
+    struct[0].u_run[18,0] = i_B4_n_r
+    struct[0].u_run[19,0] = i_B4_n_i
+    struct[0].u_run[20,0] = p_B2_a
+    struct[0].u_run[21,0] = q_B2_a
+    struct[0].u_run[22,0] = p_B2_b
+    struct[0].u_run[23,0] = q_B2_b
+    struct[0].u_run[24,0] = p_B2_c
+    struct[0].u_run[25,0] = q_B2_c
+    struct[0].u_run[26,0] = p_B3_a
+    struct[0].u_run[27,0] = q_B3_a
+    struct[0].u_run[28,0] = p_B3_b
+    struct[0].u_run[29,0] = q_B3_b
+    struct[0].u_run[30,0] = p_B3_c
+    struct[0].u_run[31,0] = q_B3_c
+    struct[0].u_run[32,0] = u_dummy
     # Differential equations:
     if mode == 2:
 
@@ -872,27 +935,28 @@ def run(t,struct,mode):
     # Algebraic equations:
     if mode == 3:
 
+        g_n = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
 
-        struct[0].g[0,0] = i_B2_a_r + 116.655487182478*v_B1_a_i + 243.518329493424*v_B1_a_r - 139.986584618974*v_B2_a_i - 292.221995392108*v_B2_a_r + 23.3310974364957*v_B3_a_i + 48.7036658986847*v_B3_a_r
-        struct[0].g[1,0] = i_B2_a_i + 243.518329493424*v_B1_a_i - 116.655487182478*v_B1_a_r - 292.221995392108*v_B2_a_i + 139.986584618974*v_B2_a_r + 48.7036658986847*v_B3_a_i - 23.3310974364957*v_B3_a_r
-        struct[0].g[2,0] = i_B2_b_r + 116.655487182478*v_B1_b_i + 243.518329493424*v_B1_b_r - 139.986584618974*v_B2_b_i - 292.221995392108*v_B2_b_r + 23.3310974364957*v_B3_b_i + 48.7036658986847*v_B3_b_r
-        struct[0].g[3,0] = i_B2_b_i + 243.518329493424*v_B1_b_i - 116.655487182478*v_B1_b_r - 292.221995392108*v_B2_b_i + 139.986584618974*v_B2_b_r + 48.7036658986847*v_B3_b_i - 23.3310974364957*v_B3_b_r
-        struct[0].g[4,0] = i_B2_c_r + 116.655487182478*v_B1_c_i + 243.518329493424*v_B1_c_r - 139.986584618974*v_B2_c_i - 292.221995392108*v_B2_c_r + 23.3310974364957*v_B3_c_i + 48.7036658986847*v_B3_c_r
-        struct[0].g[5,0] = i_B2_c_i + 243.518329493424*v_B1_c_i - 116.655487182478*v_B1_c_r - 292.221995392108*v_B2_c_i + 139.986584618974*v_B2_c_r + 48.7036658986847*v_B3_c_i - 23.3310974364957*v_B3_c_r
+        struct[0].g[0,0] = g_n[0,0]
+        struct[0].g[1,0] = g_n[1,0]
+        struct[0].g[2,0] = g_n[2,0]
+        struct[0].g[3,0] = g_n[3,0]
+        struct[0].g[4,0] = g_n[4,0]
+        struct[0].g[5,0] = g_n[5,0]
         struct[0].g[6,0] = i_B2_n_r + 116.655487182478*v_B1_n_i + 243.518329493424*v_B1_n_r - 139.986584618974*v_B2_n_i - 292.221995392108*v_B2_n_r + 23.3310974364957*v_B3_n_i + 48.7036658986847*v_B3_n_r
         struct[0].g[7,0] = i_B2_n_i + 243.518329493424*v_B1_n_i - 116.655487182478*v_B1_n_r - 292.221995392108*v_B2_n_i + 139.986584618974*v_B2_n_r + 48.7036658986847*v_B3_n_i - 23.3310974364957*v_B3_n_r
-        struct[0].g[8,0] = i_B3_a_r + 23.3310974364957*v_B2_a_i + 48.7036658986847*v_B2_a_r - 139.986584618974*v_B3_a_i - 292.221995392108*v_B3_a_r + 116.655487182478*v_B4_a_i + 243.518329493424*v_B4_a_r
-        struct[0].g[9,0] = i_B3_a_i + 48.7036658986847*v_B2_a_i - 23.3310974364957*v_B2_a_r - 292.221995392108*v_B3_a_i + 139.986584618974*v_B3_a_r + 243.518329493424*v_B4_a_i - 116.655487182478*v_B4_a_r
-        struct[0].g[10,0] = i_B3_b_r + 23.3310974364957*v_B2_b_i + 48.7036658986847*v_B2_b_r - 139.986584618974*v_B3_b_i - 292.221995392108*v_B3_b_r + 116.655487182478*v_B4_b_i + 243.518329493424*v_B4_b_r
-        struct[0].g[11,0] = i_B3_b_i + 48.7036658986847*v_B2_b_i - 23.3310974364957*v_B2_b_r - 292.221995392108*v_B3_b_i + 139.986584618974*v_B3_b_r + 243.518329493424*v_B4_b_i - 116.655487182478*v_B4_b_r
-        struct[0].g[12,0] = i_B3_c_r + 23.3310974364957*v_B2_c_i + 48.7036658986847*v_B2_c_r - 139.986584618974*v_B3_c_i - 292.221995392108*v_B3_c_r + 116.655487182478*v_B4_c_i + 243.518329493424*v_B4_c_r
-        struct[0].g[13,0] = i_B3_c_i + 48.7036658986847*v_B2_c_i - 23.3310974364957*v_B2_c_r - 292.221995392108*v_B3_c_i + 139.986584618974*v_B3_c_r + 243.518329493424*v_B4_c_i - 116.655487182478*v_B4_c_r
+        struct[0].g[8,0] = g_n[8,0]
+        struct[0].g[9,0] = g_n[9,0]
+        struct[0].g[10,0] = g_n[10,0]
+        struct[0].g[11,0] = g_n[11,0]
+        struct[0].g[12,0] = g_n[12,0]
+        struct[0].g[13,0] = g_n[13,0]
         struct[0].g[14,0] = i_B3_n_r + 23.3310974364957*v_B2_n_i + 48.7036658986847*v_B2_n_r - 139.986584618974*v_B3_n_i - 292.221995392108*v_B3_n_r + 116.655487182478*v_B4_n_i + 243.518329493424*v_B4_n_r
         struct[0].g[15,0] = i_B3_n_i + 48.7036658986847*v_B2_n_i - 23.3310974364957*v_B2_n_r - 292.221995392108*v_B3_n_i + 139.986584618974*v_B3_n_r + 243.518329493424*v_B4_n_i - 116.655487182478*v_B4_n_r
-        struct[0].g[16,0] = i_B1_n_r - 116.655487182478*v_B1_n_i - 1243.51832949342*v_B1_n_r + 116.655487182478*v_B2_n_i + 243.518329493424*v_B2_n_r
-        struct[0].g[17,0] = i_B1_n_i - 1243.51832949342*v_B1_n_i + 116.655487182478*v_B1_n_r + 243.518329493424*v_B2_n_i - 116.655487182478*v_B2_n_r
-        struct[0].g[18,0] = i_B4_n_r + 116.655487182478*v_B3_n_i + 243.518329493424*v_B3_n_r - 116.655487182478*v_B4_n_i - 1243.51832949342*v_B4_n_r
-        struct[0].g[19,0] = i_B4_n_i + 243.518329493424*v_B3_n_i - 116.655487182478*v_B3_n_r - 1243.51832949342*v_B4_n_i + 116.655487182478*v_B4_n_r
+        struct[0].g[16,0] = g_n[16,0]
+        struct[0].g[17,0] = g_n[17,0]
+        struct[0].g[18,0] = g_n[18,0]
+        struct[0].g[19,0] = g_n[19,0]
         struct[0].g[20,0] = i_B2_a_i*v_B2_a_i - i_B2_a_i*v_B2_n_i + i_B2_a_r*v_B2_a_r - i_B2_a_r*v_B2_n_r - p_B2_a
         struct[0].g[21,0] = i_B2_b_i*v_B2_b_i - i_B2_b_i*v_B2_n_i + i_B2_b_r*v_B2_b_r - i_B2_b_r*v_B2_n_r - p_B2_b
         struct[0].g[22,0] = i_B2_c_i*v_B2_c_i - i_B2_c_i*v_B2_n_i + i_B2_c_r*v_B2_c_r - i_B2_c_r*v_B2_n_r - p_B2_c

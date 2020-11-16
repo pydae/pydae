@@ -49,7 +49,7 @@ class {name}_class:
         self.u_ini_values_list = self.inputs_ini_values_list
         self.u_run_list = self.inputs_run_list
         self.u_run_values_list = self.inputs_run_values_list
-        
+        self.N_u = len(self.u_run_list)
         self.update() 
 
 
@@ -81,6 +81,7 @@ class {name}_class:
               ('g', np.float64, (self.N_y,1)),
               ('y_run', np.float64, (self.N_y,1)),
               ('y_ini', np.float64, (self.N_y,1)),
+              ('u_run', np.float64, (self.N_u,1)),
               ('y_0', np.float64, (self.N_y,1)),
               ('h', np.float64, (self.N_z,1)),
               ('Fx', np.float64, (self.N_x,self.N_x)),
@@ -128,6 +129,7 @@ class {name}_class:
                 np.zeros((self.N_y,1)),                # g
                 np.zeros((self.N_y,1)),                # y_run
                 np.zeros((self.N_y,1)),                # y_ini
+                np.zeros((self.N_u,1)),                # u_run
                 np.zeros((self.N_y,1)),                # y_0
                 np.zeros((self.N_z,1)),                # h
                 np.zeros((self.N_x,self.N_x)),         # Fx   
