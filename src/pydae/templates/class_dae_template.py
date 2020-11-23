@@ -102,6 +102,7 @@ class {name}_class:
               ('Y', np.float64, (self.N_store+1,self.N_y)),
               ('Z', np.float64, (self.N_store+1,self.N_z)),
               ('iters', np.float64, (self.N_store+1,1)),
+              ('store', np.int64),
              ]
 
         values = [
@@ -150,6 +151,7 @@ class {name}_class:
                 np.zeros((self.N_store+1,self.N_y)),   # Y
                 np.zeros((self.N_store+1,self.N_z)),   # Z
                 np.zeros((self.N_store+1,1)),          # iters
+                1,
                 ]  
 
         dt += [(item,np.float64) for item in self.params_list]
@@ -313,20 +315,17 @@ class {name}_class:
         # initialize both the ini and the run system
         self.initialize(events,xy0=xy0)
         
-        ## solve 
-        #daesolver(self.struct)    # run until first event
-
         # simulation run
-        for event in events[1:]:  
+        for event in events:  
             # make all the desired changes
-            for item in event:
-                self.struct[0][item] = event[item]
-            daesolver(self.struct)    # run until next event
+            self.run([event]) 
             
-        
+        # post process
         T,X,Y,Z = self.post()
         
         return T,X,Y,Z
+    
+
     
     def run(self,events):
         
@@ -339,7 +338,20 @@ class {name}_class:
             daesolver(self.struct)    # run until next event
             
         return 1
-    
+ 
+    def rtrun(self,events):
+        
+
+        # simulation run
+        for event in events:  
+            # make all the desired changes
+            for item in event:
+                self.struct[0][item] = event[item]
+            self.struct[0].it_store = self.struct[0].N_store-1
+            daesolver(self.struct)    # run until next event
+            
+            
+        return 1
     
     def post(self):
         

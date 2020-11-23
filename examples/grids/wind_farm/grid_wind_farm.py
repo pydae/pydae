@@ -313,20 +313,17 @@ class grid_wind_farm_class:
         # initialize both the ini and the run system
         self.initialize(events,xy0=xy0)
         
-        ## solve 
-        #daesolver(self.struct)    # run until first event
-
         # simulation run
-        for event in events[1:]:  
+        for event in events:  
             # make all the desired changes
-            for item in event:
-                self.struct[0][item] = event[item]
-            daesolver(self.struct)    # run until next event
+            self.run([event]) 
             
-        
+        # post process
         T,X,Y,Z = self.post()
         
         return T,X,Y,Z
+    
+
     
     def run(self,events):
         

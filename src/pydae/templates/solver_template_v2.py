@@ -105,14 +105,15 @@ def daesolver(struct):
             struct[i].y_run[:] = y_i
                 
         # channels 
-        it_store = struct[i].it_store
-        if struct[i].it >= it_store*decimation: 
-            struct[i]['T'][it_store+1] = t 
-            struct[i].X[it_store+1,:] = struct[i].x[:,0] 
-            struct[i].Y[it_store+1,:] = struct[i].y_run[:,0]
-            struct[i].Z[it_store+1,:] = struct[i].h[:,0]
-            struct[i].iters[it_store+1,0] = iter
-            struct[i].it_store += 1 
+        if struct[i].store == 1:
+            it_store = struct[i].it_store
+            if struct[i].it >= it_store*decimation: 
+                struct[i]['T'][it_store+1] = t 
+                struct[i].X[it_store+1,:] = struct[i].x[:,0] 
+                struct[i].Y[it_store+1,:] = struct[i].y_run[:,0]
+                struct[i].Z[it_store+1,:] = struct[i].h[:,0]
+                struct[i].iters[it_store+1,0] = iter
+                struct[i].it_store += 1 
             
     struct[i].t = t
 
