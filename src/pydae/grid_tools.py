@@ -926,3 +926,63 @@ def abc2dq(times,v_a,v_b,v_c,i_a,i_b,i_c,omega=2*np.pi*50,theta_0=0.0,K_p=0.1,K_
 
     omega_pll[it+1,0] = K_p * v_dq[0,0] + K_i * xi + omega
     return theta_pll,omega_pll,v_d,v_q,i_d,i_q,p,q
+
+
+def change_line(system,bus_j,bus_k, *args,**kwagrs):
+    line = kwagrs
+    S_base = system.get_value('S_base')
+    
+    line_name = f"{bus_j}_{bus_k}"
+    if 'X_pu' in line:
+        if 'S_mva' in line: S_line = 1e6*line['S_mva']
+        R = line['R_pu']*S_base/S_line  # in pu of the system base
+        X = line['X_pu']*S_base/S_line  # in pu of the system base
+    if 'X' in line:
+        U_base = system.get_value(f'U_{bus_j}_n')
+        Z_base = U_base**2/S_base
+        R = line['R']/Z_base  # in pu of the system base
+        X = line['X']/Z_base  # in pu of the system base
+    if 'X_km' in line:
+        U_base = system.get_value(f'U_{bus_j}_n')
+        Z_base = U_base**2/S_base
+        R = line['R_km']*line['km']/Z_base  # in pu of the system base
+        X = line['X_km']*line['km']/Z_base  # in pu of the system base
+    G =  R/(R**2+X**2)
+    B = -X/(R**2+X**2)
+    system.set_value(f"g_{line_name}",G)
+    system.set_value(f"b_{line_name}",B)
+    
+    
+def get_line_i(system,bus_from,bus_to,U_kV=66e3):
+    
+    
+    if f"b_{bus_from}_{bus_to}" in system.params_list: 
+        bus_j = bus_from
+        bus_k = bus_to
+        current_direction = 1.0
+    elif f"b_{bus_to}_{bus_from}" in system.params_list: 
+        bus_j = bus_to
+        bus_k = bus_from
+        current_direction = -1.0
+    else: 
+        print(f'No line from {bus_from} to {bus_to}')
+        return
+    
+    line_name = f"{bus_j}_{bus_k}"
+    V_j_m = system.get_value(f"V_{bus_j}")
+    theta_j = system.get_value(f"theta_{bus_j}")
+    V_k_m = system.get_value(f"V_{bus_k}") 
+    theta_k = system.get_value(f"theta_{bus_k}")
+    
+    V_j = V_j_m*np.exp(1j*theta_j)
+    V_k = V_k_m*np.exp(1j*theta_k)
+    
+    Y_jk = system.get_value(f"g_{line_name}") + 1j*system.get_value(f"b_{line_name}")
+    S_base = system.get_value('S_base')
+    U_base = system.get_value(f"U_{bus_j}_n")
+    I_jk_pu = current_direction*Y_jk*(V_j - V_k)
+    I_base = S_base/(np.sqrt(3)*U_base)
+    I_jk = I_jk_pu*I_base
+    
+    return I_jk
+

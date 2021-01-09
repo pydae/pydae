@@ -438,6 +438,11 @@ class {name}_class:
             else:
                 self.load_0(xy0)
                 xy0 = self.xy_prev
+        elif type(xy0) == dict:
+            with open('xy_0.json','w') as fobj:
+                fobj.write(json.dumps(xy0))
+            self.load_0('xy_0.json')
+            xy0 = self.xy_prev            
         else:
             if xy0 == 0:
                 xy0 = np.zeros(self.N_x+self.N_y)
@@ -585,6 +590,10 @@ class {name}_class:
 
     def report_z(self,value_format='5.2f'):
         for item in self.outputs_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_params(self,value_format='5.2f'):
+        for item in self.params_list:
             print(f'{item:5s} = {self.get_value(item):5.2f}')
             
     def get_x(self):

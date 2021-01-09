@@ -1736,6 +1736,8 @@ def pf_network(file_path):
             y_grid += [theta_j]        
             u_grid.update({f"P_{bus_name}":bus['P_W']})
             u_grid.update({f"Q_{bus_name}":bus['Q_var']})    
+            
+        params_grid.update({f'U_{bus_name}_n':bus['U_kV']*1000})
     g_grid = list(g)     
 
     if False:
@@ -1760,4 +1762,85 @@ def pf_network(file_path):
             it += 1
             
     return {'g':g_grid,'y':y_grid,'u':u_grid,'h':h_grid, 'params':params_grid, 'data':data}
+
+
+def syns_add(grid):
+    sin = sym.sin
+    cos = sym.cos
+    buses = grid['data']['buses']
+    buses_list = [bus['name'] for bus in buses]
+    for syn in grid['data']['syns']:
+
+        bus_name = syn['bus']
+        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+        buses[idx_bus]['idx_powers'] += 1
+
+        P = sym.Symbol(f"P_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True)
+        Q = sym.Symbol(f"Q_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True)
+        V = sym.Symbol(f"V_{bus_name}", real=True)
+        theta = sym.Symbol(f"theta_{bus_name}", real=True)
+        i_d = sym.Symbol(f"i_d_{bus_name}", real=True)
+        i_q = sym.Symbol(f"i_q_{bus_name}", real=True)
+        delta = sym.Symbol(f"delta_{bus_name}", real=True)
+        omega = sym.Symbol(f"omega_{bus_name}", real=True)
+        p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+        e1q = sym.Symbol(f"e1q_{bus_name}", real=True)
+        e1d = sym.Symbol(f"e1d_{bus_name}", real=True)
+        v_f = sym.Symbol(f"v_f_{bus_name}", real=True)
+        v_c = sym.Symbol(f"v_c_{bus_name}", real=True)
+        p_m_ref  = sym.Symbol(f"p_m_ref_{bus_name}", real=True)
+        v_ref  = sym.Symbol(f"v_ref_{bus_name}", real=True)
+        xi_m = sym.Symbol(f"xi_m_{bus_name}", real=True)
+        
+        v_d = V*sin(delta - theta) 
+        v_q = V*cos(delta - theta) 
+
+        for item in syn:
+            string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
+            exec(string,globals())
+
+        p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q) 
+
+
+        ddelta = Omega_b*(omega - omega_s) - K_delta*delta
+        domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
+        de1q = 1/T1d0*(-e1q - (X_d - X1d)*i_d + v_f)
+        de1d = 1/T1q0*(-e1d + (X_q - X1q)*i_q)
+        dv_c =   (V - v_c)/T_r
+        dp_m =   (p_m_ref - p_m)/T_m
+        dxi_m =   omega - 1
+
+        g_id  = v_q + R_a*i_q + X1d*i_d - e1q
+        g_iq  = v_d + R_a*i_d - X1q*i_q - e1d
+        g_p  = i_d*v_d + i_q*v_q - P/S_n  
+        g_q  = i_d*v_q - i_q*v_d - Q/S_n  
+        g_vf  = K_a*(v_ref - v_c + v_pss) - v_f 
+        g_pm  = -p_m_ref - K_sec*xi_m - 1/Droop*(omega - 1)
+
+        f_syn = [ddelta,domega,de1q,de1d,dv_c,dp_m,dxi_m]
+        x_syn = [ delta, omega, e1q, e1d, v_c, p_m, xi_m]
+        g_syn = [g_id,g_iq,g_p,g_q,g_vf,g_pm]
+        y_syn = [i_d,i_q,P,Q,v_f,p_m_ref]
+        if 'f' not in grid: grid.update({'f':[]})
+        if 'x' not in grid: grid.update({'x':[]})
+        grid['f'] += f_syn
+        grid['x'] += x_syn
+        grid['g'] += g_syn
+        grid['y'] += y_syn  
+        
+        S_base = sym.Symbol('S_base', real = True)
+        grid['g'][idx_bus*2]   += -P/S_base
+        grid['g'][idx_bus*2+1] += -Q/S_base
+        
+        for item in syn:       
+            grid['params'].update({f"{item}_{bus_name}":syn[item]})
+        grid['params'].pop(f"bus_{bus_name}")
+        grid['params'].update({f"v_ref_{bus_name}":1.0})
+        
+def psys_builder(file_path):
     
+    grid = pf_network(file_path)
+    syns_add(grid)
+    
+    return grid

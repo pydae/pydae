@@ -9,7 +9,7 @@ atan2 = np.arctan2
 sqrt = np.sqrt 
 
 
-class pf_2_class: 
+class proyecto_class: 
 
     def __init__(self): 
 
@@ -25,8 +25,8 @@ class pf_2_class:
         self.N_y = 20 
         self.N_z = 7 
         self.N_store = 10000 
-        self.params_list = ['S_base', 'g_GRI_POI', 'b_GRI_POI', 'g_POI_PMV', 'b_POI_PMV', 'g_PMV_GR1', 'b_PMV_GR1', 'g_GR1_GR2', 'b_GR1_GR2', 'g_PMV_GR3', 'b_PMV_GR3', 'g_GR3_GR4', 'b_GR3_GR4', 'S_n_GRI', 'X_d_GRI', 'X1d_GRI', 'T1d0_GRI', 'X_q_GRI', 'X1q_GRI', 'T1q0_GRI', 'R_a_GRI', 'X_l_GRI', 'H_GRI', 'D_GRI', 'Omega_b_GRI', 'omega_s_GRI', 'K_a_GRI', 'T_r_GRI', 'v_pss_GRI', 'Droop_GRI', 'T_m_GRI', 'K_sec_GRI', 'K_delta_GRI', 'v_ref_GRI'] 
-        self.params_values_list  = [100000000.0, 1.4986238532110094, -4.995412844036698, 2.941176470588235, -11.76470588235294, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 100000000.0, 1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 6.0, 1.0, 314.1592653589793, 1.0, 100, 0.1, 0.0, 0.05, 5.0, 0.001, 0.01, 1.0] 
+        self.params_list = ['S_base', 'g_GRI_POI', 'b_GRI_POI', 'g_POI_PMV', 'b_POI_PMV', 'g_PMV_GR1', 'b_PMV_GR1', 'g_GR1_GR2', 'b_GR1_GR2', 'g_PMV_GR3', 'b_PMV_GR3', 'g_GR3_GR4', 'b_GR3_GR4', 'U_GRI_n', 'U_POI_n', 'U_PMV_n', 'U_GR1_n', 'U_GR2_n', 'U_GR3_n', 'U_GR4_n', 'S_n_GRI', 'X_d_GRI', 'X1d_GRI', 'T1d0_GRI', 'X_q_GRI', 'X1q_GRI', 'T1q0_GRI', 'R_a_GRI', 'X_l_GRI', 'H_GRI', 'D_GRI', 'Omega_b_GRI', 'omega_s_GRI', 'K_a_GRI', 'T_r_GRI', 'v_pss_GRI', 'Droop_GRI', 'T_m_GRI', 'K_sec_GRI', 'K_delta_GRI', 'v_ref_GRI'] 
+        self.params_values_list  = [100000000.0, 1.4986238532110094, -4.995412844036698, 2.941176470588235, -11.76470588235294, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 66000.0, 66000.0, 20000.0, 20000.0, 20000.0, 20000.0, 20000.0, 100000000.0, 1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 6.0, 1.0, 314.1592653589793, 1.0, 100, 0.1, 0.0, 0.05, 5.0, 0.001, 0.01, 1.0] 
         self.inputs_ini_list = ['P_GRI', 'Q_GRI', 'P_POI', 'Q_POI', 'P_PMV', 'Q_PMV', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4'] 
         self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0] 
         self.inputs_run_list = ['P_GRI', 'Q_GRI', 'P_POI', 'Q_POI', 'P_PMV', 'Q_PMV', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4'] 
@@ -438,6 +438,11 @@ class pf_2_class:
             else:
                 self.load_0(xy0)
                 xy0 = self.xy_prev
+        elif type(xy0) == dict:
+            with open('xy_0.json','w') as fobj:
+                fobj.write(json.dumps(xy0))
+            self.load_0('xy_0.json')
+            xy0 = self.xy_prev            
         else:
             if xy0 == 0:
                 xy0 = np.zeros(self.N_x+self.N_y)
@@ -586,6 +591,10 @@ class pf_2_class:
     def report_z(self,value_format='5.2f'):
         for item in self.outputs_list:
             print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_params(self,value_format='5.2f'):
+        for item in self.params_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
             
     def get_x(self):
         return self.struct[0].x
@@ -608,6 +617,13 @@ def ini(struct,mode):
     b_PMV_GR3 = struct[0].b_PMV_GR3
     g_GR3_GR4 = struct[0].g_GR3_GR4
     b_GR3_GR4 = struct[0].b_GR3_GR4
+    U_GRI_n = struct[0].U_GRI_n
+    U_POI_n = struct[0].U_POI_n
+    U_PMV_n = struct[0].U_PMV_n
+    U_GR1_n = struct[0].U_GR1_n
+    U_GR2_n = struct[0].U_GR2_n
+    U_GR3_n = struct[0].U_GR3_n
+    U_GR4_n = struct[0].U_GR4_n
     S_n_GRI = struct[0].S_n_GRI
     X_d_GRI = struct[0].X_d_GRI
     X1d_GRI = struct[0].X1d_GRI
@@ -877,6 +893,13 @@ def run(t,struct,mode):
     b_PMV_GR3 = struct[0].b_PMV_GR3
     g_GR3_GR4 = struct[0].g_GR3_GR4
     b_GR3_GR4 = struct[0].b_GR3_GR4
+    U_GRI_n = struct[0].U_GRI_n
+    U_POI_n = struct[0].U_POI_n
+    U_PMV_n = struct[0].U_PMV_n
+    U_GR1_n = struct[0].U_GR1_n
+    U_GR2_n = struct[0].U_GR2_n
+    U_GR3_n = struct[0].U_GR3_n
+    U_GR4_n = struct[0].U_GR4_n
     S_n_GRI = struct[0].S_n_GRI
     X_d_GRI = struct[0].X_d_GRI
     X1d_GRI = struct[0].X1d_GRI
@@ -1187,6 +1210,13 @@ def ini_nn(struct,mode):
     b_PMV_GR3 = struct[0].b_PMV_GR3
     g_GR3_GR4 = struct[0].g_GR3_GR4
     b_GR3_GR4 = struct[0].b_GR3_GR4
+    U_GRI_n = struct[0].U_GRI_n
+    U_POI_n = struct[0].U_POI_n
+    U_PMV_n = struct[0].U_PMV_n
+    U_GR1_n = struct[0].U_GR1_n
+    U_GR2_n = struct[0].U_GR2_n
+    U_GR3_n = struct[0].U_GR3_n
+    U_GR4_n = struct[0].U_GR4_n
     S_n_GRI = struct[0].S_n_GRI
     X_d_GRI = struct[0].X_d_GRI
     X1d_GRI = struct[0].X1d_GRI
@@ -1447,6 +1477,13 @@ def run_nn(t,struct,mode):
     b_PMV_GR3 = struct[0].b_PMV_GR3
     g_GR3_GR4 = struct[0].g_GR3_GR4
     b_GR3_GR4 = struct[0].b_GR3_GR4
+    U_GRI_n = struct[0].U_GRI_n
+    U_POI_n = struct[0].U_POI_n
+    U_PMV_n = struct[0].U_PMV_n
+    U_GR1_n = struct[0].U_GR1_n
+    U_GR2_n = struct[0].U_GR2_n
+    U_GR3_n = struct[0].U_GR3_n
+    U_GR4_n = struct[0].U_GR4_n
     S_n_GRI = struct[0].S_n_GRI
     X_d_GRI = struct[0].X_d_GRI
     X1d_GRI = struct[0].X1d_GRI
