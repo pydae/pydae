@@ -986,3 +986,37 @@ def get_line_i(system,bus_from,bus_to,U_kV=66e3):
     
     return I_jk
 
+def get_line_s(system,bus_from,bus_to,U_kV=66e3):
+    
+    
+    if f"b_{bus_from}_{bus_to}" in system.params_list: 
+        bus_j = bus_from
+        bus_k = bus_to
+        current_direction = 1.0
+    elif f"b_{bus_to}_{bus_from}" in system.params_list: 
+        bus_j = bus_to
+        bus_k = bus_from
+        current_direction = -1.0
+    else: 
+        print(f'No line from {bus_from} to {bus_to}')
+        return
+    
+    line_name = f"{bus_j}_{bus_k}"
+    V_j_m = system.get_value(f"V_{bus_j}")
+    theta_j = system.get_value(f"theta_{bus_j}")
+    V_k_m = system.get_value(f"V_{bus_k}") 
+    theta_k = system.get_value(f"theta_{bus_k}")
+    
+    V_j = V_j_m*np.exp(1j*theta_j)
+    V_k = V_k_m*np.exp(1j*theta_k)
+    
+    Y_jk = system.get_value(f"g_{line_name}") + 1j*system.get_value(f"b_{line_name}")
+    S_base = system.get_value('S_base')
+    U_base = system.get_value(f"U_{bus_j}_n")
+    I_jk_pu = current_direction*Y_jk*(V_j - V_k)
+    I_base = S_base/(np.sqrt(3)*U_base)
+    I_jk = I_jk_pu*I_base
+    S_jk_pu = V_j*np.conj(I_jk_pu)
+    S_jk = S_base*S_jk_pu
+    
+    return S_jk

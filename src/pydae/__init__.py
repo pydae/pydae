@@ -3,8 +3,8 @@
 pydae
 ===== 
 
-Utilities and Python wrappers for Orbital Mechanics
+Differential Algebraic Equations in Python
 
 """
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
