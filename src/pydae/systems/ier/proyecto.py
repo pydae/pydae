@@ -21,18 +21,18 @@ class proyecto_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 7
+        self.N_x = 8
         self.N_y = 20 
-        self.N_z = 7 
+        self.N_z = 17 
         self.N_store = 10000 
-        self.params_list = ['S_base', 'g_GRI_POI', 'b_GRI_POI', 'g_POI_PMV', 'b_POI_PMV', 'g_PMV_GR1', 'b_PMV_GR1', 'g_GR1_GR2', 'b_GR1_GR2', 'g_PMV_GR3', 'b_PMV_GR3', 'g_GR3_GR4', 'b_GR3_GR4', 'U_GRI_n', 'U_POI_n', 'U_PMV_n', 'U_GR1_n', 'U_GR2_n', 'U_GR3_n', 'U_GR4_n', 'S_n_GRI', 'X_d_GRI', 'X1d_GRI', 'T1d0_GRI', 'X_q_GRI', 'X1q_GRI', 'T1q0_GRI', 'R_a_GRI', 'X_l_GRI', 'H_GRI', 'D_GRI', 'Omega_b_GRI', 'omega_s_GRI', 'K_a_GRI', 'T_r_GRI', 'v_pss_GRI', 'Droop_GRI', 'T_m_GRI', 'K_sec_GRI', 'K_delta_GRI', 'v_ref_GRI'] 
-        self.params_values_list  = [100000000.0, 1.4986238532110094, -4.995412844036698, 2.941176470588235, -11.76470588235294, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 66000.0, 66000.0, 20000.0, 20000.0, 20000.0, 20000.0, 20000.0, 100000000.0, 1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 6.0, 1.0, 314.1592653589793, 1.0, 100, 0.1, 0.0, 0.05, 5.0, 0.001, 0.01, 1.0] 
+        self.params_list = ['S_base', 'g_GRI_POI', 'b_GRI_POI', 'g_POI_PMV', 'b_POI_PMV', 'g_PMV_GR1', 'b_PMV_GR1', 'g_GR1_GR2', 'b_GR1_GR2', 'g_PMV_GR3', 'b_PMV_GR3', 'g_GR3_GR4', 'b_GR3_GR4', 'U_GRI_n', 'U_POI_n', 'U_PMV_n', 'U_GR1_n', 'U_GR2_n', 'U_GR3_n', 'U_GR4_n', 'S_n_GRI', 'X_d_GRI', 'X1d_GRI', 'T1d0_GRI', 'X_q_GRI', 'X1q_GRI', 'T1q0_GRI', 'R_a_GRI', 'X_l_GRI', 'H_GRI', 'D_GRI', 'Omega_b_GRI', 'omega_s_GRI', 'K_a_GRI', 'T_r_GRI', 'v_pss_GRI', 'Droop_GRI', 'T_m_GRI', 'K_sec_GRI', 'K_delta_GRI', 'v_ref_GRI', 'e_bess_0'] 
+        self.params_values_list  = [100000000.0, 1.4986238532110094, -4.995412844036698, 2.941176470588235, -11.76470588235294, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 66000.0, 66000.0, 20000.0, 20000.0, 20000.0, 20000.0, 20000.0, 100000000.0, 1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 6.0, 1.0, 314.1592653589793, 1.0, 100, 0.1, 0.0, 0.05, 5.0, 0.001, 0.01, 1.0, 36000] 
         self.inputs_ini_list = ['P_GRI', 'Q_GRI', 'P_POI', 'Q_POI', 'P_PMV', 'Q_PMV', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4'] 
         self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0] 
         self.inputs_run_list = ['P_GRI', 'Q_GRI', 'P_POI', 'Q_POI', 'P_PMV', 'Q_PMV', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4'] 
         self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0] 
-        self.outputs_list = ['V_GRI', 'V_POI', 'V_PMV', 'V_GR1', 'V_GR2', 'V_GR3', 'V_GR4'] 
-        self.x_list = ['delta_GRI', 'omega_GRI', 'e1q_GRI', 'e1d_GRI', 'v_c_GRI', 'p_m_GRI', 'xi_m_GRI'] 
+        self.outputs_list = ['V_GRI', 'V_POI', 'V_PMV', 'V_GR1', 'V_GR2', 'V_GR3', 'V_GR4', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4', 'P_PMV', 'Q_PMV'] 
+        self.x_list = ['delta_GRI', 'omega_GRI', 'e1q_GRI', 'e1d_GRI', 'v_c_GRI', 'p_m_GRI', 'xi_m_GRI', 'e_bess'] 
         self.y_run_list = ['V_GRI', 'theta_GRI', 'V_POI', 'theta_POI', 'V_PMV', 'theta_PMV', 'V_GR1', 'theta_GR1', 'V_GR2', 'theta_GR2', 'V_GR3', 'theta_GR3', 'V_GR4', 'theta_GR4', 'i_d_GRI', 'i_q_GRI', 'P_GRI_1', 'Q_GRI_1', 'v_f_GRI', 'p_m_ref_GRI'] 
         self.xy_list = self.x_list + self.y_run_list 
         self.y_ini_list = ['V_GRI', 'theta_GRI', 'V_POI', 'theta_POI', 'V_PMV', 'theta_PMV', 'V_GR1', 'theta_GR1', 'V_GR2', 'theta_GR2', 'V_GR3', 'theta_GR3', 'V_GR4', 'theta_GR4', 'i_d_GRI', 'i_q_GRI', 'P_GRI_1', 'Q_GRI_1', 'v_f_GRI', 'p_m_ref_GRI'] 
@@ -645,6 +645,7 @@ def ini(struct,mode):
     K_sec_GRI = struct[0].K_sec_GRI
     K_delta_GRI = struct[0].K_delta_GRI
     v_ref_GRI = struct[0].v_ref_GRI
+    e_bess_0 = struct[0].e_bess_0
     
     # Inputs:
     P_GRI = struct[0].P_GRI
@@ -670,6 +671,7 @@ def ini(struct,mode):
     v_c_GRI = struct[0].x[4,0]
     p_m_GRI = struct[0].x[5,0]
     xi_m_GRI = struct[0].x[6,0]
+    e_bess = struct[0].x[7,0]
     
     # Algebraic states:
     V_GRI = struct[0].y_ini[0,0]
@@ -704,6 +706,7 @@ def ini(struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
+        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -741,6 +744,16 @@ def ini(struct,mode):
         struct[0].h[4,0] = V_GR2
         struct[0].h[5,0] = V_GR3
         struct[0].h[6,0] = V_GR4
+        struct[0].h[7,0] = P_GR1
+        struct[0].h[8,0] = Q_GR1
+        struct[0].h[9,0] = P_GR2
+        struct[0].h[10,0] = Q_GR2
+        struct[0].h[11,0] = P_GR3
+        struct[0].h[12,0] = Q_GR3
+        struct[0].h[13,0] = P_GR4
+        struct[0].h[14,0] = Q_GR4
+        struct[0].h[15,0] = P_PMV
+        struct[0].h[16,0] = Q_PMV
     
 
     if mode == 10:
@@ -921,6 +934,7 @@ def run(t,struct,mode):
     K_sec_GRI = struct[0].K_sec_GRI
     K_delta_GRI = struct[0].K_delta_GRI
     v_ref_GRI = struct[0].v_ref_GRI
+    e_bess_0 = struct[0].e_bess_0
     
     # Inputs:
     P_GRI = struct[0].P_GRI
@@ -946,6 +960,7 @@ def run(t,struct,mode):
     v_c_GRI = struct[0].x[4,0]
     p_m_GRI = struct[0].x[5,0]
     xi_m_GRI = struct[0].x[6,0]
+    e_bess = struct[0].x[7,0]
     
     # Algebraic states:
     V_GRI = struct[0].y_run[0,0]
@@ -994,6 +1009,7 @@ def run(t,struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
+        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -1031,6 +1047,16 @@ def run(t,struct,mode):
         struct[0].h[4,0] = V_GR2
         struct[0].h[5,0] = V_GR3
         struct[0].h[6,0] = V_GR4
+        struct[0].h[7,0] = P_GR1
+        struct[0].h[8,0] = Q_GR1
+        struct[0].h[9,0] = P_GR2
+        struct[0].h[10,0] = Q_GR2
+        struct[0].h[11,0] = P_GR3
+        struct[0].h[12,0] = Q_GR3
+        struct[0].h[13,0] = P_GR4
+        struct[0].h[14,0] = Q_GR4
+        struct[0].h[15,0] = P_PMV
+        struct[0].h[16,0] = Q_PMV
     
 
     if mode == 10:
@@ -1191,6 +1217,16 @@ def run(t,struct,mode):
         struct[0].Hy[5,10] = 1
         struct[0].Hy[6,12] = 1
 
+        struct[0].Hu[7,6] = 1
+        struct[0].Hu[8,7] = 1
+        struct[0].Hu[9,8] = 1
+        struct[0].Hu[10,9] = 1
+        struct[0].Hu[11,10] = 1
+        struct[0].Hu[12,11] = 1
+        struct[0].Hu[13,12] = 1
+        struct[0].Hu[14,13] = 1
+        struct[0].Hu[15,4] = 1
+        struct[0].Hu[16,5] = 1
 
 
 
@@ -1238,6 +1274,7 @@ def ini_nn(struct,mode):
     K_sec_GRI = struct[0].K_sec_GRI
     K_delta_GRI = struct[0].K_delta_GRI
     v_ref_GRI = struct[0].v_ref_GRI
+    e_bess_0 = struct[0].e_bess_0
     
     # Inputs:
     P_GRI = struct[0].P_GRI
@@ -1263,6 +1300,7 @@ def ini_nn(struct,mode):
     v_c_GRI = struct[0].x[4,0]
     p_m_GRI = struct[0].x[5,0]
     xi_m_GRI = struct[0].x[6,0]
+    e_bess = struct[0].x[7,0]
     
     # Algebraic states:
     V_GRI = struct[0].y_ini[0,0]
@@ -1297,6 +1335,7 @@ def ini_nn(struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
+        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -1333,6 +1372,16 @@ def ini_nn(struct,mode):
         struct[0].h[4,0] = V_GR2
         struct[0].h[5,0] = V_GR3
         struct[0].h[6,0] = V_GR4
+        struct[0].h[7,0] = P_GR1
+        struct[0].h[8,0] = Q_GR1
+        struct[0].h[9,0] = P_GR2
+        struct[0].h[10,0] = Q_GR2
+        struct[0].h[11,0] = P_GR3
+        struct[0].h[12,0] = Q_GR3
+        struct[0].h[13,0] = P_GR4
+        struct[0].h[14,0] = Q_GR4
+        struct[0].h[15,0] = P_PMV
+        struct[0].h[16,0] = Q_PMV
     
 
     if mode == 10:
@@ -1347,6 +1396,7 @@ def ini_nn(struct,mode):
         struct[0].Fx_ini[4,4] = -1/T_r_GRI
         struct[0].Fx_ini[5,5] = -1/T_m_GRI
         struct[0].Fx_ini[6,1] = 1
+        struct[0].Fx_ini[7,7] = -1.00000000000000E-10
 
     if mode == 11:
 
@@ -1505,6 +1555,7 @@ def run_nn(t,struct,mode):
     K_sec_GRI = struct[0].K_sec_GRI
     K_delta_GRI = struct[0].K_delta_GRI
     v_ref_GRI = struct[0].v_ref_GRI
+    e_bess_0 = struct[0].e_bess_0
     
     # Inputs:
     P_GRI = struct[0].P_GRI
@@ -1530,6 +1581,7 @@ def run_nn(t,struct,mode):
     v_c_GRI = struct[0].x[4,0]
     p_m_GRI = struct[0].x[5,0]
     xi_m_GRI = struct[0].x[6,0]
+    e_bess = struct[0].x[7,0]
     
     # Algebraic states:
     V_GRI = struct[0].y_run[0,0]
@@ -1564,6 +1616,7 @@ def run_nn(t,struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
+        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -1600,6 +1653,16 @@ def run_nn(t,struct,mode):
         struct[0].h[4,0] = V_GR2
         struct[0].h[5,0] = V_GR3
         struct[0].h[6,0] = V_GR4
+        struct[0].h[7,0] = P_GR1
+        struct[0].h[8,0] = Q_GR1
+        struct[0].h[9,0] = P_GR2
+        struct[0].h[10,0] = Q_GR2
+        struct[0].h[11,0] = P_GR3
+        struct[0].h[12,0] = Q_GR3
+        struct[0].h[13,0] = P_GR4
+        struct[0].h[14,0] = Q_GR4
+        struct[0].h[15,0] = P_PMV
+        struct[0].h[16,0] = Q_PMV
     
 
     if mode == 10:
@@ -1614,6 +1677,7 @@ def run_nn(t,struct,mode):
         struct[0].Fx[4,4] = -1/T_r_GRI
         struct[0].Fx[5,5] = -1/T_m_GRI
         struct[0].Fx[6,1] = 1
+        struct[0].Fx[7,7] = -1.00000000000000E-10
 
     if mode == 11:
 
