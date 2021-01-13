@@ -26,7 +26,7 @@ class proyecto_class:
         self.N_z = 17 
         self.N_store = 10000 
         self.params_list = ['S_base', 'g_GRI_POI', 'b_GRI_POI', 'g_POI_PMV', 'b_POI_PMV', 'g_PMV_GR1', 'b_PMV_GR1', 'g_GR1_GR2', 'b_GR1_GR2', 'g_PMV_GR3', 'b_PMV_GR3', 'g_GR3_GR4', 'b_GR3_GR4', 'U_GRI_n', 'U_POI_n', 'U_PMV_n', 'U_GR1_n', 'U_GR2_n', 'U_GR3_n', 'U_GR4_n', 'S_n_GRI', 'X_d_GRI', 'X1d_GRI', 'T1d0_GRI', 'X_q_GRI', 'X1q_GRI', 'T1q0_GRI', 'R_a_GRI', 'X_l_GRI', 'H_GRI', 'D_GRI', 'Omega_b_GRI', 'omega_s_GRI', 'K_a_GRI', 'T_r_GRI', 'v_pss_GRI', 'Droop_GRI', 'T_m_GRI', 'K_sec_GRI', 'K_delta_GRI', 'v_ref_GRI', 'e_bess_0'] 
-        self.params_values_list  = [100000000.0, 1.4986238532110094, -4.995412844036698, 2.941176470588235, -11.76470588235294, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 66000.0, 66000.0, 20000.0, 20000.0, 20000.0, 20000.0, 20000.0, 100000000.0, 1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 6.0, 1.0, 314.1592653589793, 1.0, 100, 0.1, 0.0, 0.05, 5.0, 0.001, 0.01, 1.0, 36000] 
+        self.params_values_list  = [100000000.0, 1.4986238532110094, -4.995412844036698, 2.941176470588235, -11.76470588235294, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 24.742268041237114, -10.996563573883162, 66000.0, 66000.0, 20000.0, 20000.0, 20000.0, 20000.0, 20000.0, 100000000.0, 1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.05, 6.0, 1.0, 314.1592653589793, 1.0, 100, 0.1, 0.0, 0.05, 5.0, 0.001, 0.01, 1.0, 10] 
         self.inputs_ini_list = ['P_GRI', 'Q_GRI', 'P_POI', 'Q_POI', 'P_PMV', 'Q_PMV', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4'] 
         self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0, 1000000.0, 0.0] 
         self.inputs_run_list = ['P_GRI', 'Q_GRI', 'P_POI', 'Q_POI', 'P_PMV', 'Q_PMV', 'P_GR1', 'Q_GR1', 'P_GR2', 'Q_GR2', 'P_GR3', 'Q_GR3', 'P_GR4', 'Q_GR4'] 
@@ -191,8 +191,12 @@ class proyecto_class:
     def ini_problem(self,x):
         self.struct[0].x[:,0] = x[0:self.N_x]
         self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        ini(self.struct,2)
-        ini(self.struct,3)       
+        if self.compile:
+            ini(self.struct,2)
+            ini(self.struct,3)       
+        else:
+            ini.py_func(self.struct,2)
+            ini.py_func(self.struct,3)                   
         fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
         return fg
 
@@ -200,12 +204,21 @@ class proyecto_class:
         t = self.struct[0].t
         self.struct[0].x[:,0] = x[0:self.N_x]
         self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        run(t,self.struct,2)
-        run(t,self.struct,3)
-        run(t,self.struct,10)
-        run(t,self.struct,11)
-        run(t,self.struct,12)
-        run(t,self.struct,13)
+        
+        if self.compile:
+            run(t,self.struct,2)
+            run(t,self.struct,3)
+            run(t,self.struct,10)
+            run(t,self.struct,11)
+            run(t,self.struct,12)
+            run(t,self.struct,13)
+        else:
+            run.py_func(t,self.struct,2)
+            run.py_func(t,self.struct,3)
+            run.py_func(t,self.struct,10)
+            run.py_func(t,self.struct,11)
+            run.py_func(t,self.struct,12)
+            run.py_func(t,self.struct,13)            
         
         fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
         return fg
@@ -244,8 +257,12 @@ class proyecto_class:
     def ini_dae_jacobian(self,x):
         self.struct[0].x[:,0] = x[0:self.N_x]
         self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        ini(self.struct,10)
-        ini(self.struct,11)       
+        if self.compile:
+            ini(self.struct,10)
+            ini(self.struct,11) 
+        else:
+            ini.py_func(self.struct,10)
+            ini.py_func(self.struct,11)             
         A_c = np.block([[self.struct[0].Fx_ini,self.struct[0].Fy_ini],
                         [self.struct[0].Gx_ini,self.struct[0].Gy_ini]])
         return A_c
@@ -393,7 +410,7 @@ class proyecto_class:
                 self.xy_prev[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]
                 
             
-    def initialize(self,events=[{}],xy0=0):
+    def initialize(self,events=[{}],xy0=0,compile=True):
         '''
         
 
@@ -419,6 +436,9 @@ class proyecto_class:
             DESCRIPTION.
 
         '''
+        
+        self.compile = compile
+        
         # simulation parameters
         self.struct[0].it = 0       # set time step to zero
         self.struct[0].it_store = 0 # set storage to zero
@@ -497,16 +517,28 @@ class proyecto_class:
             else:
                 sol = sopt.root(self.run_problem, xy0, method=self.sopt_root_method)
 
-            # evaluate f and g
-            run(0.0,self.struct,2)
-            run(0.0,self.struct,3)                
-
-            
-            # evaluate run jacobians 
-            run(0.0,self.struct,10)
-            run(0.0,self.struct,11)                
-            run(0.0,self.struct,12) 
-            run(0.0,self.struct,14) 
+            if self.compile:
+                # evaluate f and g
+                run(0.0,self.struct,2)
+                run(0.0,self.struct,3)                
+    
+                # evaluate run jacobians 
+                run(0.0,self.struct,10)
+                run(0.0,self.struct,11)                
+                run(0.0,self.struct,12) 
+                run(0.0,self.struct,14) 
+                
+            else:
+                # evaluate f and g
+                run.py_func(0.0,self.struct,2)
+                run.py_func(0.0,self.struct,3)                
+    
+                # evaluate run jacobians 
+                run.py_func(0.0,self.struct,10)
+                run.py_func(0.0,self.struct,11)                
+                run.py_func(0.0,self.struct,12) 
+                run.py_func(0.0,self.struct,14)                 
+                
              
             # post process result    
             T = self.struct[0]['T'][:self.struct[0].it_store]
@@ -706,7 +738,7 @@ def ini(struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
-        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
+        struct[0].f[7,0] = -2.77777777777778e-10*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -1009,7 +1041,7 @@ def run(t,struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
-        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
+        struct[0].f[7,0] = -2.77777777777778e-10*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -1335,7 +1367,7 @@ def ini_nn(struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
-        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
+        struct[0].f[7,0] = -2.77777777777778e-10*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
@@ -1616,7 +1648,7 @@ def run_nn(t,struct,mode):
         struct[0].f[4,0] = (V_GRI - v_c_GRI)/T_r_GRI
         struct[0].f[5,0] = (-p_m_GRI + p_m_ref_GRI)/T_m_GRI
         struct[0].f[6,0] = omega_GRI - 1
-        struct[0].f[7,0] = -1.0e-6*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
+        struct[0].f[7,0] = -2.77777777777778e-10*P_PMV - 1.0e-10*e_bess + 1.0e-10*e_bess_0
     
     # Algebraic equations:
     if mode == 3:
