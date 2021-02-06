@@ -1,0 +1,10 @@
+{
+'sys':{'name':'pf_1','S_base':100e6},       
+'buses':[{'name':'GRI','P_W':0.0,'Q_var':0.0,'U_kV':66.0},
+         {'name':'POI','P_W':0.0,'Q_var':0.0,'U_kV':66.0}],
+'lines':[{'bus_j':'GRI','bus_k':'POI','X_km':0.4,'R_km':0.12,'Bs_km':3.386e-6,'km':20}]
+}
+
+
+
+

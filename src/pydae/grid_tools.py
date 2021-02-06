@@ -821,7 +821,7 @@ def phasor2inst(grid_obj,bus_name,magnitude='v',to_bus='',phases=['a','b','c'],F
     return Times,out
 
 
-def get_voltage(grid_obj,bus_name):
+def get_voltage(grid_obj,bus_name,output='v_an_m'):
     '''
     Get voltage module of a bus.
 
@@ -830,16 +830,35 @@ def get_voltage(grid_obj,bus_name):
     grid_obj : object of pydae class
     bus_name : string
         name of the bus.
-
+    output : string
+         v_an: a phase to neutral voltage phasor (V).
+         v_an_m: a phase to neutral RMS voltage (V).
+         v_abcn_m: a,b and c phases to neutral voltage phasors (V).
+        
     Returns
     -------
     phase-ground voltage module (V).
 
     '''
-    v_a = grid_obj.get_value(f'v_{bus_name}_a_r') + 1j* grid_obj.get_value(f'v_{bus_name}_a_i')
-    U_meas = np.abs(v_a) 
     
-    return U_meas
+    if output in ['v_an','v_bn','v_cn']:
+        v_sub = f'v_{bus_name}_{output[-2]}'
+        v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
+        return v
+    
+    if output in ['v_an_m','v_bn_m','v_cn_m']:
+        v_sub = f'v_{bus_name}_{output[-2]}'[:-2]
+        v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
+        return np.abs(v)
+    
+    if output in ['v_abcn']:
+        v_list = []
+        for ph in ['a','b','c']:
+            v_sub = f'v_{bus_name}_{ph}'
+            v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
+            v_list += [v]
+        return np.array(v_list).reshape((3,1))
+    
 
 
 @numba.njit(cache=True)
@@ -947,6 +966,15 @@ def change_line(system,bus_j,bus_k, *args,**kwagrs):
         Z_base = U_base**2/S_base
         R = line['R_km']*line['km']/Z_base  # in pu of the system base
         X = line['X_km']*line['km']/Z_base  # in pu of the system base
+    if 'Bs_km' in line:
+        U_base = system.get_value(f'U_{bus_j}_n')
+        Z_base = U_base**2/S_base
+        print('U_base',U_base,'Z_base',Z_base)
+        Y_base = 1.0/Z_base
+        Bs = line['Bs_km']*line['km']/Y_base  # in pu of the system base
+        bs = Bs
+        system.set_value(f'bs_{line_name}',bs)
+        print(bs)
     G =  R/(R**2+X**2)
     B = -X/(R**2+X**2)
     system.set_value(f"g_{line_name}",G)
