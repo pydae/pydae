@@ -198,6 +198,36 @@ def system(sys):
     sys['Hy_run'] = Hy_run
     sys['Hu_run'] = Hu_run
     
+    
+    Fx_ini_rows,Fx_ini_cols = np.nonzero(Fx_ini)
+    Fy_ini_rows,Fy_ini_cols = np.nonzero(Fy_ini)
+    Gx_ini_rows,Gx_ini_cols = np.nonzero(Gx_ini)
+    Gy_ini_rows,Gy_ini_cols = np.nonzero(Gy_ini)
+    
+    sys['Fx_ini_rows'] = Fx_ini_rows 
+    sys['Fx_ini_cols'] = Fx_ini_cols 
+    sys['Fy_ini_rows'] = Fy_ini_rows 
+    sys['Fy_ini_cols'] = Fy_ini_cols 
+    sys['Gx_ini_rows'] = Gx_ini_rows 
+    sys['Gx_ini_cols'] = Gx_ini_cols 
+    sys['Gy_ini_rows'] = Gy_ini_rows 
+    sys['Gy_ini_cols'] = Gy_ini_cols 
+
+    Fx_run_rows,Fx_run_cols = np.nonzero(Fx_run)
+    Fy_run_rows,Fy_run_cols = np.nonzero(Fy_run)
+    Gx_run_rows,Gx_run_cols = np.nonzero(Gx_run)
+    Gy_run_rows,Gy_run_cols = np.nonzero(Gy_run)
+    
+    sys['Fx_run_rows'] = Fx_run_rows 
+    sys['Fx_run_cols'] = Fx_run_cols 
+    sys['Fy_run_rows'] = Fy_run_rows 
+    sys['Fy_run_cols'] = Fy_run_cols 
+    sys['Gx_run_rows'] = Gx_run_rows 
+    sys['Gx_run_cols'] = Gx_run_cols 
+    sys['Gy_run_rows'] = Gy_run_rows 
+    sys['Gy_run_cols'] = Gy_run_cols 
+
+    
     return sys
 
 
@@ -393,27 +423,29 @@ def sys2num(sys):
     ## g
     run_fun += f'{tab}# Algebraic equations:\n'
     run_fun += f'{tab}if mode == 3:\n\n'
-    run_fun += f'{2*tab}g_n = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)\n'
+    run_fun += f'{2*tab}struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)\n'
     run_fun += '\n'
     ini_fun += f'{tab}# Algebraic equations:\n'
     ini_fun += f'{tab}if mode == 3:\n\n'
-    ini_fun += f'{2*tab}g_n = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)\n'
+    ini_fun += f'{2*tab}struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)\n'
     ini_fun += '\n'
     for irow in range(N_y):
 
         res_run = (Gy_run[irow,:] * y_run.T)[0] + (Gu_run[irow,:] * u_run.T)[0] - g[irow] 
         res_ini = (Gy_ini[irow,:] * y_ini.T)[0] - g[irow] 
         if res_run == 0:
-            run_fun += f'{2*tab}struct[0].g[{irow},0] = g_n[{irow},0]\n'
+            pass
+            #run_fun += f'{2*tab}struct[0].g[{irow},0] = g_n[{irow},0]\n'
         else:
             string = f'{g[irow]}'
-            run_fun += f'{2*tab}struct[0].g[{irow},0] = {string}\n'
+            run_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'
             
         if res_ini == 0:
-            ini_fun += f'{2*tab}struct[0].g[{irow},0] = g_n[{irow},0]\n'
+            pass
+            #ini_fun += f'{2*tab}struct[0].g[{irow},0] = g_n[{irow},0]\n'
         else:
             string = f'{g[irow]}'
-            ini_fun += f'{2*tab}struct[0].g[{irow},0] = {string}\n'    
+            ini_fun += f'{2*tab}struct[0].g[{irow},0] = {arg2np(string,"Piecewise")}\n'    
     run_fun += f'{tab}\n'
     ini_fun += f'{tab}\n'
 
@@ -716,12 +748,22 @@ def sys2num(sys):
     module += functions_template
     module += '\n'*3
     module += solver_template
+    module += '\n'*3    
+    module += 'def nonzeros():\n'
+    module += f"    Fx_ini_rows = {sys['Fx_ini_rows'].tolist()}\n\n"
+    module += f"    Fx_ini_cols = {sys['Fx_ini_cols'].tolist()}\n\n"   
+    module += f"    Fy_ini_rows = {sys['Fy_ini_rows'].tolist()}\n\n"
+    module += f"    Fy_ini_cols = {sys['Fy_ini_cols'].tolist()}\n\n"  
+    module += f"    Gx_ini_rows = {sys['Gx_ini_rows'].tolist()}\n\n"
+    module += f"    Gx_ini_cols = {sys['Gx_ini_cols'].tolist()}\n\n"  
+    module += f"    Gy_ini_rows = {sys['Gy_ini_rows'].tolist()}\n\n"
+    module += f"    Gy_ini_cols = {sys['Gy_ini_cols'].tolist()}\n\n"    
+    module += f"    return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols"       
 
+    
     with open(f'{name}.py','w') as fobj:
         fobj.write(module)
-
-    
-    
+   
 
 
 

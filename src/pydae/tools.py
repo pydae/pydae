@@ -136,7 +136,15 @@ def get_i(syst,bus_name,phase_name='',i_type='rms',dq_name='DQ'):
         if i_type == 'phasor':
             return i_r+1j*i_i
 
+    if dq_name == 'r':
 
+        i_r_name = f'i_{bus_name}_{phase_name}_r'
+        i_r = syst.get_value(i_r_name)
+
+        if i_type == 'phasor':
+            return i_r
+        
+        
 def get_s(syst,bus_name,s_type='cplx'):
     v_dq = get_v(syst,bus_name,v_type='dq_cplx')
     i_dq = get_i(syst,bus_name,i_type='dq_cplx')

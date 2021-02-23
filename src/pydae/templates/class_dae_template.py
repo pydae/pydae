@@ -7,6 +7,7 @@ sin = np.sin
 cos = np.cos
 atan2 = np.arctan2
 sqrt = np.sqrt 
+sign = np.sign 
 
 
 class {name}_class: 
@@ -50,9 +51,27 @@ class {name}_class:
         self.u_run_list = self.inputs_run_list
         self.u_run_values_list = self.inputs_run_values_list
         self.N_u = len(self.u_run_list)
+        Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols = nonzeros()
+
+        self.Fx_ini_rows = np.array(Fx_ini_rows) 
+        if len(Fx_ini_rows) == 1: 
+            self.Fx_ini_rows = np.array([[Fx_ini_rows]]).reshape(1,) 
+            self.Fx_ini_cols = np.array([[Fx_ini_cols]]).reshape(1,)  
+            
+        self.Fx_ini_cols = np.array(Fx_ini_cols)
+        self.Fy_ini_rows = np.array(Fy_ini_rows)        
+        self.Fy_ini_cols = np.array(Fy_ini_cols)
+        self.Gx_ini_rows = np.array(Gx_ini_rows)        
+        self.Gx_ini_cols = np.array(Gx_ini_cols)
+        self.Gy_ini_rows = np.array(Gy_ini_rows)        
+        self.Gy_ini_cols = np.array(Gy_ini_cols)
+        
+        
+        self.yini2urun = list(set(self.inputs_run_list).intersection(set(self.y_ini_list)))
+        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.inputs_ini_list)))
+
         self.update() 
-
-
+                
     def update(self): 
 
         self.N_steps = int(np.ceil(self.t_end/self.Dt)) 
@@ -103,8 +122,22 @@ class {name}_class:
               ('Z', np.float64, (self.N_store+1,self.N_z)),
               ('iters', np.float64, (self.N_store+1,1)),
               ('store', np.int64),
+              ('Fx_ini_rows', np.int64, self.Fx_ini_rows.shape),
+              ('Fx_ini_cols', np.int64, self.Fx_ini_cols.shape),
+              ('Fy_ini_rows', np.int64, self.Fy_ini_rows.shape),
+              ('Fy_ini_cols', np.int64, self.Fy_ini_cols.shape),
+              ('Gx_ini_rows', np.int64, self.Gx_ini_rows.shape),
+              ('Gx_ini_cols', np.int64, self.Gx_ini_cols.shape),
+              ('Gy_ini_rows', np.int64, self.Gy_ini_rows.shape),
+              ('Gy_ini_cols', np.int64, self.Gy_ini_cols.shape),
+              ('Ac_ini', np.float64, ((self.N_x+self.N_y,self.N_x+self.N_y))),   
+              ('fg', np.float64, ((self.N_x+self.N_y,1))),  
              ]
 
+
+
+        
+        
         values = [
                 self.t_end,                          
                 self.Dt,
@@ -152,6 +185,16 @@ class {name}_class:
                 np.zeros((self.N_store+1,self.N_z)),   # Z
                 np.zeros((self.N_store+1,1)),          # iters
                 1,
+                self.Fx_ini_rows,       
+                self.Fx_ini_cols,
+                self.Fy_ini_rows,       
+                self.Fy_ini_cols,
+                self.Gx_ini_rows,        
+                self.Gx_ini_cols,
+                self.Gy_ini_rows,       
+                self.Gy_ini_cols,
+                np.zeros((self.N_x+self.N_y,self.N_x+self.N_y)),  
+                np.zeros((self.N_x+self.N_y,1)),
                 ]  
 
         dt += [(item,np.float64) for item in self.params_list]
@@ -170,6 +213,8 @@ class {name}_class:
         xy0 = np.zeros((self.N_x+self.N_y,))
         self.ini_dae_jacobian_nn(xy0)
         self.run_dae_jacobian_nn(xy0)
+        
+
 
     def load_params(self,data_input):
 
@@ -602,11 +647,24 @@ class {name}_class:
                         
         return mvalue
     
-    def set_value(self,name,value):
-        if name in self.inputs_run_list:
-            self.struct[0][name] = value
-        if name in self.params_list:
-            self.struct[0][name] = value
+    def set_value(self,name_,value):
+        if name_ in self.inputs_run_list:
+            self.struct[0][name_] = value
+            return
+        elif name_ in self.params_list:
+            self.struct[0][name_] = value
+            return
+        elif name_ in self.inputs_ini_list:
+            self.struct[0][name_] = value
+            return 
+        else:
+            print(f'Input or parameter {name_} not found.')
+
+    def set_values(self,dictionary):
+        
+        for item in dictionary:
+            self.set_value(item,dictionary[item])
+            
             
     def report_x(self,value_format='5.2f'):
         for item in self.x_list:
@@ -630,3 +688,21 @@ class {name}_class:
             
     def get_x(self):
         return self.struct[0].x
+    
+    def ss(self):
+        
+        ssate(self.struct,self.xy_prev.reshape(len(self.xy_prev),1))
+        
+        ## y_ini to y_run
+        self.struct[0].y_run = self.struct[0].y_ini
+        
+        ## y_ini to u_run
+        for item in self.yini2urun:
+            self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
+                
+        ## u_ini to y_run
+        for item in self.uini2yrun:
+            self.struct[0].y_run[self.y_run_list.index(item)] = self.struct[0][item]
+
+
+

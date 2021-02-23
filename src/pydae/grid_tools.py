@@ -53,8 +53,11 @@ class grid(object):
             self.transformers = []
 
         self.lines = data['lines']
-
-
+        self.loads = data['loads']
+        
+        if 'vscs' in data:
+            self.vscs = data['vscs']
+        else: self.vscs = []
 
         
     def dae2vi(self):
@@ -67,9 +70,11 @@ class grid(object):
 
         '''
         n2a = {'1':'a','2':'b','3':'c','4':'n'}
+        a2n = {'a':1,'b':2,'c':3,'n':4}
+        
         V_node_list = []
-        I_node_list = []
-      
+        I_node_list = [0.0]*len(self.nodes_list)
+        self.I_node_list = I_node_list
         for item in self.nodes_list:
             bus_name,phase_name = item.split('.')
             #i = get_i(self.syst,bus_name,phase_name=n2a[phase_name],i_type='phasor',dq_name='ri')
@@ -77,12 +82,8 @@ class grid(object):
             v = get_v(self.syst,bus_name,phase_name=n2a[phase_name],v_type='phasor',dq_name='ri')
             V_node_list += [v]
 
-        for item in self.nodes_list[self.N_v:]:
-            bus_name,phase_name = item.split('.')
-            i = get_i(self.syst,bus_name,phase_name=n2a[phase_name],i_type='phasor',dq_name='ri')
-            I_node_list += [i]
- 
 
+ 
         V_node = np.array(V_node_list).reshape(len(V_node_list),1)
         
         V_known = np.copy(V_node[:self.N_v])
@@ -94,7 +95,44 @@ class grid(object):
         self.I_known = np.array(I_node_list).reshape(len(I_node_list),1)
 
         self.I_node = np.vstack((self.I_unknown,self.I_known))
-        
+ 
+        for load in self.loads:
+            bus_name = load['bus']
+            if load['type'] == '3P+N':
+                for ph in ['a','b','c','n']:
+                    idx = list(self.nodes_list).index(f"{load['bus']}.{a2n[ph]}") 
+                    i_ = get_i(self.syst,'load_' + bus_name,phase_name=ph,i_type='phasor',dq_name='ri')
+                    self.I_node[idx] += i_ 
+
+            if load['type'] == '1P+N':
+                ph = load['bus_nodes'][0]
+                idx = list(self.nodes_list).index(f"{load['bus']}.{ph}") 
+                i_ = get_i(self.syst,'load_' + bus_name,phase_name=n2a[str(ph)],i_type='phasor',dq_name='ri')
+                self.I_node[idx] += i_ 
+                ph = load['bus_nodes'][1]
+                idx = list(self.nodes_list).index(f"{load['bus']}.{ph}") 
+                i_ = get_i(self.syst,'load_' + bus_name,phase_name=n2a[str(ph)],i_type='phasor',dq_name='ri')
+                self.I_node[idx] += i_ 
+
+        for vsc in self.vscs:
+            bus_name = vsc['bus_ac']
+            phases = ['a','b','c','n']
+            if vsc['type'] == 'ac3ph3wvdcq' or vsc['type'] == 'ac3ph3wpq':
+                phases = ['a','b','c']
+
+            for ph in phases:
+                idx = list(self.nodes_list).index(f"{vsc['bus_ac']}.{a2n[ph]}") 
+                i_ = get_i(self.syst,'vsc_' + bus_name,phase_name=ph,i_type='phasor',dq_name='ri')
+                self.I_node[idx] += i_ 
+                
+            if not vsc['type'] == 'ac3ph3wvdcq'  or vsc['type'] == 'ac3ph3wpq':
+                bus_name = vsc['bus_dc']
+                for ph in ['a','n']:
+                    idx = list(self.nodes_list).index(f"{vsc['bus_dc']}.{a2n[ph]}") 
+                    i_ = get_i(self.syst,'vsc_' + bus_name,phase_name=ph,i_type='phasor',dq_name='r')
+                    self.I_node[idx] += i_ 
+                    
+                
         I_lines = self.Y_primitive @ self.A_conect.T @ self.V_node
         self.I_lines = I_lines
         
@@ -1048,3 +1086,37 @@ def get_line_s(system,bus_from,bus_to,U_kV=66e3):
     S_jk = S_base*S_jk_pu
     
     return S_jk
+
+
+def set_powers(grid_obj,bus_name,s_cplx,mode='urisi_3ph'):
+    '''
+    Function for simplifying the power setting.
+
+    Parameters
+    ----------
+    grid_obj : pydae object
+        pydae object with grid of type pydgrid.
+    bus_name : string
+        name of the bus to xhange the power.
+    s_cplx : TYPE
+        complex power (negative for load, positive for generated).
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    if mode == 'urisi_3ph':
+        p = s_cplx.real
+        q = s_cplx.imag
+        for ph in ['a','b','c']:
+            grid_obj.set_value(f'p_{bus_name}_{ph}',p/3)
+            grid_obj.set_value(f'q_{bus_name}_{ph}',q/3)
+        
+    if mode == 'urisi_abc':
+        p = s_cplx.real
+        q = s_cplx.imag
+        for ph in ['a','b','c']:
+            grid_obj.set_value(f'p_{bus_name}_{ph}',p/3)
+            grid_obj.set_value(f'q_{bus_name}_{ph}',q/3)        
