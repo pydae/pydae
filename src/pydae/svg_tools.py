@@ -8,6 +8,45 @@ Created on Wed Feb  3 10:33:57 2021
 from xml.etree import ElementTree as ET
 import numpy as np
 
+class svg():
+    
+    def __init__(self,input_file):
+        ET.register_namespace("","http://www.w3.org/2000/svg")
+        ET.register_namespace("inkscape","http://www.inkscape.org/namespaces/inkscape")
+        ET.register_namespace("sodipodi","http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd") 
+        ET.register_namespace("cc","http://creativecommons.org/ns#") 
+        ET.register_namespace("rdf","http://www.w3.org/1999/02/22-rdf-syntax-ns#")      
+        self.tree = ET.parse(input_file)
+        self.root = self.tree.getroot()
+        self.g_list = self.root.findall(".//{http://www.w3.org/2000/svg}g")
+        self.N_steps = 1000
+        self.input_file = input_file
+        self.begin_click = False
+        self.begin = ''
+        self.anim_id = ''
+        self.anim_i = 0
+
+    def set_size(self,width,height):
+        self.root.attrib['width']  = f'{width}px'
+        self.root.attrib['height'] = f'{height}px'
+        
+    def save(self,output_file=''):
+        if output_file=='':
+            output_file = f"{self.input_file.replace('.svg','')}_anim.svg"
+        self.tree.write(output_file)
+        
+    def set_text(self,text_id,string):
+        for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
+            if text.attrib['id'] == text_id: text_obj = text
+        for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
+            tspan.text = string
+ 
+    def set_title(self,element_id,string):
+        for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
+            if text.attrib['id'] == text_id: text_obj = text
+        for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
+            tspan.text = string
+            
 class animatesvg():
     
     def __init__(self,input_file,group_id):

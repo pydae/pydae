@@ -211,6 +211,11 @@ def shape2df(system):
 
     df = pd.DataFrame(data=W_list,index=modes, columns=system.x_list)
     
+    system.participation_matrix = participation_matrix
+    system.shape_modules = modules
+    system.shape_degs = degs
+    system.modes_id = modes
+    
     return df
     # for it in range(N_x):
     #     r = eig[it].real
