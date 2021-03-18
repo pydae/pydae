@@ -27,7 +27,7 @@ class iso_milano_ex8p1_4ord_uctrl_class:
         self.N_z = 3 
         self.N_store = 10000 
         self.params_list = ['X_d', 'X1d', 'T1d0', 'X_q', 'X1q', 'T1q0', 'R_a', 'X_l', 'H', 'D', 'Omega_b', 'omega_s', 'K_delta', 'K_v'] 
-        self.params_values_list  = [1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.02, 3.5, 0.0, 314.1592653589793, 1.0, 0.001, 0.001] 
+        self.params_values_list  = [1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.02, 3.5, 0.01, 314.1592653589793, 1.0, 0.1, 0.001] 
         self.inputs_ini_list = ['v_t', 'theta_t', 'p_l', 'q_l'] 
         self.inputs_ini_values_list  = [0.8, 1.0, 0.0, 0.0] 
         self.inputs_run_list = ['p_m', 'v_f', 'p_l', 'q_l'] 
