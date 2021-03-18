@@ -1,0 +1,20 @@
+{
+"sys":{"name":"test_hygov","S_base":100e6, "K_sec":0.01},       
+"buses":[{"name":"B1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
+         {"name":"B2", "P_W":0.0,"Q_var":0.0,"U_kV":400.0}     
+        ],
+"lines":[{"bus_j":"B1", "bus_k":"B2", "X_pu":0.15,"R_pu":0.0, "S_mva":2000.0}],
+"syns":[{"bus":"B1","S_n":100e6,
+          "X_d":1.8,"X1d":0.3, "T1d0":8.0,    
+          "X_q":1.7,"X1q":0.55,"T1q0":0.4,  
+          "R_a":0.0025,"X_l": 0.2, 
+          "H":6.5,"D":0.0,"K_delta":0.01,
+          "Omega_b":314.1592653589793,"omega_s":1.0,"K_sec":0.001,
+          "avr":{"type":"sexs","K_a":100, "T_r":0.1, "K_ai":1e-6, "v_pss":0.0, "v_ref":1.0},
+          "gov":{"type":"hygov","Droop":0.05,"A_t":1,"T_w":2.5,"D_t":1,
+                 "K_p_gov":1.0, "K_i_gov":0.1, "K_servo":1.0, "T_servo":1.0,
+                 "V_gate_max":0.5, "Gate_max":1.0,"Flow_nl":0.0,"omega_ref":1.0,
+                 "T_m":1.0,"p_c":0.0}}
+         ]
+}
+

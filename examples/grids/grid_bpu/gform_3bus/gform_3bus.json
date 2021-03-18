@@ -1,0 +1,24 @@
+{
+"sys":{"name":"gform_3bus","S_base":100e3, "K_sec":0.01},       
+"buses":[{"name":"B1", "P_W":0.0,"Q_var":0.0,"U_kV":0.4},
+         {"name":"B2", "P_W":0.0,"Q_var":0.0,"U_kV":0.4},
+         {"name":"B3", "P_W":0.0,"Q_var":0.0,"U_kV":0.4}   
+        ],
+"lines":[{"bus_j":"B1", "bus_k":"B2", "X_pu":0.005,"R_pu":0.025, "S_mva":0.2},
+         {"bus_j":"B2", "bus_k":"B3", "X_pu":0.01,"R_pu":0.05, "S_mva":0.2}],
+"gformers":[
+    {"bus":"B1","S_n":100e3,
+          "X_v":0.1,"R_v":0.0, "T_omega":0.1, "T_e":0.1,       
+          "K_wp":0.0,"K_wq":0.1,"K_ep":0.1,"K_eq":0.0,  
+          "K_delta":0.01,
+          "Omega_b":314.1592653589793,"omega_s":1.0,"K_sec":0.001
+          },
+          {"bus":"B3","S_n":100e3,
+            "X_v":0.1,"R_v":0.0, "T_omega":0.1, "T_e":0.1,       
+            "K_wp":0.0,"K_wq":0.1,"K_ep":0.1,"K_eq":0.0,  
+            "K_delta":0.01,
+            "Omega_b":314.1592653589793,"omega_s":1.0,"K_sec":0.001
+            }
+         ]
+}
+

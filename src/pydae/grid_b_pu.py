@@ -36,7 +36,7 @@ def bal_pu(data_input):
     '''
 
     if type(data_input) == str:
-        with open(file_path,'r') as fobj:
+        with open(data_input,'r') as fobj:
             data = json.loads(fobj.read().replace("'",'"'))
     elif type(data_input) == dict:
         data = data_input
@@ -193,24 +193,24 @@ def bal_pu(data_input):
             
     grid = {'g':g_grid,'y':y_grid,'u':u_grid,'h':h_grid, 'x':x_grid, 'f':f_grid,
             'params':params_grid, 'data':data, 'A':A, 'B_primitive':B_primitive} 
-
+    
+    N_syn = 0
+    N_gformers = 0
+    
+    omega_coi_n = 0
+    omega_coi = sym.Symbol("omega_coi", real=True)  
+     
     if 'syns' in data:    
         syns_add(grid)
         
         # omega COI
-        omega_coi_n = 0
-        N_syn = 0
         for syn in data['syns']:
             bus_name = syn['bus']
             omega = sym.Symbol(f"omega_{bus_name}", real=True)            
             omega_coi_n += omega 
             N_syn += 1
-        omega_coi = sym.Symbol("omega_coi", real=True)  
-        y_grid += [ omega_coi]
-        g_grid += [-omega_coi + omega_coi_n/N_syn]
-        
+
         # secondary frequency control
-        omega_coi_n = 0
         xi_freq = sym.Symbol("xi_freq", real=True) 
         for syn in data['syns']:
             bus_name = syn['bus']
@@ -221,9 +221,23 @@ def bal_pu(data_input):
             g_grid += [ -p_r + K_sec*xi_freq/N_syn]
             params_grid.update({str(K_sec):syn['K_sec']})
         x_grid += [ xi_freq]
-        f_grid += [ 1-omega_coi]   
-
-    
+        f_grid += [ 1-omega_coi]  
+        
+        
+    if 'gformers' in data:    
+        #syns_add(grid)
+        
+        # omega COI
+        for gformer in data['gformers']:
+            bus_name = gformer['bus']
+            omega = sym.Symbol(f"omega_{bus_name}", real=True)            
+            omega_coi_n += omega 
+            N_gformers += 1
+       
+    y_grid += [ omega_coi]
+    g_grid += [-omega_coi + omega_coi_n/(N_syn+N_gformers)]
+        
+        
     return grid
 
 
@@ -320,6 +334,8 @@ def add_gov(grid,syn_data):
     
     if syn_data['gov']['type'] == 'tgov1':
         tgov1(grid,syn_data)
+    if syn_data['gov']['type'] == 'hygov':
+        hygov(grid,syn_data)
         
 def tgov1(grid,syn_data):
     bus_name = syn_data['bus']
@@ -343,7 +359,62 @@ def tgov1(grid,syn_data):
     grid['params'].update({str(Droop):gov_data['Droop']})
     grid['params'].update({str(T_m):gov_data['T_m']})
     grid['u'].update({str(p_c):gov_data['p_c']})
+
+def hygov(grid,syn_data):
+    bus_name = syn_data['bus']
+    gov_data = syn_data['gov']
     
+    p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
+    omega_ref = sym.Symbol(f"omega_ref_{bus_name}", real=True)
+    omega = sym.Symbol(f"omega_{bus_name}", real=True)
+
+    # dynamic states:
+    xi_omega = sym.Symbol(f"xi_omega_{bus_name}", real=True)
+    servo = sym.Symbol(f"servo_{bus_name}", real=True)
+    pos = sym.Symbol(f"pos_{bus_name}", real=True)
+    flow = sym.Symbol(f"flow_{bus_name}", real=True)
+    # algebraic states:    
+    servo_u = sym.Symbol(f"servo_u_{bus_name}", real=True)
+    gate = sym.Symbol(f"gate_{bus_name}", real=True)
+    head = sym.Symbol(f"head_{bus_name}", real=True)
+    p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+    # parameters:
+    Droop = sym.Symbol(f"Droop_{bus_name}", real=True) 
+    K_p_gov = sym.Symbol(f"K_p_gov_{bus_name}", real=True)
+    K_i_gov = sym.Symbol(f"K_i_gov_{bus_name}", real=True) 
+    K_servo = sym.Symbol(f"K_servo_{bus_name}", real=True)  
+    T_servo = sym.Symbol(f"T_servo_{bus_name}", real=True) 
+    V_gate_max = sym.Symbol(f"V_gate_max_{bus_name}", real=True)
+    Gate_max = sym.Symbol(f"Gate_max_{bus_name}", real=True)
+    T_w = sym.Symbol(f"T_w_{bus_name}", real=True) 
+    Flow_nl = sym.Symbol(f"Flow_nl_{bus_name}", real=True) 
+    A_t = sym.Symbol(f"A_t_{bus_name}", real=True)     
+    
+    epsilon_omega = omega_ref - omega #- Droop*gate + p_r
+    dxi_omega = epsilon_omega
+    g_servo_u = -servo_u + K_p_gov*epsilon_omega + K_i_gov*xi_omega
+    dservo = (K_servo*(servo_u - gate) - servo)/T_servo
+    dpos = servo #sym.Piecewise((V_gate_max,servo>V_gate_max),(-V_gate_max,servo<-V_gate_max),(servo,True))
+    g_gate = -gate + servo_u # + pos #sym.Piecewise((Gate_max,pos>Gate_max),(1e-6,pos<1e-6),(pos,True))
+    dflow =   (gate - flow)/T_w
+    g_head = -(gate - flow)/T_w + flow - head  
+    g_p_m = -p_m + A_t*head
+
+
+
+
+    grid['f'] += [dxi_omega, dflow] #[dxi_omega, dservo, dpos, dflow]
+    grid['x'] += [ xi_omega,  flow]
+    grid['g'] += [g_servo_u, g_gate, g_head, g_p_m] # [, g_gate, g_head, g_p_m]
+    grid['y'] += [  servo_u,   gate,   head, p_m] # [  servo_u,   gate,   head,   p_m]
+    grid['params'].update({str(Droop):gov_data['Droop'],str(K_p_gov):gov_data['K_p_gov'],str(K_i_gov):gov_data['K_i_gov']})
+    grid['params'].update({str(K_servo):gov_data['K_servo'],str(T_servo):gov_data['T_servo']})
+    grid['params'].update({str(V_gate_max):gov_data['V_gate_max'],str(Gate_max):gov_data['Gate_max']})
+    grid['params'].update({str(T_w):gov_data['T_w'],str(Flow_nl):gov_data['Flow_nl']})
+    grid['params'].update({str(A_t):gov_data['A_t']})
+    grid['u'].update({str(omega_ref):gov_data['omega_ref']})
+    
+
 def sexs(grid,syn_data):
     bus_name = syn_data['bus']
     avr_data = syn_data['avr']
@@ -372,3 +443,55 @@ def sexs(grid,syn_data):
     grid['params'].update({str(T_r):avr_data['T_r']})  
     grid['u'].update({str(v_ref):avr_data['v_ref']})
     grid['u'].update({str(v_pss):avr_data['v_pss']})
+    
+    
+def hygov_original(grid,syn_data):
+    bus_name = syn_data['bus']
+    gov_data = syn_data['gov']
+    
+    p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
+    omega_ref = sym.Symbol(f"omega_ref_{bus_name}", real=True)
+    omega = sym.Symbol(f"omega_{bus_name}", real=True)
+
+    # dynamic states:
+    xi_omega = sym.Symbol(f"xi_omega_{bus_name}", real=True)
+    servo = sym.Symbol(f"servo_{bus_name}", real=True)
+    pos = sym.Symbol(f"pos_{bus_name}", real=True)
+    flow = sym.Symbol(f"flow_{bus_name}", real=True)
+    # algebraic states:    
+    servo_u = sym.Symbol(f"servo_u_{bus_name}", real=True)
+    gate = sym.Symbol(f"gate_{bus_name}", real=True)
+    head = sym.Symbol(f"head_{bus_name}", real=True)
+    p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+    # parameters:
+    Droop = sym.Symbol(f"Droop_{bus_name}", real=True) 
+    K_p_gov = sym.Symbol(f"K_p_gov_{bus_name}", real=True)
+    K_i_gov = sym.Symbol(f"K_i_gov_{bus_name}", real=True) 
+    K_servo = sym.Symbol(f"K_servo_{bus_name}", real=True)  
+    T_servo = sym.Symbol(f"T_servo_{bus_name}", real=True) 
+    V_gate_max = sym.Symbol(f"V_gate_max_{bus_name}", real=True)
+    Gate_max = sym.Symbol(f"Gate_max_{bus_name}", real=True)
+    T_w = sym.Symbol(f"T_w_{bus_name}", real=True) 
+    Flow_nl = sym.Symbol(f"Flow_nl_{bus_name}", real=True) 
+    A_t = sym.Symbol(f"A_t_{bus_name}", real=True)     
+    
+    epsilon_omega = omega_ref - omega - Droop*gate + p_r
+    dxi_omega = epsilon_omega
+    g_servo_u = -servo_u + K_p_gov*epsilon_omega + K_i_gov*xi_omega
+    dservo = (K_servo*(servo_u-gate) - servo)/T_servo
+    dpos = servo #sym.Piecewise((V_gate_max,servo>V_gate_max),(-V_gate_max,servo<-V_gate_max),(servo,True))
+    g_gate = -gate + K_p_gov*epsilon_omega # + pos #sym.Piecewise((Gate_max,pos>Gate_max),(1e-6,pos<1e-6),(pos,True))
+    dflow =  (1-head)/T_w
+    g_head = -head + (gate/(flow+1e-6))**2 
+    g_p_m = -p_m + A_t*head*(flow - Flow_nl)
+
+    grid['f'] += [dxi_omega, dservo, dpos, dflow] #[]
+    grid['x'] += [ xi_omega,  servo,  pos,  flow]
+    grid['g'] += [g_servo_u, g_gate, g_head, g_p_m] # [g_servo_u, g_gate, g_head, g_p_m]
+    grid['y'] += [  servo_u,   gate,   head,   p_m] # [  servo_u,   gate,   head,   p_m]
+    grid['params'].update({str(Droop):gov_data['Droop'],str(K_p_gov):gov_data['K_p_gov'],str(K_i_gov):gov_data['K_i_gov']})
+    grid['params'].update({str(K_servo):gov_data['K_servo'],str(T_servo):gov_data['T_servo']})
+    grid['params'].update({str(V_gate_max):gov_data['V_gate_max'],str(Gate_max):gov_data['Gate_max']})
+    grid['params'].update({str(T_w):gov_data['T_w'],str(Flow_nl):gov_data['Flow_nl']})
+    grid['params'].update({str(A_t):gov_data['A_t']})
+    grid['u'].update({str(omega_ref):gov_data['omega_ref']})
