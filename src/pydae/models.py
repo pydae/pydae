@@ -12,7 +12,6 @@ import sympy as sym
 #from sympy.diffgeom import TensorProduct
 from sympy.physics.quantum  import TensorProduct
 import json
-from grid_urisi import 
 
 
 

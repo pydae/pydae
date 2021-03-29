@@ -666,25 +666,25 @@ class {name}_class:
             self.set_value(item,dictionary[item])
             
             
-    def report_x(self,value_format='5.2f'):
+    def report_x(self,value_format='5.2f', decimals=2):
         for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_y(self,value_format='5.2f'):
+    def report_y(self,value_format='5.2f', decimals=2):
         for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
             
-    def report_u(self,value_format='5.2f'):
+    def report_u(self,value_format='5.2f', decimals=2):
         for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_z(self,value_format='5.2f'):
+    def report_z(self,value_format='5.2f', decimals=2):
         for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_params(self,value_format='5.2f'):
+    def report_params(self,value_format='5.2f', decimals=2):
         for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
             
     def get_x(self):
         return self.struct[0].x
