@@ -433,7 +433,6 @@ def sexs(grid,syn_data):
     dxi_v =   v_ref - v_t  
     g_v_f  = K_a*(v_ref - v_c + v_pss) + K_ai*xi_v  - v_f 
     
-    print('AVR added')
     grid['f'] += [dv_c,dxi_v]
     grid['x'] += [ v_c, xi_v]
     grid['g'] += [g_v_f]

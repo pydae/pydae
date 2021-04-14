@@ -9,6 +9,9 @@ Created on Wed Sep  5 20:43:46 2018
 import numpy as np
 import pandas as pd
 import scipy
+import matplotlib.pyplot as plt
+
+from matplotlib.patches import Circle, Wedge, Polygon, Rectangle
 
 def eval_A(system):
     
@@ -131,6 +134,8 @@ def damp_report(system):
     modes = [f'Mode {it+1}' for it in range(N_x)]
     eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas},index=modes)
     
+    system.eigvalues = eig
+    system.eigvectors = eigv
     return eig_df
  
 
@@ -209,14 +214,16 @@ def shape2df(system):
 
     modes = [f'Mode {it+1}' for it in range(N_x)]
 
-    df = pd.DataFrame(data=W_list,index=modes, columns=system.x_list)
+    df_shapes_report = pd.DataFrame(data=W_list,index=modes, columns=system.x_list)
+    df_shapes = pd.DataFrame(data=modules*np.exp(1j*np.angle(W)),index=modes, columns=system.x_list)
     
     system.participation_matrix = participation_matrix
     system.shape_modules = modules
     system.shape_degs = degs
     system.modes_id = modes
+    system.df_shapes = df_shapes
     
-    return df
+    return df_shapes_report
     # for it in range(N_x):
     #     r = eig[it].real
     #     i = eig[it].imag
@@ -251,7 +258,201 @@ def lqr(A,B,Q,R):
     eigVals, eigVecs = scipy.linalg.eig(A-B*K)
      
     return K, X, eigVals
- 
+
+
+
+def plot_eig(grid, x_min='',x_max='',y_min='',y_max=''):
+    fig,axes = plt.subplots()
+
+    
+    pi2 = 2*np.pi
+
+    #damping zones
+    ## damping zone > 10%
+    e_real = -10000.0
+    damp = 0.1
+    e_imag = np.sqrt((e_real/damp)**2-e_real**2)/pi2
+    poly = Polygon([(0,0),(e_real,0),(e_real,e_imag)], facecolor='#e1f2e1',zorder=0)
+    axes.add_patch(poly)
+    #axes.text(-0.85, 0.5, '$\zeta>10\%$', fontsize=12)
+
+    ## damping zone from  5% to 10%
+    axes.plot([0,e_real],[0, e_imag],'--', color='k',zorder=0)
+    axes.plot([0,e_real],[0,-e_imag],'--', color='k',zorder=0)
+    poly = Polygon([(0,0),(e_real,e_imag),(0,e_imag)], facecolor='#fae8ce',zorder=0)
+    axes.add_patch(poly)
+    #axes.text(-0.87, 9.0/pi2, '$10\% <\zeta<5\%$', fontsize=12)
+
+    ## damping zone <5%
+    e_real = -100000.0
+    damp = 0.05
+    e_imag = np.sqrt((e_real/damp)**2-e_real**2)/pi2
+    axes.plot([0,e_real],[0, e_imag],'--', color='k',zorder=0)
+    axes.plot([0,e_real],[0,-e_imag],'--', color='k',zorder=0)
+    poly = Polygon([(0,0),(e_real,e_imag),(0,e_imag)], facecolor='#f7dcda',zorder=0)
+    axes.add_patch(poly)
+    #axes.text(-0.37, 9.0/pi2, '$\zeta<$5 %', fontsize=12)
+
+
+
+    axes.plot([0,0],[-20,20],'-', color='k', lw=4)
+
+    if x_min == '': x_min = np.min(grid.eigvalues.real)*1.1
+    if x_max == '': x_max = np.max(grid.eigvalues.real)
+    if y_min == '': y_min = np.min(grid.eigvalues.imag)/(2*np.pi)*1.1
+    if y_max == '': y_max = np.max(grid.eigvalues.imag)/(2*np.pi)*1.1
+        
+    axes.set_xlim((x_min,x_max))
+    axes.set_ylim((y_min,y_max))
+    axes.grid(True)
+    axes.set_xlabel('Real')
+    axes.set_ylabel('Imag$/2\pi$ (Hz)')
+
+    axes.plot(grid.eigvalues.real,grid.eigvalues.imag/(2*np.pi),'o')
+    fig.tight_layout()
+    
+    return fig
+    
+def add_arrow(string,name='arrow',scale=1,angle=0,center_x=0,center_y=0,color="#337ab7"):
+    trans_x = center_x*(1-scale)
+    trans_y = center_y*(1-scale)
+    string += f'<path d="M {center_x},{center_y} h 1.32292 v -52.916665 h 1.32291 l -2.64583,-5.291666 -2.64583,5.291666 h 1.32291 v 52.916665 z" ' 
+    string += f'fill="{color}" id="arrow_1" class="tooltip-trigger" data-tooltip-text="{name}" '
+    string += f'stroke-width="0" transform="translate({trans_x},{trans_y}) scale({scale})  rotate({angle},{center_x},{center_y})" '   
+    string += f'/>' 
+    return string
+
+
+def plot_shapes(grid,mode='Mode 13',states=['omega_1','omega_1','omega_3','omega_4'], plot_scale=3):
+    svg_arrows = ''
+    shapes = grid.df_shapes.loc[mode][states]
+
+    max_module = shapes.abs().max()
+    for shape,name in zip(shapes,shapes.index):
+        module = np.abs(shape)
+        angle = np.angle(shape,deg=True)
+        svg_arrows = add_arrow(svg_arrows,name=name,scale=plot_scale*module/max_module,angle=angle,center_x=200,center_y=200)
+        
+    # from: https://www.petercollingridge.co.uk/tutorials/svg/interactive/tooltip/    
+    svg_string = ''' 
+        <svg xmlns="http://www.w3.org/2000/svg" 
+        height="400"  width="400"
+        id="tooltip-svg-5">
+            <style>
+                #tooltip {
+                    dominant-baseline: hanging; 
+                }
+            </style>
+            
+            <circle cx="200" cy="200" r="190" stroke="#888888" stroke-width="3" fill="#DDDDDD" />
+
+        {arrows}    
+        
+        <g id="tooltip" visibility="hidden" >
+
+                <rect width="80" height="24" fill="white" rx="2" ry="2"/>
+                <text x="3" y="6">Tooltip</text>
+            </g>
+
+
+            <script type="text/ecmascript"><![CDATA[
+                (function() {
+                    var svg = document.getElementById('tooltip-svg-5');
+                    var tooltip = svg.getElementById('tooltip');
+                    var tooltipText = tooltip.getElementsByTagName('text')[0].firstChild;
+                    var triggers = svg.getElementsByClassName('tooltip-trigger');
+
+                    for (var i = 0; i < triggers.length; i++) {
+                        triggers[i].addEventListener('mousemove', showTooltip);
+                        triggers[i].addEventListener('mouseout', hideTooltip);
+                    }
+
+                    function showTooltip(evt) {
+                        var CTM = svg.getScreenCTM();
+                        var x = (evt.clientX - CTM.e + 6) / CTM.a;
+                        var y = (evt.clientY - CTM.f + 20) / CTM.d;
+                        tooltip.setAttributeNS(null, "transform", "translate(" + x + " " + y + ")");
+                        tooltip.setAttributeNS(null, "visibility", "visible");
+                        tooltipText.data = evt.target.getAttributeNS(null, "data-tooltip-text");
+                    }
+
+                    function hideTooltip(evt) {
+                        tooltip.setAttributeNS(null, "visibility", "hidden");
+                    }
+                })()
+            ]]></script>
+        </svg>
+        '''
+    
+    svg_string = svg_string.replace('{arrows}',svg_arrows)
+    
+    return svg_string
+    
+
+def plot_vectors(vectors,names,colors, plot_scale=3):
+    svg_arrows = ''
+
+    for vector,name,color in zip(vectors,names,colors):
+        module = np.abs(vector)
+        angle = np.angle(vector,deg=True)
+        svg_arrows = add_arrow(svg_arrows,name=name,scale=plot_scale*module,angle=angle,center_x=200,center_y=200,color=color)
+        
+    # from: https://www.petercollingridge.co.uk/tutorials/svg/interactive/tooltip/    
+    svg_string = ''' 
+        <svg xmlns="http://www.w3.org/2000/svg" 
+        height="400"  width="400"
+        id="tooltip-svg-5">
+            <style>
+                #tooltip {
+                    dominant-baseline: hanging; 
+                }
+            </style>
+            
+            <circle cx="200" cy="200" r="190" stroke="#888888" stroke-width="3" fill="#DDDDDD" />
+
+        {arrows}    
+        
+        <g id="tooltip" visibility="hidden" >
+
+                <rect width="80" height="24" fill="white" rx="2" ry="2"/>
+                <text x="3" y="6">Tooltip</text>
+            </g>
+
+
+            <script type="text/ecmascript"><![CDATA[
+                (function() {
+                    var svg = document.getElementById('tooltip-svg-5');
+                    var tooltip = svg.getElementById('tooltip');
+                    var tooltipText = tooltip.getElementsByTagName('text')[0].firstChild;
+                    var triggers = svg.getElementsByClassName('tooltip-trigger');
+
+                    for (var i = 0; i < triggers.length; i++) {
+                        triggers[i].addEventListener('mousemove', showTooltip);
+                        triggers[i].addEventListener('mouseout', hideTooltip);
+                    }
+
+                    function showTooltip(evt) {
+                        var CTM = svg.getScreenCTM();
+                        var x = (evt.clientX - CTM.e + 6) / CTM.a;
+                        var y = (evt.clientY - CTM.f + 20) / CTM.d;
+                        tooltip.setAttributeNS(null, "transform", "translate(" + x + " " + y + ")");
+                        tooltip.setAttributeNS(null, "visibility", "visible");
+                        tooltipText.data = evt.target.getAttributeNS(null, "data-tooltip-text");
+                    }
+
+                    function hideTooltip(evt) {
+                        tooltip.setAttributeNS(null, "visibility", "hidden");
+                    }
+                })()
+            ]]></script>
+        </svg>
+        '''
+    
+    svg_string = svg_string.replace('{arrows}',svg_arrows)
+    
+    return svg_string
+
+    
 def dlqr(A,B,Q,R):
     """Solve the discrete time lqr controller.
      

@@ -10,7 +10,7 @@ sqrt = np.sqrt
 sign = np.sign 
 
 
-class lead_lag_class: 
+class bess_1_class: 
 
     def __init__(self): 
 
@@ -22,21 +22,21 @@ class lead_lag_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 1
-        self.N_y = 1 
+        self.N_x = 2
+        self.N_y = 5 
         self.N_z = 1 
         self.N_store = 10000 
-        self.params_list = ['T_l', 'Alpha_l'] 
-        self.params_values_list  = [1, 2] 
-        self.inputs_ini_list = ['u_l'] 
-        self.inputs_ini_values_list  = [0.0] 
-        self.inputs_run_list = ['u_l'] 
-        self.inputs_run_values_list = [0.0] 
-        self.outputs_list = ['u_l'] 
-        self.x_list = ['x_l'] 
-        self.y_run_list = ['z_l'] 
+        self.params_list = ['R_stor', 'C_u', 'soc_ref', 'K_p', 'K_i', 'V_u_max', 'V_u_min'] 
+        self.params_values_list  = [0.05, 100.0, 0.5, 1.0, 1.0, 305, 295] 
+        self.inputs_ini_list = ['p_u_ref'] 
+        self.inputs_ini_values_list  = [1.0] 
+        self.inputs_run_list = ['p_u_ref'] 
+        self.inputs_run_values_list = [1.0] 
+        self.outputs_list = ['p_u_ref'] 
+        self.x_list = ['e_u', 'xi_esoc'] 
+        self.y_run_list = ['p_u_soc', 'p_u', 'i_u', 'v_u', 'soc'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['z_l'] 
+        self.y_ini_list = ['p_u_soc', 'p_u', 'i_u', 'v_u', 'soc'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -713,47 +713,69 @@ class lead_lag_class:
 def ini(struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    R_stor = struct[0].R_stor
+    C_u = struct[0].C_u
+    soc_ref = struct[0].soc_ref
+    K_p = struct[0].K_p
+    K_i = struct[0].K_i
+    V_u_max = struct[0].V_u_max
+    V_u_min = struct[0].V_u_min
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_u_ref = struct[0].p_u_ref
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    e_u = struct[0].x[0,0]
+    xi_esoc = struct[0].x[1,0]
     
     # Algebraic states:
-    z_l = struct[0].y_ini[0,0]
+    p_u_soc = struct[0].y_ini[0,0]
+    p_u = struct[0].y_ini[1,0]
+    i_u = struct[0].y_ini[2,0]
+    v_u = struct[0].y_ini[3,0]
+    soc = struct[0].y_ini[4,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = -1.0*i_u/C_u
+        struct[0].f[1,0] = -soc + soc_ref
     
     # Algebraic equations:
     if mode == 3:
 
         struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = K_i*xi_esoc + K_p*(-soc + soc_ref) - p_u_soc
+        struct[0].g[1,0] = -p_u + p_u_ref + p_u_soc
+        struct[0].g[2,0] = i_u*v_u - p_u
+        struct[0].g[3,0] = -R_stor*i_u + e_u - v_u
+        struct[0].g[4,0] = -soc + 1.0*(-V_u_min**2 + e_u**2)/(V_u_max**2 - V_u_min**2)
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_u_ref
     
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1/T_l
+        pass
 
     if mode == 11:
 
+        struct[0].Fy_ini[0,2] = -1.0/C_u 
+        struct[0].Fy_ini[1,4] = -1 
 
-        struct[0].Gx_ini[0,0] = 1 - 1/Alpha_l
+        struct[0].Gx_ini[0,1] = K_i
+        struct[0].Gx_ini[3,0] = 1
+        struct[0].Gx_ini[4,0] = 2.0*e_u/(V_u_max**2 - V_u_min**2)
 
-        pass
+        struct[0].Gy_ini[0,4] = -K_p
+        struct[0].Gy_ini[2,2] = v_u
+        struct[0].Gy_ini[2,3] = i_u
+        struct[0].Gy_ini[3,2] = -R_stor
 
 
 
@@ -761,47 +783,70 @@ def ini(struct,mode):
 def run(t,struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    R_stor = struct[0].R_stor
+    C_u = struct[0].C_u
+    soc_ref = struct[0].soc_ref
+    K_p = struct[0].K_p
+    K_i = struct[0].K_i
+    V_u_max = struct[0].V_u_max
+    V_u_min = struct[0].V_u_min
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_u_ref = struct[0].p_u_ref
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    e_u = struct[0].x[0,0]
+    xi_esoc = struct[0].x[1,0]
     
     # Algebraic states:
-    z_l = struct[0].y_run[0,0]
+    p_u_soc = struct[0].y_run[0,0]
+    p_u = struct[0].y_run[1,0]
+    i_u = struct[0].y_run[2,0]
+    v_u = struct[0].y_run[3,0]
+    soc = struct[0].y_run[4,0]
     
-    struct[0].u_run[0,0] = u_l
+    struct[0].u_run[0,0] = p_u_ref
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = -1.0*i_u/C_u
+        struct[0].f[1,0] = -soc + soc_ref
     
     # Algebraic equations:
     if mode == 3:
 
         struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = K_i*xi_esoc + K_p*(-soc + soc_ref) - p_u_soc
+        struct[0].g[1,0] = -p_u + p_u_ref + p_u_soc
+        struct[0].g[2,0] = i_u*v_u - p_u
+        struct[0].g[3,0] = -R_stor*i_u + e_u - v_u
+        struct[0].g[4,0] = -soc + 1.0*(-V_u_min**2 + e_u**2)/(V_u_max**2 - V_u_min**2)
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_u_ref
     
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1/T_l
+        pass
 
     if mode == 11:
 
+        struct[0].Fy[0,2] = -1.0/C_u
+        struct[0].Fy[1,4] = -1
 
-        struct[0].Gx[0,0] = 1 - 1/Alpha_l
+        struct[0].Gx[0,1] = K_i
+        struct[0].Gx[3,0] = 1
+        struct[0].Gx[4,0] = 2.0*e_u/(V_u_max**2 - V_u_min**2)
 
+        struct[0].Gy[0,4] = -K_p
+        struct[0].Gy[2,2] = v_u
+        struct[0].Gy[2,3] = i_u
+        struct[0].Gy[3,2] = -R_stor
 
     if mode > 12:
 
@@ -816,88 +861,140 @@ def run(t,struct,mode):
 def ini_nn(struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    R_stor = struct[0].R_stor
+    C_u = struct[0].C_u
+    soc_ref = struct[0].soc_ref
+    K_p = struct[0].K_p
+    K_i = struct[0].K_i
+    V_u_max = struct[0].V_u_max
+    V_u_min = struct[0].V_u_min
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_u_ref = struct[0].p_u_ref
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    e_u = struct[0].x[0,0]
+    xi_esoc = struct[0].x[1,0]
     
     # Algebraic states:
-    z_l = struct[0].y_ini[0,0]
+    p_u_soc = struct[0].y_ini[0,0]
+    p_u = struct[0].y_ini[1,0]
+    i_u = struct[0].y_ini[2,0]
+    v_u = struct[0].y_ini[3,0]
+    soc = struct[0].y_ini[4,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = -1.0*i_u/C_u
+        struct[0].f[1,0] = -soc + soc_ref
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = K_i*xi_esoc + K_p*(-soc + soc_ref) - p_u_soc
+        struct[0].g[1,0] = -p_u + p_u_ref + p_u_soc
+        struct[0].g[2,0] = i_u*v_u - p_u
+        struct[0].g[3,0] = -R_stor*i_u + e_u - v_u
+        struct[0].g[4,0] = -soc + 1.0*(-V_u_min**2 + e_u**2)/(V_u_max**2 - V_u_min**2)
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_u_ref
     
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1/T_l
+        pass
 
     if mode == 11:
 
+        struct[0].Fy_ini[0,2] = -1.0/C_u 
+        struct[0].Fy_ini[1,4] = -1 
 
         struct[0].Gy_ini[0,0] = -1
+        struct[0].Gy_ini[0,4] = -K_p
+        struct[0].Gy_ini[1,0] = 1
+        struct[0].Gy_ini[1,1] = -1
+        struct[0].Gy_ini[2,1] = -1
+        struct[0].Gy_ini[2,2] = v_u
+        struct[0].Gy_ini[2,3] = i_u
+        struct[0].Gy_ini[3,2] = -R_stor
+        struct[0].Gy_ini[3,3] = -1
+        struct[0].Gy_ini[4,4] = -1
 
 
 
 def run_nn(t,struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    R_stor = struct[0].R_stor
+    C_u = struct[0].C_u
+    soc_ref = struct[0].soc_ref
+    K_p = struct[0].K_p
+    K_i = struct[0].K_i
+    V_u_max = struct[0].V_u_max
+    V_u_min = struct[0].V_u_min
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_u_ref = struct[0].p_u_ref
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    e_u = struct[0].x[0,0]
+    xi_esoc = struct[0].x[1,0]
     
     # Algebraic states:
-    z_l = struct[0].y_run[0,0]
+    p_u_soc = struct[0].y_run[0,0]
+    p_u = struct[0].y_run[1,0]
+    i_u = struct[0].y_run[2,0]
+    v_u = struct[0].y_run[3,0]
+    soc = struct[0].y_run[4,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = -1.0*i_u/C_u
+        struct[0].f[1,0] = -soc + soc_ref
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = K_i*xi_esoc + K_p*(-soc + soc_ref) - p_u_soc
+        struct[0].g[1,0] = -p_u + p_u_ref + p_u_soc
+        struct[0].g[2,0] = i_u*v_u - p_u
+        struct[0].g[3,0] = -R_stor*i_u + e_u - v_u
+        struct[0].g[4,0] = -soc + 1.0*(-V_u_min**2 + e_u**2)/(V_u_max**2 - V_u_min**2)
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_u_ref
     
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1/T_l
+        pass
 
     if mode == 11:
 
+        struct[0].Fy[0,2] = -1.0/C_u
+        struct[0].Fy[1,4] = -1
 
         struct[0].Gy[0,0] = -1
+        struct[0].Gy[0,4] = -K_p
+        struct[0].Gy[1,0] = 1
+        struct[0].Gy[1,1] = -1
+        struct[0].Gy[2,1] = -1
+        struct[0].Gy[2,2] = v_u
+        struct[0].Gy[2,3] = i_u
+        struct[0].Gy[3,2] = -R_stor
+        struct[0].Gy[3,3] = -1
+        struct[0].Gy[4,4] = -1
 
 
 
@@ -1097,20 +1194,20 @@ def daesolver(struct):
 
 
 def nonzeros():
-    Fx_ini_rows = [0]
+    Fx_ini_rows = []
 
-    Fx_ini_cols = [0]
+    Fx_ini_cols = []
 
-    Fy_ini_rows = []
+    Fy_ini_rows = [0, 1]
 
-    Fy_ini_cols = []
+    Fy_ini_cols = [2, 4]
 
-    Gx_ini_rows = [0]
+    Gx_ini_rows = [0, 3, 4]
 
-    Gx_ini_cols = [0]
+    Gx_ini_cols = [1, 0, 0]
 
-    Gy_ini_rows = [0]
+    Gy_ini_rows = [0, 0, 1, 1, 2, 2, 2, 3, 3, 4]
 
-    Gy_ini_cols = [0]
+    Gy_ini_cols = [0, 4, 0, 1, 1, 2, 3, 2, 3, 4]
 
     return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols

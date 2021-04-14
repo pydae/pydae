@@ -10,7 +10,7 @@ sqrt = np.sqrt
 sign = np.sign 
 
 
-class lead_lag_class: 
+class smib_milano_ex8p1_4ord_class: 
 
     def __init__(self): 
 
@@ -22,21 +22,21 @@ class lead_lag_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 1
-        self.N_y = 1 
-        self.N_z = 1 
+        self.N_x = 4
+        self.N_y = 6 
+        self.N_z = 3 
         self.N_store = 10000 
-        self.params_list = ['T_l', 'Alpha_l'] 
-        self.params_values_list  = [1, 2] 
-        self.inputs_ini_list = ['u_l'] 
-        self.inputs_ini_values_list  = [0.0] 
-        self.inputs_run_list = ['u_l'] 
-        self.inputs_run_values_list = [0.0] 
-        self.outputs_list = ['u_l'] 
-        self.x_list = ['x_l'] 
-        self.y_run_list = ['z_l'] 
+        self.params_list = ['X_d', 'X1d', 'T1d0', 'X_q', 'X1q', 'T1q0', 'R_a', 'X_l', 'H', 'D', 'Omega_b', 'omega_s', 'V_0', 'Theta_0'] 
+        self.params_values_list  = [1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.02, 3.5, 0.0, 314.1592653589793, 1.0, 1.0, 0.0] 
+        self.inputs_ini_list = ['p_m', 'v_f'] 
+        self.inputs_ini_values_list  = [0.8, 1.0] 
+        self.inputs_run_list = ['p_m', 'v_f'] 
+        self.inputs_run_values_list = [0.8, 1.0] 
+        self.outputs_list = ['p_m', 'p_e', 'v_f'] 
+        self.x_list = ['delta', 'omega', 'e1q', 'e1d'] 
+        self.y_run_list = ['i_d', 'i_q', 'p_t', 'q_t', 'v_t', 'theta_t'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['z_l'] 
+        self.y_ini_list = ['i_d', 'i_q', 'p_t', 'q_t', 'v_t', 'theta_t'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -666,25 +666,25 @@ class lead_lag_class:
             self.set_value(item,dictionary[item])
             
             
-    def report_x(self,value_format='5.2f', decimals=2):
+    def report_x(self,value_format='5.2f'):
         for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
 
-    def report_y(self,value_format='5.2f', decimals=2):
+    def report_y(self,value_format='5.2f'):
         for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
             
-    def report_u(self,value_format='5.2f', decimals=2):
+    def report_u(self,value_format='5.2f'):
         for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
 
-    def report_z(self,value_format='5.2f', decimals=2):
+    def report_z(self,value_format='5.2f'):
         for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
 
-    def report_params(self,value_format='5.2f', decimals=2):
+    def report_params(self,value_format='5.2f'):
         for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
             
     def get_x(self):
         return self.struct[0].x
@@ -713,47 +713,112 @@ class lead_lag_class:
 def ini(struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    X_d = struct[0].X_d
+    X1d = struct[0].X1d
+    T1d0 = struct[0].T1d0
+    X_q = struct[0].X_q
+    X1q = struct[0].X1q
+    T1q0 = struct[0].T1q0
+    R_a = struct[0].R_a
+    X_l = struct[0].X_l
+    H = struct[0].H
+    D = struct[0].D
+    Omega_b = struct[0].Omega_b
+    omega_s = struct[0].omega_s
+    V_0 = struct[0].V_0
+    Theta_0 = struct[0].Theta_0
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_m = struct[0].p_m
+    v_f = struct[0].v_f
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    delta = struct[0].x[0,0]
+    omega = struct[0].x[1,0]
+    e1q = struct[0].x[2,0]
+    e1d = struct[0].x[3,0]
     
     # Algebraic states:
-    z_l = struct[0].y_ini[0,0]
+    i_d = struct[0].y_ini[0,0]
+    i_q = struct[0].y_ini[1,0]
+    p_t = struct[0].y_ini[2,0]
+    q_t = struct[0].y_ini[3,0]
+    v_t = struct[0].y_ini[4,0]
+    theta_t = struct[0].y_ini[5,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = Omega_b*(omega - omega_s) - 0.0001*delta
+        struct[0].f[1,0] = (-D*(omega - omega_s) - i_d*(R_a*i_d + v_t*sin(delta - theta_t)) - i_q*(R_a*i_q + v_t*cos(delta - theta_t)) + p_m)/(2*H)
+        struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
+        struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
     
     # Algebraic equations:
     if mode == 3:
 
         struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = R_a*i_q + X1d*i_d - e1q + v_t*cos(delta - theta_t)
+        struct[0].g[1,0] = R_a*i_d - X1q*i_q - e1d + v_t*sin(delta - theta_t)
+        struct[0].g[2,0] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t) - p_t
+        struct[0].g[3,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t) - q_t
+        struct[0].g[4,0] = V_0*v_t*sin(Theta_0 - theta_t)/X_l + p_t
+        struct[0].g[5,0] = V_0*v_t*cos(Theta_0 - theta_t)/X_l + q_t - v_t**2/X_l
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_m
+        struct[0].h[1,0] = i_d*(R_a*i_d + v_t*sin(delta - theta_t)) + i_q*(R_a*i_q + v_t*cos(delta - theta_t))
+        struct[0].h[2,0] = v_f
     
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1/T_l
+        struct[0].Fx_ini[0,1] = Omega_b
+        struct[0].Fx_ini[1,0] = (-i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fx_ini[1,1] = -D/(2*H)
+        struct[0].Fx_ini[2,2] = -1/T1d0
+        struct[0].Fx_ini[3,3] = -1/T1q0
 
     if mode == 11:
 
+        struct[0].Fy_ini[1,0] = (-2*R_a*i_d - v_t*sin(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[1,1] = (-2*R_a*i_q - v_t*cos(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[1,4] = (-i_d*sin(delta - theta_t) - i_q*cos(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[1,5] = (i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[2,0] = (X1d - X_d)/T1d0 
+        struct[0].Fy_ini[3,1] = (-X1q + X_q)/T1q0 
 
-        struct[0].Gx_ini[0,0] = 1 - 1/Alpha_l
+        struct[0].Gx_ini[0,0] = -v_t*sin(delta - theta_t)
+        struct[0].Gx_ini[0,2] = -1
+        struct[0].Gx_ini[1,0] = v_t*cos(delta - theta_t)
+        struct[0].Gx_ini[1,3] = -1
+        struct[0].Gx_ini[2,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t)
+        struct[0].Gx_ini[3,0] = -i_d*v_t*sin(delta - theta_t) - i_q*v_t*cos(delta - theta_t)
 
-        pass
+        struct[0].Gy_ini[0,0] = X1d
+        struct[0].Gy_ini[0,1] = R_a
+        struct[0].Gy_ini[0,4] = cos(delta - theta_t)
+        struct[0].Gy_ini[0,5] = v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[1,0] = R_a
+        struct[0].Gy_ini[1,1] = -X1q
+        struct[0].Gy_ini[1,4] = sin(delta - theta_t)
+        struct[0].Gy_ini[1,5] = -v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[2,0] = v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[2,1] = v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[2,4] = i_d*sin(delta - theta_t) + i_q*cos(delta - theta_t)
+        struct[0].Gy_ini[2,5] = -i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[3,0] = v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[3,1] = -v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[3,4] = i_d*cos(delta - theta_t) - i_q*sin(delta - theta_t)
+        struct[0].Gy_ini[3,5] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[4,4] = V_0*sin(Theta_0 - theta_t)/X_l
+        struct[0].Gy_ini[4,5] = -V_0*v_t*cos(Theta_0 - theta_t)/X_l
+        struct[0].Gy_ini[5,4] = V_0*cos(Theta_0 - theta_t)/X_l - 2*v_t/X_l
+        struct[0].Gy_ini[5,5] = V_0*v_t*sin(Theta_0 - theta_t)/X_l
 
 
 
@@ -761,143 +826,344 @@ def ini(struct,mode):
 def run(t,struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    X_d = struct[0].X_d
+    X1d = struct[0].X1d
+    T1d0 = struct[0].T1d0
+    X_q = struct[0].X_q
+    X1q = struct[0].X1q
+    T1q0 = struct[0].T1q0
+    R_a = struct[0].R_a
+    X_l = struct[0].X_l
+    H = struct[0].H
+    D = struct[0].D
+    Omega_b = struct[0].Omega_b
+    omega_s = struct[0].omega_s
+    V_0 = struct[0].V_0
+    Theta_0 = struct[0].Theta_0
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_m = struct[0].p_m
+    v_f = struct[0].v_f
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    delta = struct[0].x[0,0]
+    omega = struct[0].x[1,0]
+    e1q = struct[0].x[2,0]
+    e1d = struct[0].x[3,0]
     
     # Algebraic states:
-    z_l = struct[0].y_run[0,0]
+    i_d = struct[0].y_run[0,0]
+    i_q = struct[0].y_run[1,0]
+    p_t = struct[0].y_run[2,0]
+    q_t = struct[0].y_run[3,0]
+    v_t = struct[0].y_run[4,0]
+    theta_t = struct[0].y_run[5,0]
     
-    struct[0].u_run[0,0] = u_l
+    struct[0].u_run[0,0] = p_m
+    struct[0].u_run[1,0] = v_f
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = Omega_b*(omega - omega_s) - 0.0001*delta
+        struct[0].f[1,0] = (-D*(omega - omega_s) - i_d*(R_a*i_d + v_t*sin(delta - theta_t)) - i_q*(R_a*i_q + v_t*cos(delta - theta_t)) + p_m)/(2*H)
+        struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
+        struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
     
     # Algebraic equations:
     if mode == 3:
 
         struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = R_a*i_q + X1d*i_d - e1q + v_t*cos(delta - theta_t)
+        struct[0].g[1,0] = R_a*i_d - X1q*i_q - e1d + v_t*sin(delta - theta_t)
+        struct[0].g[2,0] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t) - p_t
+        struct[0].g[3,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t) - q_t
+        struct[0].g[4,0] = V_0*v_t*sin(Theta_0 - theta_t)/X_l + p_t
+        struct[0].g[5,0] = V_0*v_t*cos(Theta_0 - theta_t)/X_l + q_t - v_t**2/X_l
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_m
+        struct[0].h[1,0] = i_d*(R_a*i_d + v_t*sin(delta - theta_t)) + i_q*(R_a*i_q + v_t*cos(delta - theta_t))
+        struct[0].h[2,0] = v_f
     
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1/T_l
+        struct[0].Fx[0,1] = Omega_b
+        struct[0].Fx[1,0] = (-i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fx[1,1] = -D/(2*H)
+        struct[0].Fx[2,2] = -1/T1d0
+        struct[0].Fx[3,3] = -1/T1q0
 
     if mode == 11:
 
+        struct[0].Fy[1,0] = (-2*R_a*i_d - v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fy[1,1] = (-2*R_a*i_q - v_t*cos(delta - theta_t))/(2*H)
+        struct[0].Fy[1,4] = (-i_d*sin(delta - theta_t) - i_q*cos(delta - theta_t))/(2*H)
+        struct[0].Fy[1,5] = (i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fy[2,0] = (X1d - X_d)/T1d0
+        struct[0].Fy[3,1] = (-X1q + X_q)/T1q0
 
-        struct[0].Gx[0,0] = 1 - 1/Alpha_l
+        struct[0].Gx[0,0] = -v_t*sin(delta - theta_t)
+        struct[0].Gx[0,2] = -1
+        struct[0].Gx[1,0] = v_t*cos(delta - theta_t)
+        struct[0].Gx[1,3] = -1
+        struct[0].Gx[2,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t)
+        struct[0].Gx[3,0] = -i_d*v_t*sin(delta - theta_t) - i_q*v_t*cos(delta - theta_t)
 
+        struct[0].Gy[0,0] = X1d
+        struct[0].Gy[0,1] = R_a
+        struct[0].Gy[0,4] = cos(delta - theta_t)
+        struct[0].Gy[0,5] = v_t*sin(delta - theta_t)
+        struct[0].Gy[1,0] = R_a
+        struct[0].Gy[1,1] = -X1q
+        struct[0].Gy[1,4] = sin(delta - theta_t)
+        struct[0].Gy[1,5] = -v_t*cos(delta - theta_t)
+        struct[0].Gy[2,0] = v_t*sin(delta - theta_t)
+        struct[0].Gy[2,1] = v_t*cos(delta - theta_t)
+        struct[0].Gy[2,4] = i_d*sin(delta - theta_t) + i_q*cos(delta - theta_t)
+        struct[0].Gy[2,5] = -i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t)
+        struct[0].Gy[3,0] = v_t*cos(delta - theta_t)
+        struct[0].Gy[3,1] = -v_t*sin(delta - theta_t)
+        struct[0].Gy[3,4] = i_d*cos(delta - theta_t) - i_q*sin(delta - theta_t)
+        struct[0].Gy[3,5] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t)
+        struct[0].Gy[4,4] = V_0*sin(Theta_0 - theta_t)/X_l
+        struct[0].Gy[4,5] = -V_0*v_t*cos(Theta_0 - theta_t)/X_l
+        struct[0].Gy[5,4] = V_0*cos(Theta_0 - theta_t)/X_l - 2*v_t/X_l
+        struct[0].Gy[5,5] = V_0*v_t*sin(Theta_0 - theta_t)/X_l
 
     if mode > 12:
 
 
 
+        struct[0].Hx[1,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t)
 
+        struct[0].Hy[1,0] = 2*R_a*i_d + v_t*sin(delta - theta_t)
+        struct[0].Hy[1,1] = 2*R_a*i_q + v_t*cos(delta - theta_t)
+        struct[0].Hy[1,4] = i_d*sin(delta - theta_t) + i_q*cos(delta - theta_t)
+        struct[0].Hy[1,5] = -i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t)
 
-        pass
 
 
 
 def ini_nn(struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    X_d = struct[0].X_d
+    X1d = struct[0].X1d
+    T1d0 = struct[0].T1d0
+    X_q = struct[0].X_q
+    X1q = struct[0].X1q
+    T1q0 = struct[0].T1q0
+    R_a = struct[0].R_a
+    X_l = struct[0].X_l
+    H = struct[0].H
+    D = struct[0].D
+    Omega_b = struct[0].Omega_b
+    omega_s = struct[0].omega_s
+    V_0 = struct[0].V_0
+    Theta_0 = struct[0].Theta_0
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_m = struct[0].p_m
+    v_f = struct[0].v_f
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    delta = struct[0].x[0,0]
+    omega = struct[0].x[1,0]
+    e1q = struct[0].x[2,0]
+    e1d = struct[0].x[3,0]
     
     # Algebraic states:
-    z_l = struct[0].y_ini[0,0]
+    i_d = struct[0].y_ini[0,0]
+    i_q = struct[0].y_ini[1,0]
+    p_t = struct[0].y_ini[2,0]
+    q_t = struct[0].y_ini[3,0]
+    v_t = struct[0].y_ini[4,0]
+    theta_t = struct[0].y_ini[5,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = Omega_b*(omega - omega_s) - 0.0001*delta
+        struct[0].f[1,0] = (-D*(omega - omega_s) - i_d*(R_a*i_d + v_t*sin(delta - theta_t)) - i_q*(R_a*i_q + v_t*cos(delta - theta_t)) + p_m)/(2*H)
+        struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
+        struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = R_a*i_q + X1d*i_d - e1q + v_t*cos(delta - theta_t)
+        struct[0].g[1,0] = R_a*i_d - X1q*i_q - e1d + v_t*sin(delta - theta_t)
+        struct[0].g[2,0] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t) - p_t
+        struct[0].g[3,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t) - q_t
+        struct[0].g[4,0] = V_0*v_t*sin(Theta_0 - theta_t)/X_l + p_t
+        struct[0].g[5,0] = V_0*v_t*cos(Theta_0 - theta_t)/X_l + q_t - v_t**2/X_l
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_m
+        struct[0].h[1,0] = i_d*(R_a*i_d + v_t*sin(delta - theta_t)) + i_q*(R_a*i_q + v_t*cos(delta - theta_t))
+        struct[0].h[2,0] = v_f
     
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1/T_l
+        struct[0].Fx_ini[0,0] = -0.000100000000000000
+        struct[0].Fx_ini[0,1] = Omega_b
+        struct[0].Fx_ini[1,0] = (-i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fx_ini[1,1] = -D/(2*H)
+        struct[0].Fx_ini[2,2] = -1/T1d0
+        struct[0].Fx_ini[3,3] = -1/T1q0
 
     if mode == 11:
 
+        struct[0].Fy_ini[1,0] = (-2*R_a*i_d - v_t*sin(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[1,1] = (-2*R_a*i_q - v_t*cos(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[1,4] = (-i_d*sin(delta - theta_t) - i_q*cos(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[1,5] = (i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t))/(2*H) 
+        struct[0].Fy_ini[2,0] = (X1d - X_d)/T1d0 
+        struct[0].Fy_ini[3,1] = (-X1q + X_q)/T1q0 
 
-        struct[0].Gy_ini[0,0] = -1
+        struct[0].Gy_ini[0,0] = X1d
+        struct[0].Gy_ini[0,1] = R_a
+        struct[0].Gy_ini[0,4] = cos(delta - theta_t)
+        struct[0].Gy_ini[0,5] = v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[1,0] = R_a
+        struct[0].Gy_ini[1,1] = -X1q
+        struct[0].Gy_ini[1,4] = sin(delta - theta_t)
+        struct[0].Gy_ini[1,5] = -v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[2,0] = v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[2,1] = v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[2,2] = -1
+        struct[0].Gy_ini[2,4] = i_d*sin(delta - theta_t) + i_q*cos(delta - theta_t)
+        struct[0].Gy_ini[2,5] = -i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[3,0] = v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[3,1] = -v_t*sin(delta - theta_t)
+        struct[0].Gy_ini[3,3] = -1
+        struct[0].Gy_ini[3,4] = i_d*cos(delta - theta_t) - i_q*sin(delta - theta_t)
+        struct[0].Gy_ini[3,5] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t)
+        struct[0].Gy_ini[4,2] = 1
+        struct[0].Gy_ini[4,4] = V_0*sin(Theta_0 - theta_t)/X_l
+        struct[0].Gy_ini[4,5] = -V_0*v_t*cos(Theta_0 - theta_t)/X_l
+        struct[0].Gy_ini[5,3] = 1
+        struct[0].Gy_ini[5,4] = V_0*cos(Theta_0 - theta_t)/X_l - 2*v_t/X_l
+        struct[0].Gy_ini[5,5] = V_0*v_t*sin(Theta_0 - theta_t)/X_l
 
 
 
 def run_nn(t,struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    X_d = struct[0].X_d
+    X1d = struct[0].X1d
+    T1d0 = struct[0].T1d0
+    X_q = struct[0].X_q
+    X1q = struct[0].X1q
+    T1q0 = struct[0].T1q0
+    R_a = struct[0].R_a
+    X_l = struct[0].X_l
+    H = struct[0].H
+    D = struct[0].D
+    Omega_b = struct[0].Omega_b
+    omega_s = struct[0].omega_s
+    V_0 = struct[0].V_0
+    Theta_0 = struct[0].Theta_0
     
     # Inputs:
-    u_l = struct[0].u_l
+    p_m = struct[0].p_m
+    v_f = struct[0].v_f
     
     # Dynamical states:
-    x_l = struct[0].x[0,0]
+    delta = struct[0].x[0,0]
+    omega = struct[0].x[1,0]
+    e1q = struct[0].x[2,0]
+    e1d = struct[0].x[3,0]
     
     # Algebraic states:
-    z_l = struct[0].y_run[0,0]
+    i_d = struct[0].y_run[0,0]
+    i_q = struct[0].y_run[1,0]
+    p_t = struct[0].y_run[2,0]
+    q_t = struct[0].y_run[3,0]
+    v_t = struct[0].y_run[4,0]
+    theta_t = struct[0].y_run[5,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = Omega_b*(omega - omega_s) - 0.0001*delta
+        struct[0].f[1,0] = (-D*(omega - omega_s) - i_d*(R_a*i_d + v_t*sin(delta - theta_t)) - i_q*(R_a*i_q + v_t*cos(delta - theta_t)) + p_m)/(2*H)
+        struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
+        struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = R_a*i_q + X1d*i_d - e1q + v_t*cos(delta - theta_t)
+        struct[0].g[1,0] = R_a*i_d - X1q*i_q - e1d + v_t*sin(delta - theta_t)
+        struct[0].g[2,0] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t) - p_t
+        struct[0].g[3,0] = i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t) - q_t
+        struct[0].g[4,0] = V_0*v_t*sin(Theta_0 - theta_t)/X_l + p_t
+        struct[0].g[5,0] = V_0*v_t*cos(Theta_0 - theta_t)/X_l + q_t - v_t**2/X_l
     
     # Outputs:
     if mode == 3:
 
-        struct[0].h[0,0] = u_l
+        struct[0].h[0,0] = p_m
+        struct[0].h[1,0] = i_d*(R_a*i_d + v_t*sin(delta - theta_t)) + i_q*(R_a*i_q + v_t*cos(delta - theta_t))
+        struct[0].h[2,0] = v_f
     
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1/T_l
+        struct[0].Fx[0,0] = -0.000100000000000000
+        struct[0].Fx[0,1] = Omega_b
+        struct[0].Fx[1,0] = (-i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fx[1,1] = -D/(2*H)
+        struct[0].Fx[2,2] = -1/T1d0
+        struct[0].Fx[3,3] = -1/T1q0
 
     if mode == 11:
 
+        struct[0].Fy[1,0] = (-2*R_a*i_d - v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fy[1,1] = (-2*R_a*i_q - v_t*cos(delta - theta_t))/(2*H)
+        struct[0].Fy[1,4] = (-i_d*sin(delta - theta_t) - i_q*cos(delta - theta_t))/(2*H)
+        struct[0].Fy[1,5] = (i_d*v_t*cos(delta - theta_t) - i_q*v_t*sin(delta - theta_t))/(2*H)
+        struct[0].Fy[2,0] = (X1d - X_d)/T1d0
+        struct[0].Fy[3,1] = (-X1q + X_q)/T1q0
 
-        struct[0].Gy[0,0] = -1
+        struct[0].Gy[0,0] = X1d
+        struct[0].Gy[0,1] = R_a
+        struct[0].Gy[0,4] = cos(delta - theta_t)
+        struct[0].Gy[0,5] = v_t*sin(delta - theta_t)
+        struct[0].Gy[1,0] = R_a
+        struct[0].Gy[1,1] = -X1q
+        struct[0].Gy[1,4] = sin(delta - theta_t)
+        struct[0].Gy[1,5] = -v_t*cos(delta - theta_t)
+        struct[0].Gy[2,0] = v_t*sin(delta - theta_t)
+        struct[0].Gy[2,1] = v_t*cos(delta - theta_t)
+        struct[0].Gy[2,2] = -1
+        struct[0].Gy[2,4] = i_d*sin(delta - theta_t) + i_q*cos(delta - theta_t)
+        struct[0].Gy[2,5] = -i_d*v_t*cos(delta - theta_t) + i_q*v_t*sin(delta - theta_t)
+        struct[0].Gy[3,0] = v_t*cos(delta - theta_t)
+        struct[0].Gy[3,1] = -v_t*sin(delta - theta_t)
+        struct[0].Gy[3,3] = -1
+        struct[0].Gy[3,4] = i_d*cos(delta - theta_t) - i_q*sin(delta - theta_t)
+        struct[0].Gy[3,5] = i_d*v_t*sin(delta - theta_t) + i_q*v_t*cos(delta - theta_t)
+        struct[0].Gy[4,2] = 1
+        struct[0].Gy[4,4] = V_0*sin(Theta_0 - theta_t)/X_l
+        struct[0].Gy[4,5] = -V_0*v_t*cos(Theta_0 - theta_t)/X_l
+        struct[0].Gy[5,3] = 1
+        struct[0].Gy[5,4] = V_0*cos(Theta_0 - theta_t)/X_l - 2*v_t/X_l
+        struct[0].Gy[5,5] = V_0*v_t*sin(Theta_0 - theta_t)/X_l
 
 
 
@@ -1097,20 +1363,20 @@ def daesolver(struct):
 
 
 def nonzeros():
-    Fx_ini_rows = [0]
+    Fx_ini_rows = [0, 0, 1, 1, 2, 3]
 
-    Fx_ini_cols = [0]
+    Fx_ini_cols = [0, 1, 0, 1, 2, 3]
 
-    Fy_ini_rows = []
+    Fy_ini_rows = [1, 1, 1, 1, 2, 3]
 
-    Fy_ini_cols = []
+    Fy_ini_cols = [0, 1, 4, 5, 0, 1]
 
-    Gx_ini_rows = [0]
+    Gx_ini_rows = [0, 0, 1, 1, 2, 3]
 
-    Gx_ini_cols = [0]
+    Gx_ini_cols = [0, 2, 0, 3, 0, 0]
 
-    Gy_ini_rows = [0]
+    Gy_ini_rows = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5]
 
-    Gy_ini_cols = [0]
+    Gy_ini_cols = [0, 1, 4, 5, 0, 1, 4, 5, 0, 1, 2, 4, 5, 0, 1, 3, 4, 5, 2, 4, 5, 3, 4, 5]
 
     return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols
