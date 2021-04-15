@@ -24,7 +24,7 @@ class k12p6_class:
         self.imax = 100 
         self.N_x = 29
         self.N_y = 51 
-        self.N_z = 11 
+        self.N_z = 15 
         self.N_store = 10000 
         self.params_list = ['S_base', 'g_1_5', 'b_1_5', 'bs_1_5', 'g_2_6', 'b_2_6', 'bs_2_6', 'g_3_11', 'b_3_11', 'bs_3_11', 'g_4_10', 'b_4_10', 'bs_4_10', 'g_5_6', 'b_5_6', 'bs_5_6', 'g_6_7', 'b_6_7', 'bs_6_7', 'g_7_8', 'b_7_8', 'bs_7_8', 'g_8_9', 'b_8_9', 'bs_8_9', 'g_9_10', 'b_9_10', 'bs_9_10', 'g_10_11', 'b_10_11', 'bs_10_11', 'U_1_n', 'U_2_n', 'U_3_n', 'U_4_n', 'U_5_n', 'U_6_n', 'U_7_n', 'U_8_n', 'U_9_n', 'U_10_n', 'U_11_n', 'S_n_1', 'H_1', 'Omega_b_1', 'T1d0_1', 'T1q0_1', 'X_d_1', 'X_q_1', 'X1d_1', 'X1q_1', 'D_1', 'R_a_1', 'K_delta_1', 'K_a_1', 'K_ai_1', 'T_r_1', 'Droop_1', 'T_m_1', 'S_n_2', 'H_2', 'Omega_b_2', 'T1d0_2', 'T1q0_2', 'X_d_2', 'X_q_2', 'X1d_2', 'X1q_2', 'D_2', 'R_a_2', 'K_delta_2', 'K_a_2', 'K_ai_2', 'T_r_2', 'Droop_2', 'T_m_2', 'S_n_3', 'H_3', 'Omega_b_3', 'T1d0_3', 'T1q0_3', 'X_d_3', 'X_q_3', 'X1d_3', 'X1q_3', 'D_3', 'R_a_3', 'K_delta_3', 'K_a_3', 'K_ai_3', 'T_r_3', 'Droop_3', 'T_m_3', 'S_n_4', 'H_4', 'Omega_b_4', 'T1d0_4', 'T1q0_4', 'X_d_4', 'X_q_4', 'X1d_4', 'X1q_4', 'D_4', 'R_a_4', 'K_delta_4', 'K_a_4', 'K_ai_4', 'T_r_4', 'Droop_4', 'T_m_4', 'K_sec_1', 'K_sec_2', 'K_sec_3', 'K_sec_4'] 
         self.params_values_list  = [100000000.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 3.96039603960396, -39.603960396039604, 0.0437499994125, 9.900990099009901, -99.00990099009901, 0.017499999765000003, 0.9000900090008999, -9.000900090009, 0.192499997415, 0.9000900090008999, -9.000900090009, 0.192499997415, 9.900990099009901, -99.00990099009901, 0.017499999765000003, 3.96039603960396, -39.603960396039604, 0.0437499994125, 20000.0, 20000.0, 20000.0, 20000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 900000000.0, 6.5, 314.1592653589793, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 0.0, 0.0025, 0.01, 100, 1e-06, 0.1, 0.05, 5.0, 900000000.0, 6.5, 314.1592653589793, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 0.0, 0.0025, 0.01, 100, 1e-06, 0.1, 0.05, 5.0, 900000000.0, 6.175, 314.1592653589793, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 0.0, 0.0025, 0.01, 100, 1e-06, 0.1, 0.05, 5.0, 900000000.0, 6.175, 314.1592653589793, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 0.0, 0.0025, 0.01, 100, 1e-06, 0.1, 0.05, 5.0, 0.001, 0.001, 0.001, 0.001] 
@@ -32,7 +32,7 @@ class k12p6_class:
         self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.7, 1.0, 0.0, 0.7, 1.0, 0.0, 0.7, 1.0, 0.0, 0.7] 
         self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'P_4', 'Q_4', 'P_5', 'Q_5', 'P_6', 'Q_6', 'P_7', 'Q_7', 'P_8', 'Q_8', 'P_9', 'Q_9', 'P_10', 'Q_10', 'P_11', 'Q_11', 'v_ref_1', 'v_pss_1', 'p_c_1', 'v_ref_2', 'v_pss_2', 'p_c_2', 'v_ref_3', 'v_pss_3', 'p_c_3', 'v_ref_4', 'v_pss_4', 'p_c_4'] 
         self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.7, 1.0, 0.0, 0.7, 1.0, 0.0, 0.7, 1.0, 0.0, 0.7] 
-        self.outputs_list = ['V_1', 'V_2', 'V_3', 'V_4', 'V_5', 'V_6', 'V_7', 'V_8', 'V_9', 'V_10', 'V_11'] 
+        self.outputs_list = ['V_1', 'V_2', 'V_3', 'V_4', 'V_5', 'V_6', 'V_7', 'V_8', 'V_9', 'V_10', 'V_11', 'p_e_1', 'p_e_2', 'p_e_3', 'p_e_4'] 
         self.x_list = ['delta_1', 'omega_1', 'e1q_1', 'e1d_1', 'v_c_1', 'xi_v_1', 'p_m_1', 'delta_2', 'omega_2', 'e1q_2', 'e1d_2', 'v_c_2', 'xi_v_2', 'p_m_2', 'delta_3', 'omega_3', 'e1q_3', 'e1d_3', 'v_c_3', 'xi_v_3', 'p_m_3', 'delta_4', 'omega_4', 'e1q_4', 'e1d_4', 'v_c_4', 'xi_v_4', 'p_m_4', 'xi_freq'] 
         self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'V_3', 'theta_3', 'V_4', 'theta_4', 'V_5', 'theta_5', 'V_6', 'theta_6', 'V_7', 'theta_7', 'V_8', 'theta_8', 'V_9', 'theta_9', 'V_10', 'theta_10', 'V_11', 'theta_11', 'i_d_1', 'i_q_1', 'p_g_1_1', 'q_g_1_1', 'v_f_1', 'p_m_ref_1', 'i_d_2', 'i_q_2', 'p_g_2_1', 'q_g_2_1', 'v_f_2', 'p_m_ref_2', 'i_d_3', 'i_q_3', 'p_g_3_1', 'q_g_3_1', 'v_f_3', 'p_m_ref_3', 'i_d_4', 'i_q_4', 'p_g_4_1', 'q_g_4_1', 'v_f_4', 'p_m_ref_4', 'p_r_1', 'p_r_2', 'p_r_3', 'p_r_4', 'omega_coi'] 
         self.xy_list = self.x_list + self.y_run_list 
@@ -1053,6 +1053,10 @@ def ini(struct,mode):
         struct[0].h[8,0] = V_9
         struct[0].h[9,0] = V_10
         struct[0].h[10,0] = V_11
+        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
+        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
+        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
+        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
     
 
     if mode == 10:
@@ -1768,6 +1772,10 @@ def run(t,struct,mode):
         struct[0].h[8,0] = V_9
         struct[0].h[9,0] = V_10
         struct[0].h[10,0] = V_11
+        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
+        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
+        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
+        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
     
 
     if mode == 10:
@@ -2141,6 +2149,10 @@ def run(t,struct,mode):
         struct[0].Gu[44,31] = K_a_4
         struct[0].Gu[44,32] = K_a_4
 
+        struct[0].Hx[11,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1)
+        struct[0].Hx[12,7] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2)
+        struct[0].Hx[13,14] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3)
+        struct[0].Hx[14,21] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4)
 
         struct[0].Hy[0,0] = 1
         struct[0].Hy[1,2] = 1
@@ -2153,6 +2165,22 @@ def run(t,struct,mode):
         struct[0].Hy[8,16] = 1
         struct[0].Hy[9,18] = 1
         struct[0].Hy[10,20] = 1
+        struct[0].Hy[11,0] = i_d_1*sin(delta_1 - theta_1) + i_q_1*cos(delta_1 - theta_1)
+        struct[0].Hy[11,1] = -V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1)
+        struct[0].Hy[11,22] = 2*R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)
+        struct[0].Hy[11,23] = 2*R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1)
+        struct[0].Hy[12,2] = i_d_2*sin(delta_2 - theta_2) + i_q_2*cos(delta_2 - theta_2)
+        struct[0].Hy[12,3] = -V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2)
+        struct[0].Hy[12,28] = 2*R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)
+        struct[0].Hy[12,29] = 2*R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2)
+        struct[0].Hy[13,4] = i_d_3*sin(delta_3 - theta_3) + i_q_3*cos(delta_3 - theta_3)
+        struct[0].Hy[13,5] = -V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3)
+        struct[0].Hy[13,34] = 2*R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)
+        struct[0].Hy[13,35] = 2*R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3)
+        struct[0].Hy[14,6] = i_d_4*sin(delta_4 - theta_4) + i_q_4*cos(delta_4 - theta_4)
+        struct[0].Hy[14,7] = -V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4)
+        struct[0].Hy[14,40] = 2*R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)
+        struct[0].Hy[14,41] = 2*R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4)
 
 
 
@@ -2499,6 +2527,10 @@ def ini_nn(struct,mode):
         struct[0].h[8,0] = V_9
         struct[0].h[9,0] = V_10
         struct[0].h[10,0] = V_11
+        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
+        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
+        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
+        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
     
 
     if mode == 10:
@@ -3158,6 +3190,10 @@ def run_nn(t,struct,mode):
         struct[0].h[8,0] = V_9
         struct[0].h[9,0] = V_10
         struct[0].h[10,0] = V_11
+        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
+        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
+        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
+        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
     
 
     if mode == 10:
@@ -3552,7 +3588,7 @@ def ini_dae_jacobian_numba(struct,x):
         struct[0].Ac_ini[row+N_x,col] = struct[0].Gx_ini[row,col]
     for row,col in zip(struct[0].Gy_ini_rows,struct[0].Gy_ini_cols):
         struct[0].Ac_ini[row+N_x,col+N_x] = struct[0].Gy_ini[row,col]
-
+        
 
 @numba.njit(cache=True)
 def ini_dae_problem(struct,x):
@@ -3565,7 +3601,7 @@ def ini_dae_problem(struct,x):
     ini(struct,3) 
     struct[0].fg[:N_x,:] = struct[0].f[:]
     struct[0].fg[N_x:,:] = struct[0].g[:]    
-
+        
 @numba.njit(cache=True)
 def ssate(struct,xy):
     for it in range(100):

@@ -313,7 +313,7 @@ def syns_add(grid):
         S_base = sym.Symbol('S_base', real = True)
         grid['g'][idx_bus*2]   += -p_g*S_n/S_base
         grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
-        
+        grid['h'].update({f"p_e_{bus_name}":p_e})
         #for item in syn:       
         #    grid['params'].update({f"{item}_{bus_name}":syn[item]})
         #grid['params'].pop(f"bus_{bus_name}")
