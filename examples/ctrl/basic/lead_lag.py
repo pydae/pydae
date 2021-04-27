@@ -26,8 +26,8 @@ class lead_lag_class:
         self.N_y = 1 
         self.N_z = 1 
         self.N_store = 10000 
-        self.params_list = ['T_l', 'Alpha_l'] 
-        self.params_values_list  = [1, 2] 
+        self.params_list = ['T_1', 'T_2'] 
+        self.params_values_list  = [2, 0.1] 
         self.inputs_ini_list = ['u_l'] 
         self.inputs_ini_values_list  = [0.0] 
         self.inputs_run_list = ['u_l'] 
@@ -713,8 +713,8 @@ class lead_lag_class:
 def ini(struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
     
     # Inputs:
     u_l = struct[0].u_l
@@ -729,14 +729,14 @@ def ini(struct,mode):
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = (u_l - x_l)/T_2
     
     # Algebraic equations:
     if mode == 3:
 
         struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = T_1*(u_l - x_l)/T_2 + x_l - z_l
     
     # Outputs:
     if mode == 3:
@@ -746,12 +746,12 @@ def ini(struct,mode):
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1/T_l
+        struct[0].Fx_ini[0,0] = -1/T_2
 
     if mode == 11:
 
 
-        struct[0].Gx_ini[0,0] = 1 - 1/Alpha_l
+        struct[0].Gx_ini[0,0] = -T_1/T_2 + 1
 
         pass
 
@@ -761,8 +761,8 @@ def ini(struct,mode):
 def run(t,struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
     
     # Inputs:
     u_l = struct[0].u_l
@@ -778,14 +778,14 @@ def run(t,struct,mode):
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = (u_l - x_l)/T_2
     
     # Algebraic equations:
     if mode == 3:
 
         struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = T_1*(u_l - x_l)/T_2 + x_l - z_l
     
     # Outputs:
     if mode == 3:
@@ -795,12 +795,12 @@ def run(t,struct,mode):
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1/T_l
+        struct[0].Fx[0,0] = -1/T_2
 
     if mode == 11:
 
 
-        struct[0].Gx[0,0] = 1 - 1/Alpha_l
+        struct[0].Gx[0,0] = -T_1/T_2 + 1
 
 
     if mode > 12:
@@ -816,8 +816,8 @@ def run(t,struct,mode):
 def ini_nn(struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
     
     # Inputs:
     u_l = struct[0].u_l
@@ -832,13 +832,13 @@ def ini_nn(struct,mode):
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = (u_l - x_l)/T_2
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = T_1*(u_l - x_l)/T_2 + x_l - z_l
     
     # Outputs:
     if mode == 3:
@@ -848,7 +848,7 @@ def ini_nn(struct,mode):
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1/T_l
+        struct[0].Fx_ini[0,0] = -1/T_2
 
     if mode == 11:
 
@@ -860,8 +860,8 @@ def ini_nn(struct,mode):
 def run_nn(t,struct,mode):
 
     # Parameters:
-    T_l = struct[0].T_l
-    Alpha_l = struct[0].Alpha_l
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
     
     # Inputs:
     u_l = struct[0].u_l
@@ -876,13 +876,13 @@ def run_nn(t,struct,mode):
     if mode == 2:
 
 
-        struct[0].f[0,0] = (u_l - x_l)/T_l
+        struct[0].f[0,0] = (u_l - x_l)/T_2
     
     # Algebraic equations:
     if mode == 3:
 
 
-        struct[0].g[0,0] = x_l - z_l + (u_l - x_l)/Alpha_l
+        struct[0].g[0,0] = T_1*(u_l - x_l)/T_2 + x_l - z_l
     
     # Outputs:
     if mode == 3:
@@ -892,7 +892,7 @@ def run_nn(t,struct,mode):
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1/T_l
+        struct[0].Fx[0,0] = -1/T_2
 
     if mode == 11:
 

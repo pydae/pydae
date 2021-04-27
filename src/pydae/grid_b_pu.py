@@ -322,43 +322,133 @@ def syns_add(grid):
         if 'avr' in syn:
             add_avr(grid,syn)
         if 'gov' in syn:
-            add_gov(grid,syn)            
+            add_gov(grid,syn,bus_i=buses[idx_bus]['idx_powers'])            
+        if 'pss' in syn:
+            add_pss(grid,syn)          
         
-        
-def add_avr(grid,syn_data):
+def add_avr(grid,syn_data,bus_i=''):
     
     if syn_data['avr']['type'] == 'sexs':
         sexs(grid,syn_data)
 
-def add_gov(grid,syn_data):
+def add_gov(grid,syn_data,bus_i):
     
     if syn_data['gov']['type'] == 'tgov1':
         tgov1(grid,syn_data)
+
+    if syn_data['gov']['type'] == 'agov1':
+        agov1(grid,syn_data,bus_i=bus_i)
+
     if syn_data['gov']['type'] == 'hygov':
         hygov(grid,syn_data)
+        
+def add_pss(grid,syn_data):
+    
+    if syn_data['pss']['type'] == 'pss_kundur':
+        pss_kundur(grid,syn_data)
+
         
 def tgov1(grid,syn_data):
     bus_name = syn_data['bus']
     gov_data = syn_data['gov']
     
+    # inpunts
     omega = sym.Symbol(f"omega_{bus_name}", real=True)
     p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
-    p_c = sym.Symbol(f"p_c_{bus_name}", real=True)  
+    p_c = sym.Symbol(f"p_c_{bus_name}", real=True) 
+
+    # dynamic states
+    x_gov_1 = sym.Symbol(f"x_gov_1_{bus_name}", real=True)
+    x_gov_2 = sym.Symbol(f"x_gov_2_{bus_name}", real=True)  
+
+    # algebraic states
     p_m = sym.Symbol(f"p_m_{bus_name}", real=True)  
     p_m_ref = sym.Symbol(f"p_m_ref_{bus_name}", real=True)  
-    T_m = sym.Symbol(f"T_m_{bus_name}", real=True) 
-    Droop = sym.Symbol(f"Droop_{bus_name}", real=True) 
+
+    # parameters
+    T_1 = sym.Symbol(f"T_gov_1_{bus_name}", real=True)  # 1
+    T_2 = sym.Symbol(f"T_gov_2_{bus_name}", real=True)  # 2
+    T_3 = sym.Symbol(f"T_gov_3_{bus_name}", real=True)  # 10
+
+    Droop = sym.Symbol(f"Droop_{bus_name}", real=True)  # 0.05
     
-    dp_m =   (p_m_ref - p_m)/T_m
-    g_p_m_ref  = -p_m_ref + p_c + p_r - 1/Droop*(omega - 1)
+    omega_ref = sym.Symbol(f"omega_ref_{bus_name}", real=True)
+
+    # differential equations
+    dx_gov_1 =   (p_m_ref - x_gov_1)/T_1
+    dx_gov_2 =   (x_gov_1 - x_gov_2)/T_3
+
+    g_p_m_ref  = -p_m_ref + p_c + p_r - 1/Droop*(omega - omega_ref)
+    g_p_m = (x_gov_1 - x_gov_2)*T_2/T_3 + x_gov_2 - p_m
+
     
-    grid['f'] += [dp_m]
-    grid['x'] += [ p_m]
-    grid['g'] += [g_p_m_ref]
-    grid['y'] += [  p_m_ref]  
+    grid['f'] += [dx_gov_1,dx_gov_2]
+    grid['x'] += [ x_gov_1, x_gov_2]
+    grid['g'] += [g_p_m_ref,g_p_m]
+    grid['y'] += [  p_m_ref,  p_m]  
     grid['params'].update({str(Droop):gov_data['Droop']})
-    grid['params'].update({str(T_m):gov_data['T_m']})
+    grid['params'].update({str(T_1):gov_data['T_1']})
+    grid['params'].update({str(T_2):gov_data['T_2']})
+    grid['params'].update({str(T_3):gov_data['T_3']})
+    grid['params'].update({str(omega_ref):1.0})
+
     grid['u'].update({str(p_c):gov_data['p_c']})
+    
+
+def agov1(grid,syn_data,bus_i = ''):
+    bus_name = syn_data['bus']
+    gov_data = syn_data['gov']
+    
+    # inpunts
+    omega = sym.Symbol(f"omega_{bus_name}", real=True)
+    p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
+    p_c = sym.Symbol(f"p_c_{bus_name}", real=True) 
+    p_g = sym.Symbol(f"p_g_{bus_name}_{bus_i}", real=True)
+
+    # dynamic states
+    x_gov_1 = sym.Symbol(f"x_gov_1_{bus_name}", real=True)
+    x_gov_2 = sym.Symbol(f"x_gov_2_{bus_name}", real=True)  
+    xi_imw  = sym.Symbol(f"xi_imw_{bus_name}", real=True)  
+
+    # algebraic states
+    p_m = sym.Symbol(f"p_m_{bus_name}", real=True)  
+    p_m_ref = sym.Symbol(f"p_m_ref_{bus_name}", real=True)  
+
+    # parameters
+    T_1 = sym.Symbol(f"T_gov_1_{bus_name}", real=True)  # 1
+    T_2 = sym.Symbol(f"T_gov_2_{bus_name}", real=True)  # 2
+    T_3 = sym.Symbol(f"T_gov_3_{bus_name}", real=True)  # 10
+
+    Droop = sym.Symbol(f"Droop_{bus_name}", real=True)  # 0.05
+    K_imw = sym.Symbol(f"K_imw_{bus_name}", real=True)  # 0.0
+
+    omega_ref = sym.Symbol(f"omega_ref_{bus_name}", real=True)
+
+    # differential equations
+    dx_gov_1 =   (p_m_ref - x_gov_1)/T_1
+    dx_gov_2 =   (x_gov_1 - x_gov_2)/T_3
+    dxi_imw =   K_imw*(p_c - p_g) - 1e-6*xi_imw
+
+    g_p_m_ref  = -p_m_ref + p_c + xi_imw + p_r - 1/Droop*(omega - omega_ref) 
+
+    g_p_m = (x_gov_1 - x_gov_2)*T_2/T_3 + x_gov_2 - p_m
+
+    
+    grid['f'] += [dx_gov_1,dx_gov_2,dxi_imw]
+    grid['x'] += [ x_gov_1, x_gov_2, xi_imw]
+    grid['g'] += [g_p_m_ref,g_p_m]
+    grid['y'] += [  p_m_ref,  p_m]  
+    grid['params'].update({str(Droop):gov_data['Droop']})
+    grid['params'].update({str(T_1):gov_data['T_1']})
+    grid['params'].update({str(T_2):gov_data['T_2']})
+    grid['params'].update({str(T_3):gov_data['T_3']})
+    grid['params'].update({str(K_imw):gov_data['K_imw']})
+    grid['params'].update({str(omega_ref):1.0})
+
+    grid['u'].update({str(p_c):gov_data['p_c']})
+
+
+
 
 def hygov(grid,syn_data):
     bus_name = syn_data['bus']
@@ -443,6 +533,45 @@ def sexs(grid,syn_data):
     grid['u'].update({str(v_ref):avr_data['v_ref']})
     grid['u'].update({str(v_pss):avr_data['v_pss']})
     
+def pss_kundur(grid,syn_data):
+    bus_name = syn_data['bus']
+    pss_data = syn_data['pss']
+    
+    omega = sym.Symbol(f"omega_{bus_name}", real=True)   
+       
+    x_wo  = sym.Symbol(f"x_wo_{bus_name}", real=True)
+    x_lead  = sym.Symbol(f"x_lead_{bus_name}", real=True)
+
+    z_wo  = sym.Symbol(f"z_wo_{bus_name}", real=True)
+    x_lead  = sym.Symbol(f"x_lead_{bus_name}", real=True)
+    
+    T_wo = sym.Symbol(f"T_wo_{bus_name}", real=True)  
+    T_1 = sym.Symbol(f"T_1_{bus_name}", real=True) 
+    T_2 = sym.Symbol(f"T_2_{bus_name}", real=True)
+    K_stab = sym.Symbol(f"K_stab_{bus_name}", real=True)
+
+    v_pss = sym.Symbol(f"v_pss_{bus_name}", real=True) 
+    
+    
+    u_wo = omega - 1.0
+    
+    dx_wo =   (u_wo - x_wo)/T_wo  # washout state
+    dx_lead =  (z_wo - x_lead)/T_2      # lead compensator state
+    
+    g_z_wo =  (u_wo - x_wo) - z_wo  
+    g_v_pss = K_stab*((z_wo - x_lead)*T_1/T_2 + x_lead) - v_pss  
+    
+    
+    grid['f'] += [dx_wo,dx_lead]
+    grid['x'] += [ x_wo, x_lead]
+    grid['g'] += [g_z_wo,g_v_pss]
+    grid['y'] += [  z_wo, v_pss]  
+    grid['params'].update({str(T_wo):pss_data['T_wo']})
+    grid['params'].update({str(T_1):pss_data['T_1']})
+    grid['params'].update({str(T_2):pss_data['T_2']})
+    grid['params'].update({str(K_stab):pss_data['K_stab']})
+
+
     
 def hygov_original(grid,syn_data):
     bus_name = syn_data['bus']

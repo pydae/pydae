@@ -317,7 +317,7 @@ def add_arrow(string,name='arrow',scale=1,angle=0,center_x=0,center_y=0,color="#
     trans_x = center_x*(1-scale)
     trans_y = center_y*(1-scale)
     string += f'<path d="M {center_x},{center_y} h 1.32292 v -52.916665 h 1.32291 l -2.64583,-5.291666 -2.64583,5.291666 h 1.32291 v 52.916665 z" ' 
-    string += f'fill="{color}" id="arrow_1" class="tooltip-trigger" data-tooltip-text="{name}" '
+    string += f'fill="{color}" id="arrow_1" class="tooltip-trigger" data-tooltip-text="{name}"  fill-opacity="0.5" '
     string += f'stroke-width="0" transform="translate({trans_x},{trans_y}) scale({scale})  rotate({angle},{center_x},{center_y})" '   
     string += f'/>' 
     return string

@@ -8,10 +8,9 @@ cos = np.cos
 atan2 = np.arctan2
 sqrt = np.sqrt 
 sign = np.sign 
-exp = np.exp
 
 
-class {name}_class: 
+class washout_class: 
 
     def __init__(self): 
 
@@ -23,21 +22,21 @@ class {name}_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = {N_x}
-        self.N_y = {N_y} 
-        self.N_z = {N_z} 
+        self.N_x = 1
+        self.N_y = 1 
+        self.N_z = 1 
         self.N_store = 10000 
-        self.params_list = {params_list} 
-        self.params_values_list  = {params_values_list} 
-        self.inputs_ini_list = {inputs_ini_list} 
-        self.inputs_ini_values_list  = {inputs_ini_values_list} 
-        self.inputs_run_list = {inputs_run_list} 
-        self.inputs_run_values_list = {inputs_run_values_list} 
-        self.outputs_list = {outputs_list} 
-        self.x_list = {x_list} 
-        self.y_run_list = {y_run_list} 
+        self.params_list = ['T_wo'] 
+        self.params_values_list  = [5] 
+        self.inputs_ini_list = ['u_wo'] 
+        self.inputs_ini_values_list  = [0.0] 
+        self.inputs_run_list = ['u_wo'] 
+        self.inputs_run_values_list = [0.0] 
+        self.outputs_list = ['u_wo'] 
+        self.x_list = ['x_wo'] 
+        self.y_run_list = ['z_wo'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = {y_ini_list} 
+        self.y_ini_list = ['z_wo'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -230,14 +229,7 @@ class {name}_class:
         self.data = data
         for item in self.data:
             self.struct[0][item] = self.data[item]
-            if item in self.params_list:
-                self.params_values_list[self.params_list.index(item)] = self.data[item]
-            elif item in self.inputs_ini_list:
-                self.inputs_ini_values_list[self.inputs_ini_list.index(item)] = self.data[item]
-            elif item in self.inputs_run_list:
-                self.inputs_run_values_list[self.inputs_run_list.index(item)] = self.data[item]
-            else: 
-                print(f'parameter or input {item} not found')
+            self.params_values_list[self.params_list.index(item)] = self.data[item]
 
 
 
@@ -714,3 +706,407 @@ class {name}_class:
 
 
 
+
+
+
+@numba.njit(cache=True)
+def ini(struct,mode):
+
+    # Parameters:
+    T_wo = struct[0].T_wo
+    
+    # Inputs:
+    u_wo = struct[0].u_wo
+    
+    # Dynamical states:
+    x_wo = struct[0].x[0,0]
+    
+    # Algebraic states:
+    z_wo = struct[0].y_ini[0,0]
+    
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = (u_wo - x_wo)/T_wo
+    
+    # Algebraic equations:
+    if mode == 3:
+
+        struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
+
+        struct[0].g[0,0] = u_wo - x_wo - z_wo
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = u_wo
+    
+
+    if mode == 10:
+
+        struct[0].Fx_ini[0,0] = -1/T_wo
+
+    if mode == 11:
+
+
+        struct[0].Gx_ini[0,0] = -1
+
+        pass
+
+
+
+@numba.njit(cache=True)
+def run(t,struct,mode):
+
+    # Parameters:
+    T_wo = struct[0].T_wo
+    
+    # Inputs:
+    u_wo = struct[0].u_wo
+    
+    # Dynamical states:
+    x_wo = struct[0].x[0,0]
+    
+    # Algebraic states:
+    z_wo = struct[0].y_run[0,0]
+    
+    struct[0].u_run[0,0] = u_wo
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = (u_wo - x_wo)/T_wo
+    
+    # Algebraic equations:
+    if mode == 3:
+
+        struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
+
+        struct[0].g[0,0] = u_wo - x_wo - z_wo
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = u_wo
+    
+
+    if mode == 10:
+
+        struct[0].Fx[0,0] = -1/T_wo
+
+    if mode == 11:
+
+
+        struct[0].Gx[0,0] = -1
+
+
+    if mode > 12:
+
+
+
+
+
+        pass
+
+
+
+def ini_nn(struct,mode):
+
+    # Parameters:
+    T_wo = struct[0].T_wo
+    
+    # Inputs:
+    u_wo = struct[0].u_wo
+    
+    # Dynamical states:
+    x_wo = struct[0].x[0,0]
+    
+    # Algebraic states:
+    z_wo = struct[0].y_ini[0,0]
+    
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = (u_wo - x_wo)/T_wo
+    
+    # Algebraic equations:
+    if mode == 3:
+
+
+        struct[0].g[0,0] = u_wo - x_wo - z_wo
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = u_wo
+    
+
+    if mode == 10:
+
+        struct[0].Fx_ini[0,0] = -1/T_wo
+
+    if mode == 11:
+
+
+        struct[0].Gy_ini[0,0] = -1
+
+
+
+def run_nn(t,struct,mode):
+
+    # Parameters:
+    T_wo = struct[0].T_wo
+    
+    # Inputs:
+    u_wo = struct[0].u_wo
+    
+    # Dynamical states:
+    x_wo = struct[0].x[0,0]
+    
+    # Algebraic states:
+    z_wo = struct[0].y_run[0,0]
+    
+    # Differential equations:
+    if mode == 2:
+
+
+        struct[0].f[0,0] = (u_wo - x_wo)/T_wo
+    
+    # Algebraic equations:
+    if mode == 3:
+
+
+        struct[0].g[0,0] = u_wo - x_wo - z_wo
+    
+    # Outputs:
+    if mode == 3:
+
+        struct[0].h[0,0] = u_wo
+    
+
+    if mode == 10:
+
+        struct[0].Fx[0,0] = -1/T_wo
+
+    if mode == 11:
+
+
+        struct[0].Gy[0,0] = -1
+
+
+
+
+
+
+@numba.njit(cache=True)
+def Piecewise(arg):
+    out = arg[0][1]
+    N = len(arg)
+    for it in range(N-1,-1,-1):
+        if arg[it][1]: out = arg[it][0]
+    return out
+
+@numba.njit(cache=True)
+def ITE(arg):
+    out = arg[0][1]
+    N = len(arg)
+    for it in range(N-1,-1,-1):
+        if arg[it][1]: out = arg[it][0]
+    return out
+
+
+@numba.njit(cache=True)
+def Abs(x):
+    return np.abs(x)
+
+
+@numba.njit(cache=True)
+def ini_dae_jacobian_numba(struct,x):
+    N_x = struct[0].N_x
+    N_y = struct[0].N_y
+    struct[0].x[:,0] = x[0:N_x]
+    struct[0].y_ini[:,0] = x[N_x:(N_x+N_y)]
+
+    ini(struct,10)
+    ini(struct,11) 
+
+    for row,col in zip(struct[0].Fx_ini_rows,struct[0].Fx_ini_cols):
+        struct[0].Ac_ini[row,col] = struct[0].Fx_ini[row,col]
+    for row,col in zip(struct[0].Fy_ini_rows,struct[0].Fy_ini_cols):
+        struct[0].Ac_ini[row,col+N_x] = struct[0].Fy_ini[row,col]
+    for row,col in zip(struct[0].Gx_ini_rows,struct[0].Gx_ini_cols):
+        struct[0].Ac_ini[row+N_x,col] = struct[0].Gx_ini[row,col]
+    for row,col in zip(struct[0].Gy_ini_rows,struct[0].Gy_ini_cols):
+        struct[0].Ac_ini[row+N_x,col+N_x] = struct[0].Gy_ini[row,col]
+        
+
+@numba.njit(cache=True)
+def ini_dae_problem(struct,x):
+    N_x = struct[0].N_x
+    N_y = struct[0].N_y
+    struct[0].x[:,0] = x[0:N_x]
+    struct[0].y_ini[:,0] = x[N_x:(N_x+N_y)]
+
+    ini(struct,2)
+    ini(struct,3) 
+    struct[0].fg[:N_x,:] = struct[0].f[:]
+    struct[0].fg[N_x:,:] = struct[0].g[:]    
+        
+@numba.njit(cache=True)
+def ssate(struct,xy):
+    for it in range(100):
+        ini_dae_jacobian_numba(struct,xy[:,0])
+        ini_dae_problem(struct,xy[:,0])
+        xy[:] += np.linalg.solve(struct[0].Ac_ini,-struct[0].fg)
+        if np.max(np.abs(struct[0].fg[:,0]))<1e-8: break
+    N_x = struct[0].N_x
+    struct[0].x[:,0] = xy[:N_x,0]
+    struct[0].y_ini[:,0] = xy[N_x:,0]
+    return xy,it
+
+
+@numba.njit(cache=True) 
+def daesolver(struct): 
+    sin = np.sin
+    cos = np.cos
+    sqrt = np.sqrt
+    i = 0 
+    
+    Dt = struct[i].Dt 
+
+    N_x = struct[i].N_x
+    N_y = struct[i].N_y
+    N_z = struct[i].N_z
+
+    decimation = struct[i].decimation 
+    eye = np.eye(N_x)
+    t = struct[i].t 
+    t_end = struct[i].t_end 
+    if struct[i].it == 0:
+        run(t,struct, 1) 
+        struct[i].it_store = 0  
+        struct[i]['T'][0] = t 
+        struct[i].X[0,:] = struct[i].x[:,0]  
+        struct[i].Y[0,:] = struct[i].y_run[:,0]  
+        struct[i].Z[0,:] = struct[i].h[:,0]  
+
+    solver = struct[i].solvern 
+    while t<t_end: 
+        struct[i].it += 1
+        struct[i].t += Dt
+        
+        t = struct[i].t
+
+
+            
+        if solver == 5: # Teapezoidal DAE as in Milano's book
+
+            run(t,struct, 2) 
+            run(t,struct, 3) 
+
+            x = np.copy(struct[i].x[:]) 
+            y = np.copy(struct[i].y_run[:]) 
+            f = np.copy(struct[i].f[:]) 
+            g = np.copy(struct[i].g[:]) 
+            
+            for iter in range(struct[i].imax):
+                run(t,struct, 2) 
+                run(t,struct, 3) 
+                run(t,struct,10) 
+                run(t,struct,11) 
+                
+                x_i = struct[i].x[:] 
+                y_i = struct[i].y_run[:]  
+                f_i = struct[i].f[:] 
+                g_i = struct[i].g[:]                 
+                F_x_i = struct[i].Fx[:,:]
+                F_y_i = struct[i].Fy[:,:] 
+                G_x_i = struct[i].Gx[:,:] 
+                G_y_i = struct[i].Gy[:,:]                
+
+                A_c_i = np.vstack((np.hstack((eye-0.5*Dt*F_x_i, -0.5*Dt*F_y_i)),
+                                   np.hstack((G_x_i,         G_y_i))))
+                     
+                f_n_i = x_i - x - 0.5*Dt*(f_i+f) 
+                # print(t,iter,g_i)
+                Dxy_i = np.linalg.solve(-A_c_i,np.vstack((f_n_i,g_i))) 
+                
+                x_i = x_i + Dxy_i[0:N_x]
+                y_i = y_i + Dxy_i[N_x:(N_x+N_y)]
+
+                struct[i].x[:] = x_i
+                struct[i].y_run[:] = y_i
+
+        # [f_i,g_i,F_x_i,F_y_i,G_x_i,G_y_i] =  smib_transient(x_i,y_i,u);
+        
+        # A_c_i = [[eye(N_x)-0.5*Dt*F_x_i, -0.5*Dt*F_y_i],
+        #          [                G_x_i,         G_y_i]];
+             
+        # f_n_i = x_i - x - 0.5*Dt*(f_i+f);
+        
+        # Dxy_i = -A_c_i\[f_n_i.',g_i.'].';
+        
+        # x_i = x_i + Dxy_i(1:N_x);
+        # y_i = y_i + Dxy_i(N_x+1:N_x+N_y);
+                
+                xy = np.vstack((x_i,y_i))
+                max_relative = 0.0
+                for it_var in range(N_x+N_y):
+                    abs_value = np.abs(xy[it_var,0])
+                    if abs_value < 0.001:
+                        abs_value = 0.001
+                                             
+                    relative_error = np.abs(Dxy_i[it_var,0])/abs_value
+                    
+                    if relative_error > max_relative: max_relative = relative_error
+                    
+                if max_relative<struct[i].itol:
+                    
+                    break
+                
+                # if iter>struct[i].imax-2:
+                    
+                #     print('Convergence problem')
+
+            struct[i].x[:] = x_i
+            struct[i].y_run[:] = y_i
+                
+        # channels 
+        if struct[i].store == 1:
+            it_store = struct[i].it_store
+            if struct[i].it >= it_store*decimation: 
+                struct[i]['T'][it_store+1] = t 
+                struct[i].X[it_store+1,:] = struct[i].x[:,0] 
+                struct[i].Y[it_store+1,:] = struct[i].y_run[:,0]
+                struct[i].Z[it_store+1,:] = struct[i].h[:,0]
+                struct[i].iters[it_store+1,0] = iter
+                struct[i].it_store += 1 
+            
+    struct[i].t = t
+
+    return t
+
+
+
+
+
+def nonzeros():
+    Fx_ini_rows = [0]
+
+    Fx_ini_cols = [0]
+
+    Fy_ini_rows = []
+
+    Fy_ini_cols = []
+
+    Gx_ini_rows = [0]
+
+    Gx_ini_cols = [0]
+
+    Gy_ini_rows = [0]
+
+    Gy_ini_cols = [0]
+
+    return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols

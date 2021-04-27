@@ -10,7 +10,7 @@ sqrt = np.sqrt
 sign = np.sign 
 
 
-class smib_milano_ex8p1_4ord_avr_class: 
+class smib_milano_ex8p1_4ord_avr_pss_class: 
 
     def __init__(self): 
 
@@ -22,21 +22,21 @@ class smib_milano_ex8p1_4ord_avr_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 5
-        self.N_y = 10 
+        self.N_x = 7
+        self.N_y = 12 
         self.N_z = 1 
         self.N_store = 10000 
-        self.params_list = ['X_d', 'X1d', 'T1d0', 'X_q', 'X1q', 'T1q0', 'R_a', 'X_l', 'H', 'D', 'Omega_b', 'omega_s', 'v_0', 'theta_0', 'K_a', 'T_e', 'v_pss'] 
-        self.params_values_list  = [1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.1, 3.5, 0.0, 314.1592653589793, 1.0, 1.0, 0.0, 100, 0.1, 0.0] 
+        self.params_list = ['X_d', 'X1d', 'T1d0', 'X_q', 'X1q', 'T1q0', 'R_a', 'X_l', 'H', 'D', 'Omega_b', 'omega_s', 'v_0', 'theta_0', 'K_a', 'T_e', 'T_wo', 'T_1', 'T_2', 'K_stab'] 
+        self.params_values_list  = [1.81, 0.3, 8.0, 1.76, 0.65, 1.0, 0.003, 0.1, 3.5, 0.0, 314.1592653589793, 1.0, 1.0, 0.0, 100, 0.1, 10.0, 0.1, 0.1, 0.0] 
         self.inputs_ini_list = ['p_t', 'v_t'] 
         self.inputs_ini_values_list  = [0.8, 1.0] 
         self.inputs_run_list = ['p_m', 'v_ref'] 
         self.inputs_run_values_list = [0.8, 1.0] 
         self.outputs_list = ['p_m'] 
-        self.x_list = ['delta', 'omega', 'e1q', 'e1d', 'v_c'] 
-        self.y_run_list = ['v_d', 'v_q', 'i_d', 'i_q', 'p_e', 'p_t', 'q_t', 'v_t', 'theta_t', 'v_f'] 
+        self.x_list = ['delta', 'omega', 'e1q', 'e1d', 'v_c', 'x_wo', 'x_l'] 
+        self.y_run_list = ['v_d', 'v_q', 'i_d', 'i_q', 'p_e', 'p_t', 'q_t', 'v_t', 'theta_t', 'v_f', 'z_wo', 'v_pss'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['v_d', 'v_q', 'i_d', 'i_q', 'p_e', 'p_m', 'q_t', 'v_ref', 'theta_t', 'v_f'] 
+        self.y_ini_list = ['v_d', 'v_q', 'i_d', 'i_q', 'p_e', 'p_m', 'q_t', 'v_ref', 'theta_t', 'v_f', 'z_wo', 'v_pss'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -729,7 +729,10 @@ def ini(struct,mode):
     theta_0 = struct[0].theta_0
     K_a = struct[0].K_a
     T_e = struct[0].T_e
-    v_pss = struct[0].v_pss
+    T_wo = struct[0].T_wo
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
+    K_stab = struct[0].K_stab
     
     # Inputs:
     p_t = struct[0].p_t
@@ -741,6 +744,8 @@ def ini(struct,mode):
     e1q = struct[0].x[2,0]
     e1d = struct[0].x[3,0]
     v_c = struct[0].x[4,0]
+    x_wo = struct[0].x[5,0]
+    x_l = struct[0].x[6,0]
     
     # Algebraic states:
     v_d = struct[0].y_ini[0,0]
@@ -753,6 +758,8 @@ def ini(struct,mode):
     v_ref = struct[0].y_ini[7,0]
     theta_t = struct[0].y_ini[8,0]
     v_f = struct[0].y_ini[9,0]
+    z_wo = struct[0].y_ini[10,0]
+    v_pss = struct[0].y_ini[11,0]
     
     # Differential equations:
     if mode == 2:
@@ -763,6 +770,8 @@ def ini(struct,mode):
         struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
         struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
         struct[0].f[4,0] = (-v_c + v_t)/T_e
+        struct[0].f[5,0] = (omega - omega_s - x_wo)/T_wo
+        struct[0].f[6,0] = (-x_l + z_wo)/T_2
     
     # Algebraic equations:
     if mode == 3:
@@ -779,6 +788,8 @@ def ini(struct,mode):
         struct[0].g[7,0] = p_t + v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].g[8,0] = q_t + v_0*v_t*cos(theta_0 - theta_t)/X_l - v_t**2/X_l
         struct[0].g[9,0] = K_a*(-v_c + v_pss + v_ref) - v_f
+        struct[0].g[10,0] = omega - omega_s - x_wo - z_wo
+        struct[0].g[11,0] = K_stab*(T_1*(-x_l + z_wo)/T_2 + x_l) - v_pss
     
     # Outputs:
     if mode == 3:
@@ -793,6 +804,9 @@ def ini(struct,mode):
         struct[0].Fx_ini[2,2] = -1/T1d0
         struct[0].Fx_ini[3,3] = -1/T1q0
         struct[0].Fx_ini[4,4] = -1/T_e
+        struct[0].Fx_ini[5,1] = 1/T_wo
+        struct[0].Fx_ini[5,5] = -1/T_wo
+        struct[0].Fx_ini[6,6] = -1/T_2
 
     if mode == 11:
 
@@ -801,12 +815,16 @@ def ini(struct,mode):
         struct[0].Fy_ini[2,2] = (X1d - X_d)/T1d0 
         struct[0].Fy_ini[2,9] = 1/T1d0 
         struct[0].Fy_ini[3,3] = (-X1q + X_q)/T1q0 
+        struct[0].Fy_ini[6,10] = 1/T_2 
 
         struct[0].Gx_ini[0,0] = v_t*cos(delta - theta_t)
         struct[0].Gx_ini[1,0] = -v_t*sin(delta - theta_t)
         struct[0].Gx_ini[2,2] = -1
         struct[0].Gx_ini[3,3] = -1
         struct[0].Gx_ini[9,4] = -K_a
+        struct[0].Gx_ini[10,1] = 1
+        struct[0].Gx_ini[10,5] = -1
+        struct[0].Gx_ini[11,6] = K_stab*(-T_1/T_2 + 1)
 
         struct[0].Gy_ini[0,8] = -v_t*cos(delta - theta_t)
         struct[0].Gy_ini[1,8] = v_t*sin(delta - theta_t)
@@ -829,6 +847,8 @@ def ini(struct,mode):
         struct[0].Gy_ini[7,8] = -v_0*v_t*cos(theta_0 - theta_t)/X_l
         struct[0].Gy_ini[8,8] = v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].Gy_ini[9,7] = K_a
+        struct[0].Gy_ini[9,11] = K_a
+        struct[0].Gy_ini[11,10] = K_stab*T_1/T_2
 
 
 
@@ -852,7 +872,10 @@ def run(t,struct,mode):
     theta_0 = struct[0].theta_0
     K_a = struct[0].K_a
     T_e = struct[0].T_e
-    v_pss = struct[0].v_pss
+    T_wo = struct[0].T_wo
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
+    K_stab = struct[0].K_stab
     
     # Inputs:
     p_m = struct[0].p_m
@@ -864,6 +887,8 @@ def run(t,struct,mode):
     e1q = struct[0].x[2,0]
     e1d = struct[0].x[3,0]
     v_c = struct[0].x[4,0]
+    x_wo = struct[0].x[5,0]
+    x_l = struct[0].x[6,0]
     
     # Algebraic states:
     v_d = struct[0].y_run[0,0]
@@ -876,6 +901,8 @@ def run(t,struct,mode):
     v_t = struct[0].y_run[7,0]
     theta_t = struct[0].y_run[8,0]
     v_f = struct[0].y_run[9,0]
+    z_wo = struct[0].y_run[10,0]
+    v_pss = struct[0].y_run[11,0]
     
     struct[0].u_run[0,0] = p_m
     struct[0].u_run[1,0] = v_ref
@@ -888,6 +915,8 @@ def run(t,struct,mode):
         struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
         struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
         struct[0].f[4,0] = (-v_c + v_t)/T_e
+        struct[0].f[5,0] = (omega - omega_s - x_wo)/T_wo
+        struct[0].f[6,0] = (-x_l + z_wo)/T_2
     
     # Algebraic equations:
     if mode == 3:
@@ -904,6 +933,8 @@ def run(t,struct,mode):
         struct[0].g[7,0] = p_t + v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].g[8,0] = q_t + v_0*v_t*cos(theta_0 - theta_t)/X_l - v_t**2/X_l
         struct[0].g[9,0] = K_a*(-v_c + v_pss + v_ref) - v_f
+        struct[0].g[10,0] = omega - omega_s - x_wo - z_wo
+        struct[0].g[11,0] = K_stab*(T_1*(-x_l + z_wo)/T_2 + x_l) - v_pss
     
     # Outputs:
     if mode == 3:
@@ -918,6 +949,9 @@ def run(t,struct,mode):
         struct[0].Fx[2,2] = -1/T1d0
         struct[0].Fx[3,3] = -1/T1q0
         struct[0].Fx[4,4] = -1/T_e
+        struct[0].Fx[5,1] = 1/T_wo
+        struct[0].Fx[5,5] = -1/T_wo
+        struct[0].Fx[6,6] = -1/T_2
 
     if mode == 11:
 
@@ -926,12 +960,16 @@ def run(t,struct,mode):
         struct[0].Fy[2,9] = 1/T1d0
         struct[0].Fy[3,3] = (-X1q + X_q)/T1q0
         struct[0].Fy[4,7] = 1/T_e
+        struct[0].Fy[6,10] = 1/T_2
 
         struct[0].Gx[0,0] = v_t*cos(delta - theta_t)
         struct[0].Gx[1,0] = -v_t*sin(delta - theta_t)
         struct[0].Gx[2,2] = -1
         struct[0].Gx[3,3] = -1
         struct[0].Gx[9,4] = -K_a
+        struct[0].Gx[10,1] = 1
+        struct[0].Gx[10,5] = -1
+        struct[0].Gx[11,6] = K_stab*(-T_1/T_2 + 1)
 
         struct[0].Gy[0,7] = sin(delta - theta_t)
         struct[0].Gy[0,8] = -v_t*cos(delta - theta_t)
@@ -957,6 +995,8 @@ def run(t,struct,mode):
         struct[0].Gy[7,8] = -v_0*v_t*cos(theta_0 - theta_t)/X_l
         struct[0].Gy[8,7] = v_0*cos(theta_0 - theta_t)/X_l - 2*v_t/X_l
         struct[0].Gy[8,8] = v_0*v_t*sin(theta_0 - theta_t)/X_l
+        struct[0].Gy[9,11] = K_a
+        struct[0].Gy[11,10] = K_stab*T_1/T_2
 
     if mode > 12:
 
@@ -987,7 +1027,10 @@ def ini_nn(struct,mode):
     theta_0 = struct[0].theta_0
     K_a = struct[0].K_a
     T_e = struct[0].T_e
-    v_pss = struct[0].v_pss
+    T_wo = struct[0].T_wo
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
+    K_stab = struct[0].K_stab
     
     # Inputs:
     p_t = struct[0].p_t
@@ -999,6 +1042,8 @@ def ini_nn(struct,mode):
     e1q = struct[0].x[2,0]
     e1d = struct[0].x[3,0]
     v_c = struct[0].x[4,0]
+    x_wo = struct[0].x[5,0]
+    x_l = struct[0].x[6,0]
     
     # Algebraic states:
     v_d = struct[0].y_ini[0,0]
@@ -1011,6 +1056,8 @@ def ini_nn(struct,mode):
     v_ref = struct[0].y_ini[7,0]
     theta_t = struct[0].y_ini[8,0]
     v_f = struct[0].y_ini[9,0]
+    z_wo = struct[0].y_ini[10,0]
+    v_pss = struct[0].y_ini[11,0]
     
     # Differential equations:
     if mode == 2:
@@ -1021,6 +1068,8 @@ def ini_nn(struct,mode):
         struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
         struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
         struct[0].f[4,0] = (-v_c + v_t)/T_e
+        struct[0].f[5,0] = (omega - omega_s - x_wo)/T_wo
+        struct[0].f[6,0] = (-x_l + z_wo)/T_2
     
     # Algebraic equations:
     if mode == 3:
@@ -1036,6 +1085,8 @@ def ini_nn(struct,mode):
         struct[0].g[7,0] = p_t + v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].g[8,0] = q_t + v_0*v_t*cos(theta_0 - theta_t)/X_l - v_t**2/X_l
         struct[0].g[9,0] = K_a*(-v_c + v_pss + v_ref) - v_f
+        struct[0].g[10,0] = omega - omega_s - x_wo - z_wo
+        struct[0].g[11,0] = K_stab*(T_1*(-x_l + z_wo)/T_2 + x_l) - v_pss
     
     # Outputs:
     if mode == 3:
@@ -1050,6 +1101,9 @@ def ini_nn(struct,mode):
         struct[0].Fx_ini[2,2] = -1/T1d0
         struct[0].Fx_ini[3,3] = -1/T1q0
         struct[0].Fx_ini[4,4] = -1/T_e
+        struct[0].Fx_ini[5,1] = 1/T_wo
+        struct[0].Fx_ini[5,5] = -1/T_wo
+        struct[0].Fx_ini[6,6] = -1/T_2
 
     if mode == 11:
 
@@ -1058,6 +1112,7 @@ def ini_nn(struct,mode):
         struct[0].Fy_ini[2,2] = (X1d - X_d)/T1d0 
         struct[0].Fy_ini[2,9] = 1/T1d0 
         struct[0].Fy_ini[3,3] = (-X1q + X_q)/T1q0 
+        struct[0].Fy_ini[6,10] = 1/T_2 
 
         struct[0].Gy_ini[0,0] = -1
         struct[0].Gy_ini[0,8] = -v_t*cos(delta - theta_t)
@@ -1088,6 +1143,10 @@ def ini_nn(struct,mode):
         struct[0].Gy_ini[8,8] = v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].Gy_ini[9,7] = K_a
         struct[0].Gy_ini[9,9] = -1
+        struct[0].Gy_ini[9,11] = K_a
+        struct[0].Gy_ini[10,10] = -1
+        struct[0].Gy_ini[11,10] = K_stab*T_1/T_2
+        struct[0].Gy_ini[11,11] = -1
 
 
 
@@ -1110,7 +1169,10 @@ def run_nn(t,struct,mode):
     theta_0 = struct[0].theta_0
     K_a = struct[0].K_a
     T_e = struct[0].T_e
-    v_pss = struct[0].v_pss
+    T_wo = struct[0].T_wo
+    T_1 = struct[0].T_1
+    T_2 = struct[0].T_2
+    K_stab = struct[0].K_stab
     
     # Inputs:
     p_m = struct[0].p_m
@@ -1122,6 +1184,8 @@ def run_nn(t,struct,mode):
     e1q = struct[0].x[2,0]
     e1d = struct[0].x[3,0]
     v_c = struct[0].x[4,0]
+    x_wo = struct[0].x[5,0]
+    x_l = struct[0].x[6,0]
     
     # Algebraic states:
     v_d = struct[0].y_run[0,0]
@@ -1134,6 +1198,8 @@ def run_nn(t,struct,mode):
     v_t = struct[0].y_run[7,0]
     theta_t = struct[0].y_run[8,0]
     v_f = struct[0].y_run[9,0]
+    z_wo = struct[0].y_run[10,0]
+    v_pss = struct[0].y_run[11,0]
     
     # Differential equations:
     if mode == 2:
@@ -1144,6 +1210,8 @@ def run_nn(t,struct,mode):
         struct[0].f[2,0] = (-e1q - i_d*(-X1d + X_d) + v_f)/T1d0
         struct[0].f[3,0] = (-e1d + i_q*(-X1q + X_q))/T1q0
         struct[0].f[4,0] = (-v_c + v_t)/T_e
+        struct[0].f[5,0] = (omega - omega_s - x_wo)/T_wo
+        struct[0].f[6,0] = (-x_l + z_wo)/T_2
     
     # Algebraic equations:
     if mode == 3:
@@ -1159,6 +1227,8 @@ def run_nn(t,struct,mode):
         struct[0].g[7,0] = p_t + v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].g[8,0] = q_t + v_0*v_t*cos(theta_0 - theta_t)/X_l - v_t**2/X_l
         struct[0].g[9,0] = K_a*(-v_c + v_pss + v_ref) - v_f
+        struct[0].g[10,0] = omega - omega_s - x_wo - z_wo
+        struct[0].g[11,0] = K_stab*(T_1*(-x_l + z_wo)/T_2 + x_l) - v_pss
     
     # Outputs:
     if mode == 3:
@@ -1173,6 +1243,9 @@ def run_nn(t,struct,mode):
         struct[0].Fx[2,2] = -1/T1d0
         struct[0].Fx[3,3] = -1/T1q0
         struct[0].Fx[4,4] = -1/T_e
+        struct[0].Fx[5,1] = 1/T_wo
+        struct[0].Fx[5,5] = -1/T_wo
+        struct[0].Fx[6,6] = -1/T_2
 
     if mode == 11:
 
@@ -1181,6 +1254,7 @@ def run_nn(t,struct,mode):
         struct[0].Fy[2,9] = 1/T1d0
         struct[0].Fy[3,3] = (-X1q + X_q)/T1q0
         struct[0].Fy[4,7] = 1/T_e
+        struct[0].Fy[6,10] = 1/T_2
 
         struct[0].Gy[0,0] = -1
         struct[0].Gy[0,7] = sin(delta - theta_t)
@@ -1216,6 +1290,10 @@ def run_nn(t,struct,mode):
         struct[0].Gy[8,7] = v_0*cos(theta_0 - theta_t)/X_l - 2*v_t/X_l
         struct[0].Gy[8,8] = v_0*v_t*sin(theta_0 - theta_t)/X_l
         struct[0].Gy[9,9] = -1
+        struct[0].Gy[9,11] = K_a
+        struct[0].Gy[10,10] = -1
+        struct[0].Gy[11,10] = K_stab*T_1/T_2
+        struct[0].Gy[11,11] = -1
 
 
 
@@ -1262,7 +1340,7 @@ def ini_dae_jacobian_numba(struct,x):
         struct[0].Ac_ini[row+N_x,col] = struct[0].Gx_ini[row,col]
     for row,col in zip(struct[0].Gy_ini_rows,struct[0].Gy_ini_cols):
         struct[0].Ac_ini[row+N_x,col+N_x] = struct[0].Gy_ini[row,col]
-        
+
 
 @numba.njit(cache=True)
 def ini_dae_problem(struct,x):
@@ -1275,7 +1353,7 @@ def ini_dae_problem(struct,x):
     ini(struct,3) 
     struct[0].fg[:N_x,:] = struct[0].f[:]
     struct[0].fg[N_x:,:] = struct[0].g[:]    
-        
+
 @numba.njit(cache=True)
 def ssate(struct,xy):
     for it in range(100):
@@ -1415,20 +1493,20 @@ def daesolver(struct):
 
 
 def nonzeros():
-    Fx_ini_rows = [0, 1, 2, 3, 4]
+    Fx_ini_rows = [0, 1, 2, 3, 4, 5, 5, 6]
 
-    Fx_ini_cols = [1, 1, 2, 3, 4]
+    Fx_ini_cols = [1, 1, 2, 3, 4, 1, 5, 6]
 
-    Fy_ini_rows = [1, 1, 2, 2, 3]
+    Fy_ini_rows = [1, 1, 2, 2, 3, 6]
 
-    Fy_ini_cols = [4, 5, 2, 9, 3]
+    Fy_ini_cols = [4, 5, 2, 9, 3, 10]
 
-    Gx_ini_rows = [0, 1, 2, 3, 9]
+    Gx_ini_rows = [0, 1, 2, 3, 9, 10, 10, 11]
 
-    Gx_ini_cols = [0, 0, 2, 3, 4]
+    Gx_ini_cols = [0, 0, 2, 3, 4, 1, 5, 6]
 
-    Gy_ini_rows = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 8, 8, 9, 9]
+    Gy_ini_rows = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 8, 8, 9, 9, 9, 10, 11, 11]
 
-    Gy_ini_cols = [0, 8, 1, 8, 1, 2, 3, 0, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 0, 1, 2, 3, 6, 8, 6, 8, 7, 9]
+    Gy_ini_cols = [0, 8, 1, 8, 1, 2, 3, 0, 2, 3, 0, 1, 2, 3, 4, 0, 1, 2, 3, 0, 1, 2, 3, 6, 8, 6, 8, 7, 9, 11, 10, 10, 11]
 
     return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols

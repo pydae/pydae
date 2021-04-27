@@ -26,8 +26,6 @@ def save(json_file,dictionary, sort_keys=False, indent=4):
     None.
 
     '''
-
-    json_file = './trains_5vsc_params.json'
     
     data_json = json.dumps(dictionary, sort_keys=False, indent=4)    
     with open(json_file, 'w') as fobj:

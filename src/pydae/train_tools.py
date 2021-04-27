@@ -42,7 +42,7 @@ def trains_update(t,trains,trips):
             if t<(train['t_ini']*60+t_trip[-1]):   # the train if still travelling 
                 x_trip = trips[trip]['positions']
                 p_trip = trips[trip]['powers']
-                train_idt = np.argmin(t_trip<(t-train['t_ini']*60)) 
+                train_idt = np.argmin(np.array(t_trip)<(t-train['t_ini']*60)) 
                 train_positions += [x_trip[train_idt]]
                 train_powers    += [p_trip[train_idt]]
                 train_idts  += [train_idt]   

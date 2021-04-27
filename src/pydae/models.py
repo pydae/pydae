@@ -308,6 +308,8 @@ def dcgrid2dae(data_input):
     vscs = data_input['grid_formers']
     park_type='original'
     dq_name='DQ'
+    
+    xy_0_dict = {}
 
     if dq_name == 'DQ':
         D_ = 'D'
@@ -405,6 +407,7 @@ def dcgrid2dae(data_input):
         v_list += [v]
         i_list += [i]
 
+        xy_0_dict.update({f'v_{bus_name}':3000})
 
     i_line = sym.Matrix(i_line_list)
     R_e = sym.Matrix.diag(R_list)
@@ -445,7 +448,7 @@ def dcgrid2dae(data_input):
         
     return {'f':f_grid,'g':g_grid,
             'x':x_grid_list,'y':y_grid_list, 'x_list':x_list,
-            'u':u_grid,'params':params,'v_list':v_list}
+            'u':u_grid,'params':params,'v_list':v_list,'xy_0_dict':xy_0_dict}
 
 def vsg2dae(data,grid_dae):
     '''
