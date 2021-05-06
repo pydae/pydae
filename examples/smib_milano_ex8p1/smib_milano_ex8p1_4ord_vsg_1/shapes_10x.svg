@@ -1,0 +1,49 @@
+ 
+        <svg xmlns="http://www.w3.org/2000/svg" 
+        height="400"  width="400"
+        id="tooltip-svg-5">
+            <style>
+                #tooltip {
+                    dominant-baseline: hanging; 
+                }
+            </style>
+            
+            <circle cx="200" cy="200" r="190" stroke="#888888" stroke-width="3" fill="#DDDDDD" />
+
+        <path d="M 200,200 h 1.32292 v -52.916665 h 1.32291 l -2.64583,-5.291666 -2.64583,5.291666 h 1.32291 v 52.916665 z" fill="#d9524f" id="arrow_1" class="tooltip-trigger" data-tooltip-text="delta" stroke-width="0" transform="translate(-394.5141243246953,-394.5141243246953) scale(2.9725706216234764)  rotate(180.0,200,200)" /><path d="M 200,200 h 1.32292 v -52.916665 h 1.32291 l -2.64583,-5.291666 -2.64583,5.291666 h 1.32291 v 52.916665 z" fill="#5cb85c" id="arrow_1" class="tooltip-trigger" data-tooltip-text="omega" stroke-width="0" transform="translate(91.19834535378666,91.19834535378666) scale(0.5440082732310667)  rotate(-88.05417911153607,200,200)" /><path d="M 200,200 h 1.32292 v -52.916665 h 1.32291 l -2.64583,-5.291666 -2.64583,5.291666 h 1.32291 v 52.916665 z" fill="#337ab7" id="arrow_1" class="tooltip-trigger" data-tooltip-text="e1q" stroke-width="0" transform="translate(137.92652384292037,137.92652384292037) scale(0.3103673807853981)  rotate(-88.4637374463956,200,200)" /><path d="M 200,200 h 1.32292 v -52.916665 h 1.32291 l -2.64583,-5.291666 -2.64583,5.291666 h 1.32291 v 52.916665 z" fill="#f0ad4e" id="arrow_1" class="tooltip-trigger" data-tooltip-text="e1d" stroke-width="0" transform="translate(-184.8804788048425,-184.8804788048425) scale(1.9244023940242125)  rotate(101.16712693771214,200,200)" />    
+        
+        <g id="tooltip" visibility="hidden" >
+
+                <rect width="80" height="24" fill="white" rx="2" ry="2"/>
+                <text x="3" y="6">Tooltip</text>
+            </g>
+
+
+            <script type="text/ecmascript"><![CDATA[
+                (function() {
+                    var svg = document.getElementById('tooltip-svg-5');
+                    var tooltip = svg.getElementById('tooltip');
+                    var tooltipText = tooltip.getElementsByTagName('text')[0].firstChild;
+                    var triggers = svg.getElementsByClassName('tooltip-trigger');
+
+                    for (var i = 0; i < triggers.length; i++) {
+                        triggers[i].addEventListener('mousemove', showTooltip);
+                        triggers[i].addEventListener('mouseout', hideTooltip);
+                    }
+
+                    function showTooltip(evt) {
+                        var CTM = svg.getScreenCTM();
+                        var x = (evt.clientX - CTM.e + 6) / CTM.a;
+                        var y = (evt.clientY - CTM.f + 20) / CTM.d;
+                        tooltip.setAttributeNS(null, "transform", "translate(" + x + " " + y + ")");
+                        tooltip.setAttributeNS(null, "visibility", "visible");
+                        tooltipText.data = evt.target.getAttributeNS(null, "data-tooltip-text");
+                    }
+
+                    function hideTooltip(evt) {
+                        tooltip.setAttributeNS(null, "visibility", "hidden");
+                    }
+                })()
+            ]]></script>
+        </svg>
+        
