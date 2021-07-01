@@ -12,7 +12,7 @@ def get_v(syst,nodes_dict):
     for node in nodes_dict:
         v = syst.get_value(f'v_{node}')
         nodes_dict[node].update({'v':v})
-        
+
 def get_vp(syst,nodes_dict):
     
     for node in nodes_dict:
@@ -22,7 +22,7 @@ def get_vp(syst,nodes_dict):
 
 
 
-        
+
 def trains_update(t,trains,trips):
     '''
     trips = {
