@@ -239,7 +239,23 @@ class {name}_class:
             else: 
                 print(f'parameter or input {item} not found')
 
+    def save_params(self,file_name = 'parameters.json'):
+        params_dict = {}
+        for item in self.params_list:
+            params_dict.update({item:self.get_value(item)})
 
+        params_dict_str = json.dumps(params_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(params_dict_str)
+
+    def save_inputs_ini(self,file_name = 'inputs_ini.json'):
+        inputs_ini_dict = {}
+        for item in self.inputs_ini_list:
+            inputs_ini_dict.update({item:self.get_value(item)})
+
+        inputs_ini_dict_str = json.dumps(inputs_ini_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(inputs_ini_dict_str)
 
     def ini_problem(self,x):
         self.struct[0].x[:,0] = x[0:self.N_x]

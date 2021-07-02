@@ -8,6 +8,7 @@ cos = np.cos
 atan2 = np.arctan2
 sqrt = np.sqrt 
 sign = np.sign 
+exp = np.exp
 
 
 class cigre_europe_residential_4w2w_class: 
@@ -229,9 +230,32 @@ class cigre_europe_residential_4w2w_class:
         self.data = data
         for item in self.data:
             self.struct[0][item] = self.data[item]
-            self.params_values_list[self.params_list.index(item)] = self.data[item]
+            if item in self.params_list:
+                self.params_values_list[self.params_list.index(item)] = self.data[item]
+            elif item in self.inputs_ini_list:
+                self.inputs_ini_values_list[self.inputs_ini_list.index(item)] = self.data[item]
+            elif item in self.inputs_run_list:
+                self.inputs_run_values_list[self.inputs_run_list.index(item)] = self.data[item]
+            else: 
+                print(f'parameter or input {item} not found')
 
+    def save_params(self,file_name = 'parameters.json'):
+        params_dict = {}
+        for item in self.params_list:
+            params_dict.update({item:self.get_value(item)})
 
+        params_dict_str = json.dumps(params_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(params_dict_str)
+
+    def save_inputs_ini(self,file_name = 'inputs_ini.json'):
+        inputs_ini_dict = {}
+        for item in self.inputs_ini_list:
+            inputs_ini_dict.update({item:self.get_value(item)})
+
+        inputs_ini_dict_str = json.dumps(inputs_ini_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(inputs_ini_dict_str)
 
     def ini_problem(self,x):
         self.struct[0].x[:,0] = x[0:self.N_x]
@@ -666,25 +690,25 @@ class cigre_europe_residential_4w2w_class:
             self.set_value(item,dictionary[item])
             
             
-    def report_x(self,value_format='5.2f'):
+    def report_x(self,value_format='5.2f', decimals=2):
         for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_y(self,value_format='5.2f'):
+    def report_y(self,value_format='5.2f', decimals=2):
         for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
             
-    def report_u(self,value_format='5.2f'):
+    def report_u(self,value_format='5.2f', decimals=2):
         for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_z(self,value_format='5.2f'):
+    def report_z(self,value_format='5.2f', decimals=2):
         for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_params(self,value_format='5.2f'):
+    def report_params(self,value_format='5.2f', decimals=2):
         for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
             
     def get_x(self):
         return self.struct[0].x
