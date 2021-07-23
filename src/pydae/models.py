@@ -1322,7 +1322,7 @@ def syns_add(grid):
             grid['params'].update({f"{item}_{bus_name}":syn[item]})
         grid['params'].pop(f"bus_{bus_name}")
         grid['params'].update({f"v_ref_{bus_name}":1.0})
-        
+
 
 
 

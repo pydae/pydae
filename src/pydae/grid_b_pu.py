@@ -227,7 +227,17 @@ def bal_pu(data_input):
         vsgs_add(grid)
         
     if 'uvsgs' in data:   
-        uvsgs_add(grid)        
+        uvsgs_add(grid)  
+        
+    if 'gformers_z' in data:           
+        gformer_z_add(grid)
+        
+        # omega COI
+        for gformer_z in data['gformers_z']:
+            bus_name = gformer_z['bus']
+            omega = sym.Symbol(f"omega_v_{bus_name}", real=True)
+            omega_coi_n += omega 
+            N_gformers += 1
         
     if 'gformers' in data:    
         #syns_add(grid)
@@ -235,7 +245,15 @@ def bal_pu(data_input):
         # omega COI
         for gformer in data['gformers']:
             bus_name = gformer['bus']
-            omega = sym.Symbol(f"omega_{bus_name}", real=True)            
+            omega = sym.Symbol(f"omega_{bus_name}", real=True)
+            V = sym.Symbol(f"V_{bus_name}", real=True)
+            V_ref = sym.Symbol(f"V_{bus_name}_ref", real=True)
+            theta_ref = sym.Symbol(f"theta_{bus_name}_ref", real=True)
+            params_grid.update({f"omega_{bus_name}":1.0}) 
+            params_grid.update({f"V_{bus_name}_ref":1.0})  
+            params_grid.update({f"theta_{bus_name}_ref":0.0}) 
+            y_grid += [ V]
+            g_grid += [-omega_coi + omega_coi_n/(N_syn+N_gformers)]
             omega_coi_n += omega 
             N_gformers += 1
        
@@ -330,7 +348,7 @@ def syns_add(grid):
             add_gov(grid,syn,bus_i=buses[idx_bus]['idx_powers'])            
         if 'pss' in syn:
             add_pss(grid,syn)          
-        
+
 def add_avr(grid,syn_data,bus_i=''):
     
     if syn_data['avr']['type'] == 'sexs':
@@ -346,13 +364,13 @@ def add_gov(grid,syn_data,bus_i):
 
     if syn_data['gov']['type'] == 'hygov':
         hygov(grid,syn_data)
-        
+
 def add_pss(grid,syn_data):
     
     if syn_data['pss']['type'] == 'pss_kundur':
         pss_kundur(grid,syn_data)
 
-        
+
 def tgov1(grid,syn_data):
     bus_name = syn_data['bus']
     gov_data = syn_data['gov']
@@ -398,7 +416,7 @@ def tgov1(grid,syn_data):
     grid['params'].update({str(omega_ref):1.0})
 
     grid['u'].update({str(p_c):gov_data['p_c']})
-    
+
 
 def agov1(grid,syn_data,bus_i = ''):
     bus_name = syn_data['bus']
@@ -508,7 +526,7 @@ def hygov(grid,syn_data):
     grid['params'].update({str(T_w):gov_data['T_w'],str(Flow_nl):gov_data['Flow_nl']})
     grid['params'].update({str(A_t):gov_data['A_t']})
     grid['u'].update({str(omega_ref):gov_data['omega_ref']})
-    
+
 
 def sexs(grid,syn_data):
     bus_name = syn_data['bus']
@@ -537,7 +555,7 @@ def sexs(grid,syn_data):
     grid['params'].update({str(T_r):avr_data['T_r']})  
     grid['u'].update({str(v_ref):avr_data['v_ref']})
     grid['u'].update({str(v_pss):avr_data['v_pss']})
-    
+
 def pss_kundur(grid,syn_data):
     bus_name = syn_data['bus']
     pss_data = syn_data['pss']
@@ -577,7 +595,7 @@ def pss_kundur(grid,syn_data):
     grid['params'].update({str(K_stab):pss_data['K_stab']})
 
 
-    
+
 def hygov_original(grid,syn_data):
     bus_name = syn_data['bus']
     gov_data = syn_data['gov']
@@ -628,8 +646,8 @@ def hygov_original(grid,syn_data):
     grid['params'].update({str(T_w):gov_data['T_w'],str(Flow_nl):gov_data['Flow_nl']})
     grid['params'].update({str(A_t):gov_data['A_t']})
     grid['u'].update({str(omega_ref):gov_data['omega_ref']})
-    
-    
+
+
 def vsgs_add(grid):
     sin = sym.sin
     cos = sym.cos
@@ -817,3 +835,82 @@ def uvsgs_add(grid):
         grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
         grid['h'].update({f"p_e_{bus_name}":p_e})
         grid['h'].update({f"omega_v_{bus_name}":omega_v})
+
+def gformer_z_add(grid):
+    sin = sym.sin
+    cos = sym.cos
+    buses = grid['data']['buses']
+    buses_list = [bus['name'] for bus in buses]
+    for gformer_z in grid['data']['gformers_z']:
+
+        bus_name = gformer_z['bus']
+        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+        buses[idx_bus]['idx_powers'] += 1
+
+        p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
+        q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
+        V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
+        theta   = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
+        theta_v_0 = sym.Symbol(f"theta_v_0_{bus_name}", real=True) # bus voltage angle (rad)
+
+        i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
+        i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
+        delta = sym.Symbol(f"delta_{bus_name}", real=True)
+        omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
+        x_wo = sym.Symbol(f"x_wo_{bus_name}", real=True)
+        p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+        e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
+        p_d2 = sym.Symbol(f"p_d2_{bus_name}", real=True)
+        i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
+        i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
+        q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
+        xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
+        p_src = sym.Symbol(f"p_src_{bus_name}", real=True)
+        soc_ref = sym.Symbol(f"soc_ref_{bus_name}", real=True)
+        p_sto = sym.Symbol(f"p_sto_{bus_name}", real=True)
+        Dp_ref = sym.Symbol(f"Dp_ref_{bus_name}", real=True)
+        soc = sym.Symbol(f"soc_{bus_name}", real=True)
+        xi_soc = sym.Symbol(f"xi_soc_{bus_name}", real=True)
+        
+        omega_coi = sym.Symbol("omega_coi", real=True)
+
+        v_d = V*sin(delta - theta) 
+        v_q = V*cos(delta - theta) 
+        #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
+        for item in ['S_n','Omega_b','R_v','X_v','T_i','K_delta']:
+            string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
+            exec(string,globals())
+            grid['params'].update({f'{item}_{bus_name}':gformer_z[item]})
+
+        omega_s = omega_coi
+        
+        ddelta   = Omega_b*(omega_v - omega_s)  - K_delta*delta
+        di_d = 1/T_i*(i_d_ref - i_d)
+        di_q = 1/T_i*(i_q_ref - i_q)
+          
+        g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
+        g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
+        g_p_g  = i_d*v_d + i_q*v_q - p_g  
+        g_q_g  = i_d*v_q - i_q*v_d - q_g 
+        
+        f_syn = [ ddelta,di_d,di_q]
+        x_syn = [  delta, i_d, i_q]
+        g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g]
+        y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g]
+        
+        if 'f' not in grid: grid.update({'f':[]})
+        if 'x' not in grid: grid.update({'x':[]})
+        grid['f'] += f_syn
+        grid['x'] += x_syn
+        grid['g'] += g_syn
+        grid['y'] += y_syn  
+        
+        S_base = sym.Symbol('S_base', real = True)
+        grid['u'].update({f'e_v_{bus_name}':1.0})
+        grid['u'].update({f'omega_v_{bus_name}':1.0})
+        grid['g'][idx_bus*2]   += -p_g*S_n/S_base
+        grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
+ 
+        
+        
