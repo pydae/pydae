@@ -995,7 +995,7 @@ def change_line(system,bus_j,bus_k, *args,**kwagrs):
         R = line['R_pu']*S_base/S_line  # in pu of the system base
         X = line['X_pu']*S_base/S_line  # in pu of the system base
     if 'X' in line:
-        U_base = system.get_value(f'U_{bus_j}_n')
+        U_base = system.get_value(f'U_{bus_j}_n') 
         Z_base = U_base**2/S_base
         R = line['R']/Z_base  # in pu of the system base
         X = line['X']/Z_base  # in pu of the system base

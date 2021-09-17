@@ -113,8 +113,13 @@ def urisi2dae(grid):
 
     #I_aux = ( I_known_sym - Y_iv @ V_known_sym)   # with current injections
     I_aux = (            - Y_iv @ V_known_sym)     # without current injections
+    print(I_aux)
     #g_cplx = -V_unknown_sym + inv_Y_ii @ I_aux
-    g_cplx = -Y_ii @ V_unknown_sym + I_aux
+    if I_aux.shape[1] == 0:
+        g_cplx = -Y_ii @ V_unknown_sym 
+    else:
+        g_cplx = -Y_ii @ V_unknown_sym + I_aux
+    
     
     g_list = []
     for item in g_cplx:
@@ -154,7 +159,10 @@ def urisi2dae(grid):
     
     Y_primitive = grid.Y_primitive_sp.toarray()
     A_matrix = grid.A_sp.toarray()
-    V_results = sym.Matrix([[V_known_sym],[V_unknown_sym]])
+    if V_known_sym.shape == (0,0):
+        V_results = V_unknown_sym
+    else:
+        V_results = sym.Matrix([[V_known_sym],[V_unknown_sym]])
     I_lines = Y_primitive @ A_matrix.T @ V_results
     it_single_line = 0
     
@@ -931,12 +939,12 @@ if __name__ == "__main__":
                      {"bus": "B4",  "pos_x": 140, "pos_y":  0, "units": "m", "U_kV":0.4}
                     ],
             "grid_formers":[
-                            {"bus": "B1",
-                            "bus_nodes": [1, 2, 3], "deg": [0, -120, -240],
-                            "kV": [0.231, 0.231, 0.231]},
-                            {"bus": "B4",
-                            "bus_nodes": [1, 2, 3], "deg": [0, -120, -240],
-                            "kV": [0.231, 0.231, 0.231]}
+                           # {"bus": "B1",
+                           # "bus_nodes": [1, 2, 3], "deg": [0, -120, -240],
+                           # "kV": [0.231, 0.231, 0.231]},
+                           # {"bus": "B4",
+                           # "bus_nodes": [1, 2, 3], "deg": [0, -120, -240],
+                           # "kV": [0.231, 0.231, 0.231]}
                            ],
             "lines":[
                      {"bus_j": "B1",  "bus_k": "B2",  "code": "lv_cu_150", "m":  20.0},

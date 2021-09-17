@@ -1,0 +1,5 @@
+- dqd: From Andrés León model, dq coordinates dynamic model 
+- dqc: the same as in dqd but capacitor differential equtions  are transformed to algebraic equations.
+- dqa: the same as in dqd but without dynamics. ODE are transformed to algebraic.
+- uir: pydgrid grid model, phasor domain in SI units, each phase/neutral wire is modeled.
+- bpu: classic power flow per unit model, balanced network.

@@ -1,0 +1,20 @@
+{
+"sys":{"name":"oc_3bus","S_base":100e3, "K_sec":0.01,"K_p_agc":0.01,"K_i_agc":0.01},       
+"buses":[{"name":"B1", "P_W":0.0,"Q_var":0.0,"U_kV":0.4},
+         {"name":"B2", "P_W":0.0,"Q_var":0.0,"U_kV":0.4},
+         {"name":"B3", "P_W":0.0,"Q_var":0.0,"U_kV":0.4}   
+        ],
+"lines":[{"bus_j":"B1", "bus_k":"B2", "X_pu":0.010,"R_pu":0.050, "S_mva":0.2},
+         {"bus_j":"B2", "bus_k":"B3", "X_pu":0.010,"R_pu":0.050, "S_mva":0.2}],
+"vsgs":[
+  {"bus":"B3","S_n":50e3,"type":"uvsg",
+    "R_v":0.01,"X_v":0.1, "R_s":0.02,   
+    "K_p":0.01,"T_p":0.1,"K_q":0.1,"T_q":0.1,
+    "Omega_b":314.1592653589793,"omega_s":1.0,
+    "T_e":5.0,"K_e":1.0,"e_ref":0.5,
+    "p_g":0.1,"q_s_ref":0.0}],
+"genapes":[{"bus":"B1","S_n":50e3,"type":"genape",
+    "R_v":0.001,"X_v":0.001,
+    "Omega_b":314.1592653589793,"omega_ref":1.0,
+    "K_delta":0.001}]
+}
