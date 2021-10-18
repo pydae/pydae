@@ -26,6 +26,21 @@ def eval_A(system):
     
     return A
 
+def A_eval(system):
+    
+    N_x = system.N_x
+    Fx = system.jac_run[:N_x,:N_x]
+    Fy = system.jac_run[:N_x,N_x:]
+    Gx = system.jac_run[N_x:,:N_x]
+    Gy = system.jac_run[N_x:,N_x:]
+    
+    A = Fx - Fy @ np.linalg.solve(Gy,Gx)
+    
+    system.A = A
+    
+    return A
+
+
 def eval_ss(system):
     '''
     

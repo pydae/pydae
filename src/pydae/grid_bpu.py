@@ -316,8 +316,8 @@ class bpu:
         # secondary frequency control
         xi_freq = sym.Symbol("xi_freq", real=True) 
         p_agc = sym.Symbol("p_agc", real=True)  
-        K_p_agc = sym.Symbol("K_p_agc")
-        K_i_agc = sym.Symbol("K_i_agc")
+        K_p_agc = sym.Symbol("K_p_agc", real=True) 
+        K_i_agc = sym.Symbol("K_i_agc", real=True) 
         
         epsilon_freq = 1-omega_coi
         g_agc = [ -p_agc + K_p_agc*epsilon_freq + K_i_agc*xi_freq ]
@@ -1146,6 +1146,8 @@ class bpu:
         p_ghr = sym.Symbol(f"p_ghr_{name}", real=True)
         k_cur = sym.Symbol(f"k_cur_{name}", real=True)
         inc_p_gin = sym.Symbol(f"inc_p_gin_{name}", real=True)
+        xi_pll = sym.Symbol(f"xi_pll_{name}", real=True)
+        theta_pll = sym.Symbol(f"theta_pll_{name}", real=True)
         
         # algebraic states
         omega = sym.Symbol(f"omega_{name}", real=True)
@@ -1162,6 +1164,7 @@ class bpu:
         p_f = sym.Symbol(f"p_f_{name}", real=True)
         k_cur_sat = sym.Symbol(f"k_cur_sat_{name}", real=True)
         r_lim  = sym.Symbol(f"r_lim_{name}", real=True)
+        omega_pll  = sym.Symbol(f"omega_pll_{name}", real=True)
 
         # parameters
         S_n = sym.Symbol(f"S_n_{name}", real=True)
@@ -1190,7 +1193,10 @@ class bpu:
         K_fpfr = sym.Symbol(f"K_fpfr_{name}", real=True)
         P_f_min = sym.Symbol(f"P_f_min_{name}", real=True)
         P_f_max = sym.Symbol(f"P_f_max_{name}", real=True)
-        
+        K_p_pll = sym.Symbol(f"K_p_pll_{name}", real=True)
+        K_i_pll = sym.Symbol(f"K_i_pll_{name}", real=True)
+        K_speed = sym.Symbol(f"K_speed_{name}", real=True)
+       
         params_list = ['S_n','Omega_b','K_p','T_p','K_q','T_q',
                        'X_v','R_v','R_s','C_u','K_u_0',
                        'K_u_max','V_u_min','V_u_max','R_uc','K_h','R_lim',
@@ -1213,6 +1219,10 @@ class bpu:
         k_cur_ref = p_g_ref/p_gin + p_f_sat/p_gin
         soc = (e_u**2 - V_u_min**2)/(V_u_max**2 - V_u_min**2)
         p_fpfr = K_fpfr*(p_f_sat)
+        v_Qh =  V*cos(theta) 
+        v_Dh =  V*sin(theta) 
+        v_dl = v_Dh*cos(theta_pll) - v_Qh*sin(theta_pll)
+        omega_f = K_speed*omega_pll + (1-K_speed)*omega 
         #p_fpfr = K_fpfr*(p_f - ((p_g_ref + p_f)*k_cur-p_ghr))
 
         # dynamic equations            
@@ -1223,7 +1233,11 @@ class bpu:
         dp_ghr = epsilon_gh_sat
         dk_cur = 1/T_cur*(k_cur_ref - k_cur)
         dinc_p_gin = ramp_p_gin - 0.001*inc_p_gin
+        dtheta_pll = K_p_pll*v_dl + K_i_pll*xi_pll - Omega_b*omega_s
+        dxi_pll = v_dl
 
+
+        
         # algebraic equations   
         g_omega = -omega + K_p*(epsilon_p + xi_p/T_p)
         g_e_qv = -e_qv   + K_q*(epsilon_q + xi_q/T_q)
@@ -1242,20 +1256,21 @@ class bpu:
                                       (K_u_0,True))
         g_k_cur_sat = -k_cur_sat +  sym.Piecewise((0.0001,k_cur<0.0001),(1,k_cur>1),(k_cur,True))
         g_p_gou = -p_gou + k_cur_sat*p_gin 
-        g_p_f = -p_f - sym.Piecewise((1/Droop*(omega-(omega_ref-DB/2.0)),omega<(omega_ref-DB/2.0)),
-                                     (1/Droop*(omega-(omega_ref+DB/2.0)),omega>(omega_ref+DB/2.0)),
+        g_p_f = -p_f - sym.Piecewise((1/Droop*(omega_f-(omega_ref-DB/2.0)),omega_f<(omega_ref-DB/2.0)),
+                                     (1/Droop*(omega_f-(omega_ref+DB/2.0)),omega_f>(omega_ref+DB/2.0)),
                                      (0.0,True))
         g_r_lim = -r_lim + sym.Piecewise(((R_lim_max-R_lim)*(v_u-V_u_lt)/(V_u_min-V_u_lt)+R_lim,v_u<V_u_lt),
                                          ((R_lim_max-R_lim)*(v_u-V_u_ht)/(V_u_max-V_u_ht)+R_lim,v_u>V_u_ht),
                                          (R_lim,True)) + sym.Piecewise((R_lim_max,omega<(omega_ref-DB/2.0)),
                                          (R_lim_max,omega>(omega_ref+DB/2.0)),
                                          (0.0,True)) 
+        g_omega_pll = -omega_pll + (K_p_pll*v_dl + K_i_pll*xi_pll)/Omega_b                                                                
                 
         # dae 
-        f_vsg = [ddelta,dxi_p,dxi_q,de_u,dp_ghr,dk_cur,dinc_p_gin]
-        x_vsg = [ delta, xi_p, xi_q, e_u, p_ghr, k_cur, inc_p_gin]
-        g_vsg = [g_omega,g_e_qv,g_i_d,g_i_q,g_p_s,g_q_s,g_p_m,g_p_t,g_p_u,g_v_u,g_k_u,g_k_cur_sat,g_p_gou,g_p_f,g_r_lim]
-        y_vsg = [  omega,  e_qv,  i_d,  i_q,  p_s,  q_s,  p_m,  p_t,  p_u,  v_u,  k_u,  k_cur_sat,  p_gou,  p_f,  r_lim]
+        f_vsg = [ddelta,dxi_p,dxi_q,de_u,dp_ghr,dk_cur,dinc_p_gin,dtheta_pll,dxi_pll]
+        x_vsg = [ delta, xi_p, xi_q, e_u, p_ghr, k_cur, inc_p_gin, theta_pll, xi_pll]
+        g_vsg = [g_omega,g_e_qv,g_i_d,g_i_q,g_p_s,g_q_s,g_p_m,g_p_t,g_p_u,g_v_u,g_k_u,g_k_cur_sat,g_p_gou,g_p_f,g_r_lim,g_omega_pll]
+        y_vsg = [  omega,  e_qv,  i_d,  i_q,  p_s,  q_s,  p_m,  p_t,  p_u,  v_u,  k_u,  k_cur_sat,  p_gou,  p_f,  r_lim,  omega_pll]
         
         # T_p = K_p*2*H
         H = T_p/(2*K_p)
@@ -1318,6 +1333,10 @@ class bpu:
         self.dae['params_dict'].update({f"{'K_fpfr'}_{name}":0.0})
         self.dae['params_dict'].update({f"{'P_f_min'}_{name}":-1.0})
         self.dae['params_dict'].update({f"{'P_f_max'}_{name}": 1.0})
+        self.dae['params_dict'].update({f"{'K_p_pll'}_{name}": 126.0})
+        self.dae['params_dict'].update({f"{'K_i_pll'}_{name}": 3948.0})
+        self.dae['params_dict'].update({f"{'K_speed'}_{name}": 1.0})
+
         
     def add_genape(self,vsg_data):
         sin = sym.sin

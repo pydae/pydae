@@ -23,13 +23,13 @@ u_list = sys_vars['u_list']
 x_list = sys_vars['x_list']
 y_list = sys_vars['y_list']
 for item in params:
-    exec(f"{item} = sym.Symbol('{item}')", globals())
+    exec(f"{item} = sym.Symbol('{item}', real=True)", globals())
 for item in u_list:
-    exec(f"{item} = sym.Symbol('{item}')", globals())
+    exec(f"{item} = sym.Symbol('{item}', real=True)", globals())
 for item in x_list:
-    exec(f"{item} = sym.Symbol('{item}')", globals())
+    exec(f"{item} = sym.Symbol('{item}', real=True)", globals())
 for item in y_list:
-    exec(f"{item} = sym.Symbol('{item}')", globals())  
+    exec(f"{item} = sym.Symbol('{item}', real=True)", globals())  
 sym_func_list = ['sin','cos']
 for item in sym_func_list:
     exec(f"{item} = sym.{item}", globals()) 

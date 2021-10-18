@@ -23,21 +23,21 @@ class onehalf_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 19
-        self.N_y = 32 
+        self.N_x = 21
+        self.N_y = 33 
         self.N_z = 10 
         self.N_store = 10000 
-        self.params_list = ['S_base', 'g_01_02', 'b_01_02', 'bs_01_02', 'g_02_03', 'b_02_03', 'bs_02_03', 'U_01_n', 'U_02_n', 'U_03_n', 'S_n_01', 'Omega_b_01', 'H_01', 'T1d0_01', 'T1q0_01', 'X_d_01', 'X_q_01', 'X1d_01', 'X1q_01', 'D_01', 'R_a_01', 'K_delta_01', 'K_sec_01', 'K_a_01', 'K_ai_01', 'T_r_01', 'V_min_01', 'V_max_01', 'K_aw_01', 'Droop_01', 'T_gov_1_01', 'T_gov_2_01', 'T_gov_3_01', 'K_imw_01', 'omega_ref_01', 'T_wo_01', 'T_1_01', 'T_2_01', 'K_stab_01', 'S_n_03', 'Omega_b_03', 'K_p_03', 'T_p_03', 'K_q_03', 'T_q_03', 'X_v_03', 'R_v_03', 'R_s_03', 'C_u_03', 'K_u_0_03', 'K_u_max_03', 'V_u_min_03', 'V_u_max_03', 'R_uc_03', 'K_h_03', 'R_lim_03', 'V_u_lt_03', 'V_u_ht_03', 'Droop_03', 'DB_03', 'T_cur_03', 'R_lim_max_03', 'K_fpfr_03', 'P_f_min_03', 'P_f_max_03', 'K_p_agc', 'K_i_agc'] 
-        self.params_values_list  = [100000.0, 64.70588235294117, -258.8235294117647, 0.0, 12.131762250617438, -7.801776366956552, 0.0, 400.0, 400.0, 400.0, 10000000.0, 314.1592653589793, 6.5, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.001, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 20000.0, 314.1592653589793, 0.01, 0.1, 0.1, 0.1, 0.1, 0.01, 0.02, 5.0, 0.005, 0.1, 80, 160, 0.1, 1.0, 0.2, 85, 155, 0.05, 0.001, 10.0, 100.0, 0.0, -1.0, 1.0, 0.01, 0.01] 
-        self.inputs_ini_list = ['P_01', 'Q_01', 'P_02', 'Q_02', 'P_03', 'Q_03', 'v_ref_01', 'v_pss_01', 'p_c_01', 'q_s_ref_03', 'v_u_ref_03', 'omega_ref_03', 'p_gin_0_03', 'p_g_ref_03', 'ramp_p_gin_03'] 
-        self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 0.0, 126.0, 1.0, 0.6, 0.4, 0.0] 
-        self.inputs_run_list = ['P_01', 'Q_01', 'P_02', 'Q_02', 'P_03', 'Q_03', 'v_ref_01', 'v_pss_01', 'p_c_01', 'q_s_ref_03', 'v_u_ref_03', 'omega_ref_03', 'p_gin_0_03', 'p_g_ref_03', 'ramp_p_gin_03'] 
-        self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 0.0, 126.0, 1.0, 0.6, 0.4, 0.0] 
+        self.params_list = ['S_base', 'g_01_02', 'b_01_02', 'bs_01_02', 'g_02_03', 'b_02_03', 'bs_02_03', 'U_01_n', 'U_02_n', 'U_03_n', 'S_n_01', 'Omega_b_01', 'H_01', 'T1d0_01', 'T1q0_01', 'X_d_01', 'X_q_01', 'X1d_01', 'X1q_01', 'D_01', 'R_a_01', 'K_delta_01', 'K_sec_01', 'K_a_01', 'K_ai_01', 'T_r_01', 'V_min_01', 'V_max_01', 'K_aw_01', 'Droop_01', 'T_gov_1_01', 'T_gov_2_01', 'T_gov_3_01', 'K_imw_01', 'omega_ref_01', 'T_wo_01', 'T_1_01', 'T_2_01', 'K_stab_01', 'V_lim_01', 'S_n_03', 'Omega_b_03', 'K_p_03', 'T_p_03', 'K_q_03', 'T_q_03', 'X_v_03', 'R_v_03', 'R_s_03', 'C_u_03', 'K_u_0_03', 'K_u_max_03', 'V_u_min_03', 'V_u_max_03', 'R_uc_03', 'K_h_03', 'R_lim_03', 'V_u_lt_03', 'V_u_ht_03', 'Droop_03', 'DB_03', 'T_cur_03', 'R_lim_max_03', 'K_fpfr_03', 'P_f_min_03', 'P_f_max_03', 'K_p_pll_03', 'K_i_pll_03', 'K_speed_03', 'K_p_agc', 'K_i_agc'] 
+        self.params_values_list  = [100000.0, 64.70588235294117, -258.8235294117647, 0.0, 12.131762250617438, -7.801776366956552, 0.0, 400.0, 400.0, 400.0, 10000000.0, 314.1592653589793, 6.5, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.001, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 0.1, 20000.0, 314.1592653589793, 0.01, 0.1, 0.1, 0.1, 0.1, 0.01, 0.02, 5.0, 0.005, 0.1, 80, 160, 0.1, 1.0, 0.2, 85, 155, 0.05, 0.001, 10.0, 100.0, 0.0, -1.0, 1.0, 126.0, 3948.0, 1.0, 0.01, 0.01] 
+        self.inputs_ini_list = ['P_01', 'Q_01', 'P_02', 'Q_02', 'P_03', 'Q_03', 'v_ref_01', 'v_pss_01', 'p_c_01', 'p_r_01', 'q_s_ref_03', 'v_u_ref_03', 'omega_ref_03', 'p_gin_0_03', 'p_g_ref_03', 'ramp_p_gin_03'] 
+        self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 0.0, 0.0, 126.0, 1.0, 0.6, 0.4, 0.0] 
+        self.inputs_run_list = ['P_01', 'Q_01', 'P_02', 'Q_02', 'P_03', 'Q_03', 'v_ref_01', 'v_pss_01', 'p_c_01', 'p_r_01', 'q_s_ref_03', 'v_u_ref_03', 'omega_ref_03', 'p_gin_0_03', 'p_g_ref_03', 'ramp_p_gin_03'] 
+        self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 0.0, 0.0, 126.0, 1.0, 0.6, 0.4, 0.0] 
         self.outputs_list = ['V_01', 'V_02', 'V_03', 'p_e_01', 'p_gin_03', 'p_g_ref_03', 'p_l_03', 'soc_03', 'p_fpfr_03', 'p_f_sat_03'] 
-        self.x_list = ['delta_01', 'omega_01', 'e1q_01', 'e1d_01', 'v_c_01', 'xi_v_01', 'x_gov_1_01', 'x_gov_2_01', 'xi_imw_01', 'x_wo_01', 'x_lead_01', 'delta_03', 'xi_p_03', 'xi_q_03', 'e_u_03', 'p_ghr_03', 'k_cur_03', 'inc_p_gin_03', 'xi_freq'] 
-        self.y_run_list = ['V_01', 'theta_01', 'V_02', 'theta_02', 'V_03', 'theta_03', 'i_d_01', 'i_q_01', 'p_g_01', 'q_g_01', 'v_f_01', 'p_m_ref_01', 'p_m_01', 'z_wo_01', 'v_pss_01', 'omega_03', 'e_qv_03', 'i_d_03', 'i_q_03', 'p_s_03', 'q_s_03', 'p_m_03', 'p_t_03', 'p_u_03', 'v_u_03', 'k_u_03', 'k_cur_sat_03', 'p_gou_03', 'p_f_03', 'r_lim_03', 'omega_coi', 'p_agc'] 
+        self.x_list = ['delta_01', 'omega_01', 'e1q_01', 'e1d_01', 'v_c_01', 'xi_v_01', 'x_gov_1_01', 'x_gov_2_01', 'xi_imw_01', 'x_wo_01', 'x_lead_01', 'delta_03', 'xi_p_03', 'xi_q_03', 'e_u_03', 'p_ghr_03', 'k_cur_03', 'inc_p_gin_03', 'theta_pll_03', 'xi_pll_03', 'xi_freq'] 
+        self.y_run_list = ['V_01', 'theta_01', 'V_02', 'theta_02', 'V_03', 'theta_03', 'i_d_01', 'i_q_01', 'p_g_01', 'q_g_01', 'v_f_01', 'p_m_ref_01', 'p_m_01', 'z_wo_01', 'v_pss_01', 'omega_03', 'e_qv_03', 'i_d_03', 'i_q_03', 'p_s_03', 'q_s_03', 'p_m_03', 'p_t_03', 'p_u_03', 'v_u_03', 'k_u_03', 'k_cur_sat_03', 'p_gou_03', 'p_f_03', 'r_lim_03', 'omega_pll_03', 'omega_coi', 'p_agc'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['V_01', 'theta_01', 'V_02', 'theta_02', 'V_03', 'theta_03', 'i_d_01', 'i_q_01', 'p_g_01', 'q_g_01', 'v_f_01', 'p_m_ref_01', 'p_m_01', 'z_wo_01', 'v_pss_01', 'omega_03', 'e_qv_03', 'i_d_03', 'i_q_03', 'p_s_03', 'q_s_03', 'p_m_03', 'p_t_03', 'p_u_03', 'v_u_03', 'k_u_03', 'k_cur_sat_03', 'p_gou_03', 'p_f_03', 'r_lim_03', 'omega_coi', 'p_agc'] 
+        self.y_ini_list = ['V_01', 'theta_01', 'V_02', 'theta_02', 'V_03', 'theta_03', 'i_d_01', 'i_q_01', 'p_g_01', 'q_g_01', 'v_f_01', 'p_m_ref_01', 'p_m_01', 'z_wo_01', 'v_pss_01', 'omega_03', 'e_qv_03', 'i_d_03', 'i_q_03', 'p_s_03', 'q_s_03', 'p_m_03', 'p_t_03', 'p_u_03', 'v_u_03', 'k_u_03', 'k_cur_sat_03', 'p_gou_03', 'p_f_03', 'r_lim_03', 'omega_pll_03', 'omega_coi', 'p_agc'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -776,6 +776,7 @@ def ini(struct,mode):
     T_1_01 = struct[0].T_1_01
     T_2_01 = struct[0].T_2_01
     K_stab_01 = struct[0].K_stab_01
+    V_lim_01 = struct[0].V_lim_01
     S_n_03 = struct[0].S_n_03
     Omega_b_03 = struct[0].Omega_b_03
     K_p_03 = struct[0].K_p_03
@@ -802,6 +803,9 @@ def ini(struct,mode):
     K_fpfr_03 = struct[0].K_fpfr_03
     P_f_min_03 = struct[0].P_f_min_03
     P_f_max_03 = struct[0].P_f_max_03
+    K_p_pll_03 = struct[0].K_p_pll_03
+    K_i_pll_03 = struct[0].K_i_pll_03
+    K_speed_03 = struct[0].K_speed_03
     K_p_agc = struct[0].K_p_agc
     K_i_agc = struct[0].K_i_agc
     
@@ -815,6 +819,7 @@ def ini(struct,mode):
     v_ref_01 = struct[0].v_ref_01
     v_pss_01 = struct[0].v_pss_01
     p_c_01 = struct[0].p_c_01
+    p_r_01 = struct[0].p_r_01
     q_s_ref_03 = struct[0].q_s_ref_03
     v_u_ref_03 = struct[0].v_u_ref_03
     omega_ref_03 = struct[0].omega_ref_03
@@ -841,7 +846,9 @@ def ini(struct,mode):
     p_ghr_03 = struct[0].x[15,0]
     k_cur_03 = struct[0].x[16,0]
     inc_p_gin_03 = struct[0].x[17,0]
-    xi_freq = struct[0].x[18,0]
+    theta_pll_03 = struct[0].x[18,0]
+    xi_pll_03 = struct[0].x[19,0]
+    xi_freq = struct[0].x[20,0]
     
     # Algebraic states:
     V_01 = struct[0].y_ini[0,0]
@@ -874,8 +881,9 @@ def ini(struct,mode):
     p_gou_03 = struct[0].y_ini[27,0]
     p_f_03 = struct[0].y_ini[28,0]
     r_lim_03 = struct[0].y_ini[29,0]
-    omega_coi = struct[0].y_ini[30,0]
-    p_agc = struct[0].y_ini[31,0]
+    omega_pll_03 = struct[0].y_ini[30,0]
+    omega_coi = struct[0].y_ini[31,0]
+    p_agc = struct[0].y_ini[32,0]
     
     # Differential equations:
     if mode == 2:
@@ -899,7 +907,9 @@ def ini(struct,mode):
         struct[0].f[15,0] = Piecewise(np.array([(-r_lim_03, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (r_lim_03, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (K_h_03*(-p_ghr_03 + p_gou_03), True)]))
         struct[0].f[16,0] = (-k_cur_03 + p_g_ref_03/(inc_p_gin_03 + p_gin_0_03) + Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03))/T_cur_03
         struct[0].f[17,0] = -0.001*inc_p_gin_03 + ramp_p_gin_03
-        struct[0].f[18,0] = 1 - omega_coi
+        struct[0].f[18,0] = K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)) - Omega_b_03*omega_coi
+        struct[0].f[19,0] = V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)
+        struct[0].f[20,0] = 1 - omega_coi
     
     # Algebraic equations:
     if mode == 3:
@@ -917,10 +927,10 @@ def ini(struct,mode):
         struct[0].g[8,0] = V_01*i_d_01*sin(delta_01 - theta_01) + V_01*i_q_01*cos(delta_01 - theta_01) - p_g_01
         struct[0].g[9,0] = V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01) - q_g_01
         struct[0].g[10,0] = -v_f_01 + Piecewise(np.array([(V_min_01, V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (V_max_01, V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01, True)]))
-        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
+        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + p_r_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
         struct[0].g[12,0] = T_gov_2_01*(x_gov_1_01 - x_gov_2_01)/T_gov_3_01 - p_m_01 + x_gov_2_01
         struct[0].g[13,0] = omega_01 - x_wo_01 - z_wo_01 - 1.0
-        struct[0].g[14,0] = K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01) - v_pss_01
+        struct[0].g[14,0] = -v_pss_01 + Piecewise(np.array([(-V_lim_01, V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (V_lim_01, V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01), True)]))
         struct[0].g[15,0] = K_p_03*(p_m_03 - p_s_03 + xi_p_03/T_p_03) - omega_03
         struct[0].g[16,0] = K_q_03*(-q_s_03 + q_s_ref_03 + xi_q_03/T_q_03) - e_qv_03
         struct[0].g[17,0] = -R_v_03*i_d_03 - V_03*sin(delta_03 - theta_03) + X_v_03*i_q_03
@@ -933,10 +943,11 @@ def ini(struct,mode):
         struct[0].g[24,0] = R_uc_03*S_n_03*(p_gou_03 - p_t_03)/(v_u_03 + 0.1) + e_u_03 - v_u_03
         struct[0].g[25,0] = -k_u_03 + Piecewise(np.array([(K_u_max_03, V_u_min_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (K_u_max_03, V_u_max_03 < v_u_03), (K_u_0_03, True)]))
         struct[0].g[26,0] = -k_cur_sat_03 + Piecewise(np.array([(0.0001, k_cur_03 < 0.0001), (1, k_cur_03 > 1), (k_cur_03, True)]))
-        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 < -0.5*DB_03 + omega_ref_03), ((-0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 > 0.5*DB_03 + omega_ref_03), (0.0, True)]))
+        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03)), ((-0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)), (0.0, True)]))
         struct[0].g[29,0] = -r_lim_03 + Piecewise(np.array([(R_lim_max_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0.0, True)])) + Piecewise(np.array([(R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (R_lim_03, True)]))
-        struct[0].g[30,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
-        struct[0].g[31,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
+        struct[0].g[30,0] = -omega_pll_03 + (K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)))/Omega_b_03
+        struct[0].g[31,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
+        struct[0].g[32,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
     
     # Outputs:
     if mode == 3:
@@ -973,16 +984,19 @@ def ini(struct,mode):
         struct[0].Fx_ini[15,15] = Piecewise(np.array([(0, (r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)) | (r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03))), (-K_h_03, True)]))
         struct[0].Fx_ini[16,16] = -1/T_cur_03
         struct[0].Fx_ini[16,17] = (-p_g_ref_03/(inc_p_gin_03 + p_gin_0_03)**2 - Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03)**2)/T_cur_03
+        struct[0].Fx_ini[18,18] = K_p_pll_03*(-V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03))
+        struct[0].Fx_ini[18,19] = K_i_pll_03
+        struct[0].Fx_ini[19,18] = -V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03)
 
     if mode == 11:
 
-        struct[0].Fy_ini[0,30] = -Omega_b_01 
+        struct[0].Fy_ini[0,31] = -Omega_b_01 
         struct[0].Fy_ini[1,0] = (-i_d_01*sin(delta_01 - theta_01) - i_q_01*cos(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,1] = (V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,6] = (-2*R_a_01*i_d_01 - V_01*sin(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,7] = (-2*R_a_01*i_q_01 - V_01*cos(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,12] = 1/(2*H_01) 
-        struct[0].Fy_ini[1,30] = D_01/(2*H_01) 
+        struct[0].Fy_ini[1,31] = D_01/(2*H_01) 
         struct[0].Fy_ini[2,6] = (X1d_01 - X_d_01)/T1d0_01 
         struct[0].Fy_ini[2,10] = 1/T1d0_01 
         struct[0].Fy_ini[3,7] = (-X1q_01 + X_q_01)/T1q0_01 
@@ -993,7 +1007,7 @@ def ini(struct,mode):
         struct[0].Fy_ini[8,8] = -K_imw_01 
         struct[0].Fy_ini[10,13] = 1/T_2_01 
         struct[0].Fy_ini[11,15] = Omega_b_03 
-        struct[0].Fy_ini[11,30] = -Omega_b_03 
+        struct[0].Fy_ini[11,31] = -Omega_b_03 
         struct[0].Fy_ini[12,19] = -1 
         struct[0].Fy_ini[12,21] = 1 
         struct[0].Fy_ini[13,20] = -1 
@@ -1003,7 +1017,12 @@ def ini(struct,mode):
         struct[0].Fy_ini[15,27] = Piecewise(np.array([(0, (r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)) | (r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03))), (K_h_03, True)])) 
         struct[0].Fy_ini[15,29] = Piecewise(np.array([(-1, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (1, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (0, True)])) 
         struct[0].Fy_ini[16,28] = Piecewise(np.array([(0, (P_f_min_03 > p_f_03) | (P_f_max_03 < p_f_03)), (1, True)]))/(T_cur_03*(inc_p_gin_03 + p_gin_0_03)) 
-        struct[0].Fy_ini[18,30] = -1 
+        struct[0].Fy_ini[18,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03)) 
+        struct[0].Fy_ini[18,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03)) 
+        struct[0].Fy_ini[18,31] = -Omega_b_03 
+        struct[0].Fy_ini[19,4] = sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03) 
+        struct[0].Fy_ini[19,5] = V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03) 
+        struct[0].Fy_ini[20,31] = -1 
 
         struct[0].Gx_ini[6,0] = -V_01*sin(delta_01 - theta_01)
         struct[0].Gx_ini[6,2] = -1
@@ -1019,7 +1038,7 @@ def ini(struct,mode):
         struct[0].Gx_ini[12,7] = -T_gov_2_01/T_gov_3_01 + 1
         struct[0].Gx_ini[13,1] = 1
         struct[0].Gx_ini[13,9] = -1
-        struct[0].Gx_ini[14,10] = K_stab_01*(-T_1_01/T_2_01 + 1)
+        struct[0].Gx_ini[14,10] = Piecewise(np.array([(0, (V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)) | (V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01))), (K_stab_01*(-T_1_01/T_2_01 + 1), True)]))
         struct[0].Gx_ini[15,12] = K_p_03/T_p_03
         struct[0].Gx_ini[16,13] = K_q_03/T_q_03
         struct[0].Gx_ini[17,11] = -V_03*cos(delta_03 - theta_03)
@@ -1031,8 +1050,10 @@ def ini(struct,mode):
         struct[0].Gx_ini[24,14] = 1
         struct[0].Gx_ini[26,16] = Piecewise(np.array([(0, (k_cur_03 > 1) | (k_cur_03 < 0.0001)), (1, True)]))
         struct[0].Gx_ini[27,17] = k_cur_sat_03
-        struct[0].Gx_ini[30,1] = H_01*S_n_01/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
-        struct[0].Gx_ini[31,18] = K_i_agc
+        struct[0].Gx_ini[30,18] = K_p_pll_03*(-V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03))/Omega_b_03
+        struct[0].Gx_ini[30,19] = K_i_pll_03/Omega_b_03
+        struct[0].Gx_ini[31,1] = H_01*S_n_01/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
+        struct[0].Gx_ini[32,20] = K_i_agc
 
         struct[0].Gy_ini[0,0] = 2*V_01*g_01_02 + V_02*(-b_01_02*sin(theta_01 - theta_02) - g_01_02*cos(theta_01 - theta_02))
         struct[0].Gy_ini[0,1] = V_01*V_02*(-b_01_02*cos(theta_01 - theta_02) + g_01_02*sin(theta_01 - theta_02))
@@ -1083,8 +1104,8 @@ def ini(struct,mode):
         struct[0].Gy_ini[9,6] = V_01*cos(delta_01 - theta_01)
         struct[0].Gy_ini[9,7] = -V_01*sin(delta_01 - theta_01)
         struct[0].Gy_ini[10,14] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
-        struct[0].Gy_ini[11,31] = K_sec_01
-        struct[0].Gy_ini[14,13] = K_stab_01*T_1_01/T_2_01
+        struct[0].Gy_ini[11,32] = K_sec_01
+        struct[0].Gy_ini[14,13] = Piecewise(np.array([(0, (V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)) | (V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01))), (K_stab_01*T_1_01/T_2_01, True)]))
         struct[0].Gy_ini[15,19] = -K_p_03
         struct[0].Gy_ini[15,21] = K_p_03
         struct[0].Gy_ini[16,20] = -K_q_03
@@ -1116,10 +1137,13 @@ def ini(struct,mode):
         struct[0].Gy_ini[24,27] = R_uc_03*S_n_03/(v_u_03 + 0.1)
         struct[0].Gy_ini[25,24] = Piecewise(np.array([(0, V_u_min_03 > v_u_03), ((-K_u_0_03 + K_u_max_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), ((-K_u_0_03 + K_u_max_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (0, True)]))
         struct[0].Gy_ini[27,26] = inc_p_gin_03 + p_gin_0_03
-        struct[0].Gy_ini[28,15] = -Piecewise(np.array([(1/Droop_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0, True)]))
+        struct[0].Gy_ini[28,15] = -Piecewise(np.array([((1 - K_speed_03)/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
+        struct[0].Gy_ini[28,30] = -Piecewise(np.array([(K_speed_03/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
         struct[0].Gy_ini[29,24] = Piecewise(np.array([((-R_lim_03 + R_lim_max_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), ((-R_lim_03 + R_lim_max_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (0, True)]))
-        struct[0].Gy_ini[30,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
-        struct[0].Gy_ini[31,30] = -K_p_agc
+        struct[0].Gy_ini[30,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03))/Omega_b_03
+        struct[0].Gy_ini[30,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03))/Omega_b_03
+        struct[0].Gy_ini[31,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
+        struct[0].Gy_ini[32,31] = -K_p_agc
 
 
 
@@ -1166,6 +1190,7 @@ def run(t,struct,mode):
     T_1_01 = struct[0].T_1_01
     T_2_01 = struct[0].T_2_01
     K_stab_01 = struct[0].K_stab_01
+    V_lim_01 = struct[0].V_lim_01
     S_n_03 = struct[0].S_n_03
     Omega_b_03 = struct[0].Omega_b_03
     K_p_03 = struct[0].K_p_03
@@ -1192,6 +1217,9 @@ def run(t,struct,mode):
     K_fpfr_03 = struct[0].K_fpfr_03
     P_f_min_03 = struct[0].P_f_min_03
     P_f_max_03 = struct[0].P_f_max_03
+    K_p_pll_03 = struct[0].K_p_pll_03
+    K_i_pll_03 = struct[0].K_i_pll_03
+    K_speed_03 = struct[0].K_speed_03
     K_p_agc = struct[0].K_p_agc
     K_i_agc = struct[0].K_i_agc
     
@@ -1205,6 +1233,7 @@ def run(t,struct,mode):
     v_ref_01 = struct[0].v_ref_01
     v_pss_01 = struct[0].v_pss_01
     p_c_01 = struct[0].p_c_01
+    p_r_01 = struct[0].p_r_01
     q_s_ref_03 = struct[0].q_s_ref_03
     v_u_ref_03 = struct[0].v_u_ref_03
     omega_ref_03 = struct[0].omega_ref_03
@@ -1231,7 +1260,9 @@ def run(t,struct,mode):
     p_ghr_03 = struct[0].x[15,0]
     k_cur_03 = struct[0].x[16,0]
     inc_p_gin_03 = struct[0].x[17,0]
-    xi_freq = struct[0].x[18,0]
+    theta_pll_03 = struct[0].x[18,0]
+    xi_pll_03 = struct[0].x[19,0]
+    xi_freq = struct[0].x[20,0]
     
     # Algebraic states:
     V_01 = struct[0].y_run[0,0]
@@ -1264,8 +1295,9 @@ def run(t,struct,mode):
     p_gou_03 = struct[0].y_run[27,0]
     p_f_03 = struct[0].y_run[28,0]
     r_lim_03 = struct[0].y_run[29,0]
-    omega_coi = struct[0].y_run[30,0]
-    p_agc = struct[0].y_run[31,0]
+    omega_pll_03 = struct[0].y_run[30,0]
+    omega_coi = struct[0].y_run[31,0]
+    p_agc = struct[0].y_run[32,0]
     
     struct[0].u_run[0,0] = P_01
     struct[0].u_run[1,0] = Q_01
@@ -1276,12 +1308,13 @@ def run(t,struct,mode):
     struct[0].u_run[6,0] = v_ref_01
     struct[0].u_run[7,0] = v_pss_01
     struct[0].u_run[8,0] = p_c_01
-    struct[0].u_run[9,0] = q_s_ref_03
-    struct[0].u_run[10,0] = v_u_ref_03
-    struct[0].u_run[11,0] = omega_ref_03
-    struct[0].u_run[12,0] = p_gin_0_03
-    struct[0].u_run[13,0] = p_g_ref_03
-    struct[0].u_run[14,0] = ramp_p_gin_03
+    struct[0].u_run[9,0] = p_r_01
+    struct[0].u_run[10,0] = q_s_ref_03
+    struct[0].u_run[11,0] = v_u_ref_03
+    struct[0].u_run[12,0] = omega_ref_03
+    struct[0].u_run[13,0] = p_gin_0_03
+    struct[0].u_run[14,0] = p_g_ref_03
+    struct[0].u_run[15,0] = ramp_p_gin_03
     # Differential equations:
     if mode == 2:
 
@@ -1304,7 +1337,9 @@ def run(t,struct,mode):
         struct[0].f[15,0] = Piecewise(np.array([(-r_lim_03, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (r_lim_03, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (K_h_03*(-p_ghr_03 + p_gou_03), True)]))
         struct[0].f[16,0] = (-k_cur_03 + p_g_ref_03/(inc_p_gin_03 + p_gin_0_03) + Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03))/T_cur_03
         struct[0].f[17,0] = -0.001*inc_p_gin_03 + ramp_p_gin_03
-        struct[0].f[18,0] = 1 - omega_coi
+        struct[0].f[18,0] = K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)) - Omega_b_03*omega_coi
+        struct[0].f[19,0] = V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)
+        struct[0].f[20,0] = 1 - omega_coi
     
     # Algebraic equations:
     if mode == 3:
@@ -1322,10 +1357,10 @@ def run(t,struct,mode):
         struct[0].g[8,0] = V_01*i_d_01*sin(delta_01 - theta_01) + V_01*i_q_01*cos(delta_01 - theta_01) - p_g_01
         struct[0].g[9,0] = V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01) - q_g_01
         struct[0].g[10,0] = -v_f_01 + Piecewise(np.array([(V_min_01, V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (V_max_01, V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01, True)]))
-        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
+        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + p_r_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
         struct[0].g[12,0] = T_gov_2_01*(x_gov_1_01 - x_gov_2_01)/T_gov_3_01 - p_m_01 + x_gov_2_01
         struct[0].g[13,0] = omega_01 - x_wo_01 - z_wo_01 - 1.0
-        struct[0].g[14,0] = K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01) - v_pss_01
+        struct[0].g[14,0] = -v_pss_01 + Piecewise(np.array([(-V_lim_01, V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (V_lim_01, V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01), True)]))
         struct[0].g[15,0] = K_p_03*(p_m_03 - p_s_03 + xi_p_03/T_p_03) - omega_03
         struct[0].g[16,0] = K_q_03*(-q_s_03 + q_s_ref_03 + xi_q_03/T_q_03) - e_qv_03
         struct[0].g[17,0] = -R_v_03*i_d_03 - V_03*sin(delta_03 - theta_03) + X_v_03*i_q_03
@@ -1339,10 +1374,11 @@ def run(t,struct,mode):
         struct[0].g[25,0] = -k_u_03 + Piecewise(np.array([(K_u_max_03, V_u_min_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (K_u_max_03, V_u_max_03 < v_u_03), (K_u_0_03, True)]))
         struct[0].g[26,0] = -k_cur_sat_03 + Piecewise(np.array([(0.0001, k_cur_03 < 0.0001), (1, k_cur_03 > 1), (k_cur_03, True)]))
         struct[0].g[27,0] = k_cur_sat_03*(inc_p_gin_03 + p_gin_0_03) - p_gou_03
-        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 < -0.5*DB_03 + omega_ref_03), ((-0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 > 0.5*DB_03 + omega_ref_03), (0.0, True)]))
+        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03)), ((-0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)), (0.0, True)]))
         struct[0].g[29,0] = -r_lim_03 + Piecewise(np.array([(R_lim_max_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0.0, True)])) + Piecewise(np.array([(R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (R_lim_03, True)]))
-        struct[0].g[30,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
-        struct[0].g[31,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
+        struct[0].g[30,0] = -omega_pll_03 + (K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)))/Omega_b_03
+        struct[0].g[31,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
+        struct[0].g[32,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
     
     # Outputs:
     if mode == 3:
@@ -1379,16 +1415,19 @@ def run(t,struct,mode):
         struct[0].Fx[15,15] = Piecewise(np.array([(0, (r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)) | (r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03))), (-K_h_03, True)]))
         struct[0].Fx[16,16] = -1/T_cur_03
         struct[0].Fx[16,17] = (-p_g_ref_03/(inc_p_gin_03 + p_gin_0_03)**2 - Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03)**2)/T_cur_03
+        struct[0].Fx[18,18] = K_p_pll_03*(-V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03))
+        struct[0].Fx[18,19] = K_i_pll_03
+        struct[0].Fx[19,18] = -V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03)
 
     if mode == 11:
 
-        struct[0].Fy[0,30] = -Omega_b_01
+        struct[0].Fy[0,31] = -Omega_b_01
         struct[0].Fy[1,0] = (-i_d_01*sin(delta_01 - theta_01) - i_q_01*cos(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,1] = (V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,6] = (-2*R_a_01*i_d_01 - V_01*sin(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,7] = (-2*R_a_01*i_q_01 - V_01*cos(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,12] = 1/(2*H_01)
-        struct[0].Fy[1,30] = D_01/(2*H_01)
+        struct[0].Fy[1,31] = D_01/(2*H_01)
         struct[0].Fy[2,6] = (X1d_01 - X_d_01)/T1d0_01
         struct[0].Fy[2,10] = 1/T1d0_01
         struct[0].Fy[3,7] = (-X1q_01 + X_q_01)/T1q0_01
@@ -1399,7 +1438,7 @@ def run(t,struct,mode):
         struct[0].Fy[8,8] = -K_imw_01
         struct[0].Fy[10,13] = 1/T_2_01
         struct[0].Fy[11,15] = Omega_b_03
-        struct[0].Fy[11,30] = -Omega_b_03
+        struct[0].Fy[11,31] = -Omega_b_03
         struct[0].Fy[12,19] = -1
         struct[0].Fy[12,21] = 1
         struct[0].Fy[13,20] = -1
@@ -1409,7 +1448,12 @@ def run(t,struct,mode):
         struct[0].Fy[15,27] = Piecewise(np.array([(0, (r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)) | (r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03))), (K_h_03, True)]))
         struct[0].Fy[15,29] = Piecewise(np.array([(-1, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (1, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (0, True)]))
         struct[0].Fy[16,28] = Piecewise(np.array([(0, (P_f_min_03 > p_f_03) | (P_f_max_03 < p_f_03)), (1, True)]))/(T_cur_03*(inc_p_gin_03 + p_gin_0_03))
-        struct[0].Fy[18,30] = -1
+        struct[0].Fy[18,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03))
+        struct[0].Fy[18,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03))
+        struct[0].Fy[18,31] = -Omega_b_03
+        struct[0].Fy[19,4] = sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03)
+        struct[0].Fy[19,5] = V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03)
+        struct[0].Fy[20,31] = -1
 
         struct[0].Gx[6,0] = -V_01*sin(delta_01 - theta_01)
         struct[0].Gx[6,2] = -1
@@ -1425,7 +1469,7 @@ def run(t,struct,mode):
         struct[0].Gx[12,7] = -T_gov_2_01/T_gov_3_01 + 1
         struct[0].Gx[13,1] = 1
         struct[0].Gx[13,9] = -1
-        struct[0].Gx[14,10] = K_stab_01*(-T_1_01/T_2_01 + 1)
+        struct[0].Gx[14,10] = Piecewise(np.array([(0, (V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)) | (V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01))), (K_stab_01*(-T_1_01/T_2_01 + 1), True)]))
         struct[0].Gx[15,12] = K_p_03/T_p_03
         struct[0].Gx[16,13] = K_q_03/T_q_03
         struct[0].Gx[17,11] = -V_03*cos(delta_03 - theta_03)
@@ -1437,8 +1481,10 @@ def run(t,struct,mode):
         struct[0].Gx[24,14] = 1
         struct[0].Gx[26,16] = Piecewise(np.array([(0, (k_cur_03 > 1) | (k_cur_03 < 0.0001)), (1, True)]))
         struct[0].Gx[27,17] = k_cur_sat_03
-        struct[0].Gx[30,1] = H_01*S_n_01/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
-        struct[0].Gx[31,18] = K_i_agc
+        struct[0].Gx[30,18] = K_p_pll_03*(-V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03))/Omega_b_03
+        struct[0].Gx[30,19] = K_i_pll_03/Omega_b_03
+        struct[0].Gx[31,1] = H_01*S_n_01/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
+        struct[0].Gx[32,20] = K_i_agc
 
         struct[0].Gy[0,0] = 2*V_01*g_01_02 + V_02*(-b_01_02*sin(theta_01 - theta_02) - g_01_02*cos(theta_01 - theta_02))
         struct[0].Gy[0,1] = V_01*V_02*(-b_01_02*cos(theta_01 - theta_02) + g_01_02*sin(theta_01 - theta_02))
@@ -1489,8 +1535,8 @@ def run(t,struct,mode):
         struct[0].Gy[9,6] = V_01*cos(delta_01 - theta_01)
         struct[0].Gy[9,7] = -V_01*sin(delta_01 - theta_01)
         struct[0].Gy[10,14] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
-        struct[0].Gy[11,31] = K_sec_01
-        struct[0].Gy[14,13] = K_stab_01*T_1_01/T_2_01
+        struct[0].Gy[11,32] = K_sec_01
+        struct[0].Gy[14,13] = Piecewise(np.array([(0, (V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)) | (V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01))), (K_stab_01*T_1_01/T_2_01, True)]))
         struct[0].Gy[15,19] = -K_p_03
         struct[0].Gy[15,21] = K_p_03
         struct[0].Gy[16,20] = -K_q_03
@@ -1522,20 +1568,23 @@ def run(t,struct,mode):
         struct[0].Gy[24,27] = R_uc_03*S_n_03/(v_u_03 + 0.1)
         struct[0].Gy[25,24] = Piecewise(np.array([(0, V_u_min_03 > v_u_03), ((-K_u_0_03 + K_u_max_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), ((-K_u_0_03 + K_u_max_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (0, True)]))
         struct[0].Gy[27,26] = inc_p_gin_03 + p_gin_0_03
-        struct[0].Gy[28,15] = -Piecewise(np.array([(1/Droop_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0, True)]))
+        struct[0].Gy[28,15] = -Piecewise(np.array([((1 - K_speed_03)/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
+        struct[0].Gy[28,30] = -Piecewise(np.array([(K_speed_03/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
         struct[0].Gy[29,24] = Piecewise(np.array([((-R_lim_03 + R_lim_max_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), ((-R_lim_03 + R_lim_max_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (0, True)]))
-        struct[0].Gy[30,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
-        struct[0].Gy[31,30] = -K_p_agc
+        struct[0].Gy[30,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03))/Omega_b_03
+        struct[0].Gy[30,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03))/Omega_b_03
+        struct[0].Gy[31,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
+        struct[0].Gy[32,31] = -K_p_agc
 
     if mode > 12:
 
         struct[0].Fu[5,6] = -K_a_01*K_aw_01 + 1
         struct[0].Fu[5,7] = -K_a_01*K_aw_01 + 1
         struct[0].Fu[8,8] = K_imw_01
-        struct[0].Fu[13,9] = 1
-        struct[0].Fu[16,12] = (-p_g_ref_03/(inc_p_gin_03 + p_gin_0_03)**2 - Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03)**2)/T_cur_03
-        struct[0].Fu[16,13] = 1/(T_cur_03*(inc_p_gin_03 + p_gin_0_03))
-        struct[0].Fu[17,14] = 1
+        struct[0].Fu[13,10] = 1
+        struct[0].Fu[16,13] = (-p_g_ref_03/(inc_p_gin_03 + p_gin_0_03)**2 - Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03)**2)/T_cur_03
+        struct[0].Fu[16,14] = 1/(T_cur_03*(inc_p_gin_03 + p_gin_0_03))
+        struct[0].Fu[17,15] = 1
 
         struct[0].Gu[0,0] = -1/S_base
         struct[0].Gu[1,1] = -1/S_base
@@ -1545,10 +1594,10 @@ def run(t,struct,mode):
         struct[0].Gu[5,5] = -1/S_base
         struct[0].Gu[10,6] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
         struct[0].Gu[10,7] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
-        struct[0].Gu[16,9] = K_q_03
-        struct[0].Gu[23,10] = -2*k_u_03*v_u_ref_03/V_u_max_03**2
-        struct[0].Gu[27,12] = k_cur_sat_03
-        struct[0].Gu[28,11] = -Piecewise(np.array([(-1/Droop_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0, True)]))
+        struct[0].Gu[16,10] = K_q_03
+        struct[0].Gu[23,11] = -2*k_u_03*v_u_ref_03/V_u_max_03**2
+        struct[0].Gu[27,13] = k_cur_sat_03
+        struct[0].Gu[28,12] = -Piecewise(np.array([(-1/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
 
         struct[0].Hx[3,0] = V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01)
         struct[0].Hx[4,17] = 1
@@ -1566,8 +1615,8 @@ def run(t,struct,mode):
         struct[0].Hy[8,28] = K_fpfr_03*Piecewise(np.array([(0, (P_f_min_03 > p_f_03) | (P_f_max_03 < p_f_03)), (1, True)]))
         struct[0].Hy[9,28] = Piecewise(np.array([(0, (P_f_min_03 > p_f_03) | (P_f_max_03 < p_f_03)), (1, True)]))
 
-        struct[0].Hu[4,12] = 1
-        struct[0].Hu[5,13] = 1
+        struct[0].Hu[4,13] = 1
+        struct[0].Hu[5,14] = 1
 
 
 
@@ -1613,6 +1662,7 @@ def ini_nn(struct,mode):
     T_1_01 = struct[0].T_1_01
     T_2_01 = struct[0].T_2_01
     K_stab_01 = struct[0].K_stab_01
+    V_lim_01 = struct[0].V_lim_01
     S_n_03 = struct[0].S_n_03
     Omega_b_03 = struct[0].Omega_b_03
     K_p_03 = struct[0].K_p_03
@@ -1639,6 +1689,9 @@ def ini_nn(struct,mode):
     K_fpfr_03 = struct[0].K_fpfr_03
     P_f_min_03 = struct[0].P_f_min_03
     P_f_max_03 = struct[0].P_f_max_03
+    K_p_pll_03 = struct[0].K_p_pll_03
+    K_i_pll_03 = struct[0].K_i_pll_03
+    K_speed_03 = struct[0].K_speed_03
     K_p_agc = struct[0].K_p_agc
     K_i_agc = struct[0].K_i_agc
     
@@ -1652,6 +1705,7 @@ def ini_nn(struct,mode):
     v_ref_01 = struct[0].v_ref_01
     v_pss_01 = struct[0].v_pss_01
     p_c_01 = struct[0].p_c_01
+    p_r_01 = struct[0].p_r_01
     q_s_ref_03 = struct[0].q_s_ref_03
     v_u_ref_03 = struct[0].v_u_ref_03
     omega_ref_03 = struct[0].omega_ref_03
@@ -1678,7 +1732,9 @@ def ini_nn(struct,mode):
     p_ghr_03 = struct[0].x[15,0]
     k_cur_03 = struct[0].x[16,0]
     inc_p_gin_03 = struct[0].x[17,0]
-    xi_freq = struct[0].x[18,0]
+    theta_pll_03 = struct[0].x[18,0]
+    xi_pll_03 = struct[0].x[19,0]
+    xi_freq = struct[0].x[20,0]
     
     # Algebraic states:
     V_01 = struct[0].y_ini[0,0]
@@ -1711,8 +1767,9 @@ def ini_nn(struct,mode):
     p_gou_03 = struct[0].y_ini[27,0]
     p_f_03 = struct[0].y_ini[28,0]
     r_lim_03 = struct[0].y_ini[29,0]
-    omega_coi = struct[0].y_ini[30,0]
-    p_agc = struct[0].y_ini[31,0]
+    omega_pll_03 = struct[0].y_ini[30,0]
+    omega_coi = struct[0].y_ini[31,0]
+    p_agc = struct[0].y_ini[32,0]
     
     # Differential equations:
     if mode == 2:
@@ -1736,7 +1793,9 @@ def ini_nn(struct,mode):
         struct[0].f[15,0] = Piecewise(np.array([(-r_lim_03, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (r_lim_03, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (K_h_03*(-p_ghr_03 + p_gou_03), True)]))
         struct[0].f[16,0] = (-k_cur_03 + p_g_ref_03/(inc_p_gin_03 + p_gin_0_03) + Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03))/T_cur_03
         struct[0].f[17,0] = -0.001*inc_p_gin_03 + ramp_p_gin_03
-        struct[0].f[18,0] = 1 - omega_coi
+        struct[0].f[18,0] = K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)) - Omega_b_03*omega_coi
+        struct[0].f[19,0] = V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)
+        struct[0].f[20,0] = 1 - omega_coi
     
     # Algebraic equations:
     if mode == 3:
@@ -1753,10 +1812,10 @@ def ini_nn(struct,mode):
         struct[0].g[8,0] = V_01*i_d_01*sin(delta_01 - theta_01) + V_01*i_q_01*cos(delta_01 - theta_01) - p_g_01
         struct[0].g[9,0] = V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01) - q_g_01
         struct[0].g[10,0] = -v_f_01 + Piecewise(np.array([(V_min_01, V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (V_max_01, V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01, True)]))
-        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
+        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + p_r_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
         struct[0].g[12,0] = T_gov_2_01*(x_gov_1_01 - x_gov_2_01)/T_gov_3_01 - p_m_01 + x_gov_2_01
         struct[0].g[13,0] = omega_01 - x_wo_01 - z_wo_01 - 1.0
-        struct[0].g[14,0] = K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01) - v_pss_01
+        struct[0].g[14,0] = -v_pss_01 + Piecewise(np.array([(-V_lim_01, V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (V_lim_01, V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01), True)]))
         struct[0].g[15,0] = K_p_03*(p_m_03 - p_s_03 + xi_p_03/T_p_03) - omega_03
         struct[0].g[16,0] = K_q_03*(-q_s_03 + q_s_ref_03 + xi_q_03/T_q_03) - e_qv_03
         struct[0].g[17,0] = -R_v_03*i_d_03 - V_03*sin(delta_03 - theta_03) + X_v_03*i_q_03
@@ -1770,10 +1829,11 @@ def ini_nn(struct,mode):
         struct[0].g[25,0] = -k_u_03 + Piecewise(np.array([(K_u_max_03, V_u_min_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (K_u_max_03, V_u_max_03 < v_u_03), (K_u_0_03, True)]))
         struct[0].g[26,0] = -k_cur_sat_03 + Piecewise(np.array([(0.0001, k_cur_03 < 0.0001), (1, k_cur_03 > 1), (k_cur_03, True)]))
         struct[0].g[27,0] = k_cur_sat_03*(inc_p_gin_03 + p_gin_0_03) - p_gou_03
-        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 < -0.5*DB_03 + omega_ref_03), ((-0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 > 0.5*DB_03 + omega_ref_03), (0.0, True)]))
+        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03)), ((-0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)), (0.0, True)]))
         struct[0].g[29,0] = -r_lim_03 + Piecewise(np.array([(R_lim_max_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0.0, True)])) + Piecewise(np.array([(R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (R_lim_03, True)]))
-        struct[0].g[30,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
-        struct[0].g[31,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
+        struct[0].g[30,0] = -omega_pll_03 + (K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)))/Omega_b_03
+        struct[0].g[31,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
+        struct[0].g[32,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
     
     # Outputs:
     if mode == 3:
@@ -1812,16 +1872,19 @@ def ini_nn(struct,mode):
         struct[0].Fx_ini[16,16] = -1/T_cur_03
         struct[0].Fx_ini[16,17] = (-p_g_ref_03/(inc_p_gin_03 + p_gin_0_03)**2 - Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03)**2)/T_cur_03
         struct[0].Fx_ini[17,17] = -0.00100000000000000
+        struct[0].Fx_ini[18,18] = K_p_pll_03*(-V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03))
+        struct[0].Fx_ini[18,19] = K_i_pll_03
+        struct[0].Fx_ini[19,18] = -V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03)
 
     if mode == 11:
 
-        struct[0].Fy_ini[0,30] = -Omega_b_01 
+        struct[0].Fy_ini[0,31] = -Omega_b_01 
         struct[0].Fy_ini[1,0] = (-i_d_01*sin(delta_01 - theta_01) - i_q_01*cos(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,1] = (V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,6] = (-2*R_a_01*i_d_01 - V_01*sin(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,7] = (-2*R_a_01*i_q_01 - V_01*cos(delta_01 - theta_01))/(2*H_01) 
         struct[0].Fy_ini[1,12] = 1/(2*H_01) 
-        struct[0].Fy_ini[1,30] = D_01/(2*H_01) 
+        struct[0].Fy_ini[1,31] = D_01/(2*H_01) 
         struct[0].Fy_ini[2,6] = (X1d_01 - X_d_01)/T1d0_01 
         struct[0].Fy_ini[2,10] = 1/T1d0_01 
         struct[0].Fy_ini[3,7] = (-X1q_01 + X_q_01)/T1q0_01 
@@ -1832,7 +1895,7 @@ def ini_nn(struct,mode):
         struct[0].Fy_ini[8,8] = -K_imw_01 
         struct[0].Fy_ini[10,13] = 1/T_2_01 
         struct[0].Fy_ini[11,15] = Omega_b_03 
-        struct[0].Fy_ini[11,30] = -Omega_b_03 
+        struct[0].Fy_ini[11,31] = -Omega_b_03 
         struct[0].Fy_ini[12,19] = -1 
         struct[0].Fy_ini[12,21] = 1 
         struct[0].Fy_ini[13,20] = -1 
@@ -1842,7 +1905,12 @@ def ini_nn(struct,mode):
         struct[0].Fy_ini[15,27] = Piecewise(np.array([(0, (r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)) | (r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03))), (K_h_03, True)])) 
         struct[0].Fy_ini[15,29] = Piecewise(np.array([(-1, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (1, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (0, True)])) 
         struct[0].Fy_ini[16,28] = Piecewise(np.array([(0, (P_f_min_03 > p_f_03) | (P_f_max_03 < p_f_03)), (1, True)]))/(T_cur_03*(inc_p_gin_03 + p_gin_0_03)) 
-        struct[0].Fy_ini[18,30] = -1 
+        struct[0].Fy_ini[18,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03)) 
+        struct[0].Fy_ini[18,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03)) 
+        struct[0].Fy_ini[18,31] = -Omega_b_03 
+        struct[0].Fy_ini[19,4] = sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03) 
+        struct[0].Fy_ini[19,5] = V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03) 
+        struct[0].Fy_ini[20,31] = -1 
 
         struct[0].Gy_ini[0,0] = 2*V_01*g_01_02 + V_02*(-b_01_02*sin(theta_01 - theta_02) - g_01_02*cos(theta_01 - theta_02))
         struct[0].Gy_ini[0,1] = V_01*V_02*(-b_01_02*cos(theta_01 - theta_02) + g_01_02*sin(theta_01 - theta_02))
@@ -1897,10 +1965,10 @@ def ini_nn(struct,mode):
         struct[0].Gy_ini[10,10] = -1
         struct[0].Gy_ini[10,14] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
         struct[0].Gy_ini[11,11] = -1
-        struct[0].Gy_ini[11,31] = K_sec_01
+        struct[0].Gy_ini[11,32] = K_sec_01
         struct[0].Gy_ini[12,12] = -1
         struct[0].Gy_ini[13,13] = -1
-        struct[0].Gy_ini[14,13] = K_stab_01*T_1_01/T_2_01
+        struct[0].Gy_ini[14,13] = Piecewise(np.array([(0, (V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)) | (V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01))), (K_stab_01*T_1_01/T_2_01, True)]))
         struct[0].Gy_ini[14,14] = -1
         struct[0].Gy_ini[15,15] = -1
         struct[0].Gy_ini[15,19] = -K_p_03
@@ -1947,14 +2015,18 @@ def ini_nn(struct,mode):
         struct[0].Gy_ini[26,26] = -1
         struct[0].Gy_ini[27,26] = inc_p_gin_03 + p_gin_0_03
         struct[0].Gy_ini[27,27] = -1
-        struct[0].Gy_ini[28,15] = -Piecewise(np.array([(1/Droop_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0, True)]))
+        struct[0].Gy_ini[28,15] = -Piecewise(np.array([((1 - K_speed_03)/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
         struct[0].Gy_ini[28,28] = -1
+        struct[0].Gy_ini[28,30] = -Piecewise(np.array([(K_speed_03/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
         struct[0].Gy_ini[29,24] = Piecewise(np.array([((-R_lim_03 + R_lim_max_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), ((-R_lim_03 + R_lim_max_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (0, True)]))
         struct[0].Gy_ini[29,29] = -1
-        struct[0].Gy_ini[30,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
+        struct[0].Gy_ini[30,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03))/Omega_b_03
+        struct[0].Gy_ini[30,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03))/Omega_b_03
         struct[0].Gy_ini[30,30] = -1
-        struct[0].Gy_ini[31,30] = -K_p_agc
+        struct[0].Gy_ini[31,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
         struct[0].Gy_ini[31,31] = -1
+        struct[0].Gy_ini[32,31] = -K_p_agc
+        struct[0].Gy_ini[32,32] = -1
 
 
 
@@ -2000,6 +2072,7 @@ def run_nn(t,struct,mode):
     T_1_01 = struct[0].T_1_01
     T_2_01 = struct[0].T_2_01
     K_stab_01 = struct[0].K_stab_01
+    V_lim_01 = struct[0].V_lim_01
     S_n_03 = struct[0].S_n_03
     Omega_b_03 = struct[0].Omega_b_03
     K_p_03 = struct[0].K_p_03
@@ -2026,6 +2099,9 @@ def run_nn(t,struct,mode):
     K_fpfr_03 = struct[0].K_fpfr_03
     P_f_min_03 = struct[0].P_f_min_03
     P_f_max_03 = struct[0].P_f_max_03
+    K_p_pll_03 = struct[0].K_p_pll_03
+    K_i_pll_03 = struct[0].K_i_pll_03
+    K_speed_03 = struct[0].K_speed_03
     K_p_agc = struct[0].K_p_agc
     K_i_agc = struct[0].K_i_agc
     
@@ -2039,6 +2115,7 @@ def run_nn(t,struct,mode):
     v_ref_01 = struct[0].v_ref_01
     v_pss_01 = struct[0].v_pss_01
     p_c_01 = struct[0].p_c_01
+    p_r_01 = struct[0].p_r_01
     q_s_ref_03 = struct[0].q_s_ref_03
     v_u_ref_03 = struct[0].v_u_ref_03
     omega_ref_03 = struct[0].omega_ref_03
@@ -2065,7 +2142,9 @@ def run_nn(t,struct,mode):
     p_ghr_03 = struct[0].x[15,0]
     k_cur_03 = struct[0].x[16,0]
     inc_p_gin_03 = struct[0].x[17,0]
-    xi_freq = struct[0].x[18,0]
+    theta_pll_03 = struct[0].x[18,0]
+    xi_pll_03 = struct[0].x[19,0]
+    xi_freq = struct[0].x[20,0]
     
     # Algebraic states:
     V_01 = struct[0].y_run[0,0]
@@ -2098,8 +2177,9 @@ def run_nn(t,struct,mode):
     p_gou_03 = struct[0].y_run[27,0]
     p_f_03 = struct[0].y_run[28,0]
     r_lim_03 = struct[0].y_run[29,0]
-    omega_coi = struct[0].y_run[30,0]
-    p_agc = struct[0].y_run[31,0]
+    omega_pll_03 = struct[0].y_run[30,0]
+    omega_coi = struct[0].y_run[31,0]
+    p_agc = struct[0].y_run[32,0]
     
     # Differential equations:
     if mode == 2:
@@ -2123,7 +2203,9 @@ def run_nn(t,struct,mode):
         struct[0].f[15,0] = Piecewise(np.array([(-r_lim_03, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (r_lim_03, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (K_h_03*(-p_ghr_03 + p_gou_03), True)]))
         struct[0].f[16,0] = (-k_cur_03 + p_g_ref_03/(inc_p_gin_03 + p_gin_0_03) + Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03))/T_cur_03
         struct[0].f[17,0] = -0.001*inc_p_gin_03 + ramp_p_gin_03
-        struct[0].f[18,0] = 1 - omega_coi
+        struct[0].f[18,0] = K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)) - Omega_b_03*omega_coi
+        struct[0].f[19,0] = V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)
+        struct[0].f[20,0] = 1 - omega_coi
     
     # Algebraic equations:
     if mode == 3:
@@ -2140,10 +2222,10 @@ def run_nn(t,struct,mode):
         struct[0].g[8,0] = V_01*i_d_01*sin(delta_01 - theta_01) + V_01*i_q_01*cos(delta_01 - theta_01) - p_g_01
         struct[0].g[9,0] = V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01) - q_g_01
         struct[0].g[10,0] = -v_f_01 + Piecewise(np.array([(V_min_01, V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (V_max_01, V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01), (K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01, True)]))
-        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
+        struct[0].g[11,0] = K_sec_01*p_agc - p_m_ref_01 + p_r_01 + xi_imw_01 - (omega_01 - omega_ref_01)/Droop_01
         struct[0].g[12,0] = T_gov_2_01*(x_gov_1_01 - x_gov_2_01)/T_gov_3_01 - p_m_01 + x_gov_2_01
         struct[0].g[13,0] = omega_01 - x_wo_01 - z_wo_01 - 1.0
-        struct[0].g[14,0] = K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01) - v_pss_01
+        struct[0].g[14,0] = -v_pss_01 + Piecewise(np.array([(-V_lim_01, V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (V_lim_01, V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)), (K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01), True)]))
         struct[0].g[15,0] = K_p_03*(p_m_03 - p_s_03 + xi_p_03/T_p_03) - omega_03
         struct[0].g[16,0] = K_q_03*(-q_s_03 + q_s_ref_03 + xi_q_03/T_q_03) - e_qv_03
         struct[0].g[17,0] = -R_v_03*i_d_03 - V_03*sin(delta_03 - theta_03) + X_v_03*i_q_03
@@ -2157,10 +2239,11 @@ def run_nn(t,struct,mode):
         struct[0].g[25,0] = -k_u_03 + Piecewise(np.array([(K_u_max_03, V_u_min_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (K_u_0_03 + (-K_u_0_03 + K_u_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (K_u_max_03, V_u_max_03 < v_u_03), (K_u_0_03, True)]))
         struct[0].g[26,0] = -k_cur_sat_03 + Piecewise(np.array([(0.0001, k_cur_03 < 0.0001), (1, k_cur_03 > 1), (k_cur_03, True)]))
         struct[0].g[27,0] = k_cur_sat_03*(inc_p_gin_03 + p_gin_0_03) - p_gou_03
-        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 < -0.5*DB_03 + omega_ref_03), ((-0.5*DB_03 + omega_03 - omega_ref_03)/Droop_03, omega_03 > 0.5*DB_03 + omega_ref_03), (0.0, True)]))
+        struct[0].g[28,0] = -p_f_03 - Piecewise(np.array([((0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03)), ((-0.5*DB_03 + K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03) - omega_ref_03)/Droop_03, 0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)), (0.0, True)]))
         struct[0].g[29,0] = -r_lim_03 + Piecewise(np.array([(R_lim_max_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0.0, True)])) + Piecewise(np.array([(R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_lt_03 + v_u_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), (R_lim_03 + (-R_lim_03 + R_lim_max_03)*(-V_u_ht_03 + v_u_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (R_lim_03, True)]))
-        struct[0].g[30,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
-        struct[0].g[31,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
+        struct[0].g[30,0] = -omega_pll_03 + (K_i_pll_03*xi_pll_03 + K_p_pll_03*(V_03*sin(theta_03)*cos(theta_pll_03) - V_03*sin(theta_pll_03)*cos(theta_03)))/Omega_b_03
+        struct[0].g[31,0] = -omega_coi + (H_01*S_n_01*omega_01 + S_n_03*T_p_03*omega_03/(2*K_p_03))/(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03))
+        struct[0].g[32,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
     
     # Outputs:
     if mode == 3:
@@ -2199,16 +2282,19 @@ def run_nn(t,struct,mode):
         struct[0].Fx[16,16] = -1/T_cur_03
         struct[0].Fx[16,17] = (-p_g_ref_03/(inc_p_gin_03 + p_gin_0_03)**2 - Piecewise(np.array([(P_f_min_03, P_f_min_03 > p_f_03), (P_f_max_03, P_f_max_03 < p_f_03), (p_f_03, True)]))/(inc_p_gin_03 + p_gin_0_03)**2)/T_cur_03
         struct[0].Fx[17,17] = -0.00100000000000000
+        struct[0].Fx[18,18] = K_p_pll_03*(-V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03))
+        struct[0].Fx[18,19] = K_i_pll_03
+        struct[0].Fx[19,18] = -V_03*sin(theta_03)*sin(theta_pll_03) - V_03*cos(theta_03)*cos(theta_pll_03)
 
     if mode == 11:
 
-        struct[0].Fy[0,30] = -Omega_b_01
+        struct[0].Fy[0,31] = -Omega_b_01
         struct[0].Fy[1,0] = (-i_d_01*sin(delta_01 - theta_01) - i_q_01*cos(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,1] = (V_01*i_d_01*cos(delta_01 - theta_01) - V_01*i_q_01*sin(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,6] = (-2*R_a_01*i_d_01 - V_01*sin(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,7] = (-2*R_a_01*i_q_01 - V_01*cos(delta_01 - theta_01))/(2*H_01)
         struct[0].Fy[1,12] = 1/(2*H_01)
-        struct[0].Fy[1,30] = D_01/(2*H_01)
+        struct[0].Fy[1,31] = D_01/(2*H_01)
         struct[0].Fy[2,6] = (X1d_01 - X_d_01)/T1d0_01
         struct[0].Fy[2,10] = 1/T1d0_01
         struct[0].Fy[3,7] = (-X1q_01 + X_q_01)/T1q0_01
@@ -2219,7 +2305,7 @@ def run_nn(t,struct,mode):
         struct[0].Fy[8,8] = -K_imw_01
         struct[0].Fy[10,13] = 1/T_2_01
         struct[0].Fy[11,15] = Omega_b_03
-        struct[0].Fy[11,30] = -Omega_b_03
+        struct[0].Fy[11,31] = -Omega_b_03
         struct[0].Fy[12,19] = -1
         struct[0].Fy[12,21] = 1
         struct[0].Fy[13,20] = -1
@@ -2229,7 +2315,12 @@ def run_nn(t,struct,mode):
         struct[0].Fy[15,27] = Piecewise(np.array([(0, (r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)) | (r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03))), (K_h_03, True)]))
         struct[0].Fy[15,29] = Piecewise(np.array([(-1, r_lim_03 < -K_h_03*(-p_ghr_03 + p_gou_03)), (1, r_lim_03 < K_h_03*(-p_ghr_03 + p_gou_03)), (0, True)]))
         struct[0].Fy[16,28] = Piecewise(np.array([(0, (P_f_min_03 > p_f_03) | (P_f_max_03 < p_f_03)), (1, True)]))/(T_cur_03*(inc_p_gin_03 + p_gin_0_03))
-        struct[0].Fy[18,30] = -1
+        struct[0].Fy[18,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03))
+        struct[0].Fy[18,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03))
+        struct[0].Fy[18,31] = -Omega_b_03
+        struct[0].Fy[19,4] = sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03)
+        struct[0].Fy[19,5] = V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03)
+        struct[0].Fy[20,31] = -1
 
         struct[0].Gy[0,0] = 2*V_01*g_01_02 + V_02*(-b_01_02*sin(theta_01 - theta_02) - g_01_02*cos(theta_01 - theta_02))
         struct[0].Gy[0,1] = V_01*V_02*(-b_01_02*cos(theta_01 - theta_02) + g_01_02*sin(theta_01 - theta_02))
@@ -2284,10 +2375,10 @@ def run_nn(t,struct,mode):
         struct[0].Gy[10,10] = -1
         struct[0].Gy[10,14] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
         struct[0].Gy[11,11] = -1
-        struct[0].Gy[11,31] = K_sec_01
+        struct[0].Gy[11,32] = K_sec_01
         struct[0].Gy[12,12] = -1
         struct[0].Gy[13,13] = -1
-        struct[0].Gy[14,13] = K_stab_01*T_1_01/T_2_01
+        struct[0].Gy[14,13] = Piecewise(np.array([(0, (V_lim_01 < K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01)) | (V_lim_01 < -K_stab_01*(T_1_01*(-x_lead_01 + z_wo_01)/T_2_01 + x_lead_01))), (K_stab_01*T_1_01/T_2_01, True)]))
         struct[0].Gy[14,14] = -1
         struct[0].Gy[15,15] = -1
         struct[0].Gy[15,19] = -K_p_03
@@ -2334,14 +2425,18 @@ def run_nn(t,struct,mode):
         struct[0].Gy[26,26] = -1
         struct[0].Gy[27,26] = inc_p_gin_03 + p_gin_0_03
         struct[0].Gy[27,27] = -1
-        struct[0].Gy[28,15] = -Piecewise(np.array([(1/Droop_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0, True)]))
+        struct[0].Gy[28,15] = -Piecewise(np.array([((1 - K_speed_03)/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
         struct[0].Gy[28,28] = -1
+        struct[0].Gy[28,30] = -Piecewise(np.array([(K_speed_03/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
         struct[0].Gy[29,24] = Piecewise(np.array([((-R_lim_03 + R_lim_max_03)/(-V_u_lt_03 + V_u_min_03), V_u_lt_03 > v_u_03), ((-R_lim_03 + R_lim_max_03)/(-V_u_ht_03 + V_u_max_03), V_u_ht_03 < v_u_03), (0, True)]))
         struct[0].Gy[29,29] = -1
-        struct[0].Gy[30,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
+        struct[0].Gy[30,4] = K_p_pll_03*(sin(theta_03)*cos(theta_pll_03) - sin(theta_pll_03)*cos(theta_03))/Omega_b_03
+        struct[0].Gy[30,5] = K_p_pll_03*(V_03*sin(theta_03)*sin(theta_pll_03) + V_03*cos(theta_03)*cos(theta_pll_03))/Omega_b_03
         struct[0].Gy[30,30] = -1
-        struct[0].Gy[31,30] = -K_p_agc
+        struct[0].Gy[31,15] = S_n_03*T_p_03/(2*K_p_03*(H_01*S_n_01 + S_n_03*T_p_03/(2*K_p_03)))
         struct[0].Gy[31,31] = -1
+        struct[0].Gy[32,31] = -K_p_agc
+        struct[0].Gy[32,32] = -1
 
         struct[0].Gu[0,0] = -1/S_base
         struct[0].Gu[1,1] = -1/S_base
@@ -2351,11 +2446,12 @@ def run_nn(t,struct,mode):
         struct[0].Gu[5,5] = -1/S_base
         struct[0].Gu[10,6] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
         struct[0].Gu[10,7] = Piecewise(np.array([(0, (V_min_01 > K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01) | (V_max_01 < K_a_01*(-v_c_01 + v_pss_01 + v_ref_01) + K_ai_01*xi_v_01)), (K_a_01, True)]))
+        struct[0].Gu[11,9] = 1
         struct[0].Gu[14,7] = -1
-        struct[0].Gu[16,9] = K_q_03
-        struct[0].Gu[23,10] = -2*k_u_03*v_u_ref_03/V_u_max_03**2
-        struct[0].Gu[27,12] = k_cur_sat_03
-        struct[0].Gu[28,11] = -Piecewise(np.array([(-1/Droop_03, (omega_03 > 0.5*DB_03 + omega_ref_03) | (omega_03 < -0.5*DB_03 + omega_ref_03)), (0, True)]))
+        struct[0].Gu[16,10] = K_q_03
+        struct[0].Gu[23,11] = -2*k_u_03*v_u_ref_03/V_u_max_03**2
+        struct[0].Gu[27,13] = k_cur_sat_03
+        struct[0].Gu[28,12] = -Piecewise(np.array([(-1/Droop_03, (0.5*DB_03 + omega_ref_03 < K_speed_03*omega_pll_03 + omega_03*(1 - K_speed_03)) | (0.5*DB_03 - omega_ref_03 < -K_speed_03*omega_pll_03 - omega_03*(1 - K_speed_03))), (0, True)]))
 
 
 
@@ -2401,7 +2497,7 @@ def ini_dae_jacobian_numba(struct,x):
         struct[0].Ac_ini[row+N_x,col] = struct[0].Gx_ini[row,col]
     for row,col in zip(struct[0].Gy_ini_rows,struct[0].Gy_ini_cols):
         struct[0].Ac_ini[row+N_x,col+N_x] = struct[0].Gy_ini[row,col]
-
+        
 
 @numba.njit(cache=True)
 def ini_dae_problem(struct,x):
@@ -2414,7 +2510,7 @@ def ini_dae_problem(struct,x):
     ini(struct,3) 
     struct[0].fg[:N_x,:] = struct[0].f[:]
     struct[0].fg[N_x:,:] = struct[0].g[:]    
-
+        
 @numba.njit(cache=True)
 def ssate(struct,xy):
     for it in range(100):
@@ -2554,20 +2650,20 @@ def daesolver(struct):
 
 
 def nonzeros():
-    Fx_ini_rows = [0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 9, 9, 10, 15, 16, 16, 17]
+    Fx_ini_rows = [0, 0, 1, 1, 2, 3, 4, 5, 5, 6, 7, 7, 8, 9, 9, 10, 15, 16, 16, 17, 18, 18, 19]
 
-    Fx_ini_cols = [0, 1, 0, 1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 1, 9, 10, 15, 16, 17, 17]
+    Fx_ini_cols = [0, 1, 0, 1, 2, 3, 4, 4, 5, 6, 6, 7, 8, 1, 9, 10, 15, 16, 17, 17, 18, 19, 18]
 
-    Fy_ini_rows = [0, 1, 1, 1, 1, 1, 1, 2, 2, 3, 4, 5, 5, 6, 8, 10, 11, 11, 12, 12, 13, 14, 14, 14, 15, 15, 16, 18]
+    Fy_ini_rows = [0, 1, 1, 1, 1, 1, 1, 2, 2, 3, 4, 5, 5, 6, 8, 10, 11, 11, 12, 12, 13, 14, 14, 14, 15, 15, 16, 18, 18, 18, 19, 19, 20]
 
-    Fy_ini_cols = [30, 0, 1, 6, 7, 12, 30, 6, 10, 7, 0, 10, 14, 11, 8, 13, 15, 30, 19, 21, 20, 22, 24, 27, 27, 29, 28, 30]
+    Fy_ini_cols = [31, 0, 1, 6, 7, 12, 31, 6, 10, 7, 0, 10, 14, 11, 8, 13, 15, 31, 19, 21, 20, 22, 24, 27, 27, 29, 28, 4, 5, 31, 4, 5, 31]
 
-    Gx_ini_rows = [6, 6, 7, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26, 27, 30, 31]
+    Gx_ini_rows = [6, 6, 7, 7, 8, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 26, 27, 30, 30, 31, 32]
 
-    Gx_ini_cols = [0, 2, 0, 3, 0, 0, 4, 5, 1, 8, 6, 7, 1, 9, 10, 12, 13, 11, 11, 11, 11, 15, 11, 14, 16, 17, 1, 18]
+    Gx_ini_cols = [0, 2, 0, 3, 0, 0, 4, 5, 1, 8, 6, 7, 1, 9, 10, 12, 13, 11, 11, 11, 11, 15, 11, 14, 16, 17, 18, 19, 1, 20]
 
-    Gy_ini_rows = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 11, 11, 12, 13, 14, 14, 15, 15, 15, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31, 31]
+    Gy_ini_rows = [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 11, 11, 12, 13, 14, 14, 15, 15, 15, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 24, 24, 24, 25, 25, 26, 27, 27, 28, 28, 28, 29, 29, 30, 30, 30, 31, 31, 32, 32]
 
-    Gy_ini_cols = [0, 1, 2, 3, 8, 0, 1, 2, 3, 9, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 19, 2, 3, 4, 5, 20, 0, 1, 6, 7, 0, 1, 6, 7, 0, 1, 6, 7, 8, 0, 1, 6, 7, 9, 10, 14, 11, 31, 12, 13, 13, 14, 15, 19, 21, 16, 20, 4, 5, 17, 18, 4, 5, 16, 17, 18, 4, 5, 17, 18, 19, 4, 5, 17, 18, 20, 19, 21, 22, 23, 28, 4, 5, 17, 18, 22, 23, 24, 25, 22, 24, 27, 24, 25, 26, 26, 27, 15, 28, 24, 29, 15, 30, 30, 31]
+    Gy_ini_cols = [0, 1, 2, 3, 8, 0, 1, 2, 3, 9, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 2, 3, 4, 5, 19, 2, 3, 4, 5, 20, 0, 1, 6, 7, 0, 1, 6, 7, 0, 1, 6, 7, 8, 0, 1, 6, 7, 9, 10, 14, 11, 32, 12, 13, 13, 14, 15, 19, 21, 16, 20, 4, 5, 17, 18, 4, 5, 16, 17, 18, 4, 5, 17, 18, 19, 4, 5, 17, 18, 20, 19, 21, 22, 23, 28, 4, 5, 17, 18, 22, 23, 24, 25, 22, 24, 27, 24, 25, 26, 26, 27, 15, 28, 30, 24, 29, 4, 5, 30, 15, 31, 31, 32]
 
     return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols

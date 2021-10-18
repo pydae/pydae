@@ -27,12 +27,12 @@ class k12p6_pss_class:
         self.N_y = 60 
         self.N_z = 15 
         self.N_store = 10000 
-        self.params_list = ['S_base', 'g_1_5', 'b_1_5', 'bs_1_5', 'g_2_6', 'b_2_6', 'bs_2_6', 'g_3_11', 'b_3_11', 'bs_3_11', 'g_4_10', 'b_4_10', 'bs_4_10', 'g_5_6', 'b_5_6', 'bs_5_6', 'g_6_7', 'b_6_7', 'bs_6_7', 'g_7_8', 'b_7_8', 'bs_7_8', 'g_8_9', 'b_8_9', 'bs_8_9', 'g_9_10', 'b_9_10', 'bs_9_10', 'g_10_11', 'b_10_11', 'bs_10_11', 'U_1_n', 'U_2_n', 'U_3_n', 'U_4_n', 'U_5_n', 'U_6_n', 'U_7_n', 'U_8_n', 'U_9_n', 'U_10_n', 'U_11_n', 'S_n_1', 'Omega_b_1', 'H_1', 'T1d0_1', 'T1q0_1', 'X_d_1', 'X_q_1', 'X1d_1', 'X1q_1', 'D_1', 'R_a_1', 'K_delta_1', 'K_sec_1', 'K_a_1', 'K_ai_1', 'T_r_1', 'V_min_1', 'V_max_1', 'K_aw_1', 'Droop_1', 'T_gov_1_1', 'T_gov_2_1', 'T_gov_3_1', 'K_imw_1', 'omega_ref_1', 'T_wo_1', 'T_1_1', 'T_2_1', 'K_stab_1', 'S_n_2', 'Omega_b_2', 'H_2', 'T1d0_2', 'T1q0_2', 'X_d_2', 'X_q_2', 'X1d_2', 'X1q_2', 'D_2', 'R_a_2', 'K_delta_2', 'K_sec_2', 'K_a_2', 'K_ai_2', 'T_r_2', 'V_min_2', 'V_max_2', 'K_aw_2', 'Droop_2', 'T_gov_1_2', 'T_gov_2_2', 'T_gov_3_2', 'K_imw_2', 'omega_ref_2', 'T_wo_2', 'T_1_2', 'T_2_2', 'K_stab_2', 'S_n_3', 'Omega_b_3', 'H_3', 'T1d0_3', 'T1q0_3', 'X_d_3', 'X_q_3', 'X1d_3', 'X1q_3', 'D_3', 'R_a_3', 'K_delta_3', 'K_sec_3', 'K_a_3', 'K_ai_3', 'T_r_3', 'V_min_3', 'V_max_3', 'K_aw_3', 'Droop_3', 'T_gov_1_3', 'T_gov_2_3', 'T_gov_3_3', 'K_imw_3', 'omega_ref_3', 'T_wo_3', 'T_1_3', 'T_2_3', 'K_stab_3', 'S_n_4', 'Omega_b_4', 'H_4', 'T1d0_4', 'T1q0_4', 'X_d_4', 'X_q_4', 'X1d_4', 'X1q_4', 'D_4', 'R_a_4', 'K_delta_4', 'K_sec_4', 'K_a_4', 'K_ai_4', 'T_r_4', 'V_min_4', 'V_max_4', 'K_aw_4', 'Droop_4', 'T_gov_1_4', 'T_gov_2_4', 'T_gov_3_4', 'K_imw_4', 'omega_ref_4', 'T_wo_4', 'T_1_4', 'T_2_4', 'K_stab_4', 'K_p_agc', 'K_i_agc'] 
-        self.params_values_list  = [100000000.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 3.96039603960396, -39.603960396039604, 0.027772499999999995, 9.900990099009901, -99.00990099009901, 0.011108999999999999, 0.9000900090008999, -9.000900090009, 0.12219899999999999, 0.9000900090008999, -9.000900090009, 0.12219899999999999, 9.900990099009901, -99.00990099009901, 0.011108999999999999, 3.96039603960396, -39.603960396039604, 0.027772499999999995, 20000.0, 20000.0, 20000.0, 20000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 900000000.0, 314.1592653589793, 6.5, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.001, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 900000000.0, 314.1592653589793, 6.5, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.0, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 900000000.0, 314.1592653589793, 6.175, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.0, 0.01, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.0, 1.0, 10.0, 0.1, 0.1, 1.0, 900000000.0, 314.1592653589793, 6.175, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.0, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 0.01, 0.01] 
-        self.inputs_ini_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'P_4', 'Q_4', 'P_5', 'Q_5', 'P_6', 'Q_6', 'P_7', 'Q_7', 'P_8', 'Q_8', 'P_9', 'Q_9', 'P_10', 'Q_10', 'P_11', 'Q_11', 'v_ref_1', 'v_pss_1', 'p_c_1', 'v_ref_2', 'v_pss_2', 'p_c_2', 'v_ref_3', 'v_pss_3', 'p_c_3', 'v_ref_4', 'v_pss_4', 'p_c_4'] 
-        self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -967000000.0, 100000000.0, 0.0, 0.0, -1767000000.0, 250000000.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 1.01, 0.0, 0.778, 1.03, 0.0, 0.778, 1.01, 0.0, 0.778] 
-        self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'P_4', 'Q_4', 'P_5', 'Q_5', 'P_6', 'Q_6', 'P_7', 'Q_7', 'P_8', 'Q_8', 'P_9', 'Q_9', 'P_10', 'Q_10', 'P_11', 'Q_11', 'v_ref_1', 'v_pss_1', 'p_c_1', 'v_ref_2', 'v_pss_2', 'p_c_2', 'v_ref_3', 'v_pss_3', 'p_c_3', 'v_ref_4', 'v_pss_4', 'p_c_4'] 
-        self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -967000000.0, 100000000.0, 0.0, 0.0, -1767000000.0, 250000000.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 1.01, 0.0, 0.778, 1.03, 0.0, 0.778, 1.01, 0.0, 0.778] 
+        self.params_list = ['S_base', 'g_1_5', 'b_1_5', 'bs_1_5', 'g_2_6', 'b_2_6', 'bs_2_6', 'g_3_11', 'b_3_11', 'bs_3_11', 'g_4_10', 'b_4_10', 'bs_4_10', 'g_5_6', 'b_5_6', 'bs_5_6', 'g_6_7', 'b_6_7', 'bs_6_7', 'g_7_8', 'b_7_8', 'bs_7_8', 'g_8_9', 'b_8_9', 'bs_8_9', 'g_9_10', 'b_9_10', 'bs_9_10', 'g_10_11', 'b_10_11', 'bs_10_11', 'U_1_n', 'U_2_n', 'U_3_n', 'U_4_n', 'U_5_n', 'U_6_n', 'U_7_n', 'U_8_n', 'U_9_n', 'U_10_n', 'U_11_n', 'S_n_1', 'Omega_b_1', 'H_1', 'T1d0_1', 'T1q0_1', 'X_d_1', 'X_q_1', 'X1d_1', 'X1q_1', 'D_1', 'R_a_1', 'K_delta_1', 'K_sec_1', 'K_a_1', 'K_ai_1', 'T_r_1', 'V_min_1', 'V_max_1', 'K_aw_1', 'Droop_1', 'T_gov_1_1', 'T_gov_2_1', 'T_gov_3_1', 'K_imw_1', 'omega_ref_1', 'T_wo_1', 'T_1_1', 'T_2_1', 'K_stab_1', 'V_lim_1', 'S_n_2', 'Omega_b_2', 'H_2', 'T1d0_2', 'T1q0_2', 'X_d_2', 'X_q_2', 'X1d_2', 'X1q_2', 'D_2', 'R_a_2', 'K_delta_2', 'K_sec_2', 'K_a_2', 'K_ai_2', 'T_r_2', 'V_min_2', 'V_max_2', 'K_aw_2', 'Droop_2', 'T_gov_1_2', 'T_gov_2_2', 'T_gov_3_2', 'K_imw_2', 'omega_ref_2', 'T_wo_2', 'T_1_2', 'T_2_2', 'K_stab_2', 'V_lim_2', 'S_n_3', 'Omega_b_3', 'H_3', 'T1d0_3', 'T1q0_3', 'X_d_3', 'X_q_3', 'X1d_3', 'X1q_3', 'D_3', 'R_a_3', 'K_delta_3', 'K_sec_3', 'K_a_3', 'K_ai_3', 'T_r_3', 'V_min_3', 'V_max_3', 'K_aw_3', 'Droop_3', 'T_gov_1_3', 'T_gov_2_3', 'T_gov_3_3', 'K_imw_3', 'omega_ref_3', 'T_wo_3', 'T_1_3', 'T_2_3', 'K_stab_3', 'V_lim_3', 'S_n_4', 'Omega_b_4', 'H_4', 'T1d0_4', 'T1q0_4', 'X_d_4', 'X_q_4', 'X1d_4', 'X1q_4', 'D_4', 'R_a_4', 'K_delta_4', 'K_sec_4', 'K_a_4', 'K_ai_4', 'T_r_4', 'V_min_4', 'V_max_4', 'K_aw_4', 'Droop_4', 'T_gov_1_4', 'T_gov_2_4', 'T_gov_3_4', 'K_imw_4', 'omega_ref_4', 'T_wo_4', 'T_1_4', 'T_2_4', 'K_stab_4', 'V_lim_4', 'K_p_agc', 'K_i_agc'] 
+        self.params_values_list  = [100000000.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 0.0, -60.0, 0.0, 3.96039603960396, -39.603960396039604, 0.027772499999999995, 9.900990099009901, -99.00990099009901, 0.011108999999999999, 0.9000900090008999, -9.000900090009, 0.12219899999999999, 0.9000900090008999, -9.000900090009, 0.12219899999999999, 9.900990099009901, -99.00990099009901, 0.011108999999999999, 3.96039603960396, -39.603960396039604, 0.027772499999999995, 20000.0, 20000.0, 20000.0, 20000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 230000.0, 900000000.0, 314.1592653589793, 6.5, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.001, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 0.1, 900000000.0, 314.1592653589793, 6.5, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.0, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 0.1, 900000000.0, 314.1592653589793, 6.175, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.0, 0.01, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.0, 1.0, 10.0, 0.1, 0.1, 1.0, 0.1, 900000000.0, 314.1592653589793, 6.175, 8.0, 0.4, 1.8, 1.7, 0.3, 0.55, 1.0, 0.0025, 0.0, 0.0, 300, 1e-06, 0.02, -10000.0, 5.0, 10, 0.05, 1.0, 2.0, 10.0, 0.01, 1.0, 10.0, 0.1, 0.1, 1.0, 0.1, 0.01, 0.01] 
+        self.inputs_ini_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'P_4', 'Q_4', 'P_5', 'Q_5', 'P_6', 'Q_6', 'P_7', 'Q_7', 'P_8', 'Q_8', 'P_9', 'Q_9', 'P_10', 'Q_10', 'P_11', 'Q_11', 'v_ref_1', 'v_pss_1', 'p_c_1', 'p_r_1', 'v_ref_2', 'v_pss_2', 'p_c_2', 'p_r_2', 'v_ref_3', 'v_pss_3', 'p_c_3', 'p_r_3', 'v_ref_4', 'v_pss_4', 'p_c_4', 'p_r_4'] 
+        self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -967000000.0, 100000000.0, 0.0, 0.0, -1767000000.0, 250000000.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 0.0, 1.01, 0.0, 0.778, 0.0, 1.03, 0.0, 0.778, 0.0, 1.01, 0.0, 0.778, 0.0] 
+        self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'P_4', 'Q_4', 'P_5', 'Q_5', 'P_6', 'Q_6', 'P_7', 'Q_7', 'P_8', 'Q_8', 'P_9', 'Q_9', 'P_10', 'Q_10', 'P_11', 'Q_11', 'v_ref_1', 'v_pss_1', 'p_c_1', 'p_r_1', 'v_ref_2', 'v_pss_2', 'p_c_2', 'p_r_2', 'v_ref_3', 'v_pss_3', 'p_c_3', 'p_r_3', 'v_ref_4', 'v_pss_4', 'p_c_4', 'p_r_4'] 
+        self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -967000000.0, 100000000.0, 0.0, 0.0, -1767000000.0, 250000000.0, 0.0, 0.0, 0.0, 0.0, 1.03, 0.0, 0.778, 0.0, 1.01, 0.0, 0.778, 0.0, 1.03, 0.0, 0.778, 0.0, 1.01, 0.0, 0.778, 0.0] 
         self.outputs_list = ['V_1', 'V_2', 'V_3', 'V_4', 'V_5', 'V_6', 'V_7', 'V_8', 'V_9', 'V_10', 'V_11', 'p_e_1', 'p_e_2', 'p_e_3', 'p_e_4'] 
         self.x_list = ['delta_1', 'omega_1', 'e1q_1', 'e1d_1', 'v_c_1', 'xi_v_1', 'x_gov_1_1', 'x_gov_2_1', 'xi_imw_1', 'x_wo_1', 'x_lead_1', 'delta_2', 'omega_2', 'e1q_2', 'e1d_2', 'v_c_2', 'xi_v_2', 'x_gov_1_2', 'x_gov_2_2', 'xi_imw_2', 'x_wo_2', 'x_lead_2', 'delta_3', 'omega_3', 'e1q_3', 'e1d_3', 'v_c_3', 'xi_v_3', 'x_gov_1_3', 'x_gov_2_3', 'xi_imw_3', 'x_wo_3', 'x_lead_3', 'delta_4', 'omega_4', 'e1q_4', 'e1d_4', 'v_c_4', 'xi_v_4', 'x_gov_1_4', 'x_gov_2_4', 'xi_imw_4', 'x_wo_4', 'x_lead_4', 'xi_freq'] 
         self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'V_3', 'theta_3', 'V_4', 'theta_4', 'V_5', 'theta_5', 'V_6', 'theta_6', 'V_7', 'theta_7', 'V_8', 'theta_8', 'V_9', 'theta_9', 'V_10', 'theta_10', 'V_11', 'theta_11', 'i_d_1', 'i_q_1', 'p_g_1', 'q_g_1', 'v_f_1', 'p_m_ref_1', 'p_m_1', 'z_wo_1', 'v_pss_1', 'i_d_2', 'i_q_2', 'p_g_2', 'q_g_2', 'v_f_2', 'p_m_ref_2', 'p_m_2', 'z_wo_2', 'v_pss_2', 'i_d_3', 'i_q_3', 'p_g_3', 'q_g_3', 'v_f_3', 'p_m_ref_3', 'p_m_3', 'z_wo_3', 'v_pss_3', 'i_d_4', 'i_q_4', 'p_g_4', 'q_g_4', 'v_f_4', 'p_m_ref_4', 'p_m_4', 'z_wo_4', 'v_pss_4', 'omega_coi', 'p_agc'] 
@@ -52,411 +52,189 @@ class k12p6_pss_class:
         self.u_run_list = self.inputs_run_list
         self.u_run_values_list = self.inputs_run_values_list
         self.N_u = len(self.u_run_list)
-        Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols = nonzeros()
-
-        self.Fx_ini_rows = np.array(Fx_ini_rows) 
-        if len(Fx_ini_rows) == 1: 
-            self.Fx_ini_rows = np.array([[Fx_ini_rows]]).reshape(1,) 
-            self.Fx_ini_cols = np.array([[Fx_ini_cols]]).reshape(1,)  
-            
-        self.Fx_ini_cols = np.array(Fx_ini_cols)
-        self.Fy_ini_rows = np.array(Fy_ini_rows)        
-        self.Fy_ini_cols = np.array(Fy_ini_cols)
-        self.Gx_ini_rows = np.array(Gx_ini_rows)        
-        self.Gx_ini_cols = np.array(Gx_ini_cols)
-        self.Gy_ini_rows = np.array(Gy_ini_rows)        
-        self.Gy_ini_cols = np.array(Gy_ini_cols)
+        self.u_ini = np.array(self.inputs_ini_values_list)
+        self.p = np.array(self.params_values_list)
+        self.xy_0 = np.zeros((self.N_x+self.N_y,))
+        self.xy = np.zeros((self.N_x+self.N_y,))
+        self.z = np.zeros((self.N_z,))
+        self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         
-        
-        self.yini2urun = list(set(self.inputs_run_list).intersection(set(self.y_ini_list)))
-        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.inputs_ini_list)))
-
-        self.update() 
+        self.yini2urun = list(set(self.u_run_list).intersection(set(self.y_ini_list)))
+        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.u_ini_list)))
+        self.Time = np.zeros(self.N_store)
+        self.X = np.zeros((self.N_store,self.N_x))
+        self.Y = np.zeros((self.N_store,self.N_y))
+        self.Z = np.zeros((self.N_store,self.N_z))
+        self.iters = np.zeros(self.N_store) 
+        self.u_run = np.array(self.u_run_values_list)
                 
-    def update(self): 
+    def ss_ini(self):
 
-        self.N_steps = int(np.ceil(self.t_end/self.Dt)) 
-        dt = [  
-              ('t_end', np.float64),
-              ('Dt', np.float64),
-              ('decimation', np.float64),
-              ('itol', np.float64),
-              ('Dt_max', np.float64),
-              ('Dt_min', np.float64),
-              ('solvern', np.int64),
-              ('imax', np.int64),
-              ('N_steps', np.int64),
-              ('N_store', np.int64),
-              ('N_x', np.int64),
-              ('N_y', np.int64),
-              ('N_z', np.int64),
-              ('t', np.float64),
-              ('it', np.int64),
-              ('it_store', np.int64),
-              ('idx', np.int64),
-              ('idy', np.int64),
-              ('f', np.float64, (self.N_x,1)),
-              ('x', np.float64, (self.N_x,1)),
-              ('x_0', np.float64, (self.N_x,1)),
-              ('g', np.float64, (self.N_y,1)),
-              ('y_run', np.float64, (self.N_y,1)),
-              ('y_ini', np.float64, (self.N_y,1)),
-              ('u_run', np.float64, (self.N_u,1)),
-              ('y_0', np.float64, (self.N_y,1)),
-              ('h', np.float64, (self.N_z,1)),
-              ('Fx', np.float64, (self.N_x,self.N_x)),
-              ('Fy', np.float64, (self.N_x,self.N_y)),
-              ('Gx', np.float64, (self.N_y,self.N_x)),
-              ('Gy', np.float64, (self.N_y,self.N_y)),
-              ('Fu', np.float64, (self.N_x,self.N_u)),
-              ('Gu', np.float64, (self.N_y,self.N_u)),
-              ('Hx', np.float64, (self.N_z,self.N_x)),
-              ('Hy', np.float64, (self.N_z,self.N_y)),
-              ('Hu', np.float64, (self.N_z,self.N_u)),
-              ('Fx_ini', np.float64, (self.N_x,self.N_x)),
-              ('Fy_ini', np.float64, (self.N_x,self.N_y)),
-              ('Gx_ini', np.float64, (self.N_y,self.N_x)),
-              ('Gy_ini', np.float64, (self.N_y,self.N_y)),
-              ('T', np.float64, (self.N_store+1,1)),
-              ('X', np.float64, (self.N_store+1,self.N_x)),
-              ('Y', np.float64, (self.N_store+1,self.N_y)),
-              ('Z', np.float64, (self.N_store+1,self.N_z)),
-              ('iters', np.float64, (self.N_store+1,1)),
-              ('store', np.int64),
-              ('Fx_ini_rows', np.int64, self.Fx_ini_rows.shape),
-              ('Fx_ini_cols', np.int64, self.Fx_ini_cols.shape),
-              ('Fy_ini_rows', np.int64, self.Fy_ini_rows.shape),
-              ('Fy_ini_cols', np.int64, self.Fy_ini_cols.shape),
-              ('Gx_ini_rows', np.int64, self.Gx_ini_rows.shape),
-              ('Gx_ini_cols', np.int64, self.Gx_ini_cols.shape),
-              ('Gy_ini_rows', np.int64, self.Gy_ini_rows.shape),
-              ('Gy_ini_cols', np.int64, self.Gy_ini_cols.shape),
-              ('Ac_ini', np.float64, ((self.N_x+self.N_y,self.N_x+self.N_y))),   
-              ('fg', np.float64, ((self.N_x+self.N_y,1))),  
-             ]
-
-
-
+        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,self.N_x,self.N_y)
+        self.xy_ini = xy_ini
         
-        
-        values = [
-                self.t_end,                          
-                self.Dt,
-                self.decimation,
-                self.itol,
-                self.Dt_max,
-                self.Dt_min,
-                self.solvern,
-                self.imax,
-                self.N_steps,
-                self.N_store,
-                self.N_x,
-                self.N_y,
-                self.N_z,
-                self.t,
-                self.it,
-                self.it_store,
-                0,                                     # idx
-                0,                                     # idy
-                np.zeros((self.N_x,1)),                # f
-                np.zeros((self.N_x,1)),                # x
-                np.zeros((self.N_x,1)),                # x_0
-                np.zeros((self.N_y,1)),                # g
-                np.zeros((self.N_y,1)),                # y_run
-                np.zeros((self.N_y,1)),                # y_ini
-                np.zeros((self.N_u,1)),                # u_run
-                np.zeros((self.N_y,1)),                # y_0
-                np.zeros((self.N_z,1)),                # h
-                np.zeros((self.N_x,self.N_x)),         # Fx   
-                np.zeros((self.N_x,self.N_y)),         # Fy 
-                np.zeros((self.N_y,self.N_x)),         # Gx 
-                np.zeros((self.N_y,self.N_y)),         # Fy
-                np.zeros((self.N_x,self.N_u)),         # Fu 
-                np.zeros((self.N_y,self.N_u)),         # Gu 
-                np.zeros((self.N_z,self.N_x)),         # Hx 
-                np.zeros((self.N_z,self.N_y)),         # Hy 
-                np.zeros((self.N_z,self.N_u)),         # Hu 
-                np.zeros((self.N_x,self.N_x)),         # Fx_ini  
-                np.zeros((self.N_x,self.N_y)),         # Fy_ini 
-                np.zeros((self.N_y,self.N_x)),         # Gx_ini 
-                np.zeros((self.N_y,self.N_y)),         # Fy_ini 
-                np.zeros((self.N_store+1,1)),          # T
-                np.zeros((self.N_store+1,self.N_x)),   # X
-                np.zeros((self.N_store+1,self.N_y)),   # Y
-                np.zeros((self.N_store+1,self.N_z)),   # Z
-                np.zeros((self.N_store+1,1)),          # iters
-                1,
-                self.Fx_ini_rows,       
-                self.Fx_ini_cols,
-                self.Fy_ini_rows,       
-                self.Fy_ini_cols,
-                self.Gx_ini_rows,        
-                self.Gx_ini_cols,
-                self.Gy_ini_rows,       
-                self.Gy_ini_cols,
-                np.zeros((self.N_x+self.N_y,self.N_x+self.N_y)),  
-                np.zeros((self.N_x+self.N_y,1)),
-                ]  
-
-        dt += [(item,np.float64) for item in self.params_list]
-        values += [item for item in self.params_values_list]
-
-        for item_id,item_val in zip(self.inputs_ini_list,self.inputs_ini_values_list):
-            if item_id in self.inputs_run_list: continue
-            dt += [(item_id,np.float64)]
-            values += [item_val]
-
-        dt += [(item,np.float64) for item in self.inputs_run_list]
-        values += [item for item in self.inputs_run_values_list]
-
-        self.struct = np.rec.array([tuple(values)], dtype=np.dtype(dt))
-        
-        xy0 = np.zeros((self.N_x+self.N_y,))
-        self.ini_dae_jacobian_nn(xy0)
-        self.run_dae_jacobian_nn(xy0)
-        
-
-
-    def load_params(self,data_input):
-
-        if type(data_input) == str:
-            json_file = data_input
-            self.json_file = json_file
-            self.json_data = open(json_file).read().replace("'",'"')
-            data = json.loads(self.json_data)
-        elif type(data_input) == dict:
-            data = data_input
-
-        self.data = data
-        for item in self.data:
-            self.struct[0][item] = self.data[item]
-            if item in self.params_list:
-                self.params_values_list[self.params_list.index(item)] = self.data[item]
-            elif item in self.inputs_ini_list:
-                self.inputs_ini_values_list[self.inputs_ini_list.index(item)] = self.data[item]
-            elif item in self.inputs_run_list:
-                self.inputs_run_values_list[self.inputs_run_list.index(item)] = self.data[item]
-            else: 
-                print(f'parameter or input {item} not found')
-
-    def save_params(self,file_name = 'parameters.json'):
-        params_dict = {}
-        for item in self.params_list:
-            params_dict.update({item:self.get_value(item)})
-
-        params_dict_str = json.dumps(params_dict, indent=4)
-        with open(file_name,'w') as fobj:
-            fobj.write(params_dict_str)
-
-    def save_inputs_ini(self,file_name = 'inputs_ini.json'):
-        inputs_ini_dict = {}
-        for item in self.inputs_ini_list:
-            inputs_ini_dict.update({item:self.get_value(item)})
-
-        inputs_ini_dict_str = json.dumps(inputs_ini_dict, indent=4)
-        with open(file_name,'w') as fobj:
-            fobj.write(inputs_ini_dict_str)
-
-    def ini_problem(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        if self.compile:
-            ini(self.struct,2)
-            ini(self.struct,3)       
-        else:
-            ini.py_func(self.struct,2)
-            ini.py_func(self.struct,3)                   
-        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
-        return fg
-
-    def run_problem(self,x):
-        t = self.struct[0].t
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        
-        if self.compile:
-            run(t,self.struct,2)
-            run(t,self.struct,3)
-            run(t,self.struct,10)
-            run(t,self.struct,11)
-            run(t,self.struct,12)
-            run(t,self.struct,13)
-        else:
-            run.py_func(t,self.struct,2)
-            run.py_func(t,self.struct,3)
-            run.py_func(t,self.struct,10)
-            run.py_func(t,self.struct,11)
-            run.py_func(t,self.struct,12)
-            run.py_func(t,self.struct,13)            
-        
-        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
-        return fg
+        return xy_ini
     
+    def ini(self,up_dict,xy_0={}):
 
-    def run_dae_jacobian(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        run(0.0,self.struct,10)
-        run(0.0,self.struct,11)     
-        run(0.0,self.struct,12)
-        run(0.0,self.struct,13)
-        A_c = np.block([[self.struct[0].Fx,self.struct[0].Fy],
-                        [self.struct[0].Gx,self.struct[0].Gy]])
-        return A_c
-
-    def run_dae_jacobian_nn(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        run_nn(0.0,self.struct,10)
-        run_nn(0.0,self.struct,11)     
-        run_nn(0.0,self.struct,12)
-        run_nn(0.0,self.struct,13)
- 
-
-    
-    def eval_jacobians(self):
-
-        run(0.0,self.struct,10)
-        run(0.0,self.struct,11)  
-        run(0.0,self.struct,12) 
-
-        return 1
-
-
-    def ini_dae_jacobian(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        if self.compile:
-            ini(self.struct,10)
-            ini(self.struct,11) 
-        else:
-            ini.py_func(self.struct,10)
-            ini.py_func(self.struct,11)             
-        A_c = np.block([[self.struct[0].Fx_ini,self.struct[0].Fy_ini],
-                        [self.struct[0].Gx_ini,self.struct[0].Gy_ini]])
-        return A_c
-
-    def ini_dae_jacobian_nn(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        ini_nn(self.struct,10)
-        ini_nn(self.struct,11)       
- 
-
-    def f_ode(self,x):
-        self.struct[0].x[:,0] = x
-        run(self.struct,1)
-        return self.struct[0].f[:,0]
-
-    def f_odeint(self,x,t):
-        self.struct[0].x[:,0] = x
-        run(self.struct,1)
-        return self.struct[0].f[:,0]
-
-    def f_ivp(self,t,x):
-        self.struct[0].x[:,0] = x
-        run(self.struct,1)
-        return self.struct[0].f[:,0]
-
-    def Fx_ode(self,x):
-        self.struct[0].x[:,0] = x
-        run(self.struct,10)
-        return self.struct[0].Fx
-
-    def eval_A(self):
-        
-        Fx = self.struct[0].Fx
-        Fy = self.struct[0].Fy
-        Gx = self.struct[0].Gx
-        Gy = self.struct[0].Gy
-        
-        A = Fx - Fy @ np.linalg.solve(Gy,Gx)
-        
-        self.A = A
-        
-        return A
-
-    def eval_A_ini(self):
-        
-        Fx = self.struct[0].Fx_ini
-        Fy = self.struct[0].Fy_ini
-        Gx = self.struct[0].Gx_ini
-        Gy = self.struct[0].Gy_ini
-        
-        A = Fx - Fy @ np.linalg.solve(Gy,Gx)
-        
-        
-        return A
-    
-    def reset(self):
-        for param,param_value in zip(self.params_list,self.params_values_list):
-            self.struct[0][param] = param_value
-        for input_name,input_value in zip(self.inputs_ini_list,self.inputs_ini_values_list):
-            self.struct[0][input_name] = input_value   
-        for input_name,input_value in zip(self.inputs_run_list,self.inputs_run_values_list):
-            self.struct[0][input_name] = input_value  
-
-    def simulate(self,events,xy0=0):
-        
-        # initialize both the ini and the run system
-        self.initialize(events,xy0=xy0)
-        
-        # simulation run
-        for event in events:  
-            # make all the desired changes
-            self.run([event]) 
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
             
-        # post process
-        T,X,Y,Z = self.post()
+        self.xy_ini = self.ss_ini()
+        self.ini2run()
+        jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p)
         
-        return T,X,Y,Z
-    
-
-    
-    def run(self,events):
         
-
-        # simulation run
-        for event in events:  
-            # make all the desired changes
-            for item in event:
-                self.struct[0][item] = event[item]
-            daesolver(self.struct)    # run until next event
-            
-        return 1
- 
-    def rtrun(self,events):
         
-
-        # simulation run
-        for event in events:  
-            # make all the desired changes
-            for item in event:
-                self.struct[0][item] = event[item]
-            self.struct[0].it_store = self.struct[0].N_store-1
-            daesolver(self.struct)    # run until next event
-            
-            
-        return 1
     
+    def run(self,t_end,up_dict):
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+            
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        
+        t,it,it_store,xy = daesolver(t,t_end,it,it_store,xy,u,p,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  max_it=50,itol=1e-8,store=1)
+        
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+        
     def post(self):
         
-        # post process result    
-        T = self.struct[0]['T'][:self.struct[0].it_store]
-        X = self.struct[0]['X'][:self.struct[0].it_store,:]
-        Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-        Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-        iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+        self.Time = self.Time[:self.it_store]
+        self.X = self.X[:self.it_store]
+        self.Y = self.Y[:self.it_store]
+        self.Z = self.Z[:self.it_store]
+        
+    def ini2run(self):
+        
+        ## y_ini to y_run
+        self.y_ini = self.xy_ini[self.N_x:]
+        self.y_run = np.copy(self.y_ini)
+        self.u_run = np.copy(self.u_ini)
+        
+        ## y_ini to u_run
+        for item in self.yini2urun:
+            self.u_run[self.u_run_list.index(item)] = self.y_ini[self.y_ini_list.index(item)]
+                
+        ## u_ini to y_run
+        for item in self.uini2yrun:
+            self.y_run[self.y_run_list.index(item)] = self.u_ini[self.u_ini_list.index(item)]
+            
+        
+        self.x = self.xy_ini[:self.N_x]
+        self.xy[:self.N_x] = self.x
+        self.xy[self.N_x:] = self.y_run
+        h_eval(self.z,self.x,self.y_run,self.u_ini,self.p)
+        
+
+        
+    def get_value(self,name):
+        
+        if name in self.inputs_run_list:
+            value = self.u_run[self.inputs_run_list.index(name)]
+            return value
+            
+        if name in self.x_list:
+            idx = self.x_list.index(name)
+            value = self.x[idx]
+            return value
+            
+        if name in self.y_run_list:
+            idy = self.y_run_list.index(name)
+            value = self.y_run[idy]
+            return value
+        
+        if name in self.params_list:
+            idp = self.params_list.index(name)
+            value = self.p[idp]
+            return value
+            
+        if name in self.outputs_list:
+            idz = self.outputs_list.index(name)
+            value = self.z[idz]
+            return value
+
     
-        self.T = T
-        self.X = X
-        self.Y = Y
-        self.Z = Z
-        self.iters = iters
+    def set_value(self,name_,value):
+        if name_ in self.inputs_run_list:
+            self.u_run[self.inputs_run_list.index(name_)] = value
+            return
+        elif name_ in self.params_list:
+            self.p[self.params_list.index(name_)] = value
+            return
+        elif name_ in self.inputs_ini_list:
+            self.u_ini[self.inputs_ini_list.index(name_)] = value
+            return 
+        else:
+            print(f'Input or parameter {name_} not found.')
+ 
+    def report_x(self,value_format='5.2f'):
+        for item in self.x_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_y(self,value_format='5.2f'):
+        for item in self.y_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def report_u(self,value_format='5.2f'):
+        for item in self.inputs_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_z(self,value_format='5.2f'):
+        for item in self.outputs_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_params(self,value_format='5.2f'):
+        for item in self.params_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def ini(self,up_dict,xy_0={}):
+    
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+            
+        if type(xy_0) == dict:
+            xy_0_dict = xy_0
+            self.dict2xy0(xy_0_dict)
+            
+        if type(xy_0) == str:
+            if xy_0 == 'eval':
+                xy0_eval(self.xy_0[:N_x],self.xy_0[N_x:],y,u,p)
+            else:
+                self.load_xy_0(file_name = xy_0)
+                
+        self.xy_ini = self.ss_ini()
+        self.ini2run()
+        jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+    
+    def dict2xy0(self,xy_0_dict):
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_0[self.y_ini_list.index(item) + self.N_x] = xy_0_dict[item]
         
-        return T,X,Y,Z
-        
-    def save_0(self,file_name = 'xy_0.json'):
+    
+    def save_xy_0(self,file_name = 'xy_0.json'):
         xy_0_dict = {}
         for item in self.x_list:
             xy_0_dict.update({item:self.get_value(item)})
@@ -466,3771 +244,1717 @@ class k12p6_pss_class:
         xy_0_str = json.dumps(xy_0_dict, indent=4)
         with open(file_name,'w') as fobj:
             fobj.write(xy_0_str)
-
-    def load_0(self,file_name = 'xy_0.json'):
+    
+    def load_xy_0(self,file_name = 'xy_0.json'):
         with open(file_name) as fobj:
             xy_0_str = fobj.read()
         xy_0_dict = json.loads(xy_0_str)
     
         for item in xy_0_dict:
             if item in self.x_list:
-                self.xy_prev[self.x_list.index(item)] = xy_0_dict[item]
+                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
             if item in self.y_ini_list:
-                self.xy_prev[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]
+                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
+
+
+@numba.njit(cache=True)
+def sstate(xy,u,p,N_x,N_y,max_it=50,tol=1e-8):
+    
+    jac_ini_ss = np.zeros((N_x+N_y,N_x+N_y),dtype=np.float64)
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    
+    for it in range(max_it):
+        jac_ini_ss_eval(jac_ini_ss,x,y,u,p)
+        f_ini_eval(f,x,y,u,p)
+        g_ini_eval(g,x,y,u,p)
+        fg[:N_x] = f
+        fg[N_x:] = g
+        xy += np.linalg.solve(jac_ini_ss,-fg)
+        if np.max(np.abs(fg))<tol: break
+
+    return xy,it
+
+            
+            
+@numba.njit(cache=True) 
+def daesolver(t,t_end,it,it_store,xy,u,p,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+
+    jac_trap = np.zeros((N_x+N_y,N_x+N_y),dtype=np.float64)
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    h = np.zeros((N_z),dtype=np.float64)
+    
+    if it == 0:
+        f_eval(f,x,y,u,p)
+        h_eval(h,x,y,u,p)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = h  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_eval(f,x,y,u,p)
+        g_eval(g,x,y,u,p)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_eval(f,x,y,u,p)
+            g_eval(g,x,y,u,p)
+            jac_trap_eval(jac_trap,x,y,u,p,Dt)             
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+
+            x = x + Dxy_i[:N_x]
+            y = y + Dxy_i[N_x:]              
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
                 
-            
-    def initialize(self,events=[{}],xy0=0,compile=True):
-        '''
+        h_eval(h,x,y,u,p)
+        xy[:N_x] = x
+        xy[N_x:] = y
         
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = h
+                iters[it_store+1] = iti
+                it_store += 1 
 
-        Parameters
-        ----------
-        events : dictionary 
-            Dictionary with at least 't_end' and all inputs and parameters 
-            that need to be changed.
-        xy0 : float or string, optional
-            0 means all states should be zero as initial guess. 
-            If not zero all the states initial guess are the given input.
-            If 'prev' it uses the last known initialization result as initial guess.
-
-        Returns
-        -------
-        T : TYPE
-            DESCRIPTION.
-        X : TYPE
-            DESCRIPTION.
-        Y : TYPE
-            DESCRIPTION.
-        Z : TYPE
-            DESCRIPTION.
-
-        '''
-        
-        self.compile = compile
-        
-        # simulation parameters
-        self.struct[0].it = 0       # set time step to zero
-        self.struct[0].it_store = 0 # set storage to zero
-        self.struct[0].t = 0.0      # set time to zero
-                    
-        # initialization
-        it_event = 0
-        event = events[it_event]
-        for item in event:
-            self.struct[0][item] = event[item]
-            
-        
-        ## compute initial conditions using x and y_ini 
-        if type(xy0) == str:
-            if xy0 == 'prev':
-                xy0 = self.xy_prev
-            else:
-                self.load_0(xy0)
-                xy0 = self.xy_prev
-        elif type(xy0) == dict:
-            with open('xy_0.json','w') as fobj:
-                fobj.write(json.dumps(xy0))
-            self.load_0('xy_0.json')
-            xy0 = self.xy_prev            
-        else:
-            if xy0 == 0:
-                xy0 = np.zeros(self.N_x+self.N_y)
-            elif xy0 == 1:
-                xy0 = np.ones(self.N_x+self.N_y)
-            else:
-                xy0 = xy0*np.ones(self.N_x+self.N_y)
-
-        #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-
-        
-        if self.sopt_root_jac:
-            sol = sopt.root(self.ini_problem, xy0, 
-                            jac=self.ini_dae_jacobian, 
-                            method=self.sopt_root_method, tol=self.initialization_tol)
-        else:
-            sol = sopt.root(self.ini_problem, xy0, method=self.sopt_root_method)
-
-        self.initialization_ok = True
-        if sol.success == False:
-            print('initialization not found!')
-            self.initialization_ok = False
-
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-
-        if self.initialization_ok:
-            xy = sol.x
-            self.xy_prev = xy
-            self.struct[0].x[:,0] = xy[0:self.N_x]
-            self.struct[0].y_run[:,0] = xy[self.N_x:]
-
-            ## y_ini to u_run
-            for item in self.inputs_run_list:
-                if item in self.y_ini_list:
-                    self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
-
-            ## u_ini to y_run
-            for item in self.inputs_ini_list:
-                if item in self.y_run_list:
-                    self.struct[0].y_run[self.y_run_list.index(item)] = self.struct[0][item]
+    return t,it,it_store,xy
 
 
-            #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-            if self.sopt_root_jac:
-                sol = sopt.root(self.run_problem, xy0, 
-                                jac=self.run_dae_jacobian, 
-                                method=self.sopt_root_method, tol=self.initialization_tol)
-            else:
-                sol = sopt.root(self.run_problem, xy0, method=self.sopt_root_method)
 
-            if self.compile:
-                # evaluate f and g
-                run(0.0,self.struct,2)
-                run(0.0,self.struct,3)                
-    
-                # evaluate run jacobians 
-                run(0.0,self.struct,10)
-                run(0.0,self.struct,11)                
-                run(0.0,self.struct,12) 
-                run(0.0,self.struct,14) 
-                
-            else:
-                # evaluate f and g
-                run.py_func(0.0,self.struct,2)
-                run.py_func(0.0,self.struct,3)                
-    
-                # evaluate run jacobians 
-                run.py_func(0.0,self.struct,10)
-                run.py_func(0.0,self.struct,11)                
-                run.py_func(0.0,self.struct,12) 
-                run.py_func(0.0,self.struct,14)                 
-                
-             
-            # post process result    
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-        
-            self.T = T
-            self.X = X
-            self.Y = Y
-            self.Z = Z
-            self.iters = iters
-            
-        return self.initialization_ok
-    
-    
-    def get_value(self,name):
-        if name in self.inputs_run_list:
-            value = self.struct[0][name]
-        if name in self.x_list:
-            idx = self.x_list.index(name)
-            value = self.struct[0].x[idx,0]
-        if name in self.y_run_list:
-            idy = self.y_run_list.index(name)
-            value = self.struct[0].y_run[idy,0]
-        if name in self.params_list:
-            value = self.struct[0][name]
-        if name in self.outputs_list:
-            value = self.struct[0].h[self.outputs_list.index(name),0] 
+@numba.njit(cache=True)
+def f_ini_eval(f_ini,x,y,u,p,xyup = 0):
 
-        return value
-    
-    def get_values(self,name):
-        if name in self.x_list:
-            values = self.X[:,self.x_list.index(name)]
-        if name in self.y_run_list:
-            values = self.Y[:,self.y_run_list.index(name)]
-        if name in self.outputs_list:
-            values = self.Z[:,self.outputs_list.index(name)]
-                        
-        return values
-
-    def get_mvalue(self,names):
-        '''
-
-        Parameters
-        ----------
-        names : list
-            list of variables names to return each value.
-
-        Returns
-        -------
-        mvalue : TYPE
-            list of value of each variable.
-
-        '''
-        mvalue = []
-        for name in names:
-            mvalue += [self.get_value(name)]
-                        
-        return mvalue
-    
-    def set_value(self,name_,value):
-        if name_ in self.inputs_run_list:
-            self.struct[0][name_] = value
-            return
-        elif name_ in self.params_list:
-            self.struct[0][name_] = value
-            return
-        elif name_ in self.inputs_ini_list:
-            self.struct[0][name_] = value
-            return 
-        else:
-            print(f'Input or parameter {name_} not found.')
-
-    def set_values(self,dictionary):
-        
-        for item in dictionary:
-            self.set_value(item,dictionary[item])
-            
-            
-    def report_x(self,value_format='5.2f', decimals=2):
-        for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-
-    def report_y(self,value_format='5.2f', decimals=2):
-        for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-            
-    def report_u(self,value_format='5.2f', decimals=2):
-        for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-
-    def report_z(self,value_format='5.2f', decimals=2):
-        for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-
-    def report_params(self,value_format='5.2f', decimals=2):
-        for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-            
-    def get_x(self):
-        return self.struct[0].x
-    
-    def ss(self):
-        
-        ssate(self.struct,self.xy_prev.reshape(len(self.xy_prev),1))
-        
-        ## y_ini to y_run
-        self.struct[0].y_run = self.struct[0].y_ini
-        
-        ## y_ini to u_run
-        for item in self.yini2urun:
-            self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
-                
-        ## u_ini to y_run
-        for item in self.uini2yrun:
-            self.struct[0].y_run[self.y_run_list.index(item)] = self.struct[0][item]
-
+    f_ini[0] = -p[53]*x[0] + p[43]*(x[1] - y[58])
+    f_ini[1] = (-p[51]*(x[1] - y[58]) - y[22]*(p[52]*y[22] + y[0]*sin(x[0] - y[1])) - y[23]*(p[52]*y[23] + y[0]*cos(x[0] - y[1])) + y[28])/(2*p[44])
+    f_ini[2] = (-x[2] - y[22]*(-p[49] + p[47]) + y[26])/p[45]
+    f_ini[3] = (-x[3] + y[23]*(-p[50] + p[48]))/p[46]
+    f_ini[4] = (y[0] - x[4])/p[57]
+    f_ini[5] = -p[60]*(p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5] - y[26]) - x[4] + y[30] + u[22]
+    f_ini[6] = (y[27] - x[6])/p[62]
+    f_ini[7] = (x[6] - x[7])/p[64]
+    f_ini[8] = p[65]*(u[24] - y[24]) - 1.0e-6*x[8]
+    f_ini[9] = (x[1] - x[9] - 1.0)/p[67]
+    f_ini[10] = (-x[10] + y[29])/p[69]
+    f_ini[11] = -p[83]*x[11] + p[73]*(x[12] - y[58])
+    f_ini[12] = (-p[81]*(x[12] - y[58]) - y[31]*(p[82]*y[31] + y[2]*sin(x[11] - y[3])) - y[32]*(p[82]*y[32] + y[2]*cos(x[11] - y[3])) + y[37])/(2*p[74])
+    f_ini[13] = (-x[13] - y[31]*(-p[79] + p[77]) + y[35])/p[75]
+    f_ini[14] = (-x[14] + y[32]*(-p[80] + p[78]))/p[76]
+    f_ini[15] = (y[2] - x[15])/p[87]
+    f_ini[16] = -p[90]*(p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16] - y[35]) - x[15] + y[39] + u[26]
+    f_ini[17] = (y[36] - x[17])/p[92]
+    f_ini[18] = (x[17] - x[18])/p[94]
+    f_ini[19] = p[95]*(u[28] - y[33]) - 1.0e-6*x[19]
+    f_ini[20] = (x[12] - x[20] - 1.0)/p[97]
+    f_ini[21] = (-x[21] + y[38])/p[99]
+    f_ini[22] = -p[113]*x[22] + p[103]*(x[23] - y[58])
+    f_ini[23] = (-p[111]*(x[23] - y[58]) - y[40]*(p[112]*y[40] + y[4]*sin(x[22] - y[5])) - y[41]*(p[112]*y[41] + y[4]*cos(x[22] - y[5])) + y[46])/(2*p[104])
+    f_ini[24] = (-x[24] - y[40]*(-p[109] + p[107]) + y[44])/p[105]
+    f_ini[25] = (-x[25] + y[41]*(-p[110] + p[108]))/p[106]
+    f_ini[26] = (y[4] - x[26])/p[117]
+    f_ini[27] = -p[120]*(p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27] - y[44]) - x[26] + y[48] + u[30]
+    f_ini[28] = (y[45] - x[28])/p[122]
+    f_ini[29] = (x[28] - x[29])/p[124]
+    f_ini[30] = p[125]*(u[32] - y[42]) - 1.0e-6*x[30]
+    f_ini[31] = (x[23] - x[31] - 1.0)/p[127]
+    f_ini[32] = (-x[32] + y[47])/p[129]
+    f_ini[33] = -p[143]*x[33] + p[133]*(x[34] - y[58])
+    f_ini[34] = (-p[141]*(x[34] - y[58]) - y[49]*(p[142]*y[49] + y[6]*sin(x[33] - y[7])) - y[50]*(p[142]*y[50] + y[6]*cos(x[33] - y[7])) + y[55])/(2*p[134])
+    f_ini[35] = (-x[35] - y[49]*(-p[139] + p[137]) + y[53])/p[135]
+    f_ini[36] = (-x[36] + y[50]*(-p[140] + p[138]))/p[136]
+    f_ini[37] = (y[6] - x[37])/p[147]
+    f_ini[38] = -p[150]*(p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38] - y[53]) - x[37] + y[57] + u[34]
+    f_ini[39] = (y[54] - x[39])/p[152]
+    f_ini[40] = (x[39] - x[40])/p[154]
+    f_ini[41] = p[155]*(u[36] - y[51]) - 1.0e-6*x[41]
+    f_ini[42] = (x[34] - x[42] - 1.0)/p[157]
+    f_ini[43] = (-x[43] + y[56])/p[159]
+    f_ini[44] = 1 - y[58]
 
 
 
 
 
 @numba.njit(cache=True)
-def ini(struct,mode):
+def f_run_eval(f_ini,x,y,u,p,xyup = 0):
 
-    # Parameters:
-    S_base = struct[0].S_base
-    g_1_5 = struct[0].g_1_5
-    b_1_5 = struct[0].b_1_5
-    bs_1_5 = struct[0].bs_1_5
-    g_2_6 = struct[0].g_2_6
-    b_2_6 = struct[0].b_2_6
-    bs_2_6 = struct[0].bs_2_6
-    g_3_11 = struct[0].g_3_11
-    b_3_11 = struct[0].b_3_11
-    bs_3_11 = struct[0].bs_3_11
-    g_4_10 = struct[0].g_4_10
-    b_4_10 = struct[0].b_4_10
-    bs_4_10 = struct[0].bs_4_10
-    g_5_6 = struct[0].g_5_6
-    b_5_6 = struct[0].b_5_6
-    bs_5_6 = struct[0].bs_5_6
-    g_6_7 = struct[0].g_6_7
-    b_6_7 = struct[0].b_6_7
-    bs_6_7 = struct[0].bs_6_7
-    g_7_8 = struct[0].g_7_8
-    b_7_8 = struct[0].b_7_8
-    bs_7_8 = struct[0].bs_7_8
-    g_8_9 = struct[0].g_8_9
-    b_8_9 = struct[0].b_8_9
-    bs_8_9 = struct[0].bs_8_9
-    g_9_10 = struct[0].g_9_10
-    b_9_10 = struct[0].b_9_10
-    bs_9_10 = struct[0].bs_9_10
-    g_10_11 = struct[0].g_10_11
-    b_10_11 = struct[0].b_10_11
-    bs_10_11 = struct[0].bs_10_11
-    U_1_n = struct[0].U_1_n
-    U_2_n = struct[0].U_2_n
-    U_3_n = struct[0].U_3_n
-    U_4_n = struct[0].U_4_n
-    U_5_n = struct[0].U_5_n
-    U_6_n = struct[0].U_6_n
-    U_7_n = struct[0].U_7_n
-    U_8_n = struct[0].U_8_n
-    U_9_n = struct[0].U_9_n
-    U_10_n = struct[0].U_10_n
-    U_11_n = struct[0].U_11_n
-    S_n_1 = struct[0].S_n_1
-    Omega_b_1 = struct[0].Omega_b_1
-    H_1 = struct[0].H_1
-    T1d0_1 = struct[0].T1d0_1
-    T1q0_1 = struct[0].T1q0_1
-    X_d_1 = struct[0].X_d_1
-    X_q_1 = struct[0].X_q_1
-    X1d_1 = struct[0].X1d_1
-    X1q_1 = struct[0].X1q_1
-    D_1 = struct[0].D_1
-    R_a_1 = struct[0].R_a_1
-    K_delta_1 = struct[0].K_delta_1
-    K_sec_1 = struct[0].K_sec_1
-    K_a_1 = struct[0].K_a_1
-    K_ai_1 = struct[0].K_ai_1
-    T_r_1 = struct[0].T_r_1
-    V_min_1 = struct[0].V_min_1
-    V_max_1 = struct[0].V_max_1
-    K_aw_1 = struct[0].K_aw_1
-    Droop_1 = struct[0].Droop_1
-    T_gov_1_1 = struct[0].T_gov_1_1
-    T_gov_2_1 = struct[0].T_gov_2_1
-    T_gov_3_1 = struct[0].T_gov_3_1
-    K_imw_1 = struct[0].K_imw_1
-    omega_ref_1 = struct[0].omega_ref_1
-    T_wo_1 = struct[0].T_wo_1
-    T_1_1 = struct[0].T_1_1
-    T_2_1 = struct[0].T_2_1
-    K_stab_1 = struct[0].K_stab_1
-    S_n_2 = struct[0].S_n_2
-    Omega_b_2 = struct[0].Omega_b_2
-    H_2 = struct[0].H_2
-    T1d0_2 = struct[0].T1d0_2
-    T1q0_2 = struct[0].T1q0_2
-    X_d_2 = struct[0].X_d_2
-    X_q_2 = struct[0].X_q_2
-    X1d_2 = struct[0].X1d_2
-    X1q_2 = struct[0].X1q_2
-    D_2 = struct[0].D_2
-    R_a_2 = struct[0].R_a_2
-    K_delta_2 = struct[0].K_delta_2
-    K_sec_2 = struct[0].K_sec_2
-    K_a_2 = struct[0].K_a_2
-    K_ai_2 = struct[0].K_ai_2
-    T_r_2 = struct[0].T_r_2
-    V_min_2 = struct[0].V_min_2
-    V_max_2 = struct[0].V_max_2
-    K_aw_2 = struct[0].K_aw_2
-    Droop_2 = struct[0].Droop_2
-    T_gov_1_2 = struct[0].T_gov_1_2
-    T_gov_2_2 = struct[0].T_gov_2_2
-    T_gov_3_2 = struct[0].T_gov_3_2
-    K_imw_2 = struct[0].K_imw_2
-    omega_ref_2 = struct[0].omega_ref_2
-    T_wo_2 = struct[0].T_wo_2
-    T_1_2 = struct[0].T_1_2
-    T_2_2 = struct[0].T_2_2
-    K_stab_2 = struct[0].K_stab_2
-    S_n_3 = struct[0].S_n_3
-    Omega_b_3 = struct[0].Omega_b_3
-    H_3 = struct[0].H_3
-    T1d0_3 = struct[0].T1d0_3
-    T1q0_3 = struct[0].T1q0_3
-    X_d_3 = struct[0].X_d_3
-    X_q_3 = struct[0].X_q_3
-    X1d_3 = struct[0].X1d_3
-    X1q_3 = struct[0].X1q_3
-    D_3 = struct[0].D_3
-    R_a_3 = struct[0].R_a_3
-    K_delta_3 = struct[0].K_delta_3
-    K_sec_3 = struct[0].K_sec_3
-    K_a_3 = struct[0].K_a_3
-    K_ai_3 = struct[0].K_ai_3
-    T_r_3 = struct[0].T_r_3
-    V_min_3 = struct[0].V_min_3
-    V_max_3 = struct[0].V_max_3
-    K_aw_3 = struct[0].K_aw_3
-    Droop_3 = struct[0].Droop_3
-    T_gov_1_3 = struct[0].T_gov_1_3
-    T_gov_2_3 = struct[0].T_gov_2_3
-    T_gov_3_3 = struct[0].T_gov_3_3
-    K_imw_3 = struct[0].K_imw_3
-    omega_ref_3 = struct[0].omega_ref_3
-    T_wo_3 = struct[0].T_wo_3
-    T_1_3 = struct[0].T_1_3
-    T_2_3 = struct[0].T_2_3
-    K_stab_3 = struct[0].K_stab_3
-    S_n_4 = struct[0].S_n_4
-    Omega_b_4 = struct[0].Omega_b_4
-    H_4 = struct[0].H_4
-    T1d0_4 = struct[0].T1d0_4
-    T1q0_4 = struct[0].T1q0_4
-    X_d_4 = struct[0].X_d_4
-    X_q_4 = struct[0].X_q_4
-    X1d_4 = struct[0].X1d_4
-    X1q_4 = struct[0].X1q_4
-    D_4 = struct[0].D_4
-    R_a_4 = struct[0].R_a_4
-    K_delta_4 = struct[0].K_delta_4
-    K_sec_4 = struct[0].K_sec_4
-    K_a_4 = struct[0].K_a_4
-    K_ai_4 = struct[0].K_ai_4
-    T_r_4 = struct[0].T_r_4
-    V_min_4 = struct[0].V_min_4
-    V_max_4 = struct[0].V_max_4
-    K_aw_4 = struct[0].K_aw_4
-    Droop_4 = struct[0].Droop_4
-    T_gov_1_4 = struct[0].T_gov_1_4
-    T_gov_2_4 = struct[0].T_gov_2_4
-    T_gov_3_4 = struct[0].T_gov_3_4
-    K_imw_4 = struct[0].K_imw_4
-    omega_ref_4 = struct[0].omega_ref_4
-    T_wo_4 = struct[0].T_wo_4
-    T_1_4 = struct[0].T_1_4
-    T_2_4 = struct[0].T_2_4
-    K_stab_4 = struct[0].K_stab_4
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_1 = struct[0].P_1
-    Q_1 = struct[0].Q_1
-    P_2 = struct[0].P_2
-    Q_2 = struct[0].Q_2
-    P_3 = struct[0].P_3
-    Q_3 = struct[0].Q_3
-    P_4 = struct[0].P_4
-    Q_4 = struct[0].Q_4
-    P_5 = struct[0].P_5
-    Q_5 = struct[0].Q_5
-    P_6 = struct[0].P_6
-    Q_6 = struct[0].Q_6
-    P_7 = struct[0].P_7
-    Q_7 = struct[0].Q_7
-    P_8 = struct[0].P_8
-    Q_8 = struct[0].Q_8
-    P_9 = struct[0].P_9
-    Q_9 = struct[0].Q_9
-    P_10 = struct[0].P_10
-    Q_10 = struct[0].Q_10
-    P_11 = struct[0].P_11
-    Q_11 = struct[0].Q_11
-    v_ref_1 = struct[0].v_ref_1
-    v_pss_1 = struct[0].v_pss_1
-    p_c_1 = struct[0].p_c_1
-    v_ref_2 = struct[0].v_ref_2
-    v_pss_2 = struct[0].v_pss_2
-    p_c_2 = struct[0].p_c_2
-    v_ref_3 = struct[0].v_ref_3
-    v_pss_3 = struct[0].v_pss_3
-    p_c_3 = struct[0].p_c_3
-    v_ref_4 = struct[0].v_ref_4
-    v_pss_4 = struct[0].v_pss_4
-    p_c_4 = struct[0].p_c_4
-    
-    # Dynamical states:
-    delta_1 = struct[0].x[0,0]
-    omega_1 = struct[0].x[1,0]
-    e1q_1 = struct[0].x[2,0]
-    e1d_1 = struct[0].x[3,0]
-    v_c_1 = struct[0].x[4,0]
-    xi_v_1 = struct[0].x[5,0]
-    x_gov_1_1 = struct[0].x[6,0]
-    x_gov_2_1 = struct[0].x[7,0]
-    xi_imw_1 = struct[0].x[8,0]
-    x_wo_1 = struct[0].x[9,0]
-    x_lead_1 = struct[0].x[10,0]
-    delta_2 = struct[0].x[11,0]
-    omega_2 = struct[0].x[12,0]
-    e1q_2 = struct[0].x[13,0]
-    e1d_2 = struct[0].x[14,0]
-    v_c_2 = struct[0].x[15,0]
-    xi_v_2 = struct[0].x[16,0]
-    x_gov_1_2 = struct[0].x[17,0]
-    x_gov_2_2 = struct[0].x[18,0]
-    xi_imw_2 = struct[0].x[19,0]
-    x_wo_2 = struct[0].x[20,0]
-    x_lead_2 = struct[0].x[21,0]
-    delta_3 = struct[0].x[22,0]
-    omega_3 = struct[0].x[23,0]
-    e1q_3 = struct[0].x[24,0]
-    e1d_3 = struct[0].x[25,0]
-    v_c_3 = struct[0].x[26,0]
-    xi_v_3 = struct[0].x[27,0]
-    x_gov_1_3 = struct[0].x[28,0]
-    x_gov_2_3 = struct[0].x[29,0]
-    xi_imw_3 = struct[0].x[30,0]
-    x_wo_3 = struct[0].x[31,0]
-    x_lead_3 = struct[0].x[32,0]
-    delta_4 = struct[0].x[33,0]
-    omega_4 = struct[0].x[34,0]
-    e1q_4 = struct[0].x[35,0]
-    e1d_4 = struct[0].x[36,0]
-    v_c_4 = struct[0].x[37,0]
-    xi_v_4 = struct[0].x[38,0]
-    x_gov_1_4 = struct[0].x[39,0]
-    x_gov_2_4 = struct[0].x[40,0]
-    xi_imw_4 = struct[0].x[41,0]
-    x_wo_4 = struct[0].x[42,0]
-    x_lead_4 = struct[0].x[43,0]
-    xi_freq = struct[0].x[44,0]
-    
-    # Algebraic states:
-    V_1 = struct[0].y_ini[0,0]
-    theta_1 = struct[0].y_ini[1,0]
-    V_2 = struct[0].y_ini[2,0]
-    theta_2 = struct[0].y_ini[3,0]
-    V_3 = struct[0].y_ini[4,0]
-    theta_3 = struct[0].y_ini[5,0]
-    V_4 = struct[0].y_ini[6,0]
-    theta_4 = struct[0].y_ini[7,0]
-    V_5 = struct[0].y_ini[8,0]
-    theta_5 = struct[0].y_ini[9,0]
-    V_6 = struct[0].y_ini[10,0]
-    theta_6 = struct[0].y_ini[11,0]
-    V_7 = struct[0].y_ini[12,0]
-    theta_7 = struct[0].y_ini[13,0]
-    V_8 = struct[0].y_ini[14,0]
-    theta_8 = struct[0].y_ini[15,0]
-    V_9 = struct[0].y_ini[16,0]
-    theta_9 = struct[0].y_ini[17,0]
-    V_10 = struct[0].y_ini[18,0]
-    theta_10 = struct[0].y_ini[19,0]
-    V_11 = struct[0].y_ini[20,0]
-    theta_11 = struct[0].y_ini[21,0]
-    i_d_1 = struct[0].y_ini[22,0]
-    i_q_1 = struct[0].y_ini[23,0]
-    p_g_1 = struct[0].y_ini[24,0]
-    q_g_1 = struct[0].y_ini[25,0]
-    v_f_1 = struct[0].y_ini[26,0]
-    p_m_ref_1 = struct[0].y_ini[27,0]
-    p_m_1 = struct[0].y_ini[28,0]
-    z_wo_1 = struct[0].y_ini[29,0]
-    v_pss_1 = struct[0].y_ini[30,0]
-    i_d_2 = struct[0].y_ini[31,0]
-    i_q_2 = struct[0].y_ini[32,0]
-    p_g_2 = struct[0].y_ini[33,0]
-    q_g_2 = struct[0].y_ini[34,0]
-    v_f_2 = struct[0].y_ini[35,0]
-    p_m_ref_2 = struct[0].y_ini[36,0]
-    p_m_2 = struct[0].y_ini[37,0]
-    z_wo_2 = struct[0].y_ini[38,0]
-    v_pss_2 = struct[0].y_ini[39,0]
-    i_d_3 = struct[0].y_ini[40,0]
-    i_q_3 = struct[0].y_ini[41,0]
-    p_g_3 = struct[0].y_ini[42,0]
-    q_g_3 = struct[0].y_ini[43,0]
-    v_f_3 = struct[0].y_ini[44,0]
-    p_m_ref_3 = struct[0].y_ini[45,0]
-    p_m_3 = struct[0].y_ini[46,0]
-    z_wo_3 = struct[0].y_ini[47,0]
-    v_pss_3 = struct[0].y_ini[48,0]
-    i_d_4 = struct[0].y_ini[49,0]
-    i_q_4 = struct[0].y_ini[50,0]
-    p_g_4 = struct[0].y_ini[51,0]
-    q_g_4 = struct[0].y_ini[52,0]
-    v_f_4 = struct[0].y_ini[53,0]
-    p_m_ref_4 = struct[0].y_ini[54,0]
-    p_m_4 = struct[0].y_ini[55,0]
-    z_wo_4 = struct[0].y_ini[56,0]
-    v_pss_4 = struct[0].y_ini[57,0]
-    omega_coi = struct[0].y_ini[58,0]
-    p_agc = struct[0].y_ini[59,0]
-    
-    # Differential equations:
-    if mode == 2:
+    f_run[0] = -p[53]*x[0] + p[43]*(x[1] - y[58])
+    f_run[1] = (-p[51]*(x[1] - y[58]) - y[22]*(p[52]*y[22] + y[0]*sin(x[0] - y[1])) - y[23]*(p[52]*y[23] + y[0]*cos(x[0] - y[1])) + y[28])/(2*p[44])
+    f_run[2] = (-x[2] - y[22]*(-p[49] + p[47]) + y[26])/p[45]
+    f_run[3] = (-x[3] + y[23]*(-p[50] + p[48]))/p[46]
+    f_run[4] = (y[0] - x[4])/p[57]
+    f_run[5] = -p[60]*(p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5] - y[26]) - x[4] + y[30] + u[22]
+    f_run[6] = (y[27] - x[6])/p[62]
+    f_run[7] = (x[6] - x[7])/p[64]
+    f_run[8] = p[65]*(u[24] - y[24]) - 1.0e-6*x[8]
+    f_run[9] = (x[1] - x[9] - 1.0)/p[67]
+    f_run[10] = (-x[10] + y[29])/p[69]
+    f_run[11] = -p[83]*x[11] + p[73]*(x[12] - y[58])
+    f_run[12] = (-p[81]*(x[12] - y[58]) - y[31]*(p[82]*y[31] + y[2]*sin(x[11] - y[3])) - y[32]*(p[82]*y[32] + y[2]*cos(x[11] - y[3])) + y[37])/(2*p[74])
+    f_run[13] = (-x[13] - y[31]*(-p[79] + p[77]) + y[35])/p[75]
+    f_run[14] = (-x[14] + y[32]*(-p[80] + p[78]))/p[76]
+    f_run[15] = (y[2] - x[15])/p[87]
+    f_run[16] = -p[90]*(p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16] - y[35]) - x[15] + y[39] + u[26]
+    f_run[17] = (y[36] - x[17])/p[92]
+    f_run[18] = (x[17] - x[18])/p[94]
+    f_run[19] = p[95]*(u[28] - y[33]) - 1.0e-6*x[19]
+    f_run[20] = (x[12] - x[20] - 1.0)/p[97]
+    f_run[21] = (-x[21] + y[38])/p[99]
+    f_run[22] = -p[113]*x[22] + p[103]*(x[23] - y[58])
+    f_run[23] = (-p[111]*(x[23] - y[58]) - y[40]*(p[112]*y[40] + y[4]*sin(x[22] - y[5])) - y[41]*(p[112]*y[41] + y[4]*cos(x[22] - y[5])) + y[46])/(2*p[104])
+    f_run[24] = (-x[24] - y[40]*(-p[109] + p[107]) + y[44])/p[105]
+    f_run[25] = (-x[25] + y[41]*(-p[110] + p[108]))/p[106]
+    f_run[26] = (y[4] - x[26])/p[117]
+    f_run[27] = -p[120]*(p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27] - y[44]) - x[26] + y[48] + u[30]
+    f_run[28] = (y[45] - x[28])/p[122]
+    f_run[29] = (x[28] - x[29])/p[124]
+    f_run[30] = p[125]*(u[32] - y[42]) - 1.0e-6*x[30]
+    f_run[31] = (x[23] - x[31] - 1.0)/p[127]
+    f_run[32] = (-x[32] + y[47])/p[129]
+    f_run[33] = -p[143]*x[33] + p[133]*(x[34] - y[58])
+    f_run[34] = (-p[141]*(x[34] - y[58]) - y[49]*(p[142]*y[49] + y[6]*sin(x[33] - y[7])) - y[50]*(p[142]*y[50] + y[6]*cos(x[33] - y[7])) + y[55])/(2*p[134])
+    f_run[35] = (-x[35] - y[49]*(-p[139] + p[137]) + y[53])/p[135]
+    f_run[36] = (-x[36] + y[50]*(-p[140] + p[138]))/p[136]
+    f_run[37] = (y[6] - x[37])/p[147]
+    f_run[38] = -p[150]*(p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38] - y[53]) - x[37] + y[57] + u[34]
+    f_run[39] = (y[54] - x[39])/p[152]
+    f_run[40] = (x[39] - x[40])/p[154]
+    f_run[41] = p[155]*(u[36] - y[51]) - 1.0e-6*x[41]
+    f_run[42] = (x[34] - x[42] - 1.0)/p[157]
+    f_run[43] = (-x[43] + y[56])/p[159]
+    f_run[44] = 1 - y[58]
 
 
-        struct[0].f[0,0] = -K_delta_1*delta_1 + Omega_b_1*(omega_1 - omega_coi)
-        struct[0].f[1,0] = (-D_1*(omega_1 - omega_coi) - i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) - i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1)) + p_m_1)/(2*H_1)
-        struct[0].f[2,0] = (-e1q_1 - i_d_1*(-X1d_1 + X_d_1) + v_f_1)/T1d0_1
-        struct[0].f[3,0] = (-e1d_1 + i_q_1*(-X1q_1 + X_q_1))/T1q0_1
-        struct[0].f[4,0] = (V_1 - v_c_1)/T_r_1
-        struct[0].f[5,0] = -K_aw_1*(K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1 - v_f_1) - v_c_1 + v_pss_1 + v_ref_1
-        struct[0].f[6,0] = (p_m_ref_1 - x_gov_1_1)/T_gov_1_1
-        struct[0].f[7,0] = (x_gov_1_1 - x_gov_2_1)/T_gov_3_1
-        struct[0].f[8,0] = K_imw_1*(p_c_1 - p_g_1) - 1.0e-6*xi_imw_1
-        struct[0].f[9,0] = (omega_1 - x_wo_1 - 1.0)/T_wo_1
-        struct[0].f[10,0] = (-x_lead_1 + z_wo_1)/T_2_1
-        struct[0].f[11,0] = -K_delta_2*delta_2 + Omega_b_2*(omega_2 - omega_coi)
-        struct[0].f[12,0] = (-D_2*(omega_2 - omega_coi) - i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) - i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2)) + p_m_2)/(2*H_2)
-        struct[0].f[13,0] = (-e1q_2 - i_d_2*(-X1d_2 + X_d_2) + v_f_2)/T1d0_2
-        struct[0].f[14,0] = (-e1d_2 + i_q_2*(-X1q_2 + X_q_2))/T1q0_2
-        struct[0].f[15,0] = (V_2 - v_c_2)/T_r_2
-        struct[0].f[16,0] = -K_aw_2*(K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2 - v_f_2) - v_c_2 + v_pss_2 + v_ref_2
-        struct[0].f[17,0] = (p_m_ref_2 - x_gov_1_2)/T_gov_1_2
-        struct[0].f[18,0] = (x_gov_1_2 - x_gov_2_2)/T_gov_3_2
-        struct[0].f[19,0] = K_imw_2*(p_c_2 - p_g_2) - 1.0e-6*xi_imw_2
-        struct[0].f[20,0] = (omega_2 - x_wo_2 - 1.0)/T_wo_2
-        struct[0].f[21,0] = (-x_lead_2 + z_wo_2)/T_2_2
-        struct[0].f[22,0] = -K_delta_3*delta_3 + Omega_b_3*(omega_3 - omega_coi)
-        struct[0].f[23,0] = (-D_3*(omega_3 - omega_coi) - i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) - i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3)) + p_m_3)/(2*H_3)
-        struct[0].f[24,0] = (-e1q_3 - i_d_3*(-X1d_3 + X_d_3) + v_f_3)/T1d0_3
-        struct[0].f[25,0] = (-e1d_3 + i_q_3*(-X1q_3 + X_q_3))/T1q0_3
-        struct[0].f[26,0] = (V_3 - v_c_3)/T_r_3
-        struct[0].f[27,0] = -K_aw_3*(K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3 - v_f_3) - v_c_3 + v_pss_3 + v_ref_3
-        struct[0].f[28,0] = (p_m_ref_3 - x_gov_1_3)/T_gov_1_3
-        struct[0].f[29,0] = (x_gov_1_3 - x_gov_2_3)/T_gov_3_3
-        struct[0].f[30,0] = K_imw_3*(p_c_3 - p_g_3) - 1.0e-6*xi_imw_3
-        struct[0].f[31,0] = (omega_3 - x_wo_3 - 1.0)/T_wo_3
-        struct[0].f[32,0] = (-x_lead_3 + z_wo_3)/T_2_3
-        struct[0].f[33,0] = -K_delta_4*delta_4 + Omega_b_4*(omega_4 - omega_coi)
-        struct[0].f[34,0] = (-D_4*(omega_4 - omega_coi) - i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) - i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4)) + p_m_4)/(2*H_4)
-        struct[0].f[35,0] = (-e1q_4 - i_d_4*(-X1d_4 + X_d_4) + v_f_4)/T1d0_4
-        struct[0].f[36,0] = (-e1d_4 + i_q_4*(-X1q_4 + X_q_4))/T1q0_4
-        struct[0].f[37,0] = (V_4 - v_c_4)/T_r_4
-        struct[0].f[38,0] = -K_aw_4*(K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4 - v_f_4) - v_c_4 + v_pss_4 + v_ref_4
-        struct[0].f[39,0] = (p_m_ref_4 - x_gov_1_4)/T_gov_1_4
-        struct[0].f[40,0] = (x_gov_1_4 - x_gov_2_4)/T_gov_3_4
-        struct[0].f[41,0] = K_imw_4*(p_c_4 - p_g_4) - 1.0e-6*xi_imw_4
-        struct[0].f[42,0] = (omega_4 - x_wo_4 - 1.0)/T_wo_4
-        struct[0].f[43,0] = (-x_lead_4 + z_wo_4)/T_2_4
-        struct[0].f[44,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-        struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
-
-        struct[0].g[0,0] = -P_1/S_base + V_1**2*g_1_5 + V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) - S_n_1*p_g_1/S_base
-        struct[0].g[1,0] = -Q_1/S_base + V_1**2*(-b_1_5 - bs_1_5/2) + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) - S_n_1*q_g_1/S_base
-        struct[0].g[2,0] = -P_2/S_base + V_2**2*g_2_6 + V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) - S_n_2*p_g_2/S_base
-        struct[0].g[3,0] = -Q_2/S_base + V_2**2*(-b_2_6 - bs_2_6/2) + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) - S_n_2*q_g_2/S_base
-        struct[0].g[4,0] = -P_3/S_base + V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + V_3**2*g_3_11 - S_n_3*p_g_3/S_base
-        struct[0].g[5,0] = -Q_3/S_base + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + V_3**2*(-b_3_11 - bs_3_11/2) - S_n_3*q_g_3/S_base
-        struct[0].g[6,0] = -P_4/S_base + V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_4**2*g_4_10 - S_n_4*p_g_4/S_base
-        struct[0].g[7,0] = -Q_4/S_base + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_4**2*(-b_4_10 - bs_4_10/2) - S_n_4*q_g_4/S_base
-        struct[0].g[8,0] = -P_5/S_base + V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5**2*(g_1_5 + g_5_6) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].g[9,0] = -Q_5/S_base + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + V_5**2*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].g[10,0] = -P_6/S_base + V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6**2*(g_2_6 + g_5_6 + g_6_7) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].g[11,0] = -Q_6/S_base + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + V_6**2*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].g[12,0] = -P_7/S_base + V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7**2*(g_6_7 + 2*g_7_8) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].g[13,0] = -Q_7/S_base + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + V_7**2*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].g[14,0] = -P_8/S_base + V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8**2*(2*g_7_8 + 2*g_8_9) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].g[15,0] = -Q_8/S_base + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + V_8**2*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].g[16,0] = -P_9/S_base + V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + V_9**2*(2*g_8_9 + g_9_10)
-        struct[0].g[17,0] = -Q_9/S_base + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + V_9**2*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].g[18,0] = -P_10/S_base + V_10**2*(g_10_11 + g_4_10 + g_9_10) + V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].g[19,0] = -Q_10/S_base + V_10**2*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].g[20,0] = -P_11/S_base + V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11**2*(g_10_11 + g_3_11) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].g[21,0] = -Q_11/S_base + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_11**2*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].g[22,0] = R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1) + X1d_1*i_d_1 - e1q_1
-        struct[0].g[23,0] = R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1) - X1q_1*i_q_1 - e1d_1
-        struct[0].g[24,0] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1) - p_g_1
-        struct[0].g[25,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1) - q_g_1
-        struct[0].g[26,0] = -v_f_1 + Piecewise(np.array([(V_min_1, V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (V_max_1, V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1, True)]))
-        struct[0].g[27,0] = K_sec_1*p_agc - p_m_ref_1 + xi_imw_1 - (omega_1 - omega_ref_1)/Droop_1
-        struct[0].g[28,0] = T_gov_2_1*(x_gov_1_1 - x_gov_2_1)/T_gov_3_1 - p_m_1 + x_gov_2_1
-        struct[0].g[29,0] = omega_1 - x_wo_1 - z_wo_1 - 1.0
-        struct[0].g[30,0] = K_stab_1*(T_1_1*(-x_lead_1 + z_wo_1)/T_2_1 + x_lead_1) - v_pss_1
-        struct[0].g[31,0] = R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2) + X1d_2*i_d_2 - e1q_2
-        struct[0].g[32,0] = R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2) - X1q_2*i_q_2 - e1d_2
-        struct[0].g[33,0] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2) - p_g_2
-        struct[0].g[34,0] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2) - q_g_2
-        struct[0].g[35,0] = -v_f_2 + Piecewise(np.array([(V_min_2, V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (V_max_2, V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2, True)]))
-        struct[0].g[36,0] = K_sec_2*p_agc - p_m_ref_2 + xi_imw_2 - (omega_2 - omega_ref_2)/Droop_2
-        struct[0].g[37,0] = T_gov_2_2*(x_gov_1_2 - x_gov_2_2)/T_gov_3_2 - p_m_2 + x_gov_2_2
-        struct[0].g[38,0] = omega_2 - x_wo_2 - z_wo_2 - 1.0
-        struct[0].g[39,0] = K_stab_2*(T_1_2*(-x_lead_2 + z_wo_2)/T_2_2 + x_lead_2) - v_pss_2
-        struct[0].g[40,0] = R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3) + X1d_3*i_d_3 - e1q_3
-        struct[0].g[41,0] = R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3) - X1q_3*i_q_3 - e1d_3
-        struct[0].g[42,0] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3) - p_g_3
-        struct[0].g[43,0] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3) - q_g_3
-        struct[0].g[44,0] = -v_f_3 + Piecewise(np.array([(V_min_3, V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (V_max_3, V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3, True)]))
-        struct[0].g[45,0] = K_sec_3*p_agc - p_m_ref_3 + xi_imw_3 - (omega_3 - omega_ref_3)/Droop_3
-        struct[0].g[46,0] = T_gov_2_3*(x_gov_1_3 - x_gov_2_3)/T_gov_3_3 - p_m_3 + x_gov_2_3
-        struct[0].g[47,0] = omega_3 - x_wo_3 - z_wo_3 - 1.0
-        struct[0].g[48,0] = K_stab_3*(T_1_3*(-x_lead_3 + z_wo_3)/T_2_3 + x_lead_3) - v_pss_3
-        struct[0].g[49,0] = R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4) + X1d_4*i_d_4 - e1q_4
-        struct[0].g[50,0] = R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4) - X1q_4*i_q_4 - e1d_4
-        struct[0].g[51,0] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4) - p_g_4
-        struct[0].g[52,0] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4) - q_g_4
-        struct[0].g[53,0] = -v_f_4 + Piecewise(np.array([(V_min_4, V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (V_max_4, V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4, True)]))
-        struct[0].g[54,0] = K_sec_4*p_agc - p_m_ref_4 + xi_imw_4 - (omega_4 - omega_ref_4)/Droop_4
-        struct[0].g[55,0] = T_gov_2_4*(x_gov_1_4 - x_gov_2_4)/T_gov_3_4 - p_m_4 + x_gov_2_4
-        struct[0].g[56,0] = omega_4 - x_wo_4 - z_wo_4 - 1.0
-        struct[0].g[57,0] = K_stab_4*(T_1_4*(-x_lead_4 + z_wo_4)/T_2_4 + x_lead_4) - v_pss_4
-        struct[0].g[58,0] = -omega_coi + (H_1*S_n_1*omega_1 + H_2*S_n_2*omega_2 + H_3*S_n_3*omega_3 + H_4*S_n_4*omega_4)/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].g[59,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_1
-        struct[0].h[1,0] = V_2
-        struct[0].h[2,0] = V_3
-        struct[0].h[3,0] = V_4
-        struct[0].h[4,0] = V_5
-        struct[0].h[5,0] = V_6
-        struct[0].h[6,0] = V_7
-        struct[0].h[7,0] = V_8
-        struct[0].h[8,0] = V_9
-        struct[0].h[9,0] = V_10
-        struct[0].h[10,0] = V_11
-        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
-        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
-        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
-        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
-    
-
-    if mode == 10:
-
-        struct[0].Fx_ini[0,0] = -K_delta_1
-        struct[0].Fx_ini[0,1] = Omega_b_1
-        struct[0].Fx_ini[1,0] = (-V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fx_ini[1,1] = -D_1/(2*H_1)
-        struct[0].Fx_ini[2,2] = -1/T1d0_1
-        struct[0].Fx_ini[3,3] = -1/T1q0_1
-        struct[0].Fx_ini[4,4] = -1/T_r_1
-        struct[0].Fx_ini[5,4] = K_a_1*K_aw_1 - 1
-        struct[0].Fx_ini[5,5] = -K_ai_1*K_aw_1
-        struct[0].Fx_ini[6,6] = -1/T_gov_1_1
-        struct[0].Fx_ini[7,6] = 1/T_gov_3_1
-        struct[0].Fx_ini[7,7] = -1/T_gov_3_1
-        struct[0].Fx_ini[9,1] = 1/T_wo_1
-        struct[0].Fx_ini[9,9] = -1/T_wo_1
-        struct[0].Fx_ini[10,10] = -1/T_2_1
-        struct[0].Fx_ini[11,11] = -K_delta_2
-        struct[0].Fx_ini[11,12] = Omega_b_2
-        struct[0].Fx_ini[12,11] = (-V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fx_ini[12,12] = -D_2/(2*H_2)
-        struct[0].Fx_ini[13,13] = -1/T1d0_2
-        struct[0].Fx_ini[14,14] = -1/T1q0_2
-        struct[0].Fx_ini[15,15] = -1/T_r_2
-        struct[0].Fx_ini[16,15] = K_a_2*K_aw_2 - 1
-        struct[0].Fx_ini[16,16] = -K_ai_2*K_aw_2
-        struct[0].Fx_ini[17,17] = -1/T_gov_1_2
-        struct[0].Fx_ini[18,17] = 1/T_gov_3_2
-        struct[0].Fx_ini[18,18] = -1/T_gov_3_2
-        struct[0].Fx_ini[20,12] = 1/T_wo_2
-        struct[0].Fx_ini[20,20] = -1/T_wo_2
-        struct[0].Fx_ini[21,21] = -1/T_2_2
-        struct[0].Fx_ini[22,22] = -K_delta_3
-        struct[0].Fx_ini[22,23] = Omega_b_3
-        struct[0].Fx_ini[23,22] = (-V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fx_ini[23,23] = -D_3/(2*H_3)
-        struct[0].Fx_ini[24,24] = -1/T1d0_3
-        struct[0].Fx_ini[25,25] = -1/T1q0_3
-        struct[0].Fx_ini[26,26] = -1/T_r_3
-        struct[0].Fx_ini[27,26] = K_a_3*K_aw_3 - 1
-        struct[0].Fx_ini[27,27] = -K_ai_3*K_aw_3
-        struct[0].Fx_ini[28,28] = -1/T_gov_1_3
-        struct[0].Fx_ini[29,28] = 1/T_gov_3_3
-        struct[0].Fx_ini[29,29] = -1/T_gov_3_3
-        struct[0].Fx_ini[31,23] = 1/T_wo_3
-        struct[0].Fx_ini[31,31] = -1/T_wo_3
-        struct[0].Fx_ini[32,32] = -1/T_2_3
-        struct[0].Fx_ini[33,33] = -K_delta_4
-        struct[0].Fx_ini[33,34] = Omega_b_4
-        struct[0].Fx_ini[34,33] = (-V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fx_ini[34,34] = -D_4/(2*H_4)
-        struct[0].Fx_ini[35,35] = -1/T1d0_4
-        struct[0].Fx_ini[36,36] = -1/T1q0_4
-        struct[0].Fx_ini[37,37] = -1/T_r_4
-        struct[0].Fx_ini[38,37] = K_a_4*K_aw_4 - 1
-        struct[0].Fx_ini[38,38] = -K_ai_4*K_aw_4
-        struct[0].Fx_ini[39,39] = -1/T_gov_1_4
-        struct[0].Fx_ini[40,39] = 1/T_gov_3_4
-        struct[0].Fx_ini[40,40] = -1/T_gov_3_4
-        struct[0].Fx_ini[42,34] = 1/T_wo_4
-        struct[0].Fx_ini[42,42] = -1/T_wo_4
-        struct[0].Fx_ini[43,43] = -1/T_2_4
-
-    if mode == 11:
-
-        struct[0].Fy_ini[0,58] = -Omega_b_1 
-        struct[0].Fy_ini[1,0] = (-i_d_1*sin(delta_1 - theta_1) - i_q_1*cos(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,1] = (V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,22] = (-2*R_a_1*i_d_1 - V_1*sin(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,23] = (-2*R_a_1*i_q_1 - V_1*cos(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,28] = 1/(2*H_1) 
-        struct[0].Fy_ini[1,58] = D_1/(2*H_1) 
-        struct[0].Fy_ini[2,22] = (X1d_1 - X_d_1)/T1d0_1 
-        struct[0].Fy_ini[2,26] = 1/T1d0_1 
-        struct[0].Fy_ini[3,23] = (-X1q_1 + X_q_1)/T1q0_1 
-        struct[0].Fy_ini[4,0] = 1/T_r_1 
-        struct[0].Fy_ini[5,26] = K_aw_1 
-        struct[0].Fy_ini[5,30] = -K_a_1*K_aw_1 + 1 
-        struct[0].Fy_ini[6,27] = 1/T_gov_1_1 
-        struct[0].Fy_ini[8,24] = -K_imw_1 
-        struct[0].Fy_ini[10,29] = 1/T_2_1 
-        struct[0].Fy_ini[11,58] = -Omega_b_2 
-        struct[0].Fy_ini[12,2] = (-i_d_2*sin(delta_2 - theta_2) - i_q_2*cos(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,3] = (V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,31] = (-2*R_a_2*i_d_2 - V_2*sin(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,32] = (-2*R_a_2*i_q_2 - V_2*cos(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,37] = 1/(2*H_2) 
-        struct[0].Fy_ini[12,58] = D_2/(2*H_2) 
-        struct[0].Fy_ini[13,31] = (X1d_2 - X_d_2)/T1d0_2 
-        struct[0].Fy_ini[13,35] = 1/T1d0_2 
-        struct[0].Fy_ini[14,32] = (-X1q_2 + X_q_2)/T1q0_2 
-        struct[0].Fy_ini[15,2] = 1/T_r_2 
-        struct[0].Fy_ini[16,35] = K_aw_2 
-        struct[0].Fy_ini[16,39] = -K_a_2*K_aw_2 + 1 
-        struct[0].Fy_ini[17,36] = 1/T_gov_1_2 
-        struct[0].Fy_ini[19,33] = -K_imw_2 
-        struct[0].Fy_ini[21,38] = 1/T_2_2 
-        struct[0].Fy_ini[22,58] = -Omega_b_3 
-        struct[0].Fy_ini[23,4] = (-i_d_3*sin(delta_3 - theta_3) - i_q_3*cos(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,5] = (V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,40] = (-2*R_a_3*i_d_3 - V_3*sin(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,41] = (-2*R_a_3*i_q_3 - V_3*cos(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,46] = 1/(2*H_3) 
-        struct[0].Fy_ini[23,58] = D_3/(2*H_3) 
-        struct[0].Fy_ini[24,40] = (X1d_3 - X_d_3)/T1d0_3 
-        struct[0].Fy_ini[24,44] = 1/T1d0_3 
-        struct[0].Fy_ini[25,41] = (-X1q_3 + X_q_3)/T1q0_3 
-        struct[0].Fy_ini[26,4] = 1/T_r_3 
-        struct[0].Fy_ini[27,44] = K_aw_3 
-        struct[0].Fy_ini[27,48] = -K_a_3*K_aw_3 + 1 
-        struct[0].Fy_ini[28,45] = 1/T_gov_1_3 
-        struct[0].Fy_ini[30,42] = -K_imw_3 
-        struct[0].Fy_ini[32,47] = 1/T_2_3 
-        struct[0].Fy_ini[33,58] = -Omega_b_4 
-        struct[0].Fy_ini[34,6] = (-i_d_4*sin(delta_4 - theta_4) - i_q_4*cos(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,7] = (V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,49] = (-2*R_a_4*i_d_4 - V_4*sin(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,50] = (-2*R_a_4*i_q_4 - V_4*cos(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,55] = 1/(2*H_4) 
-        struct[0].Fy_ini[34,58] = D_4/(2*H_4) 
-        struct[0].Fy_ini[35,49] = (X1d_4 - X_d_4)/T1d0_4 
-        struct[0].Fy_ini[35,53] = 1/T1d0_4 
-        struct[0].Fy_ini[36,50] = (-X1q_4 + X_q_4)/T1q0_4 
-        struct[0].Fy_ini[37,6] = 1/T_r_4 
-        struct[0].Fy_ini[38,53] = K_aw_4 
-        struct[0].Fy_ini[38,57] = -K_a_4*K_aw_4 + 1 
-        struct[0].Fy_ini[39,54] = 1/T_gov_1_4 
-        struct[0].Fy_ini[41,51] = -K_imw_4 
-        struct[0].Fy_ini[43,56] = 1/T_2_4 
-        struct[0].Fy_ini[44,58] = -1 
-
-        struct[0].Gx_ini[22,0] = -V_1*sin(delta_1 - theta_1)
-        struct[0].Gx_ini[22,2] = -1
-        struct[0].Gx_ini[23,0] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gx_ini[23,3] = -1
-        struct[0].Gx_ini[24,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gx_ini[25,0] = -V_1*i_d_1*sin(delta_1 - theta_1) - V_1*i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gx_ini[26,4] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (-K_a_1, True)]))
-        struct[0].Gx_ini[26,5] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_ai_1, True)]))
-        struct[0].Gx_ini[27,1] = -1/Droop_1
-        struct[0].Gx_ini[27,8] = 1
-        struct[0].Gx_ini[28,6] = T_gov_2_1/T_gov_3_1
-        struct[0].Gx_ini[28,7] = -T_gov_2_1/T_gov_3_1 + 1
-        struct[0].Gx_ini[29,1] = 1
-        struct[0].Gx_ini[29,9] = -1
-        struct[0].Gx_ini[30,10] = K_stab_1*(-T_1_1/T_2_1 + 1)
-        struct[0].Gx_ini[31,11] = -V_2*sin(delta_2 - theta_2)
-        struct[0].Gx_ini[31,13] = -1
-        struct[0].Gx_ini[32,11] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gx_ini[32,14] = -1
-        struct[0].Gx_ini[33,11] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gx_ini[34,11] = -V_2*i_d_2*sin(delta_2 - theta_2) - V_2*i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gx_ini[35,15] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (-K_a_2, True)]))
-        struct[0].Gx_ini[35,16] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_ai_2, True)]))
-        struct[0].Gx_ini[36,12] = -1/Droop_2
-        struct[0].Gx_ini[36,19] = 1
-        struct[0].Gx_ini[37,17] = T_gov_2_2/T_gov_3_2
-        struct[0].Gx_ini[37,18] = -T_gov_2_2/T_gov_3_2 + 1
-        struct[0].Gx_ini[38,12] = 1
-        struct[0].Gx_ini[38,20] = -1
-        struct[0].Gx_ini[39,21] = K_stab_2*(-T_1_2/T_2_2 + 1)
-        struct[0].Gx_ini[40,22] = -V_3*sin(delta_3 - theta_3)
-        struct[0].Gx_ini[40,24] = -1
-        struct[0].Gx_ini[41,22] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gx_ini[41,25] = -1
-        struct[0].Gx_ini[42,22] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gx_ini[43,22] = -V_3*i_d_3*sin(delta_3 - theta_3) - V_3*i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gx_ini[44,26] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (-K_a_3, True)]))
-        struct[0].Gx_ini[44,27] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_ai_3, True)]))
-        struct[0].Gx_ini[45,23] = -1/Droop_3
-        struct[0].Gx_ini[45,30] = 1
-        struct[0].Gx_ini[46,28] = T_gov_2_3/T_gov_3_3
-        struct[0].Gx_ini[46,29] = -T_gov_2_3/T_gov_3_3 + 1
-        struct[0].Gx_ini[47,23] = 1
-        struct[0].Gx_ini[47,31] = -1
-        struct[0].Gx_ini[48,32] = K_stab_3*(-T_1_3/T_2_3 + 1)
-        struct[0].Gx_ini[49,33] = -V_4*sin(delta_4 - theta_4)
-        struct[0].Gx_ini[49,35] = -1
-        struct[0].Gx_ini[50,33] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gx_ini[50,36] = -1
-        struct[0].Gx_ini[51,33] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gx_ini[52,33] = -V_4*i_d_4*sin(delta_4 - theta_4) - V_4*i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gx_ini[53,37] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (-K_a_4, True)]))
-        struct[0].Gx_ini[53,38] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_ai_4, True)]))
-        struct[0].Gx_ini[54,34] = -1/Droop_4
-        struct[0].Gx_ini[54,41] = 1
-        struct[0].Gx_ini[55,39] = T_gov_2_4/T_gov_3_4
-        struct[0].Gx_ini[55,40] = -T_gov_2_4/T_gov_3_4 + 1
-        struct[0].Gx_ini[56,34] = 1
-        struct[0].Gx_ini[56,42] = -1
-        struct[0].Gx_ini[57,43] = K_stab_4*(-T_1_4/T_2_4 + 1)
-        struct[0].Gx_ini[58,1] = H_1*S_n_1/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx_ini[58,12] = H_2*S_n_2/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx_ini[58,23] = H_3*S_n_3/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx_ini[58,34] = H_4*S_n_4/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx_ini[59,44] = K_i_agc
-
-        struct[0].Gy_ini[0,0] = 2*V_1*g_1_5 + V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[0,1] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[0,8] = V_1*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[0,9] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[0,24] = -S_n_1/S_base
-        struct[0].Gy_ini[1,0] = 2*V_1*(-b_1_5 - bs_1_5/2) + V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[1,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[1,8] = V_1*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[1,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[1,25] = -S_n_1/S_base
-        struct[0].Gy_ini[2,2] = 2*V_2*g_2_6 + V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[2,3] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[2,10] = V_2*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[2,11] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[2,33] = -S_n_2/S_base
-        struct[0].Gy_ini[3,2] = 2*V_2*(-b_2_6 - bs_2_6/2) + V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[3,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[3,10] = V_2*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[3,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[3,34] = -S_n_2/S_base
-        struct[0].Gy_ini[4,4] = V_11*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + 2*V_3*g_3_11
-        struct[0].Gy_ini[4,5] = V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[4,20] = V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[4,21] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[4,42] = -S_n_3/S_base
-        struct[0].Gy_ini[5,4] = V_11*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + 2*V_3*(-b_3_11 - bs_3_11/2)
-        struct[0].Gy_ini[5,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[5,20] = V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[5,21] = V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[5,43] = -S_n_3/S_base
-        struct[0].Gy_ini[6,6] = V_10*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + 2*V_4*g_4_10
-        struct[0].Gy_ini[6,7] = V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[6,18] = V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[6,19] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[6,51] = -S_n_4/S_base
-        struct[0].Gy_ini[7,6] = V_10*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + 2*V_4*(-b_4_10 - bs_4_10/2)
-        struct[0].Gy_ini[7,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[7,18] = V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[7,19] = V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[7,52] = -S_n_4/S_base
-        struct[0].Gy_ini[8,0] = V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[8,1] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[8,8] = V_1*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + 2*V_5*(g_1_5 + g_5_6) + V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[8,9] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[8,10] = V_5*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[8,11] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[9,0] = V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[9,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[9,8] = V_1*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + 2*V_5*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[9,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[9,10] = V_5*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[9,11] = V_5*V_6*(b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[10,2] = V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[10,3] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[10,8] = V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[10,9] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[10,10] = V_2*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + 2*V_6*(g_2_6 + g_5_6 + g_6_7) + V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[10,11] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[10,12] = V_6*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[10,13] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[11,2] = V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[11,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[11,8] = V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[11,9] = V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[11,10] = V_2*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + 2*V_6*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[11,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[11,12] = V_6*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[11,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[12,10] = V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[12,11] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[12,12] = V_6*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + 2*V_7*(g_6_7 + 2*g_7_8) + V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[12,13] = V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[12,14] = V_7*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[12,15] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[13,10] = V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[13,11] = V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[13,12] = V_6*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + 2*V_7*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[13,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[13,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[13,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[14,12] = V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[14,13] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[14,14] = V_7*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + 2*V_8*(2*g_7_8 + 2*g_8_9) + V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[14,15] = V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[14,16] = V_8*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[14,17] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[15,12] = V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[15,13] = V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[15,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + 2*V_8*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[15,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[15,16] = V_8*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[15,17] = V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[16,14] = V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[16,15] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[16,16] = V_10*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + 2*V_9*(2*g_8_9 + g_9_10)
-        struct[0].Gy_ini[16,17] = V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[16,18] = V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[16,19] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[17,14] = V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[17,15] = V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[17,16] = V_10*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + 2*V_9*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].Gy_ini[17,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[17,18] = V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[17,19] = V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[18,6] = V_10*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[18,7] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[18,16] = V_10*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[18,17] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[18,18] = 2*V_10*(g_10_11 + g_4_10 + g_9_10) + V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[18,19] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[18,20] = V_10*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[18,21] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[19,6] = V_10*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[19,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[19,16] = V_10*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[19,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[19,18] = 2*V_10*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[19,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[19,20] = V_10*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[19,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[20,4] = V_11*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[20,5] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[20,18] = V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[20,19] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[20,20] = V_10*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + 2*V_11*(g_10_11 + g_3_11) + V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[20,21] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[21,4] = V_11*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[21,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[21,18] = V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[21,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[21,20] = V_10*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + 2*V_11*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[21,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[22,0] = cos(delta_1 - theta_1)
-        struct[0].Gy_ini[22,1] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[22,22] = X1d_1
-        struct[0].Gy_ini[22,23] = R_a_1
-        struct[0].Gy_ini[23,0] = sin(delta_1 - theta_1)
-        struct[0].Gy_ini[23,1] = -V_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[23,22] = R_a_1
-        struct[0].Gy_ini[23,23] = -X1q_1
-        struct[0].Gy_ini[24,0] = i_d_1*sin(delta_1 - theta_1) + i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[24,1] = -V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[24,22] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[24,23] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[25,0] = i_d_1*cos(delta_1 - theta_1) - i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[25,1] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[25,22] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[25,23] = -V_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[26,30] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gy_ini[27,59] = K_sec_1
-        struct[0].Gy_ini[30,29] = K_stab_1*T_1_1/T_2_1
-        struct[0].Gy_ini[31,2] = cos(delta_2 - theta_2)
-        struct[0].Gy_ini[31,3] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[31,31] = X1d_2
-        struct[0].Gy_ini[31,32] = R_a_2
-        struct[0].Gy_ini[32,2] = sin(delta_2 - theta_2)
-        struct[0].Gy_ini[32,3] = -V_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[32,31] = R_a_2
-        struct[0].Gy_ini[32,32] = -X1q_2
-        struct[0].Gy_ini[33,2] = i_d_2*sin(delta_2 - theta_2) + i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[33,3] = -V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[33,31] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[33,32] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[34,2] = i_d_2*cos(delta_2 - theta_2) - i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[34,3] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[34,31] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[34,32] = -V_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[35,39] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gy_ini[36,59] = K_sec_2
-        struct[0].Gy_ini[39,38] = K_stab_2*T_1_2/T_2_2
-        struct[0].Gy_ini[40,4] = cos(delta_3 - theta_3)
-        struct[0].Gy_ini[40,5] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[40,40] = X1d_3
-        struct[0].Gy_ini[40,41] = R_a_3
-        struct[0].Gy_ini[41,4] = sin(delta_3 - theta_3)
-        struct[0].Gy_ini[41,5] = -V_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[41,40] = R_a_3
-        struct[0].Gy_ini[41,41] = -X1q_3
-        struct[0].Gy_ini[42,4] = i_d_3*sin(delta_3 - theta_3) + i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[42,5] = -V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[42,40] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[42,41] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[43,4] = i_d_3*cos(delta_3 - theta_3) - i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[43,5] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[43,40] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[43,41] = -V_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[44,48] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gy_ini[45,59] = K_sec_3
-        struct[0].Gy_ini[48,47] = K_stab_3*T_1_3/T_2_3
-        struct[0].Gy_ini[49,6] = cos(delta_4 - theta_4)
-        struct[0].Gy_ini[49,7] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[49,49] = X1d_4
-        struct[0].Gy_ini[49,50] = R_a_4
-        struct[0].Gy_ini[50,6] = sin(delta_4 - theta_4)
-        struct[0].Gy_ini[50,7] = -V_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[50,49] = R_a_4
-        struct[0].Gy_ini[50,50] = -X1q_4
-        struct[0].Gy_ini[51,6] = i_d_4*sin(delta_4 - theta_4) + i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[51,7] = -V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[51,49] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[51,50] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[52,6] = i_d_4*cos(delta_4 - theta_4) - i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[52,7] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[52,49] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[52,50] = -V_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[53,57] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gy_ini[54,59] = K_sec_4
-        struct[0].Gy_ini[57,56] = K_stab_4*T_1_4/T_2_4
-        struct[0].Gy_ini[59,58] = -K_p_agc
 
 
 
 @numba.njit(cache=True)
-def run(t,struct,mode):
+def g_ini_eval(g_ini,x,y,u,p,xyup = 0):
 
-    # Parameters:
-    S_base = struct[0].S_base
-    g_1_5 = struct[0].g_1_5
-    b_1_5 = struct[0].b_1_5
-    bs_1_5 = struct[0].bs_1_5
-    g_2_6 = struct[0].g_2_6
-    b_2_6 = struct[0].b_2_6
-    bs_2_6 = struct[0].bs_2_6
-    g_3_11 = struct[0].g_3_11
-    b_3_11 = struct[0].b_3_11
-    bs_3_11 = struct[0].bs_3_11
-    g_4_10 = struct[0].g_4_10
-    b_4_10 = struct[0].b_4_10
-    bs_4_10 = struct[0].bs_4_10
-    g_5_6 = struct[0].g_5_6
-    b_5_6 = struct[0].b_5_6
-    bs_5_6 = struct[0].bs_5_6
-    g_6_7 = struct[0].g_6_7
-    b_6_7 = struct[0].b_6_7
-    bs_6_7 = struct[0].bs_6_7
-    g_7_8 = struct[0].g_7_8
-    b_7_8 = struct[0].b_7_8
-    bs_7_8 = struct[0].bs_7_8
-    g_8_9 = struct[0].g_8_9
-    b_8_9 = struct[0].b_8_9
-    bs_8_9 = struct[0].bs_8_9
-    g_9_10 = struct[0].g_9_10
-    b_9_10 = struct[0].b_9_10
-    bs_9_10 = struct[0].bs_9_10
-    g_10_11 = struct[0].g_10_11
-    b_10_11 = struct[0].b_10_11
-    bs_10_11 = struct[0].bs_10_11
-    U_1_n = struct[0].U_1_n
-    U_2_n = struct[0].U_2_n
-    U_3_n = struct[0].U_3_n
-    U_4_n = struct[0].U_4_n
-    U_5_n = struct[0].U_5_n
-    U_6_n = struct[0].U_6_n
-    U_7_n = struct[0].U_7_n
-    U_8_n = struct[0].U_8_n
-    U_9_n = struct[0].U_9_n
-    U_10_n = struct[0].U_10_n
-    U_11_n = struct[0].U_11_n
-    S_n_1 = struct[0].S_n_1
-    Omega_b_1 = struct[0].Omega_b_1
-    H_1 = struct[0].H_1
-    T1d0_1 = struct[0].T1d0_1
-    T1q0_1 = struct[0].T1q0_1
-    X_d_1 = struct[0].X_d_1
-    X_q_1 = struct[0].X_q_1
-    X1d_1 = struct[0].X1d_1
-    X1q_1 = struct[0].X1q_1
-    D_1 = struct[0].D_1
-    R_a_1 = struct[0].R_a_1
-    K_delta_1 = struct[0].K_delta_1
-    K_sec_1 = struct[0].K_sec_1
-    K_a_1 = struct[0].K_a_1
-    K_ai_1 = struct[0].K_ai_1
-    T_r_1 = struct[0].T_r_1
-    V_min_1 = struct[0].V_min_1
-    V_max_1 = struct[0].V_max_1
-    K_aw_1 = struct[0].K_aw_1
-    Droop_1 = struct[0].Droop_1
-    T_gov_1_1 = struct[0].T_gov_1_1
-    T_gov_2_1 = struct[0].T_gov_2_1
-    T_gov_3_1 = struct[0].T_gov_3_1
-    K_imw_1 = struct[0].K_imw_1
-    omega_ref_1 = struct[0].omega_ref_1
-    T_wo_1 = struct[0].T_wo_1
-    T_1_1 = struct[0].T_1_1
-    T_2_1 = struct[0].T_2_1
-    K_stab_1 = struct[0].K_stab_1
-    S_n_2 = struct[0].S_n_2
-    Omega_b_2 = struct[0].Omega_b_2
-    H_2 = struct[0].H_2
-    T1d0_2 = struct[0].T1d0_2
-    T1q0_2 = struct[0].T1q0_2
-    X_d_2 = struct[0].X_d_2
-    X_q_2 = struct[0].X_q_2
-    X1d_2 = struct[0].X1d_2
-    X1q_2 = struct[0].X1q_2
-    D_2 = struct[0].D_2
-    R_a_2 = struct[0].R_a_2
-    K_delta_2 = struct[0].K_delta_2
-    K_sec_2 = struct[0].K_sec_2
-    K_a_2 = struct[0].K_a_2
-    K_ai_2 = struct[0].K_ai_2
-    T_r_2 = struct[0].T_r_2
-    V_min_2 = struct[0].V_min_2
-    V_max_2 = struct[0].V_max_2
-    K_aw_2 = struct[0].K_aw_2
-    Droop_2 = struct[0].Droop_2
-    T_gov_1_2 = struct[0].T_gov_1_2
-    T_gov_2_2 = struct[0].T_gov_2_2
-    T_gov_3_2 = struct[0].T_gov_3_2
-    K_imw_2 = struct[0].K_imw_2
-    omega_ref_2 = struct[0].omega_ref_2
-    T_wo_2 = struct[0].T_wo_2
-    T_1_2 = struct[0].T_1_2
-    T_2_2 = struct[0].T_2_2
-    K_stab_2 = struct[0].K_stab_2
-    S_n_3 = struct[0].S_n_3
-    Omega_b_3 = struct[0].Omega_b_3
-    H_3 = struct[0].H_3
-    T1d0_3 = struct[0].T1d0_3
-    T1q0_3 = struct[0].T1q0_3
-    X_d_3 = struct[0].X_d_3
-    X_q_3 = struct[0].X_q_3
-    X1d_3 = struct[0].X1d_3
-    X1q_3 = struct[0].X1q_3
-    D_3 = struct[0].D_3
-    R_a_3 = struct[0].R_a_3
-    K_delta_3 = struct[0].K_delta_3
-    K_sec_3 = struct[0].K_sec_3
-    K_a_3 = struct[0].K_a_3
-    K_ai_3 = struct[0].K_ai_3
-    T_r_3 = struct[0].T_r_3
-    V_min_3 = struct[0].V_min_3
-    V_max_3 = struct[0].V_max_3
-    K_aw_3 = struct[0].K_aw_3
-    Droop_3 = struct[0].Droop_3
-    T_gov_1_3 = struct[0].T_gov_1_3
-    T_gov_2_3 = struct[0].T_gov_2_3
-    T_gov_3_3 = struct[0].T_gov_3_3
-    K_imw_3 = struct[0].K_imw_3
-    omega_ref_3 = struct[0].omega_ref_3
-    T_wo_3 = struct[0].T_wo_3
-    T_1_3 = struct[0].T_1_3
-    T_2_3 = struct[0].T_2_3
-    K_stab_3 = struct[0].K_stab_3
-    S_n_4 = struct[0].S_n_4
-    Omega_b_4 = struct[0].Omega_b_4
-    H_4 = struct[0].H_4
-    T1d0_4 = struct[0].T1d0_4
-    T1q0_4 = struct[0].T1q0_4
-    X_d_4 = struct[0].X_d_4
-    X_q_4 = struct[0].X_q_4
-    X1d_4 = struct[0].X1d_4
-    X1q_4 = struct[0].X1q_4
-    D_4 = struct[0].D_4
-    R_a_4 = struct[0].R_a_4
-    K_delta_4 = struct[0].K_delta_4
-    K_sec_4 = struct[0].K_sec_4
-    K_a_4 = struct[0].K_a_4
-    K_ai_4 = struct[0].K_ai_4
-    T_r_4 = struct[0].T_r_4
-    V_min_4 = struct[0].V_min_4
-    V_max_4 = struct[0].V_max_4
-    K_aw_4 = struct[0].K_aw_4
-    Droop_4 = struct[0].Droop_4
-    T_gov_1_4 = struct[0].T_gov_1_4
-    T_gov_2_4 = struct[0].T_gov_2_4
-    T_gov_3_4 = struct[0].T_gov_3_4
-    K_imw_4 = struct[0].K_imw_4
-    omega_ref_4 = struct[0].omega_ref_4
-    T_wo_4 = struct[0].T_wo_4
-    T_1_4 = struct[0].T_1_4
-    T_2_4 = struct[0].T_2_4
-    K_stab_4 = struct[0].K_stab_4
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_1 = struct[0].P_1
-    Q_1 = struct[0].Q_1
-    P_2 = struct[0].P_2
-    Q_2 = struct[0].Q_2
-    P_3 = struct[0].P_3
-    Q_3 = struct[0].Q_3
-    P_4 = struct[0].P_4
-    Q_4 = struct[0].Q_4
-    P_5 = struct[0].P_5
-    Q_5 = struct[0].Q_5
-    P_6 = struct[0].P_6
-    Q_6 = struct[0].Q_6
-    P_7 = struct[0].P_7
-    Q_7 = struct[0].Q_7
-    P_8 = struct[0].P_8
-    Q_8 = struct[0].Q_8
-    P_9 = struct[0].P_9
-    Q_9 = struct[0].Q_9
-    P_10 = struct[0].P_10
-    Q_10 = struct[0].Q_10
-    P_11 = struct[0].P_11
-    Q_11 = struct[0].Q_11
-    v_ref_1 = struct[0].v_ref_1
-    v_pss_1 = struct[0].v_pss_1
-    p_c_1 = struct[0].p_c_1
-    v_ref_2 = struct[0].v_ref_2
-    v_pss_2 = struct[0].v_pss_2
-    p_c_2 = struct[0].p_c_2
-    v_ref_3 = struct[0].v_ref_3
-    v_pss_3 = struct[0].v_pss_3
-    p_c_3 = struct[0].p_c_3
-    v_ref_4 = struct[0].v_ref_4
-    v_pss_4 = struct[0].v_pss_4
-    p_c_4 = struct[0].p_c_4
-    
-    # Dynamical states:
-    delta_1 = struct[0].x[0,0]
-    omega_1 = struct[0].x[1,0]
-    e1q_1 = struct[0].x[2,0]
-    e1d_1 = struct[0].x[3,0]
-    v_c_1 = struct[0].x[4,0]
-    xi_v_1 = struct[0].x[5,0]
-    x_gov_1_1 = struct[0].x[6,0]
-    x_gov_2_1 = struct[0].x[7,0]
-    xi_imw_1 = struct[0].x[8,0]
-    x_wo_1 = struct[0].x[9,0]
-    x_lead_1 = struct[0].x[10,0]
-    delta_2 = struct[0].x[11,0]
-    omega_2 = struct[0].x[12,0]
-    e1q_2 = struct[0].x[13,0]
-    e1d_2 = struct[0].x[14,0]
-    v_c_2 = struct[0].x[15,0]
-    xi_v_2 = struct[0].x[16,0]
-    x_gov_1_2 = struct[0].x[17,0]
-    x_gov_2_2 = struct[0].x[18,0]
-    xi_imw_2 = struct[0].x[19,0]
-    x_wo_2 = struct[0].x[20,0]
-    x_lead_2 = struct[0].x[21,0]
-    delta_3 = struct[0].x[22,0]
-    omega_3 = struct[0].x[23,0]
-    e1q_3 = struct[0].x[24,0]
-    e1d_3 = struct[0].x[25,0]
-    v_c_3 = struct[0].x[26,0]
-    xi_v_3 = struct[0].x[27,0]
-    x_gov_1_3 = struct[0].x[28,0]
-    x_gov_2_3 = struct[0].x[29,0]
-    xi_imw_3 = struct[0].x[30,0]
-    x_wo_3 = struct[0].x[31,0]
-    x_lead_3 = struct[0].x[32,0]
-    delta_4 = struct[0].x[33,0]
-    omega_4 = struct[0].x[34,0]
-    e1q_4 = struct[0].x[35,0]
-    e1d_4 = struct[0].x[36,0]
-    v_c_4 = struct[0].x[37,0]
-    xi_v_4 = struct[0].x[38,0]
-    x_gov_1_4 = struct[0].x[39,0]
-    x_gov_2_4 = struct[0].x[40,0]
-    xi_imw_4 = struct[0].x[41,0]
-    x_wo_4 = struct[0].x[42,0]
-    x_lead_4 = struct[0].x[43,0]
-    xi_freq = struct[0].x[44,0]
-    
-    # Algebraic states:
-    V_1 = struct[0].y_run[0,0]
-    theta_1 = struct[0].y_run[1,0]
-    V_2 = struct[0].y_run[2,0]
-    theta_2 = struct[0].y_run[3,0]
-    V_3 = struct[0].y_run[4,0]
-    theta_3 = struct[0].y_run[5,0]
-    V_4 = struct[0].y_run[6,0]
-    theta_4 = struct[0].y_run[7,0]
-    V_5 = struct[0].y_run[8,0]
-    theta_5 = struct[0].y_run[9,0]
-    V_6 = struct[0].y_run[10,0]
-    theta_6 = struct[0].y_run[11,0]
-    V_7 = struct[0].y_run[12,0]
-    theta_7 = struct[0].y_run[13,0]
-    V_8 = struct[0].y_run[14,0]
-    theta_8 = struct[0].y_run[15,0]
-    V_9 = struct[0].y_run[16,0]
-    theta_9 = struct[0].y_run[17,0]
-    V_10 = struct[0].y_run[18,0]
-    theta_10 = struct[0].y_run[19,0]
-    V_11 = struct[0].y_run[20,0]
-    theta_11 = struct[0].y_run[21,0]
-    i_d_1 = struct[0].y_run[22,0]
-    i_q_1 = struct[0].y_run[23,0]
-    p_g_1 = struct[0].y_run[24,0]
-    q_g_1 = struct[0].y_run[25,0]
-    v_f_1 = struct[0].y_run[26,0]
-    p_m_ref_1 = struct[0].y_run[27,0]
-    p_m_1 = struct[0].y_run[28,0]
-    z_wo_1 = struct[0].y_run[29,0]
-    v_pss_1 = struct[0].y_run[30,0]
-    i_d_2 = struct[0].y_run[31,0]
-    i_q_2 = struct[0].y_run[32,0]
-    p_g_2 = struct[0].y_run[33,0]
-    q_g_2 = struct[0].y_run[34,0]
-    v_f_2 = struct[0].y_run[35,0]
-    p_m_ref_2 = struct[0].y_run[36,0]
-    p_m_2 = struct[0].y_run[37,0]
-    z_wo_2 = struct[0].y_run[38,0]
-    v_pss_2 = struct[0].y_run[39,0]
-    i_d_3 = struct[0].y_run[40,0]
-    i_q_3 = struct[0].y_run[41,0]
-    p_g_3 = struct[0].y_run[42,0]
-    q_g_3 = struct[0].y_run[43,0]
-    v_f_3 = struct[0].y_run[44,0]
-    p_m_ref_3 = struct[0].y_run[45,0]
-    p_m_3 = struct[0].y_run[46,0]
-    z_wo_3 = struct[0].y_run[47,0]
-    v_pss_3 = struct[0].y_run[48,0]
-    i_d_4 = struct[0].y_run[49,0]
-    i_q_4 = struct[0].y_run[50,0]
-    p_g_4 = struct[0].y_run[51,0]
-    q_g_4 = struct[0].y_run[52,0]
-    v_f_4 = struct[0].y_run[53,0]
-    p_m_ref_4 = struct[0].y_run[54,0]
-    p_m_4 = struct[0].y_run[55,0]
-    z_wo_4 = struct[0].y_run[56,0]
-    v_pss_4 = struct[0].y_run[57,0]
-    omega_coi = struct[0].y_run[58,0]
-    p_agc = struct[0].y_run[59,0]
-    
-    struct[0].u_run[0,0] = P_1
-    struct[0].u_run[1,0] = Q_1
-    struct[0].u_run[2,0] = P_2
-    struct[0].u_run[3,0] = Q_2
-    struct[0].u_run[4,0] = P_3
-    struct[0].u_run[5,0] = Q_3
-    struct[0].u_run[6,0] = P_4
-    struct[0].u_run[7,0] = Q_4
-    struct[0].u_run[8,0] = P_5
-    struct[0].u_run[9,0] = Q_5
-    struct[0].u_run[10,0] = P_6
-    struct[0].u_run[11,0] = Q_6
-    struct[0].u_run[12,0] = P_7
-    struct[0].u_run[13,0] = Q_7
-    struct[0].u_run[14,0] = P_8
-    struct[0].u_run[15,0] = Q_8
-    struct[0].u_run[16,0] = P_9
-    struct[0].u_run[17,0] = Q_9
-    struct[0].u_run[18,0] = P_10
-    struct[0].u_run[19,0] = Q_10
-    struct[0].u_run[20,0] = P_11
-    struct[0].u_run[21,0] = Q_11
-    struct[0].u_run[22,0] = v_ref_1
-    struct[0].u_run[23,0] = v_pss_1
-    struct[0].u_run[24,0] = p_c_1
-    struct[0].u_run[25,0] = v_ref_2
-    struct[0].u_run[26,0] = v_pss_2
-    struct[0].u_run[27,0] = p_c_2
-    struct[0].u_run[28,0] = v_ref_3
-    struct[0].u_run[29,0] = v_pss_3
-    struct[0].u_run[30,0] = p_c_3
-    struct[0].u_run[31,0] = v_ref_4
-    struct[0].u_run[32,0] = v_pss_4
-    struct[0].u_run[33,0] = p_c_4
-    # Differential equations:
-    if mode == 2:
-
-
-        struct[0].f[0,0] = -K_delta_1*delta_1 + Omega_b_1*(omega_1 - omega_coi)
-        struct[0].f[1,0] = (-D_1*(omega_1 - omega_coi) - i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) - i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1)) + p_m_1)/(2*H_1)
-        struct[0].f[2,0] = (-e1q_1 - i_d_1*(-X1d_1 + X_d_1) + v_f_1)/T1d0_1
-        struct[0].f[3,0] = (-e1d_1 + i_q_1*(-X1q_1 + X_q_1))/T1q0_1
-        struct[0].f[4,0] = (V_1 - v_c_1)/T_r_1
-        struct[0].f[5,0] = -K_aw_1*(K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1 - v_f_1) - v_c_1 + v_pss_1 + v_ref_1
-        struct[0].f[6,0] = (p_m_ref_1 - x_gov_1_1)/T_gov_1_1
-        struct[0].f[7,0] = (x_gov_1_1 - x_gov_2_1)/T_gov_3_1
-        struct[0].f[8,0] = K_imw_1*(p_c_1 - p_g_1) - 1.0e-6*xi_imw_1
-        struct[0].f[9,0] = (omega_1 - x_wo_1 - 1.0)/T_wo_1
-        struct[0].f[10,0] = (-x_lead_1 + z_wo_1)/T_2_1
-        struct[0].f[11,0] = -K_delta_2*delta_2 + Omega_b_2*(omega_2 - omega_coi)
-        struct[0].f[12,0] = (-D_2*(omega_2 - omega_coi) - i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) - i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2)) + p_m_2)/(2*H_2)
-        struct[0].f[13,0] = (-e1q_2 - i_d_2*(-X1d_2 + X_d_2) + v_f_2)/T1d0_2
-        struct[0].f[14,0] = (-e1d_2 + i_q_2*(-X1q_2 + X_q_2))/T1q0_2
-        struct[0].f[15,0] = (V_2 - v_c_2)/T_r_2
-        struct[0].f[16,0] = -K_aw_2*(K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2 - v_f_2) - v_c_2 + v_pss_2 + v_ref_2
-        struct[0].f[17,0] = (p_m_ref_2 - x_gov_1_2)/T_gov_1_2
-        struct[0].f[18,0] = (x_gov_1_2 - x_gov_2_2)/T_gov_3_2
-        struct[0].f[19,0] = K_imw_2*(p_c_2 - p_g_2) - 1.0e-6*xi_imw_2
-        struct[0].f[20,0] = (omega_2 - x_wo_2 - 1.0)/T_wo_2
-        struct[0].f[21,0] = (-x_lead_2 + z_wo_2)/T_2_2
-        struct[0].f[22,0] = -K_delta_3*delta_3 + Omega_b_3*(omega_3 - omega_coi)
-        struct[0].f[23,0] = (-D_3*(omega_3 - omega_coi) - i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) - i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3)) + p_m_3)/(2*H_3)
-        struct[0].f[24,0] = (-e1q_3 - i_d_3*(-X1d_3 + X_d_3) + v_f_3)/T1d0_3
-        struct[0].f[25,0] = (-e1d_3 + i_q_3*(-X1q_3 + X_q_3))/T1q0_3
-        struct[0].f[26,0] = (V_3 - v_c_3)/T_r_3
-        struct[0].f[27,0] = -K_aw_3*(K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3 - v_f_3) - v_c_3 + v_pss_3 + v_ref_3
-        struct[0].f[28,0] = (p_m_ref_3 - x_gov_1_3)/T_gov_1_3
-        struct[0].f[29,0] = (x_gov_1_3 - x_gov_2_3)/T_gov_3_3
-        struct[0].f[30,0] = K_imw_3*(p_c_3 - p_g_3) - 1.0e-6*xi_imw_3
-        struct[0].f[31,0] = (omega_3 - x_wo_3 - 1.0)/T_wo_3
-        struct[0].f[32,0] = (-x_lead_3 + z_wo_3)/T_2_3
-        struct[0].f[33,0] = -K_delta_4*delta_4 + Omega_b_4*(omega_4 - omega_coi)
-        struct[0].f[34,0] = (-D_4*(omega_4 - omega_coi) - i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) - i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4)) + p_m_4)/(2*H_4)
-        struct[0].f[35,0] = (-e1q_4 - i_d_4*(-X1d_4 + X_d_4) + v_f_4)/T1d0_4
-        struct[0].f[36,0] = (-e1d_4 + i_q_4*(-X1q_4 + X_q_4))/T1q0_4
-        struct[0].f[37,0] = (V_4 - v_c_4)/T_r_4
-        struct[0].f[38,0] = -K_aw_4*(K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4 - v_f_4) - v_c_4 + v_pss_4 + v_ref_4
-        struct[0].f[39,0] = (p_m_ref_4 - x_gov_1_4)/T_gov_1_4
-        struct[0].f[40,0] = (x_gov_1_4 - x_gov_2_4)/T_gov_3_4
-        struct[0].f[41,0] = K_imw_4*(p_c_4 - p_g_4) - 1.0e-6*xi_imw_4
-        struct[0].f[42,0] = (omega_4 - x_wo_4 - 1.0)/T_wo_4
-        struct[0].f[43,0] = (-x_lead_4 + z_wo_4)/T_2_4
-        struct[0].f[44,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-        struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
-
-        struct[0].g[0,0] = -P_1/S_base + V_1**2*g_1_5 + V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) - S_n_1*p_g_1/S_base
-        struct[0].g[1,0] = -Q_1/S_base + V_1**2*(-b_1_5 - bs_1_5/2) + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) - S_n_1*q_g_1/S_base
-        struct[0].g[2,0] = -P_2/S_base + V_2**2*g_2_6 + V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) - S_n_2*p_g_2/S_base
-        struct[0].g[3,0] = -Q_2/S_base + V_2**2*(-b_2_6 - bs_2_6/2) + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) - S_n_2*q_g_2/S_base
-        struct[0].g[4,0] = -P_3/S_base + V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + V_3**2*g_3_11 - S_n_3*p_g_3/S_base
-        struct[0].g[5,0] = -Q_3/S_base + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + V_3**2*(-b_3_11 - bs_3_11/2) - S_n_3*q_g_3/S_base
-        struct[0].g[6,0] = -P_4/S_base + V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_4**2*g_4_10 - S_n_4*p_g_4/S_base
-        struct[0].g[7,0] = -Q_4/S_base + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_4**2*(-b_4_10 - bs_4_10/2) - S_n_4*q_g_4/S_base
-        struct[0].g[8,0] = -P_5/S_base + V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5**2*(g_1_5 + g_5_6) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].g[9,0] = -Q_5/S_base + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + V_5**2*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].g[10,0] = -P_6/S_base + V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6**2*(g_2_6 + g_5_6 + g_6_7) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].g[11,0] = -Q_6/S_base + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + V_6**2*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].g[12,0] = -P_7/S_base + V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7**2*(g_6_7 + 2*g_7_8) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].g[13,0] = -Q_7/S_base + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + V_7**2*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].g[14,0] = -P_8/S_base + V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8**2*(2*g_7_8 + 2*g_8_9) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].g[15,0] = -Q_8/S_base + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + V_8**2*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].g[16,0] = -P_9/S_base + V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + V_9**2*(2*g_8_9 + g_9_10)
-        struct[0].g[17,0] = -Q_9/S_base + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + V_9**2*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].g[18,0] = -P_10/S_base + V_10**2*(g_10_11 + g_4_10 + g_9_10) + V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].g[19,0] = -Q_10/S_base + V_10**2*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].g[20,0] = -P_11/S_base + V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11**2*(g_10_11 + g_3_11) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].g[21,0] = -Q_11/S_base + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_11**2*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].g[22,0] = R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1) + X1d_1*i_d_1 - e1q_1
-        struct[0].g[23,0] = R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1) - X1q_1*i_q_1 - e1d_1
-        struct[0].g[24,0] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1) - p_g_1
-        struct[0].g[25,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1) - q_g_1
-        struct[0].g[26,0] = -v_f_1 + Piecewise(np.array([(V_min_1, V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (V_max_1, V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1, True)]))
-        struct[0].g[27,0] = K_sec_1*p_agc - p_m_ref_1 + xi_imw_1 - (omega_1 - omega_ref_1)/Droop_1
-        struct[0].g[28,0] = T_gov_2_1*(x_gov_1_1 - x_gov_2_1)/T_gov_3_1 - p_m_1 + x_gov_2_1
-        struct[0].g[29,0] = omega_1 - x_wo_1 - z_wo_1 - 1.0
-        struct[0].g[30,0] = K_stab_1*(T_1_1*(-x_lead_1 + z_wo_1)/T_2_1 + x_lead_1) - v_pss_1
-        struct[0].g[31,0] = R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2) + X1d_2*i_d_2 - e1q_2
-        struct[0].g[32,0] = R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2) - X1q_2*i_q_2 - e1d_2
-        struct[0].g[33,0] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2) - p_g_2
-        struct[0].g[34,0] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2) - q_g_2
-        struct[0].g[35,0] = -v_f_2 + Piecewise(np.array([(V_min_2, V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (V_max_2, V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2, True)]))
-        struct[0].g[36,0] = K_sec_2*p_agc - p_m_ref_2 + xi_imw_2 - (omega_2 - omega_ref_2)/Droop_2
-        struct[0].g[37,0] = T_gov_2_2*(x_gov_1_2 - x_gov_2_2)/T_gov_3_2 - p_m_2 + x_gov_2_2
-        struct[0].g[38,0] = omega_2 - x_wo_2 - z_wo_2 - 1.0
-        struct[0].g[39,0] = K_stab_2*(T_1_2*(-x_lead_2 + z_wo_2)/T_2_2 + x_lead_2) - v_pss_2
-        struct[0].g[40,0] = R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3) + X1d_3*i_d_3 - e1q_3
-        struct[0].g[41,0] = R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3) - X1q_3*i_q_3 - e1d_3
-        struct[0].g[42,0] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3) - p_g_3
-        struct[0].g[43,0] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3) - q_g_3
-        struct[0].g[44,0] = -v_f_3 + Piecewise(np.array([(V_min_3, V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (V_max_3, V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3, True)]))
-        struct[0].g[45,0] = K_sec_3*p_agc - p_m_ref_3 + xi_imw_3 - (omega_3 - omega_ref_3)/Droop_3
-        struct[0].g[46,0] = T_gov_2_3*(x_gov_1_3 - x_gov_2_3)/T_gov_3_3 - p_m_3 + x_gov_2_3
-        struct[0].g[47,0] = omega_3 - x_wo_3 - z_wo_3 - 1.0
-        struct[0].g[48,0] = K_stab_3*(T_1_3*(-x_lead_3 + z_wo_3)/T_2_3 + x_lead_3) - v_pss_3
-        struct[0].g[49,0] = R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4) + X1d_4*i_d_4 - e1q_4
-        struct[0].g[50,0] = R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4) - X1q_4*i_q_4 - e1d_4
-        struct[0].g[51,0] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4) - p_g_4
-        struct[0].g[52,0] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4) - q_g_4
-        struct[0].g[53,0] = -v_f_4 + Piecewise(np.array([(V_min_4, V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (V_max_4, V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4, True)]))
-        struct[0].g[54,0] = K_sec_4*p_agc - p_m_ref_4 + xi_imw_4 - (omega_4 - omega_ref_4)/Droop_4
-        struct[0].g[55,0] = T_gov_2_4*(x_gov_1_4 - x_gov_2_4)/T_gov_3_4 - p_m_4 + x_gov_2_4
-        struct[0].g[56,0] = omega_4 - x_wo_4 - z_wo_4 - 1.0
-        struct[0].g[57,0] = K_stab_4*(T_1_4*(-x_lead_4 + z_wo_4)/T_2_4 + x_lead_4) - v_pss_4
-        struct[0].g[58,0] = -omega_coi + (H_1*S_n_1*omega_1 + H_2*S_n_2*omega_2 + H_3*S_n_3*omega_3 + H_4*S_n_4*omega_4)/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].g[59,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_1
-        struct[0].h[1,0] = V_2
-        struct[0].h[2,0] = V_3
-        struct[0].h[3,0] = V_4
-        struct[0].h[4,0] = V_5
-        struct[0].h[5,0] = V_6
-        struct[0].h[6,0] = V_7
-        struct[0].h[7,0] = V_8
-        struct[0].h[8,0] = V_9
-        struct[0].h[9,0] = V_10
-        struct[0].h[10,0] = V_11
-        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
-        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
-        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
-        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
-    
-
-    if mode == 10:
-
-        struct[0].Fx[0,0] = -K_delta_1
-        struct[0].Fx[0,1] = Omega_b_1
-        struct[0].Fx[1,0] = (-V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fx[1,1] = -D_1/(2*H_1)
-        struct[0].Fx[2,2] = -1/T1d0_1
-        struct[0].Fx[3,3] = -1/T1q0_1
-        struct[0].Fx[4,4] = -1/T_r_1
-        struct[0].Fx[5,4] = K_a_1*K_aw_1 - 1
-        struct[0].Fx[5,5] = -K_ai_1*K_aw_1
-        struct[0].Fx[6,6] = -1/T_gov_1_1
-        struct[0].Fx[7,6] = 1/T_gov_3_1
-        struct[0].Fx[7,7] = -1/T_gov_3_1
-        struct[0].Fx[9,1] = 1/T_wo_1
-        struct[0].Fx[9,9] = -1/T_wo_1
-        struct[0].Fx[10,10] = -1/T_2_1
-        struct[0].Fx[11,11] = -K_delta_2
-        struct[0].Fx[11,12] = Omega_b_2
-        struct[0].Fx[12,11] = (-V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fx[12,12] = -D_2/(2*H_2)
-        struct[0].Fx[13,13] = -1/T1d0_2
-        struct[0].Fx[14,14] = -1/T1q0_2
-        struct[0].Fx[15,15] = -1/T_r_2
-        struct[0].Fx[16,15] = K_a_2*K_aw_2 - 1
-        struct[0].Fx[16,16] = -K_ai_2*K_aw_2
-        struct[0].Fx[17,17] = -1/T_gov_1_2
-        struct[0].Fx[18,17] = 1/T_gov_3_2
-        struct[0].Fx[18,18] = -1/T_gov_3_2
-        struct[0].Fx[20,12] = 1/T_wo_2
-        struct[0].Fx[20,20] = -1/T_wo_2
-        struct[0].Fx[21,21] = -1/T_2_2
-        struct[0].Fx[22,22] = -K_delta_3
-        struct[0].Fx[22,23] = Omega_b_3
-        struct[0].Fx[23,22] = (-V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fx[23,23] = -D_3/(2*H_3)
-        struct[0].Fx[24,24] = -1/T1d0_3
-        struct[0].Fx[25,25] = -1/T1q0_3
-        struct[0].Fx[26,26] = -1/T_r_3
-        struct[0].Fx[27,26] = K_a_3*K_aw_3 - 1
-        struct[0].Fx[27,27] = -K_ai_3*K_aw_3
-        struct[0].Fx[28,28] = -1/T_gov_1_3
-        struct[0].Fx[29,28] = 1/T_gov_3_3
-        struct[0].Fx[29,29] = -1/T_gov_3_3
-        struct[0].Fx[31,23] = 1/T_wo_3
-        struct[0].Fx[31,31] = -1/T_wo_3
-        struct[0].Fx[32,32] = -1/T_2_3
-        struct[0].Fx[33,33] = -K_delta_4
-        struct[0].Fx[33,34] = Omega_b_4
-        struct[0].Fx[34,33] = (-V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fx[34,34] = -D_4/(2*H_4)
-        struct[0].Fx[35,35] = -1/T1d0_4
-        struct[0].Fx[36,36] = -1/T1q0_4
-        struct[0].Fx[37,37] = -1/T_r_4
-        struct[0].Fx[38,37] = K_a_4*K_aw_4 - 1
-        struct[0].Fx[38,38] = -K_ai_4*K_aw_4
-        struct[0].Fx[39,39] = -1/T_gov_1_4
-        struct[0].Fx[40,39] = 1/T_gov_3_4
-        struct[0].Fx[40,40] = -1/T_gov_3_4
-        struct[0].Fx[42,34] = 1/T_wo_4
-        struct[0].Fx[42,42] = -1/T_wo_4
-        struct[0].Fx[43,43] = -1/T_2_4
-
-    if mode == 11:
-
-        struct[0].Fy[0,58] = -Omega_b_1
-        struct[0].Fy[1,0] = (-i_d_1*sin(delta_1 - theta_1) - i_q_1*cos(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,1] = (V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,22] = (-2*R_a_1*i_d_1 - V_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,23] = (-2*R_a_1*i_q_1 - V_1*cos(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,28] = 1/(2*H_1)
-        struct[0].Fy[1,58] = D_1/(2*H_1)
-        struct[0].Fy[2,22] = (X1d_1 - X_d_1)/T1d0_1
-        struct[0].Fy[2,26] = 1/T1d0_1
-        struct[0].Fy[3,23] = (-X1q_1 + X_q_1)/T1q0_1
-        struct[0].Fy[4,0] = 1/T_r_1
-        struct[0].Fy[5,26] = K_aw_1
-        struct[0].Fy[5,30] = -K_a_1*K_aw_1 + 1
-        struct[0].Fy[6,27] = 1/T_gov_1_1
-        struct[0].Fy[8,24] = -K_imw_1
-        struct[0].Fy[10,29] = 1/T_2_1
-        struct[0].Fy[11,58] = -Omega_b_2
-        struct[0].Fy[12,2] = (-i_d_2*sin(delta_2 - theta_2) - i_q_2*cos(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,3] = (V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,31] = (-2*R_a_2*i_d_2 - V_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,32] = (-2*R_a_2*i_q_2 - V_2*cos(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,37] = 1/(2*H_2)
-        struct[0].Fy[12,58] = D_2/(2*H_2)
-        struct[0].Fy[13,31] = (X1d_2 - X_d_2)/T1d0_2
-        struct[0].Fy[13,35] = 1/T1d0_2
-        struct[0].Fy[14,32] = (-X1q_2 + X_q_2)/T1q0_2
-        struct[0].Fy[15,2] = 1/T_r_2
-        struct[0].Fy[16,35] = K_aw_2
-        struct[0].Fy[16,39] = -K_a_2*K_aw_2 + 1
-        struct[0].Fy[17,36] = 1/T_gov_1_2
-        struct[0].Fy[19,33] = -K_imw_2
-        struct[0].Fy[21,38] = 1/T_2_2
-        struct[0].Fy[22,58] = -Omega_b_3
-        struct[0].Fy[23,4] = (-i_d_3*sin(delta_3 - theta_3) - i_q_3*cos(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,5] = (V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,40] = (-2*R_a_3*i_d_3 - V_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,41] = (-2*R_a_3*i_q_3 - V_3*cos(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,46] = 1/(2*H_3)
-        struct[0].Fy[23,58] = D_3/(2*H_3)
-        struct[0].Fy[24,40] = (X1d_3 - X_d_3)/T1d0_3
-        struct[0].Fy[24,44] = 1/T1d0_3
-        struct[0].Fy[25,41] = (-X1q_3 + X_q_3)/T1q0_3
-        struct[0].Fy[26,4] = 1/T_r_3
-        struct[0].Fy[27,44] = K_aw_3
-        struct[0].Fy[27,48] = -K_a_3*K_aw_3 + 1
-        struct[0].Fy[28,45] = 1/T_gov_1_3
-        struct[0].Fy[30,42] = -K_imw_3
-        struct[0].Fy[32,47] = 1/T_2_3
-        struct[0].Fy[33,58] = -Omega_b_4
-        struct[0].Fy[34,6] = (-i_d_4*sin(delta_4 - theta_4) - i_q_4*cos(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,7] = (V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,49] = (-2*R_a_4*i_d_4 - V_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,50] = (-2*R_a_4*i_q_4 - V_4*cos(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,55] = 1/(2*H_4)
-        struct[0].Fy[34,58] = D_4/(2*H_4)
-        struct[0].Fy[35,49] = (X1d_4 - X_d_4)/T1d0_4
-        struct[0].Fy[35,53] = 1/T1d0_4
-        struct[0].Fy[36,50] = (-X1q_4 + X_q_4)/T1q0_4
-        struct[0].Fy[37,6] = 1/T_r_4
-        struct[0].Fy[38,53] = K_aw_4
-        struct[0].Fy[38,57] = -K_a_4*K_aw_4 + 1
-        struct[0].Fy[39,54] = 1/T_gov_1_4
-        struct[0].Fy[41,51] = -K_imw_4
-        struct[0].Fy[43,56] = 1/T_2_4
-        struct[0].Fy[44,58] = -1
-
-        struct[0].Gx[22,0] = -V_1*sin(delta_1 - theta_1)
-        struct[0].Gx[22,2] = -1
-        struct[0].Gx[23,0] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gx[23,3] = -1
-        struct[0].Gx[24,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gx[25,0] = -V_1*i_d_1*sin(delta_1 - theta_1) - V_1*i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gx[26,4] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (-K_a_1, True)]))
-        struct[0].Gx[26,5] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_ai_1, True)]))
-        struct[0].Gx[27,1] = -1/Droop_1
-        struct[0].Gx[27,8] = 1
-        struct[0].Gx[28,6] = T_gov_2_1/T_gov_3_1
-        struct[0].Gx[28,7] = -T_gov_2_1/T_gov_3_1 + 1
-        struct[0].Gx[29,1] = 1
-        struct[0].Gx[29,9] = -1
-        struct[0].Gx[30,10] = K_stab_1*(-T_1_1/T_2_1 + 1)
-        struct[0].Gx[31,11] = -V_2*sin(delta_2 - theta_2)
-        struct[0].Gx[31,13] = -1
-        struct[0].Gx[32,11] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gx[32,14] = -1
-        struct[0].Gx[33,11] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gx[34,11] = -V_2*i_d_2*sin(delta_2 - theta_2) - V_2*i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gx[35,15] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (-K_a_2, True)]))
-        struct[0].Gx[35,16] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_ai_2, True)]))
-        struct[0].Gx[36,12] = -1/Droop_2
-        struct[0].Gx[36,19] = 1
-        struct[0].Gx[37,17] = T_gov_2_2/T_gov_3_2
-        struct[0].Gx[37,18] = -T_gov_2_2/T_gov_3_2 + 1
-        struct[0].Gx[38,12] = 1
-        struct[0].Gx[38,20] = -1
-        struct[0].Gx[39,21] = K_stab_2*(-T_1_2/T_2_2 + 1)
-        struct[0].Gx[40,22] = -V_3*sin(delta_3 - theta_3)
-        struct[0].Gx[40,24] = -1
-        struct[0].Gx[41,22] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gx[41,25] = -1
-        struct[0].Gx[42,22] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gx[43,22] = -V_3*i_d_3*sin(delta_3 - theta_3) - V_3*i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gx[44,26] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (-K_a_3, True)]))
-        struct[0].Gx[44,27] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_ai_3, True)]))
-        struct[0].Gx[45,23] = -1/Droop_3
-        struct[0].Gx[45,30] = 1
-        struct[0].Gx[46,28] = T_gov_2_3/T_gov_3_3
-        struct[0].Gx[46,29] = -T_gov_2_3/T_gov_3_3 + 1
-        struct[0].Gx[47,23] = 1
-        struct[0].Gx[47,31] = -1
-        struct[0].Gx[48,32] = K_stab_3*(-T_1_3/T_2_3 + 1)
-        struct[0].Gx[49,33] = -V_4*sin(delta_4 - theta_4)
-        struct[0].Gx[49,35] = -1
-        struct[0].Gx[50,33] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gx[50,36] = -1
-        struct[0].Gx[51,33] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gx[52,33] = -V_4*i_d_4*sin(delta_4 - theta_4) - V_4*i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gx[53,37] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (-K_a_4, True)]))
-        struct[0].Gx[53,38] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_ai_4, True)]))
-        struct[0].Gx[54,34] = -1/Droop_4
-        struct[0].Gx[54,41] = 1
-        struct[0].Gx[55,39] = T_gov_2_4/T_gov_3_4
-        struct[0].Gx[55,40] = -T_gov_2_4/T_gov_3_4 + 1
-        struct[0].Gx[56,34] = 1
-        struct[0].Gx[56,42] = -1
-        struct[0].Gx[57,43] = K_stab_4*(-T_1_4/T_2_4 + 1)
-        struct[0].Gx[58,1] = H_1*S_n_1/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx[58,12] = H_2*S_n_2/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx[58,23] = H_3*S_n_3/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx[58,34] = H_4*S_n_4/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].Gx[59,44] = K_i_agc
-
-        struct[0].Gy[0,0] = 2*V_1*g_1_5 + V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[0,1] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[0,8] = V_1*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[0,9] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[0,24] = -S_n_1/S_base
-        struct[0].Gy[1,0] = 2*V_1*(-b_1_5 - bs_1_5/2) + V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[1,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[1,8] = V_1*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[1,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[1,25] = -S_n_1/S_base
-        struct[0].Gy[2,2] = 2*V_2*g_2_6 + V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[2,3] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[2,10] = V_2*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[2,11] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[2,33] = -S_n_2/S_base
-        struct[0].Gy[3,2] = 2*V_2*(-b_2_6 - bs_2_6/2) + V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[3,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[3,10] = V_2*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[3,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[3,34] = -S_n_2/S_base
-        struct[0].Gy[4,4] = V_11*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + 2*V_3*g_3_11
-        struct[0].Gy[4,5] = V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[4,20] = V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[4,21] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[4,42] = -S_n_3/S_base
-        struct[0].Gy[5,4] = V_11*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + 2*V_3*(-b_3_11 - bs_3_11/2)
-        struct[0].Gy[5,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[5,20] = V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[5,21] = V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[5,43] = -S_n_3/S_base
-        struct[0].Gy[6,6] = V_10*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + 2*V_4*g_4_10
-        struct[0].Gy[6,7] = V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[6,18] = V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[6,19] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[6,51] = -S_n_4/S_base
-        struct[0].Gy[7,6] = V_10*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + 2*V_4*(-b_4_10 - bs_4_10/2)
-        struct[0].Gy[7,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[7,18] = V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[7,19] = V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[7,52] = -S_n_4/S_base
-        struct[0].Gy[8,0] = V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[8,1] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[8,8] = V_1*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + 2*V_5*(g_1_5 + g_5_6) + V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[8,9] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[8,10] = V_5*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[8,11] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[9,0] = V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[9,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[9,8] = V_1*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + 2*V_5*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[9,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[9,10] = V_5*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[9,11] = V_5*V_6*(b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[10,2] = V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[10,3] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[10,8] = V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[10,9] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[10,10] = V_2*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + 2*V_6*(g_2_6 + g_5_6 + g_6_7) + V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[10,11] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[10,12] = V_6*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[10,13] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[11,2] = V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[11,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[11,8] = V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[11,9] = V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[11,10] = V_2*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + 2*V_6*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[11,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[11,12] = V_6*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[11,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[12,10] = V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[12,11] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[12,12] = V_6*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + 2*V_7*(g_6_7 + 2*g_7_8) + V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[12,13] = V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[12,14] = V_7*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[12,15] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[13,10] = V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[13,11] = V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[13,12] = V_6*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + 2*V_7*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[13,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[13,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[13,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[14,12] = V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[14,13] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[14,14] = V_7*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + 2*V_8*(2*g_7_8 + 2*g_8_9) + V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[14,15] = V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[14,16] = V_8*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[14,17] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[15,12] = V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[15,13] = V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[15,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + 2*V_8*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[15,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[15,16] = V_8*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[15,17] = V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[16,14] = V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[16,15] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[16,16] = V_10*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + 2*V_9*(2*g_8_9 + g_9_10)
-        struct[0].Gy[16,17] = V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[16,18] = V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[16,19] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[17,14] = V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[17,15] = V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[17,16] = V_10*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + 2*V_9*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].Gy[17,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[17,18] = V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[17,19] = V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[18,6] = V_10*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[18,7] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[18,16] = V_10*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[18,17] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[18,18] = 2*V_10*(g_10_11 + g_4_10 + g_9_10) + V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[18,19] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[18,20] = V_10*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[18,21] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[19,6] = V_10*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[19,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[19,16] = V_10*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[19,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[19,18] = 2*V_10*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[19,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[19,20] = V_10*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[19,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[20,4] = V_11*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[20,5] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[20,18] = V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[20,19] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[20,20] = V_10*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + 2*V_11*(g_10_11 + g_3_11) + V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[20,21] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[21,4] = V_11*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[21,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[21,18] = V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[21,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[21,20] = V_10*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + 2*V_11*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[21,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[22,0] = cos(delta_1 - theta_1)
-        struct[0].Gy[22,1] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy[22,22] = X1d_1
-        struct[0].Gy[22,23] = R_a_1
-        struct[0].Gy[23,0] = sin(delta_1 - theta_1)
-        struct[0].Gy[23,1] = -V_1*cos(delta_1 - theta_1)
-        struct[0].Gy[23,22] = R_a_1
-        struct[0].Gy[23,23] = -X1q_1
-        struct[0].Gy[24,0] = i_d_1*sin(delta_1 - theta_1) + i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy[24,1] = -V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy[24,22] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy[24,23] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy[25,0] = i_d_1*cos(delta_1 - theta_1) - i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy[25,1] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy[25,22] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy[25,23] = -V_1*sin(delta_1 - theta_1)
-        struct[0].Gy[26,30] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gy[27,59] = K_sec_1
-        struct[0].Gy[30,29] = K_stab_1*T_1_1/T_2_1
-        struct[0].Gy[31,2] = cos(delta_2 - theta_2)
-        struct[0].Gy[31,3] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy[31,31] = X1d_2
-        struct[0].Gy[31,32] = R_a_2
-        struct[0].Gy[32,2] = sin(delta_2 - theta_2)
-        struct[0].Gy[32,3] = -V_2*cos(delta_2 - theta_2)
-        struct[0].Gy[32,31] = R_a_2
-        struct[0].Gy[32,32] = -X1q_2
-        struct[0].Gy[33,2] = i_d_2*sin(delta_2 - theta_2) + i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy[33,3] = -V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy[33,31] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy[33,32] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy[34,2] = i_d_2*cos(delta_2 - theta_2) - i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy[34,3] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy[34,31] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy[34,32] = -V_2*sin(delta_2 - theta_2)
-        struct[0].Gy[35,39] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gy[36,59] = K_sec_2
-        struct[0].Gy[39,38] = K_stab_2*T_1_2/T_2_2
-        struct[0].Gy[40,4] = cos(delta_3 - theta_3)
-        struct[0].Gy[40,5] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy[40,40] = X1d_3
-        struct[0].Gy[40,41] = R_a_3
-        struct[0].Gy[41,4] = sin(delta_3 - theta_3)
-        struct[0].Gy[41,5] = -V_3*cos(delta_3 - theta_3)
-        struct[0].Gy[41,40] = R_a_3
-        struct[0].Gy[41,41] = -X1q_3
-        struct[0].Gy[42,4] = i_d_3*sin(delta_3 - theta_3) + i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy[42,5] = -V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy[42,40] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy[42,41] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy[43,4] = i_d_3*cos(delta_3 - theta_3) - i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy[43,5] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy[43,40] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy[43,41] = -V_3*sin(delta_3 - theta_3)
-        struct[0].Gy[44,48] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gy[45,59] = K_sec_3
-        struct[0].Gy[48,47] = K_stab_3*T_1_3/T_2_3
-        struct[0].Gy[49,6] = cos(delta_4 - theta_4)
-        struct[0].Gy[49,7] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy[49,49] = X1d_4
-        struct[0].Gy[49,50] = R_a_4
-        struct[0].Gy[50,6] = sin(delta_4 - theta_4)
-        struct[0].Gy[50,7] = -V_4*cos(delta_4 - theta_4)
-        struct[0].Gy[50,49] = R_a_4
-        struct[0].Gy[50,50] = -X1q_4
-        struct[0].Gy[51,6] = i_d_4*sin(delta_4 - theta_4) + i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy[51,7] = -V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy[51,49] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy[51,50] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy[52,6] = i_d_4*cos(delta_4 - theta_4) - i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy[52,7] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy[52,49] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy[52,50] = -V_4*sin(delta_4 - theta_4)
-        struct[0].Gy[53,57] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gy[54,59] = K_sec_4
-        struct[0].Gy[57,56] = K_stab_4*T_1_4/T_2_4
-        struct[0].Gy[59,58] = -K_p_agc
-
-    if mode > 12:
-
-        struct[0].Fu[5,22] = -K_a_1*K_aw_1 + 1
-        struct[0].Fu[5,23] = -K_a_1*K_aw_1 + 1
-        struct[0].Fu[8,24] = K_imw_1
-        struct[0].Fu[16,25] = -K_a_2*K_aw_2 + 1
-        struct[0].Fu[16,26] = -K_a_2*K_aw_2 + 1
-        struct[0].Fu[19,27] = K_imw_2
-        struct[0].Fu[27,28] = -K_a_3*K_aw_3 + 1
-        struct[0].Fu[27,29] = -K_a_3*K_aw_3 + 1
-        struct[0].Fu[30,30] = K_imw_3
-        struct[0].Fu[38,31] = -K_a_4*K_aw_4 + 1
-        struct[0].Fu[38,32] = -K_a_4*K_aw_4 + 1
-        struct[0].Fu[41,33] = K_imw_4
-
-        struct[0].Gu[0,0] = -1/S_base
-        struct[0].Gu[1,1] = -1/S_base
-        struct[0].Gu[2,2] = -1/S_base
-        struct[0].Gu[3,3] = -1/S_base
-        struct[0].Gu[4,4] = -1/S_base
-        struct[0].Gu[5,5] = -1/S_base
-        struct[0].Gu[6,6] = -1/S_base
-        struct[0].Gu[7,7] = -1/S_base
-        struct[0].Gu[8,8] = -1/S_base
-        struct[0].Gu[9,9] = -1/S_base
-        struct[0].Gu[10,10] = -1/S_base
-        struct[0].Gu[11,11] = -1/S_base
-        struct[0].Gu[12,12] = -1/S_base
-        struct[0].Gu[13,13] = -1/S_base
-        struct[0].Gu[14,14] = -1/S_base
-        struct[0].Gu[15,15] = -1/S_base
-        struct[0].Gu[16,16] = -1/S_base
-        struct[0].Gu[17,17] = -1/S_base
-        struct[0].Gu[18,18] = -1/S_base
-        struct[0].Gu[19,19] = -1/S_base
-        struct[0].Gu[20,20] = -1/S_base
-        struct[0].Gu[21,21] = -1/S_base
-        struct[0].Gu[26,22] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gu[26,23] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gu[35,25] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gu[35,26] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gu[44,28] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gu[44,29] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gu[53,31] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gu[53,32] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-
-        struct[0].Hx[11,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Hx[12,11] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Hx[13,22] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Hx[14,33] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4)
-
-        struct[0].Hy[0,0] = 1
-        struct[0].Hy[1,2] = 1
-        struct[0].Hy[2,4] = 1
-        struct[0].Hy[3,6] = 1
-        struct[0].Hy[4,8] = 1
-        struct[0].Hy[5,10] = 1
-        struct[0].Hy[6,12] = 1
-        struct[0].Hy[7,14] = 1
-        struct[0].Hy[8,16] = 1
-        struct[0].Hy[9,18] = 1
-        struct[0].Hy[10,20] = 1
-        struct[0].Hy[11,0] = i_d_1*sin(delta_1 - theta_1) + i_q_1*cos(delta_1 - theta_1)
-        struct[0].Hy[11,1] = -V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Hy[11,22] = 2*R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)
-        struct[0].Hy[11,23] = 2*R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1)
-        struct[0].Hy[12,2] = i_d_2*sin(delta_2 - theta_2) + i_q_2*cos(delta_2 - theta_2)
-        struct[0].Hy[12,3] = -V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Hy[12,31] = 2*R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)
-        struct[0].Hy[12,32] = 2*R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2)
-        struct[0].Hy[13,4] = i_d_3*sin(delta_3 - theta_3) + i_q_3*cos(delta_3 - theta_3)
-        struct[0].Hy[13,5] = -V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Hy[13,40] = 2*R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)
-        struct[0].Hy[13,41] = 2*R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3)
-        struct[0].Hy[14,6] = i_d_4*sin(delta_4 - theta_4) + i_q_4*cos(delta_4 - theta_4)
-        struct[0].Hy[14,7] = -V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Hy[14,49] = 2*R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)
-        struct[0].Hy[14,50] = 2*R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4)
+    g_ini[0] = -u[0]/p[0] + y[0]**2*p[1] + y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) - p[42]*y[24]/p[0]
+    g_ini[1] = -u[1]/p[0] + y[0]**2*(-p[2] - p[3]/2) + y[0]*y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9])) - p[42]*y[25]/p[0]
+    g_ini[2] = -u[2]/p[0] + y[2]**2*p[4] + y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) - p[72]*y[33]/p[0]
+    g_ini[3] = -u[3]/p[0] + y[2]**2*(-p[5] - p[6]/2) + y[2]*y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11])) - p[72]*y[34]/p[0]
+    g_ini[4] = -u[4]/p[0] + y[20]*y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5])) + y[4]**2*p[7] - p[102]*y[42]/p[0]
+    g_ini[5] = -u[5]/p[0] + y[20]*y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5])) + y[4]**2*(-p[8] - p[9]/2) - p[102]*y[43]/p[0]
+    g_ini[6] = -u[6]/p[0] + y[18]*y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[6]**2*p[10] - p[132]*y[51]/p[0]
+    g_ini[7] = -u[7]/p[0] + y[18]*y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + y[6]**2*(-p[11] - p[12]/2) - p[132]*y[52]/p[0]
+    g_ini[8] = -u[8]/p[0] + y[0]*y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + y[8]**2*(p[1] + p[13]) + y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    g_ini[9] = -u[9]/p[0] + y[0]*y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9])) + y[8]**2*(-p[2] - p[14] - p[3]/2 - p[15]/2) + y[8]*y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    g_ini[10] = -u[10]/p[0] + y[2]*y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + y[10]**2*(p[4] + p[13] + p[16]) + y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    g_ini[11] = -u[11]/p[0] + y[2]*y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11])) + y[8]*y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11])) + y[10]**2*(-p[5] - p[14] - p[17] - p[6]/2 - p[15]/2 - p[18]/2) + y[10]*y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    g_ini[12] = -u[12]/p[0] + y[10]*y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + y[12]**2*(p[16] + 2*p[19]) + y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    g_ini[13] = -u[13]/p[0] + y[10]*y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13])) + y[12]**2*(-p[17] - 2*p[20] - p[18]/2 - p[21]) + y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    g_ini[14] = -u[14]/p[0] + y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + y[14]**2*(2*p[19] + 2*p[22]) + y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    g_ini[15] = -u[15]/p[0] + y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15])) + y[14]**2*(-2*p[20] - 2*p[23] - p[21] - p[24]) + y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    g_ini[16] = -u[16]/p[0] + y[18]*y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17])) + y[16]**2*(2*p[22] + p[25])
+    g_ini[17] = -u[17]/p[0] + y[18]*y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17])) + y[16]**2*(-2*p[23] - p[26] - p[24] - p[27]/2)
+    g_ini[18] = -u[18]/p[0] + y[18]**2*(p[28] + p[10] + p[25]) + y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    g_ini[19] = -u[19]/p[0] + y[18]**2*(-p[29] - p[11] - p[26] - p[30]/2 - p[12]/2 - p[27]/2) + y[18]*y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[18]*y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7])) + y[18]*y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    g_ini[20] = -u[20]/p[0] + y[18]*y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[20]**2*(p[28] + p[7]) + y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    g_ini[21] = -u[21]/p[0] + y[18]*y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + y[20]**2*(-p[29] - p[8] - p[30]/2 - p[9]/2) + y[20]*y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    g_ini[22] = p[52]*y[23] + y[0]*cos(x[0] - y[1]) + p[49]*y[22] - x[2]
+    g_ini[23] = p[52]*y[22] + y[0]*sin(x[0] - y[1]) - p[50]*y[23] - x[3]
+    g_ini[24] = y[0]*y[22]*sin(x[0] - y[1]) + y[0]*y[23]*cos(x[0] - y[1]) - y[24]
+    g_ini[25] = y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1]) - y[25]
+    g_ini[26] = -y[26] + Piecewise((p[58], p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]), (p[59], p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]), (p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5], True))
+    g_ini[27] = p[54]*y[59] - y[27] + u[25] + x[8] - (x[1] - p[66])/p[61]
+    g_ini[28] = p[63]*(x[6] - x[7])/p[64] - y[28] + x[7]
+    g_ini[29] = x[1] - x[9] - y[29] - 1.0
+    g_ini[30] = -y[30] + Piecewise((-p[71], p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])), (p[71], p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])), (p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]), True))
+    g_ini[31] = p[82]*y[32] + y[2]*cos(x[11] - y[3]) + p[79]*y[31] - x[13]
+    g_ini[32] = p[82]*y[31] + y[2]*sin(x[11] - y[3]) - p[80]*y[32] - x[14]
+    g_ini[33] = y[2]*y[31]*sin(x[11] - y[3]) + y[2]*y[32]*cos(x[11] - y[3]) - y[33]
+    g_ini[34] = y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3]) - y[34]
+    g_ini[35] = -y[35] + Piecewise((p[88], p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]), (p[89], p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]), (p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16], True))
+    g_ini[36] = p[84]*y[59] - y[36] + u[29] + x[19] - (x[12] - p[96])/p[91]
+    g_ini[37] = p[93]*(x[17] - x[18])/p[94] - y[37] + x[18]
+    g_ini[38] = x[12] - x[20] - y[38] - 1.0
+    g_ini[39] = -y[39] + Piecewise((-p[101], p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])), (p[101], p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])), (p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]), True))
+    g_ini[40] = p[112]*y[41] + y[4]*cos(x[22] - y[5]) + p[109]*y[40] - x[24]
+    g_ini[41] = p[112]*y[40] + y[4]*sin(x[22] - y[5]) - p[110]*y[41] - x[25]
+    g_ini[42] = y[4]*y[40]*sin(x[22] - y[5]) + y[4]*y[41]*cos(x[22] - y[5]) - y[42]
+    g_ini[43] = y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5]) - y[43]
+    g_ini[44] = -y[44] + Piecewise((p[118], p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]), (p[119], p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]), (p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27], True))
+    g_ini[45] = p[114]*y[59] - y[45] + u[33] + x[30] - (x[23] - p[126])/p[121]
+    g_ini[46] = p[123]*(x[28] - x[29])/p[124] - y[46] + x[29]
+    g_ini[47] = x[23] - x[31] - y[47] - 1.0
+    g_ini[48] = -y[48] + Piecewise((-p[131], p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])), (p[131], p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])), (p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]), True))
+    g_ini[49] = p[142]*y[50] + y[6]*cos(x[33] - y[7]) + p[139]*y[49] - x[35]
+    g_ini[50] = p[142]*y[49] + y[6]*sin(x[33] - y[7]) - p[140]*y[50] - x[36]
+    g_ini[51] = y[6]*y[49]*sin(x[33] - y[7]) + y[6]*y[50]*cos(x[33] - y[7]) - y[51]
+    g_ini[52] = y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7]) - y[52]
+    g_ini[53] = -y[53] + Piecewise((p[148], p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]), (p[149], p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]), (p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38], True))
+    g_ini[54] = p[144]*y[59] - y[54] + u[37] + x[41] - (x[34] - p[156])/p[151]
+    g_ini[55] = p[153]*(x[39] - x[40])/p[154] - y[55] + x[40]
+    g_ini[56] = x[34] - x[42] - y[56] - 1.0
+    g_ini[57] = -y[57] + Piecewise((-p[161], p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])), (p[161], p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])), (p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]), True))
+    g_ini[58] = -y[58] + (p[44]*p[42]*x[1] + p[74]*p[72]*x[12] + p[104]*p[102]*x[23] + p[134]*p[132]*x[34])/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+    g_ini[59] = p[163]*x[44] + p[162]*(1 - y[58]) - y[59]
 
 
 
 
-def ini_nn(struct,mode):
 
-    # Parameters:
-    S_base = struct[0].S_base
-    g_1_5 = struct[0].g_1_5
-    b_1_5 = struct[0].b_1_5
-    bs_1_5 = struct[0].bs_1_5
-    g_2_6 = struct[0].g_2_6
-    b_2_6 = struct[0].b_2_6
-    bs_2_6 = struct[0].bs_2_6
-    g_3_11 = struct[0].g_3_11
-    b_3_11 = struct[0].b_3_11
-    bs_3_11 = struct[0].bs_3_11
-    g_4_10 = struct[0].g_4_10
-    b_4_10 = struct[0].b_4_10
-    bs_4_10 = struct[0].bs_4_10
-    g_5_6 = struct[0].g_5_6
-    b_5_6 = struct[0].b_5_6
-    bs_5_6 = struct[0].bs_5_6
-    g_6_7 = struct[0].g_6_7
-    b_6_7 = struct[0].b_6_7
-    bs_6_7 = struct[0].bs_6_7
-    g_7_8 = struct[0].g_7_8
-    b_7_8 = struct[0].b_7_8
-    bs_7_8 = struct[0].bs_7_8
-    g_8_9 = struct[0].g_8_9
-    b_8_9 = struct[0].b_8_9
-    bs_8_9 = struct[0].bs_8_9
-    g_9_10 = struct[0].g_9_10
-    b_9_10 = struct[0].b_9_10
-    bs_9_10 = struct[0].bs_9_10
-    g_10_11 = struct[0].g_10_11
-    b_10_11 = struct[0].b_10_11
-    bs_10_11 = struct[0].bs_10_11
-    U_1_n = struct[0].U_1_n
-    U_2_n = struct[0].U_2_n
-    U_3_n = struct[0].U_3_n
-    U_4_n = struct[0].U_4_n
-    U_5_n = struct[0].U_5_n
-    U_6_n = struct[0].U_6_n
-    U_7_n = struct[0].U_7_n
-    U_8_n = struct[0].U_8_n
-    U_9_n = struct[0].U_9_n
-    U_10_n = struct[0].U_10_n
-    U_11_n = struct[0].U_11_n
-    S_n_1 = struct[0].S_n_1
-    Omega_b_1 = struct[0].Omega_b_1
-    H_1 = struct[0].H_1
-    T1d0_1 = struct[0].T1d0_1
-    T1q0_1 = struct[0].T1q0_1
-    X_d_1 = struct[0].X_d_1
-    X_q_1 = struct[0].X_q_1
-    X1d_1 = struct[0].X1d_1
-    X1q_1 = struct[0].X1q_1
-    D_1 = struct[0].D_1
-    R_a_1 = struct[0].R_a_1
-    K_delta_1 = struct[0].K_delta_1
-    K_sec_1 = struct[0].K_sec_1
-    K_a_1 = struct[0].K_a_1
-    K_ai_1 = struct[0].K_ai_1
-    T_r_1 = struct[0].T_r_1
-    V_min_1 = struct[0].V_min_1
-    V_max_1 = struct[0].V_max_1
-    K_aw_1 = struct[0].K_aw_1
-    Droop_1 = struct[0].Droop_1
-    T_gov_1_1 = struct[0].T_gov_1_1
-    T_gov_2_1 = struct[0].T_gov_2_1
-    T_gov_3_1 = struct[0].T_gov_3_1
-    K_imw_1 = struct[0].K_imw_1
-    omega_ref_1 = struct[0].omega_ref_1
-    T_wo_1 = struct[0].T_wo_1
-    T_1_1 = struct[0].T_1_1
-    T_2_1 = struct[0].T_2_1
-    K_stab_1 = struct[0].K_stab_1
-    S_n_2 = struct[0].S_n_2
-    Omega_b_2 = struct[0].Omega_b_2
-    H_2 = struct[0].H_2
-    T1d0_2 = struct[0].T1d0_2
-    T1q0_2 = struct[0].T1q0_2
-    X_d_2 = struct[0].X_d_2
-    X_q_2 = struct[0].X_q_2
-    X1d_2 = struct[0].X1d_2
-    X1q_2 = struct[0].X1q_2
-    D_2 = struct[0].D_2
-    R_a_2 = struct[0].R_a_2
-    K_delta_2 = struct[0].K_delta_2
-    K_sec_2 = struct[0].K_sec_2
-    K_a_2 = struct[0].K_a_2
-    K_ai_2 = struct[0].K_ai_2
-    T_r_2 = struct[0].T_r_2
-    V_min_2 = struct[0].V_min_2
-    V_max_2 = struct[0].V_max_2
-    K_aw_2 = struct[0].K_aw_2
-    Droop_2 = struct[0].Droop_2
-    T_gov_1_2 = struct[0].T_gov_1_2
-    T_gov_2_2 = struct[0].T_gov_2_2
-    T_gov_3_2 = struct[0].T_gov_3_2
-    K_imw_2 = struct[0].K_imw_2
-    omega_ref_2 = struct[0].omega_ref_2
-    T_wo_2 = struct[0].T_wo_2
-    T_1_2 = struct[0].T_1_2
-    T_2_2 = struct[0].T_2_2
-    K_stab_2 = struct[0].K_stab_2
-    S_n_3 = struct[0].S_n_3
-    Omega_b_3 = struct[0].Omega_b_3
-    H_3 = struct[0].H_3
-    T1d0_3 = struct[0].T1d0_3
-    T1q0_3 = struct[0].T1q0_3
-    X_d_3 = struct[0].X_d_3
-    X_q_3 = struct[0].X_q_3
-    X1d_3 = struct[0].X1d_3
-    X1q_3 = struct[0].X1q_3
-    D_3 = struct[0].D_3
-    R_a_3 = struct[0].R_a_3
-    K_delta_3 = struct[0].K_delta_3
-    K_sec_3 = struct[0].K_sec_3
-    K_a_3 = struct[0].K_a_3
-    K_ai_3 = struct[0].K_ai_3
-    T_r_3 = struct[0].T_r_3
-    V_min_3 = struct[0].V_min_3
-    V_max_3 = struct[0].V_max_3
-    K_aw_3 = struct[0].K_aw_3
-    Droop_3 = struct[0].Droop_3
-    T_gov_1_3 = struct[0].T_gov_1_3
-    T_gov_2_3 = struct[0].T_gov_2_3
-    T_gov_3_3 = struct[0].T_gov_3_3
-    K_imw_3 = struct[0].K_imw_3
-    omega_ref_3 = struct[0].omega_ref_3
-    T_wo_3 = struct[0].T_wo_3
-    T_1_3 = struct[0].T_1_3
-    T_2_3 = struct[0].T_2_3
-    K_stab_3 = struct[0].K_stab_3
-    S_n_4 = struct[0].S_n_4
-    Omega_b_4 = struct[0].Omega_b_4
-    H_4 = struct[0].H_4
-    T1d0_4 = struct[0].T1d0_4
-    T1q0_4 = struct[0].T1q0_4
-    X_d_4 = struct[0].X_d_4
-    X_q_4 = struct[0].X_q_4
-    X1d_4 = struct[0].X1d_4
-    X1q_4 = struct[0].X1q_4
-    D_4 = struct[0].D_4
-    R_a_4 = struct[0].R_a_4
-    K_delta_4 = struct[0].K_delta_4
-    K_sec_4 = struct[0].K_sec_4
-    K_a_4 = struct[0].K_a_4
-    K_ai_4 = struct[0].K_ai_4
-    T_r_4 = struct[0].T_r_4
-    V_min_4 = struct[0].V_min_4
-    V_max_4 = struct[0].V_max_4
-    K_aw_4 = struct[0].K_aw_4
-    Droop_4 = struct[0].Droop_4
-    T_gov_1_4 = struct[0].T_gov_1_4
-    T_gov_2_4 = struct[0].T_gov_2_4
-    T_gov_3_4 = struct[0].T_gov_3_4
-    K_imw_4 = struct[0].K_imw_4
-    omega_ref_4 = struct[0].omega_ref_4
-    T_wo_4 = struct[0].T_wo_4
-    T_1_4 = struct[0].T_1_4
-    T_2_4 = struct[0].T_2_4
-    K_stab_4 = struct[0].K_stab_4
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_1 = struct[0].P_1
-    Q_1 = struct[0].Q_1
-    P_2 = struct[0].P_2
-    Q_2 = struct[0].Q_2
-    P_3 = struct[0].P_3
-    Q_3 = struct[0].Q_3
-    P_4 = struct[0].P_4
-    Q_4 = struct[0].Q_4
-    P_5 = struct[0].P_5
-    Q_5 = struct[0].Q_5
-    P_6 = struct[0].P_6
-    Q_6 = struct[0].Q_6
-    P_7 = struct[0].P_7
-    Q_7 = struct[0].Q_7
-    P_8 = struct[0].P_8
-    Q_8 = struct[0].Q_8
-    P_9 = struct[0].P_9
-    Q_9 = struct[0].Q_9
-    P_10 = struct[0].P_10
-    Q_10 = struct[0].Q_10
-    P_11 = struct[0].P_11
-    Q_11 = struct[0].Q_11
-    v_ref_1 = struct[0].v_ref_1
-    v_pss_1 = struct[0].v_pss_1
-    p_c_1 = struct[0].p_c_1
-    v_ref_2 = struct[0].v_ref_2
-    v_pss_2 = struct[0].v_pss_2
-    p_c_2 = struct[0].p_c_2
-    v_ref_3 = struct[0].v_ref_3
-    v_pss_3 = struct[0].v_pss_3
-    p_c_3 = struct[0].p_c_3
-    v_ref_4 = struct[0].v_ref_4
-    v_pss_4 = struct[0].v_pss_4
-    p_c_4 = struct[0].p_c_4
-    
-    # Dynamical states:
-    delta_1 = struct[0].x[0,0]
-    omega_1 = struct[0].x[1,0]
-    e1q_1 = struct[0].x[2,0]
-    e1d_1 = struct[0].x[3,0]
-    v_c_1 = struct[0].x[4,0]
-    xi_v_1 = struct[0].x[5,0]
-    x_gov_1_1 = struct[0].x[6,0]
-    x_gov_2_1 = struct[0].x[7,0]
-    xi_imw_1 = struct[0].x[8,0]
-    x_wo_1 = struct[0].x[9,0]
-    x_lead_1 = struct[0].x[10,0]
-    delta_2 = struct[0].x[11,0]
-    omega_2 = struct[0].x[12,0]
-    e1q_2 = struct[0].x[13,0]
-    e1d_2 = struct[0].x[14,0]
-    v_c_2 = struct[0].x[15,0]
-    xi_v_2 = struct[0].x[16,0]
-    x_gov_1_2 = struct[0].x[17,0]
-    x_gov_2_2 = struct[0].x[18,0]
-    xi_imw_2 = struct[0].x[19,0]
-    x_wo_2 = struct[0].x[20,0]
-    x_lead_2 = struct[0].x[21,0]
-    delta_3 = struct[0].x[22,0]
-    omega_3 = struct[0].x[23,0]
-    e1q_3 = struct[0].x[24,0]
-    e1d_3 = struct[0].x[25,0]
-    v_c_3 = struct[0].x[26,0]
-    xi_v_3 = struct[0].x[27,0]
-    x_gov_1_3 = struct[0].x[28,0]
-    x_gov_2_3 = struct[0].x[29,0]
-    xi_imw_3 = struct[0].x[30,0]
-    x_wo_3 = struct[0].x[31,0]
-    x_lead_3 = struct[0].x[32,0]
-    delta_4 = struct[0].x[33,0]
-    omega_4 = struct[0].x[34,0]
-    e1q_4 = struct[0].x[35,0]
-    e1d_4 = struct[0].x[36,0]
-    v_c_4 = struct[0].x[37,0]
-    xi_v_4 = struct[0].x[38,0]
-    x_gov_1_4 = struct[0].x[39,0]
-    x_gov_2_4 = struct[0].x[40,0]
-    xi_imw_4 = struct[0].x[41,0]
-    x_wo_4 = struct[0].x[42,0]
-    x_lead_4 = struct[0].x[43,0]
-    xi_freq = struct[0].x[44,0]
-    
-    # Algebraic states:
-    V_1 = struct[0].y_ini[0,0]
-    theta_1 = struct[0].y_ini[1,0]
-    V_2 = struct[0].y_ini[2,0]
-    theta_2 = struct[0].y_ini[3,0]
-    V_3 = struct[0].y_ini[4,0]
-    theta_3 = struct[0].y_ini[5,0]
-    V_4 = struct[0].y_ini[6,0]
-    theta_4 = struct[0].y_ini[7,0]
-    V_5 = struct[0].y_ini[8,0]
-    theta_5 = struct[0].y_ini[9,0]
-    V_6 = struct[0].y_ini[10,0]
-    theta_6 = struct[0].y_ini[11,0]
-    V_7 = struct[0].y_ini[12,0]
-    theta_7 = struct[0].y_ini[13,0]
-    V_8 = struct[0].y_ini[14,0]
-    theta_8 = struct[0].y_ini[15,0]
-    V_9 = struct[0].y_ini[16,0]
-    theta_9 = struct[0].y_ini[17,0]
-    V_10 = struct[0].y_ini[18,0]
-    theta_10 = struct[0].y_ini[19,0]
-    V_11 = struct[0].y_ini[20,0]
-    theta_11 = struct[0].y_ini[21,0]
-    i_d_1 = struct[0].y_ini[22,0]
-    i_q_1 = struct[0].y_ini[23,0]
-    p_g_1 = struct[0].y_ini[24,0]
-    q_g_1 = struct[0].y_ini[25,0]
-    v_f_1 = struct[0].y_ini[26,0]
-    p_m_ref_1 = struct[0].y_ini[27,0]
-    p_m_1 = struct[0].y_ini[28,0]
-    z_wo_1 = struct[0].y_ini[29,0]
-    v_pss_1 = struct[0].y_ini[30,0]
-    i_d_2 = struct[0].y_ini[31,0]
-    i_q_2 = struct[0].y_ini[32,0]
-    p_g_2 = struct[0].y_ini[33,0]
-    q_g_2 = struct[0].y_ini[34,0]
-    v_f_2 = struct[0].y_ini[35,0]
-    p_m_ref_2 = struct[0].y_ini[36,0]
-    p_m_2 = struct[0].y_ini[37,0]
-    z_wo_2 = struct[0].y_ini[38,0]
-    v_pss_2 = struct[0].y_ini[39,0]
-    i_d_3 = struct[0].y_ini[40,0]
-    i_q_3 = struct[0].y_ini[41,0]
-    p_g_3 = struct[0].y_ini[42,0]
-    q_g_3 = struct[0].y_ini[43,0]
-    v_f_3 = struct[0].y_ini[44,0]
-    p_m_ref_3 = struct[0].y_ini[45,0]
-    p_m_3 = struct[0].y_ini[46,0]
-    z_wo_3 = struct[0].y_ini[47,0]
-    v_pss_3 = struct[0].y_ini[48,0]
-    i_d_4 = struct[0].y_ini[49,0]
-    i_q_4 = struct[0].y_ini[50,0]
-    p_g_4 = struct[0].y_ini[51,0]
-    q_g_4 = struct[0].y_ini[52,0]
-    v_f_4 = struct[0].y_ini[53,0]
-    p_m_ref_4 = struct[0].y_ini[54,0]
-    p_m_4 = struct[0].y_ini[55,0]
-    z_wo_4 = struct[0].y_ini[56,0]
-    v_pss_4 = struct[0].y_ini[57,0]
-    omega_coi = struct[0].y_ini[58,0]
-    p_agc = struct[0].y_ini[59,0]
-    
-    # Differential equations:
-    if mode == 2:
+@numba.njit(cache=True)
+def g_run_eval(g_run,x,y,u,p,xyup = 0):
 
-
-        struct[0].f[0,0] = -K_delta_1*delta_1 + Omega_b_1*(omega_1 - omega_coi)
-        struct[0].f[1,0] = (-D_1*(omega_1 - omega_coi) - i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) - i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1)) + p_m_1)/(2*H_1)
-        struct[0].f[2,0] = (-e1q_1 - i_d_1*(-X1d_1 + X_d_1) + v_f_1)/T1d0_1
-        struct[0].f[3,0] = (-e1d_1 + i_q_1*(-X1q_1 + X_q_1))/T1q0_1
-        struct[0].f[4,0] = (V_1 - v_c_1)/T_r_1
-        struct[0].f[5,0] = -K_aw_1*(K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1 - v_f_1) - v_c_1 + v_pss_1 + v_ref_1
-        struct[0].f[6,0] = (p_m_ref_1 - x_gov_1_1)/T_gov_1_1
-        struct[0].f[7,0] = (x_gov_1_1 - x_gov_2_1)/T_gov_3_1
-        struct[0].f[8,0] = K_imw_1*(p_c_1 - p_g_1) - 1.0e-6*xi_imw_1
-        struct[0].f[9,0] = (omega_1 - x_wo_1 - 1.0)/T_wo_1
-        struct[0].f[10,0] = (-x_lead_1 + z_wo_1)/T_2_1
-        struct[0].f[11,0] = -K_delta_2*delta_2 + Omega_b_2*(omega_2 - omega_coi)
-        struct[0].f[12,0] = (-D_2*(omega_2 - omega_coi) - i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) - i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2)) + p_m_2)/(2*H_2)
-        struct[0].f[13,0] = (-e1q_2 - i_d_2*(-X1d_2 + X_d_2) + v_f_2)/T1d0_2
-        struct[0].f[14,0] = (-e1d_2 + i_q_2*(-X1q_2 + X_q_2))/T1q0_2
-        struct[0].f[15,0] = (V_2 - v_c_2)/T_r_2
-        struct[0].f[16,0] = -K_aw_2*(K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2 - v_f_2) - v_c_2 + v_pss_2 + v_ref_2
-        struct[0].f[17,0] = (p_m_ref_2 - x_gov_1_2)/T_gov_1_2
-        struct[0].f[18,0] = (x_gov_1_2 - x_gov_2_2)/T_gov_3_2
-        struct[0].f[19,0] = K_imw_2*(p_c_2 - p_g_2) - 1.0e-6*xi_imw_2
-        struct[0].f[20,0] = (omega_2 - x_wo_2 - 1.0)/T_wo_2
-        struct[0].f[21,0] = (-x_lead_2 + z_wo_2)/T_2_2
-        struct[0].f[22,0] = -K_delta_3*delta_3 + Omega_b_3*(omega_3 - omega_coi)
-        struct[0].f[23,0] = (-D_3*(omega_3 - omega_coi) - i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) - i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3)) + p_m_3)/(2*H_3)
-        struct[0].f[24,0] = (-e1q_3 - i_d_3*(-X1d_3 + X_d_3) + v_f_3)/T1d0_3
-        struct[0].f[25,0] = (-e1d_3 + i_q_3*(-X1q_3 + X_q_3))/T1q0_3
-        struct[0].f[26,0] = (V_3 - v_c_3)/T_r_3
-        struct[0].f[27,0] = -K_aw_3*(K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3 - v_f_3) - v_c_3 + v_pss_3 + v_ref_3
-        struct[0].f[28,0] = (p_m_ref_3 - x_gov_1_3)/T_gov_1_3
-        struct[0].f[29,0] = (x_gov_1_3 - x_gov_2_3)/T_gov_3_3
-        struct[0].f[30,0] = K_imw_3*(p_c_3 - p_g_3) - 1.0e-6*xi_imw_3
-        struct[0].f[31,0] = (omega_3 - x_wo_3 - 1.0)/T_wo_3
-        struct[0].f[32,0] = (-x_lead_3 + z_wo_3)/T_2_3
-        struct[0].f[33,0] = -K_delta_4*delta_4 + Omega_b_4*(omega_4 - omega_coi)
-        struct[0].f[34,0] = (-D_4*(omega_4 - omega_coi) - i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) - i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4)) + p_m_4)/(2*H_4)
-        struct[0].f[35,0] = (-e1q_4 - i_d_4*(-X1d_4 + X_d_4) + v_f_4)/T1d0_4
-        struct[0].f[36,0] = (-e1d_4 + i_q_4*(-X1q_4 + X_q_4))/T1q0_4
-        struct[0].f[37,0] = (V_4 - v_c_4)/T_r_4
-        struct[0].f[38,0] = -K_aw_4*(K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4 - v_f_4) - v_c_4 + v_pss_4 + v_ref_4
-        struct[0].f[39,0] = (p_m_ref_4 - x_gov_1_4)/T_gov_1_4
-        struct[0].f[40,0] = (x_gov_1_4 - x_gov_2_4)/T_gov_3_4
-        struct[0].f[41,0] = K_imw_4*(p_c_4 - p_g_4) - 1.0e-6*xi_imw_4
-        struct[0].f[42,0] = (omega_4 - x_wo_4 - 1.0)/T_wo_4
-        struct[0].f[43,0] = (-x_lead_4 + z_wo_4)/T_2_4
-        struct[0].f[44,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-
-        struct[0].g[0,0] = -P_1/S_base + V_1**2*g_1_5 + V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) - S_n_1*p_g_1/S_base
-        struct[0].g[1,0] = -Q_1/S_base + V_1**2*(-b_1_5 - bs_1_5/2) + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) - S_n_1*q_g_1/S_base
-        struct[0].g[2,0] = -P_2/S_base + V_2**2*g_2_6 + V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) - S_n_2*p_g_2/S_base
-        struct[0].g[3,0] = -Q_2/S_base + V_2**2*(-b_2_6 - bs_2_6/2) + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) - S_n_2*q_g_2/S_base
-        struct[0].g[4,0] = -P_3/S_base + V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + V_3**2*g_3_11 - S_n_3*p_g_3/S_base
-        struct[0].g[5,0] = -Q_3/S_base + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + V_3**2*(-b_3_11 - bs_3_11/2) - S_n_3*q_g_3/S_base
-        struct[0].g[6,0] = -P_4/S_base + V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_4**2*g_4_10 - S_n_4*p_g_4/S_base
-        struct[0].g[7,0] = -Q_4/S_base + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_4**2*(-b_4_10 - bs_4_10/2) - S_n_4*q_g_4/S_base
-        struct[0].g[8,0] = -P_5/S_base + V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5**2*(g_1_5 + g_5_6) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].g[9,0] = -Q_5/S_base + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + V_5**2*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].g[10,0] = -P_6/S_base + V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6**2*(g_2_6 + g_5_6 + g_6_7) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].g[11,0] = -Q_6/S_base + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + V_6**2*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].g[12,0] = -P_7/S_base + V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7**2*(g_6_7 + 2*g_7_8) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].g[13,0] = -Q_7/S_base + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + V_7**2*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].g[14,0] = -P_8/S_base + V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8**2*(2*g_7_8 + 2*g_8_9) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].g[15,0] = -Q_8/S_base + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + V_8**2*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].g[16,0] = -P_9/S_base + V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + V_9**2*(2*g_8_9 + g_9_10)
-        struct[0].g[17,0] = -Q_9/S_base + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + V_9**2*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].g[18,0] = -P_10/S_base + V_10**2*(g_10_11 + g_4_10 + g_9_10) + V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].g[19,0] = -Q_10/S_base + V_10**2*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].g[20,0] = -P_11/S_base + V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11**2*(g_10_11 + g_3_11) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].g[21,0] = -Q_11/S_base + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_11**2*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].g[22,0] = R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1) + X1d_1*i_d_1 - e1q_1
-        struct[0].g[23,0] = R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1) - X1q_1*i_q_1 - e1d_1
-        struct[0].g[24,0] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1) - p_g_1
-        struct[0].g[25,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1) - q_g_1
-        struct[0].g[26,0] = -v_f_1 + Piecewise(np.array([(V_min_1, V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (V_max_1, V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1, True)]))
-        struct[0].g[27,0] = K_sec_1*p_agc - p_m_ref_1 + xi_imw_1 - (omega_1 - omega_ref_1)/Droop_1
-        struct[0].g[28,0] = T_gov_2_1*(x_gov_1_1 - x_gov_2_1)/T_gov_3_1 - p_m_1 + x_gov_2_1
-        struct[0].g[29,0] = omega_1 - x_wo_1 - z_wo_1 - 1.0
-        struct[0].g[30,0] = K_stab_1*(T_1_1*(-x_lead_1 + z_wo_1)/T_2_1 + x_lead_1) - v_pss_1
-        struct[0].g[31,0] = R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2) + X1d_2*i_d_2 - e1q_2
-        struct[0].g[32,0] = R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2) - X1q_2*i_q_2 - e1d_2
-        struct[0].g[33,0] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2) - p_g_2
-        struct[0].g[34,0] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2) - q_g_2
-        struct[0].g[35,0] = -v_f_2 + Piecewise(np.array([(V_min_2, V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (V_max_2, V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2, True)]))
-        struct[0].g[36,0] = K_sec_2*p_agc - p_m_ref_2 + xi_imw_2 - (omega_2 - omega_ref_2)/Droop_2
-        struct[0].g[37,0] = T_gov_2_2*(x_gov_1_2 - x_gov_2_2)/T_gov_3_2 - p_m_2 + x_gov_2_2
-        struct[0].g[38,0] = omega_2 - x_wo_2 - z_wo_2 - 1.0
-        struct[0].g[39,0] = K_stab_2*(T_1_2*(-x_lead_2 + z_wo_2)/T_2_2 + x_lead_2) - v_pss_2
-        struct[0].g[40,0] = R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3) + X1d_3*i_d_3 - e1q_3
-        struct[0].g[41,0] = R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3) - X1q_3*i_q_3 - e1d_3
-        struct[0].g[42,0] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3) - p_g_3
-        struct[0].g[43,0] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3) - q_g_3
-        struct[0].g[44,0] = -v_f_3 + Piecewise(np.array([(V_min_3, V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (V_max_3, V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3, True)]))
-        struct[0].g[45,0] = K_sec_3*p_agc - p_m_ref_3 + xi_imw_3 - (omega_3 - omega_ref_3)/Droop_3
-        struct[0].g[46,0] = T_gov_2_3*(x_gov_1_3 - x_gov_2_3)/T_gov_3_3 - p_m_3 + x_gov_2_3
-        struct[0].g[47,0] = omega_3 - x_wo_3 - z_wo_3 - 1.0
-        struct[0].g[48,0] = K_stab_3*(T_1_3*(-x_lead_3 + z_wo_3)/T_2_3 + x_lead_3) - v_pss_3
-        struct[0].g[49,0] = R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4) + X1d_4*i_d_4 - e1q_4
-        struct[0].g[50,0] = R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4) - X1q_4*i_q_4 - e1d_4
-        struct[0].g[51,0] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4) - p_g_4
-        struct[0].g[52,0] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4) - q_g_4
-        struct[0].g[53,0] = -v_f_4 + Piecewise(np.array([(V_min_4, V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (V_max_4, V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4, True)]))
-        struct[0].g[54,0] = K_sec_4*p_agc - p_m_ref_4 + xi_imw_4 - (omega_4 - omega_ref_4)/Droop_4
-        struct[0].g[55,0] = T_gov_2_4*(x_gov_1_4 - x_gov_2_4)/T_gov_3_4 - p_m_4 + x_gov_2_4
-        struct[0].g[56,0] = omega_4 - x_wo_4 - z_wo_4 - 1.0
-        struct[0].g[57,0] = K_stab_4*(T_1_4*(-x_lead_4 + z_wo_4)/T_2_4 + x_lead_4) - v_pss_4
-        struct[0].g[58,0] = -omega_coi + (H_1*S_n_1*omega_1 + H_2*S_n_2*omega_2 + H_3*S_n_3*omega_3 + H_4*S_n_4*omega_4)/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].g[59,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_1
-        struct[0].h[1,0] = V_2
-        struct[0].h[2,0] = V_3
-        struct[0].h[3,0] = V_4
-        struct[0].h[4,0] = V_5
-        struct[0].h[5,0] = V_6
-        struct[0].h[6,0] = V_7
-        struct[0].h[7,0] = V_8
-        struct[0].h[8,0] = V_9
-        struct[0].h[9,0] = V_10
-        struct[0].h[10,0] = V_11
-        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
-        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
-        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
-        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
-    
-
-    if mode == 10:
-
-        struct[0].Fx_ini[0,0] = -K_delta_1
-        struct[0].Fx_ini[0,1] = Omega_b_1
-        struct[0].Fx_ini[1,0] = (-V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fx_ini[1,1] = -D_1/(2*H_1)
-        struct[0].Fx_ini[2,2] = -1/T1d0_1
-        struct[0].Fx_ini[3,3] = -1/T1q0_1
-        struct[0].Fx_ini[4,4] = -1/T_r_1
-        struct[0].Fx_ini[5,4] = K_a_1*K_aw_1 - 1
-        struct[0].Fx_ini[5,5] = -K_ai_1*K_aw_1
-        struct[0].Fx_ini[6,6] = -1/T_gov_1_1
-        struct[0].Fx_ini[7,6] = 1/T_gov_3_1
-        struct[0].Fx_ini[7,7] = -1/T_gov_3_1
-        struct[0].Fx_ini[8,8] = -0.00000100000000000000
-        struct[0].Fx_ini[9,1] = 1/T_wo_1
-        struct[0].Fx_ini[9,9] = -1/T_wo_1
-        struct[0].Fx_ini[10,10] = -1/T_2_1
-        struct[0].Fx_ini[11,11] = -K_delta_2
-        struct[0].Fx_ini[11,12] = Omega_b_2
-        struct[0].Fx_ini[12,11] = (-V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fx_ini[12,12] = -D_2/(2*H_2)
-        struct[0].Fx_ini[13,13] = -1/T1d0_2
-        struct[0].Fx_ini[14,14] = -1/T1q0_2
-        struct[0].Fx_ini[15,15] = -1/T_r_2
-        struct[0].Fx_ini[16,15] = K_a_2*K_aw_2 - 1
-        struct[0].Fx_ini[16,16] = -K_ai_2*K_aw_2
-        struct[0].Fx_ini[17,17] = -1/T_gov_1_2
-        struct[0].Fx_ini[18,17] = 1/T_gov_3_2
-        struct[0].Fx_ini[18,18] = -1/T_gov_3_2
-        struct[0].Fx_ini[19,19] = -0.00000100000000000000
-        struct[0].Fx_ini[20,12] = 1/T_wo_2
-        struct[0].Fx_ini[20,20] = -1/T_wo_2
-        struct[0].Fx_ini[21,21] = -1/T_2_2
-        struct[0].Fx_ini[22,22] = -K_delta_3
-        struct[0].Fx_ini[22,23] = Omega_b_3
-        struct[0].Fx_ini[23,22] = (-V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fx_ini[23,23] = -D_3/(2*H_3)
-        struct[0].Fx_ini[24,24] = -1/T1d0_3
-        struct[0].Fx_ini[25,25] = -1/T1q0_3
-        struct[0].Fx_ini[26,26] = -1/T_r_3
-        struct[0].Fx_ini[27,26] = K_a_3*K_aw_3 - 1
-        struct[0].Fx_ini[27,27] = -K_ai_3*K_aw_3
-        struct[0].Fx_ini[28,28] = -1/T_gov_1_3
-        struct[0].Fx_ini[29,28] = 1/T_gov_3_3
-        struct[0].Fx_ini[29,29] = -1/T_gov_3_3
-        struct[0].Fx_ini[30,30] = -0.00000100000000000000
-        struct[0].Fx_ini[31,23] = 1/T_wo_3
-        struct[0].Fx_ini[31,31] = -1/T_wo_3
-        struct[0].Fx_ini[32,32] = -1/T_2_3
-        struct[0].Fx_ini[33,33] = -K_delta_4
-        struct[0].Fx_ini[33,34] = Omega_b_4
-        struct[0].Fx_ini[34,33] = (-V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fx_ini[34,34] = -D_4/(2*H_4)
-        struct[0].Fx_ini[35,35] = -1/T1d0_4
-        struct[0].Fx_ini[36,36] = -1/T1q0_4
-        struct[0].Fx_ini[37,37] = -1/T_r_4
-        struct[0].Fx_ini[38,37] = K_a_4*K_aw_4 - 1
-        struct[0].Fx_ini[38,38] = -K_ai_4*K_aw_4
-        struct[0].Fx_ini[39,39] = -1/T_gov_1_4
-        struct[0].Fx_ini[40,39] = 1/T_gov_3_4
-        struct[0].Fx_ini[40,40] = -1/T_gov_3_4
-        struct[0].Fx_ini[41,41] = -0.00000100000000000000
-        struct[0].Fx_ini[42,34] = 1/T_wo_4
-        struct[0].Fx_ini[42,42] = -1/T_wo_4
-        struct[0].Fx_ini[43,43] = -1/T_2_4
-
-    if mode == 11:
-
-        struct[0].Fy_ini[0,58] = -Omega_b_1 
-        struct[0].Fy_ini[1,0] = (-i_d_1*sin(delta_1 - theta_1) - i_q_1*cos(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,1] = (V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,22] = (-2*R_a_1*i_d_1 - V_1*sin(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,23] = (-2*R_a_1*i_q_1 - V_1*cos(delta_1 - theta_1))/(2*H_1) 
-        struct[0].Fy_ini[1,28] = 1/(2*H_1) 
-        struct[0].Fy_ini[1,58] = D_1/(2*H_1) 
-        struct[0].Fy_ini[2,22] = (X1d_1 - X_d_1)/T1d0_1 
-        struct[0].Fy_ini[2,26] = 1/T1d0_1 
-        struct[0].Fy_ini[3,23] = (-X1q_1 + X_q_1)/T1q0_1 
-        struct[0].Fy_ini[4,0] = 1/T_r_1 
-        struct[0].Fy_ini[5,26] = K_aw_1 
-        struct[0].Fy_ini[5,30] = -K_a_1*K_aw_1 + 1 
-        struct[0].Fy_ini[6,27] = 1/T_gov_1_1 
-        struct[0].Fy_ini[8,24] = -K_imw_1 
-        struct[0].Fy_ini[10,29] = 1/T_2_1 
-        struct[0].Fy_ini[11,58] = -Omega_b_2 
-        struct[0].Fy_ini[12,2] = (-i_d_2*sin(delta_2 - theta_2) - i_q_2*cos(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,3] = (V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,31] = (-2*R_a_2*i_d_2 - V_2*sin(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,32] = (-2*R_a_2*i_q_2 - V_2*cos(delta_2 - theta_2))/(2*H_2) 
-        struct[0].Fy_ini[12,37] = 1/(2*H_2) 
-        struct[0].Fy_ini[12,58] = D_2/(2*H_2) 
-        struct[0].Fy_ini[13,31] = (X1d_2 - X_d_2)/T1d0_2 
-        struct[0].Fy_ini[13,35] = 1/T1d0_2 
-        struct[0].Fy_ini[14,32] = (-X1q_2 + X_q_2)/T1q0_2 
-        struct[0].Fy_ini[15,2] = 1/T_r_2 
-        struct[0].Fy_ini[16,35] = K_aw_2 
-        struct[0].Fy_ini[16,39] = -K_a_2*K_aw_2 + 1 
-        struct[0].Fy_ini[17,36] = 1/T_gov_1_2 
-        struct[0].Fy_ini[19,33] = -K_imw_2 
-        struct[0].Fy_ini[21,38] = 1/T_2_2 
-        struct[0].Fy_ini[22,58] = -Omega_b_3 
-        struct[0].Fy_ini[23,4] = (-i_d_3*sin(delta_3 - theta_3) - i_q_3*cos(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,5] = (V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,40] = (-2*R_a_3*i_d_3 - V_3*sin(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,41] = (-2*R_a_3*i_q_3 - V_3*cos(delta_3 - theta_3))/(2*H_3) 
-        struct[0].Fy_ini[23,46] = 1/(2*H_3) 
-        struct[0].Fy_ini[23,58] = D_3/(2*H_3) 
-        struct[0].Fy_ini[24,40] = (X1d_3 - X_d_3)/T1d0_3 
-        struct[0].Fy_ini[24,44] = 1/T1d0_3 
-        struct[0].Fy_ini[25,41] = (-X1q_3 + X_q_3)/T1q0_3 
-        struct[0].Fy_ini[26,4] = 1/T_r_3 
-        struct[0].Fy_ini[27,44] = K_aw_3 
-        struct[0].Fy_ini[27,48] = -K_a_3*K_aw_3 + 1 
-        struct[0].Fy_ini[28,45] = 1/T_gov_1_3 
-        struct[0].Fy_ini[30,42] = -K_imw_3 
-        struct[0].Fy_ini[32,47] = 1/T_2_3 
-        struct[0].Fy_ini[33,58] = -Omega_b_4 
-        struct[0].Fy_ini[34,6] = (-i_d_4*sin(delta_4 - theta_4) - i_q_4*cos(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,7] = (V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,49] = (-2*R_a_4*i_d_4 - V_4*sin(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,50] = (-2*R_a_4*i_q_4 - V_4*cos(delta_4 - theta_4))/(2*H_4) 
-        struct[0].Fy_ini[34,55] = 1/(2*H_4) 
-        struct[0].Fy_ini[34,58] = D_4/(2*H_4) 
-        struct[0].Fy_ini[35,49] = (X1d_4 - X_d_4)/T1d0_4 
-        struct[0].Fy_ini[35,53] = 1/T1d0_4 
-        struct[0].Fy_ini[36,50] = (-X1q_4 + X_q_4)/T1q0_4 
-        struct[0].Fy_ini[37,6] = 1/T_r_4 
-        struct[0].Fy_ini[38,53] = K_aw_4 
-        struct[0].Fy_ini[38,57] = -K_a_4*K_aw_4 + 1 
-        struct[0].Fy_ini[39,54] = 1/T_gov_1_4 
-        struct[0].Fy_ini[41,51] = -K_imw_4 
-        struct[0].Fy_ini[43,56] = 1/T_2_4 
-        struct[0].Fy_ini[44,58] = -1 
-
-        struct[0].Gy_ini[0,0] = 2*V_1*g_1_5 + V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[0,1] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[0,8] = V_1*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[0,9] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[0,24] = -S_n_1/S_base
-        struct[0].Gy_ini[1,0] = 2*V_1*(-b_1_5 - bs_1_5/2) + V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[1,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[1,8] = V_1*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[1,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[1,25] = -S_n_1/S_base
-        struct[0].Gy_ini[2,2] = 2*V_2*g_2_6 + V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[2,3] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[2,10] = V_2*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[2,11] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[2,33] = -S_n_2/S_base
-        struct[0].Gy_ini[3,2] = 2*V_2*(-b_2_6 - bs_2_6/2) + V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[3,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[3,10] = V_2*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[3,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[3,34] = -S_n_2/S_base
-        struct[0].Gy_ini[4,4] = V_11*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + 2*V_3*g_3_11
-        struct[0].Gy_ini[4,5] = V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[4,20] = V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[4,21] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[4,42] = -S_n_3/S_base
-        struct[0].Gy_ini[5,4] = V_11*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + 2*V_3*(-b_3_11 - bs_3_11/2)
-        struct[0].Gy_ini[5,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[5,20] = V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[5,21] = V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[5,43] = -S_n_3/S_base
-        struct[0].Gy_ini[6,6] = V_10*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + 2*V_4*g_4_10
-        struct[0].Gy_ini[6,7] = V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[6,18] = V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[6,19] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[6,51] = -S_n_4/S_base
-        struct[0].Gy_ini[7,6] = V_10*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + 2*V_4*(-b_4_10 - bs_4_10/2)
-        struct[0].Gy_ini[7,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[7,18] = V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[7,19] = V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[7,52] = -S_n_4/S_base
-        struct[0].Gy_ini[8,0] = V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[8,1] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[8,8] = V_1*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + 2*V_5*(g_1_5 + g_5_6) + V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[8,9] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[8,10] = V_5*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[8,11] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[9,0] = V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy_ini[9,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy_ini[9,8] = V_1*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + 2*V_5*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[9,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[9,10] = V_5*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[9,11] = V_5*V_6*(b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[10,2] = V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[10,3] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[10,8] = V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[10,9] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[10,10] = V_2*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + 2*V_6*(g_2_6 + g_5_6 + g_6_7) + V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[10,11] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[10,12] = V_6*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[10,13] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[11,2] = V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy_ini[11,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy_ini[11,8] = V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy_ini[11,9] = V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy_ini[11,10] = V_2*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + 2*V_6*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[11,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[11,12] = V_6*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[11,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[12,10] = V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[12,11] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[12,12] = V_6*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + 2*V_7*(g_6_7 + 2*g_7_8) + V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[12,13] = V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[12,14] = V_7*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[12,15] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[13,10] = V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy_ini[13,11] = V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy_ini[13,12] = V_6*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + 2*V_7*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[13,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[13,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[13,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[14,12] = V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[14,13] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[14,14] = V_7*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + 2*V_8*(2*g_7_8 + 2*g_8_9) + V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[14,15] = V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[14,16] = V_8*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[14,17] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[15,12] = V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy_ini[15,13] = V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy_ini[15,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + 2*V_8*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[15,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[15,16] = V_8*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[15,17] = V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[16,14] = V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[16,15] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[16,16] = V_10*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + 2*V_9*(2*g_8_9 + g_9_10)
-        struct[0].Gy_ini[16,17] = V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[16,18] = V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[16,19] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[17,14] = V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy_ini[17,15] = V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[17,16] = V_10*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + 2*V_9*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].Gy_ini[17,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy_ini[17,18] = V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[17,19] = V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[18,6] = V_10*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[18,7] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[18,16] = V_10*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[18,17] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[18,18] = 2*V_10*(g_10_11 + g_4_10 + g_9_10) + V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[18,19] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[18,20] = V_10*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[18,21] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[19,6] = V_10*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy_ini[19,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy_ini[19,16] = V_10*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[19,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[19,18] = 2*V_10*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy_ini[19,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy_ini[19,20] = V_10*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[19,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[20,4] = V_11*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[20,5] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[20,18] = V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[20,19] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[20,20] = V_10*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + 2*V_11*(g_10_11 + g_3_11) + V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[20,21] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[21,4] = V_11*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[21,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[21,18] = V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy_ini[21,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy_ini[21,20] = V_10*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + 2*V_11*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy_ini[21,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy_ini[22,0] = cos(delta_1 - theta_1)
-        struct[0].Gy_ini[22,1] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[22,22] = X1d_1
-        struct[0].Gy_ini[22,23] = R_a_1
-        struct[0].Gy_ini[23,0] = sin(delta_1 - theta_1)
-        struct[0].Gy_ini[23,1] = -V_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[23,22] = R_a_1
-        struct[0].Gy_ini[23,23] = -X1q_1
-        struct[0].Gy_ini[24,0] = i_d_1*sin(delta_1 - theta_1) + i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[24,1] = -V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[24,22] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[24,23] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[24,24] = -1
-        struct[0].Gy_ini[25,0] = i_d_1*cos(delta_1 - theta_1) - i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[25,1] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[25,22] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy_ini[25,23] = -V_1*sin(delta_1 - theta_1)
-        struct[0].Gy_ini[25,25] = -1
-        struct[0].Gy_ini[26,26] = -1
-        struct[0].Gy_ini[26,30] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gy_ini[27,27] = -1
-        struct[0].Gy_ini[27,59] = K_sec_1
-        struct[0].Gy_ini[28,28] = -1
-        struct[0].Gy_ini[29,29] = -1
-        struct[0].Gy_ini[30,29] = K_stab_1*T_1_1/T_2_1
-        struct[0].Gy_ini[30,30] = -1
-        struct[0].Gy_ini[31,2] = cos(delta_2 - theta_2)
-        struct[0].Gy_ini[31,3] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[31,31] = X1d_2
-        struct[0].Gy_ini[31,32] = R_a_2
-        struct[0].Gy_ini[32,2] = sin(delta_2 - theta_2)
-        struct[0].Gy_ini[32,3] = -V_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[32,31] = R_a_2
-        struct[0].Gy_ini[32,32] = -X1q_2
-        struct[0].Gy_ini[33,2] = i_d_2*sin(delta_2 - theta_2) + i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[33,3] = -V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[33,31] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[33,32] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[33,33] = -1
-        struct[0].Gy_ini[34,2] = i_d_2*cos(delta_2 - theta_2) - i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[34,3] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[34,31] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy_ini[34,32] = -V_2*sin(delta_2 - theta_2)
-        struct[0].Gy_ini[34,34] = -1
-        struct[0].Gy_ini[35,35] = -1
-        struct[0].Gy_ini[35,39] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gy_ini[36,36] = -1
-        struct[0].Gy_ini[36,59] = K_sec_2
-        struct[0].Gy_ini[37,37] = -1
-        struct[0].Gy_ini[38,38] = -1
-        struct[0].Gy_ini[39,38] = K_stab_2*T_1_2/T_2_2
-        struct[0].Gy_ini[39,39] = -1
-        struct[0].Gy_ini[40,4] = cos(delta_3 - theta_3)
-        struct[0].Gy_ini[40,5] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[40,40] = X1d_3
-        struct[0].Gy_ini[40,41] = R_a_3
-        struct[0].Gy_ini[41,4] = sin(delta_3 - theta_3)
-        struct[0].Gy_ini[41,5] = -V_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[41,40] = R_a_3
-        struct[0].Gy_ini[41,41] = -X1q_3
-        struct[0].Gy_ini[42,4] = i_d_3*sin(delta_3 - theta_3) + i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[42,5] = -V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[42,40] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[42,41] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[42,42] = -1
-        struct[0].Gy_ini[43,4] = i_d_3*cos(delta_3 - theta_3) - i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[43,5] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[43,40] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy_ini[43,41] = -V_3*sin(delta_3 - theta_3)
-        struct[0].Gy_ini[43,43] = -1
-        struct[0].Gy_ini[44,44] = -1
-        struct[0].Gy_ini[44,48] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gy_ini[45,45] = -1
-        struct[0].Gy_ini[45,59] = K_sec_3
-        struct[0].Gy_ini[46,46] = -1
-        struct[0].Gy_ini[47,47] = -1
-        struct[0].Gy_ini[48,47] = K_stab_3*T_1_3/T_2_3
-        struct[0].Gy_ini[48,48] = -1
-        struct[0].Gy_ini[49,6] = cos(delta_4 - theta_4)
-        struct[0].Gy_ini[49,7] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[49,49] = X1d_4
-        struct[0].Gy_ini[49,50] = R_a_4
-        struct[0].Gy_ini[50,6] = sin(delta_4 - theta_4)
-        struct[0].Gy_ini[50,7] = -V_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[50,49] = R_a_4
-        struct[0].Gy_ini[50,50] = -X1q_4
-        struct[0].Gy_ini[51,6] = i_d_4*sin(delta_4 - theta_4) + i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[51,7] = -V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[51,49] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[51,50] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[51,51] = -1
-        struct[0].Gy_ini[52,6] = i_d_4*cos(delta_4 - theta_4) - i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[52,7] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[52,49] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy_ini[52,50] = -V_4*sin(delta_4 - theta_4)
-        struct[0].Gy_ini[52,52] = -1
-        struct[0].Gy_ini[53,53] = -1
-        struct[0].Gy_ini[53,57] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gy_ini[54,54] = -1
-        struct[0].Gy_ini[54,59] = K_sec_4
-        struct[0].Gy_ini[55,55] = -1
-        struct[0].Gy_ini[56,56] = -1
-        struct[0].Gy_ini[57,56] = K_stab_4*T_1_4/T_2_4
-        struct[0].Gy_ini[57,57] = -1
-        struct[0].Gy_ini[58,58] = -1
-        struct[0].Gy_ini[59,58] = -K_p_agc
-        struct[0].Gy_ini[59,59] = -1
+    g_run[0] = -u[0]/p[0] + y[0]**2*p[1] + y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) - p[42]*y[24]/p[0]
+    g_run[1] = -u[1]/p[0] + y[0]**2*(-p[2] - p[3]/2) + y[0]*y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9])) - p[42]*y[25]/p[0]
+    g_run[2] = -u[2]/p[0] + y[2]**2*p[4] + y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) - p[72]*y[33]/p[0]
+    g_run[3] = -u[3]/p[0] + y[2]**2*(-p[5] - p[6]/2) + y[2]*y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11])) - p[72]*y[34]/p[0]
+    g_run[4] = -u[4]/p[0] + y[20]*y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5])) + y[4]**2*p[7] - p[102]*y[42]/p[0]
+    g_run[5] = -u[5]/p[0] + y[20]*y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5])) + y[4]**2*(-p[8] - p[9]/2) - p[102]*y[43]/p[0]
+    g_run[6] = -u[6]/p[0] + y[18]*y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[6]**2*p[10] - p[132]*y[51]/p[0]
+    g_run[7] = -u[7]/p[0] + y[18]*y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + y[6]**2*(-p[11] - p[12]/2) - p[132]*y[52]/p[0]
+    g_run[8] = -u[8]/p[0] + y[0]*y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + y[8]**2*(p[1] + p[13]) + y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    g_run[9] = -u[9]/p[0] + y[0]*y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9])) + y[8]**2*(-p[2] - p[14] - p[3]/2 - p[15]/2) + y[8]*y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    g_run[10] = -u[10]/p[0] + y[2]*y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + y[10]**2*(p[4] + p[13] + p[16]) + y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    g_run[11] = -u[11]/p[0] + y[2]*y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11])) + y[8]*y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11])) + y[10]**2*(-p[5] - p[14] - p[17] - p[6]/2 - p[15]/2 - p[18]/2) + y[10]*y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    g_run[12] = -u[12]/p[0] + y[10]*y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + y[12]**2*(p[16] + 2*p[19]) + y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    g_run[13] = -u[13]/p[0] + y[10]*y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13])) + y[12]**2*(-p[17] - 2*p[20] - p[18]/2 - p[21]) + y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    g_run[14] = -u[14]/p[0] + y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + y[14]**2*(2*p[19] + 2*p[22]) + y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    g_run[15] = -u[15]/p[0] + y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15])) + y[14]**2*(-2*p[20] - 2*p[23] - p[21] - p[24]) + y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    g_run[16] = -u[16]/p[0] + y[18]*y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17])) + y[16]**2*(2*p[22] + p[25])
+    g_run[17] = -u[17]/p[0] + y[18]*y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17])) + y[16]**2*(-2*p[23] - p[26] - p[24] - p[27]/2)
+    g_run[18] = -u[18]/p[0] + y[18]**2*(p[28] + p[10] + p[25]) + y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    g_run[19] = -u[19]/p[0] + y[18]**2*(-p[29] - p[11] - p[26] - p[30]/2 - p[12]/2 - p[27]/2) + y[18]*y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[18]*y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7])) + y[18]*y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    g_run[20] = -u[20]/p[0] + y[18]*y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[20]**2*(p[28] + p[7]) + y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    g_run[21] = -u[21]/p[0] + y[18]*y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + y[20]**2*(-p[29] - p[8] - p[30]/2 - p[9]/2) + y[20]*y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    g_run[22] = p[52]*y[23] + y[0]*cos(x[0] - y[1]) + p[49]*y[22] - x[2]
+    g_run[23] = p[52]*y[22] + y[0]*sin(x[0] - y[1]) - p[50]*y[23] - x[3]
+    g_run[24] = y[0]*y[22]*sin(x[0] - y[1]) + y[0]*y[23]*cos(x[0] - y[1]) - y[24]
+    g_run[25] = y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1]) - y[25]
+    g_run[26] = -y[26] + Piecewise((p[58], p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]), (p[59], p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]), (p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5], True))
+    g_run[27] = p[54]*y[59] - y[27] + u[25] + x[8] - (x[1] - p[66])/p[61]
+    g_run[28] = p[63]*(x[6] - x[7])/p[64] - y[28] + x[7]
+    g_run[29] = x[1] - x[9] - y[29] - 1.0
+    g_run[30] = -y[30] + Piecewise((-p[71], p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])), (p[71], p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])), (p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]), True))
+    g_run[31] = p[82]*y[32] + y[2]*cos(x[11] - y[3]) + p[79]*y[31] - x[13]
+    g_run[32] = p[82]*y[31] + y[2]*sin(x[11] - y[3]) - p[80]*y[32] - x[14]
+    g_run[33] = y[2]*y[31]*sin(x[11] - y[3]) + y[2]*y[32]*cos(x[11] - y[3]) - y[33]
+    g_run[34] = y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3]) - y[34]
+    g_run[35] = -y[35] + Piecewise((p[88], p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]), (p[89], p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]), (p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16], True))
+    g_run[36] = p[84]*y[59] - y[36] + u[29] + x[19] - (x[12] - p[96])/p[91]
+    g_run[37] = p[93]*(x[17] - x[18])/p[94] - y[37] + x[18]
+    g_run[38] = x[12] - x[20] - y[38] - 1.0
+    g_run[39] = -y[39] + Piecewise((-p[101], p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])), (p[101], p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])), (p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]), True))
+    g_run[40] = p[112]*y[41] + y[4]*cos(x[22] - y[5]) + p[109]*y[40] - x[24]
+    g_run[41] = p[112]*y[40] + y[4]*sin(x[22] - y[5]) - p[110]*y[41] - x[25]
+    g_run[42] = y[4]*y[40]*sin(x[22] - y[5]) + y[4]*y[41]*cos(x[22] - y[5]) - y[42]
+    g_run[43] = y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5]) - y[43]
+    g_run[44] = -y[44] + Piecewise((p[118], p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]), (p[119], p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]), (p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27], True))
+    g_run[45] = p[114]*y[59] - y[45] + u[33] + x[30] - (x[23] - p[126])/p[121]
+    g_run[46] = p[123]*(x[28] - x[29])/p[124] - y[46] + x[29]
+    g_run[47] = x[23] - x[31] - y[47] - 1.0
+    g_run[48] = -y[48] + Piecewise((-p[131], p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])), (p[131], p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])), (p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]), True))
+    g_run[49] = p[142]*y[50] + y[6]*cos(x[33] - y[7]) + p[139]*y[49] - x[35]
+    g_run[50] = p[142]*y[49] + y[6]*sin(x[33] - y[7]) - p[140]*y[50] - x[36]
+    g_run[51] = y[6]*y[49]*sin(x[33] - y[7]) + y[6]*y[50]*cos(x[33] - y[7]) - y[51]
+    g_run[52] = y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7]) - y[52]
+    g_run[53] = -y[53] + Piecewise((p[148], p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]), (p[149], p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]), (p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38], True))
+    g_run[54] = p[144]*y[59] - y[54] + u[37] + x[41] - (x[34] - p[156])/p[151]
+    g_run[55] = p[153]*(x[39] - x[40])/p[154] - y[55] + x[40]
+    g_run[56] = x[34] - x[42] - y[56] - 1.0
+    g_run[57] = -y[57] + Piecewise((-p[161], p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])), (p[161], p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])), (p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]), True))
+    g_run[58] = -y[58] + (p[44]*p[42]*x[1] + p[74]*p[72]*x[12] + p[104]*p[102]*x[23] + p[134]*p[132]*x[34])/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+    g_run[59] = p[163]*x[44] + p[162]*(1 - y[58]) - y[59]
 
 
 
-def run_nn(t,struct,mode):
-
-    # Parameters:
-    S_base = struct[0].S_base
-    g_1_5 = struct[0].g_1_5
-    b_1_5 = struct[0].b_1_5
-    bs_1_5 = struct[0].bs_1_5
-    g_2_6 = struct[0].g_2_6
-    b_2_6 = struct[0].b_2_6
-    bs_2_6 = struct[0].bs_2_6
-    g_3_11 = struct[0].g_3_11
-    b_3_11 = struct[0].b_3_11
-    bs_3_11 = struct[0].bs_3_11
-    g_4_10 = struct[0].g_4_10
-    b_4_10 = struct[0].b_4_10
-    bs_4_10 = struct[0].bs_4_10
-    g_5_6 = struct[0].g_5_6
-    b_5_6 = struct[0].b_5_6
-    bs_5_6 = struct[0].bs_5_6
-    g_6_7 = struct[0].g_6_7
-    b_6_7 = struct[0].b_6_7
-    bs_6_7 = struct[0].bs_6_7
-    g_7_8 = struct[0].g_7_8
-    b_7_8 = struct[0].b_7_8
-    bs_7_8 = struct[0].bs_7_8
-    g_8_9 = struct[0].g_8_9
-    b_8_9 = struct[0].b_8_9
-    bs_8_9 = struct[0].bs_8_9
-    g_9_10 = struct[0].g_9_10
-    b_9_10 = struct[0].b_9_10
-    bs_9_10 = struct[0].bs_9_10
-    g_10_11 = struct[0].g_10_11
-    b_10_11 = struct[0].b_10_11
-    bs_10_11 = struct[0].bs_10_11
-    U_1_n = struct[0].U_1_n
-    U_2_n = struct[0].U_2_n
-    U_3_n = struct[0].U_3_n
-    U_4_n = struct[0].U_4_n
-    U_5_n = struct[0].U_5_n
-    U_6_n = struct[0].U_6_n
-    U_7_n = struct[0].U_7_n
-    U_8_n = struct[0].U_8_n
-    U_9_n = struct[0].U_9_n
-    U_10_n = struct[0].U_10_n
-    U_11_n = struct[0].U_11_n
-    S_n_1 = struct[0].S_n_1
-    Omega_b_1 = struct[0].Omega_b_1
-    H_1 = struct[0].H_1
-    T1d0_1 = struct[0].T1d0_1
-    T1q0_1 = struct[0].T1q0_1
-    X_d_1 = struct[0].X_d_1
-    X_q_1 = struct[0].X_q_1
-    X1d_1 = struct[0].X1d_1
-    X1q_1 = struct[0].X1q_1
-    D_1 = struct[0].D_1
-    R_a_1 = struct[0].R_a_1
-    K_delta_1 = struct[0].K_delta_1
-    K_sec_1 = struct[0].K_sec_1
-    K_a_1 = struct[0].K_a_1
-    K_ai_1 = struct[0].K_ai_1
-    T_r_1 = struct[0].T_r_1
-    V_min_1 = struct[0].V_min_1
-    V_max_1 = struct[0].V_max_1
-    K_aw_1 = struct[0].K_aw_1
-    Droop_1 = struct[0].Droop_1
-    T_gov_1_1 = struct[0].T_gov_1_1
-    T_gov_2_1 = struct[0].T_gov_2_1
-    T_gov_3_1 = struct[0].T_gov_3_1
-    K_imw_1 = struct[0].K_imw_1
-    omega_ref_1 = struct[0].omega_ref_1
-    T_wo_1 = struct[0].T_wo_1
-    T_1_1 = struct[0].T_1_1
-    T_2_1 = struct[0].T_2_1
-    K_stab_1 = struct[0].K_stab_1
-    S_n_2 = struct[0].S_n_2
-    Omega_b_2 = struct[0].Omega_b_2
-    H_2 = struct[0].H_2
-    T1d0_2 = struct[0].T1d0_2
-    T1q0_2 = struct[0].T1q0_2
-    X_d_2 = struct[0].X_d_2
-    X_q_2 = struct[0].X_q_2
-    X1d_2 = struct[0].X1d_2
-    X1q_2 = struct[0].X1q_2
-    D_2 = struct[0].D_2
-    R_a_2 = struct[0].R_a_2
-    K_delta_2 = struct[0].K_delta_2
-    K_sec_2 = struct[0].K_sec_2
-    K_a_2 = struct[0].K_a_2
-    K_ai_2 = struct[0].K_ai_2
-    T_r_2 = struct[0].T_r_2
-    V_min_2 = struct[0].V_min_2
-    V_max_2 = struct[0].V_max_2
-    K_aw_2 = struct[0].K_aw_2
-    Droop_2 = struct[0].Droop_2
-    T_gov_1_2 = struct[0].T_gov_1_2
-    T_gov_2_2 = struct[0].T_gov_2_2
-    T_gov_3_2 = struct[0].T_gov_3_2
-    K_imw_2 = struct[0].K_imw_2
-    omega_ref_2 = struct[0].omega_ref_2
-    T_wo_2 = struct[0].T_wo_2
-    T_1_2 = struct[0].T_1_2
-    T_2_2 = struct[0].T_2_2
-    K_stab_2 = struct[0].K_stab_2
-    S_n_3 = struct[0].S_n_3
-    Omega_b_3 = struct[0].Omega_b_3
-    H_3 = struct[0].H_3
-    T1d0_3 = struct[0].T1d0_3
-    T1q0_3 = struct[0].T1q0_3
-    X_d_3 = struct[0].X_d_3
-    X_q_3 = struct[0].X_q_3
-    X1d_3 = struct[0].X1d_3
-    X1q_3 = struct[0].X1q_3
-    D_3 = struct[0].D_3
-    R_a_3 = struct[0].R_a_3
-    K_delta_3 = struct[0].K_delta_3
-    K_sec_3 = struct[0].K_sec_3
-    K_a_3 = struct[0].K_a_3
-    K_ai_3 = struct[0].K_ai_3
-    T_r_3 = struct[0].T_r_3
-    V_min_3 = struct[0].V_min_3
-    V_max_3 = struct[0].V_max_3
-    K_aw_3 = struct[0].K_aw_3
-    Droop_3 = struct[0].Droop_3
-    T_gov_1_3 = struct[0].T_gov_1_3
-    T_gov_2_3 = struct[0].T_gov_2_3
-    T_gov_3_3 = struct[0].T_gov_3_3
-    K_imw_3 = struct[0].K_imw_3
-    omega_ref_3 = struct[0].omega_ref_3
-    T_wo_3 = struct[0].T_wo_3
-    T_1_3 = struct[0].T_1_3
-    T_2_3 = struct[0].T_2_3
-    K_stab_3 = struct[0].K_stab_3
-    S_n_4 = struct[0].S_n_4
-    Omega_b_4 = struct[0].Omega_b_4
-    H_4 = struct[0].H_4
-    T1d0_4 = struct[0].T1d0_4
-    T1q0_4 = struct[0].T1q0_4
-    X_d_4 = struct[0].X_d_4
-    X_q_4 = struct[0].X_q_4
-    X1d_4 = struct[0].X1d_4
-    X1q_4 = struct[0].X1q_4
-    D_4 = struct[0].D_4
-    R_a_4 = struct[0].R_a_4
-    K_delta_4 = struct[0].K_delta_4
-    K_sec_4 = struct[0].K_sec_4
-    K_a_4 = struct[0].K_a_4
-    K_ai_4 = struct[0].K_ai_4
-    T_r_4 = struct[0].T_r_4
-    V_min_4 = struct[0].V_min_4
-    V_max_4 = struct[0].V_max_4
-    K_aw_4 = struct[0].K_aw_4
-    Droop_4 = struct[0].Droop_4
-    T_gov_1_4 = struct[0].T_gov_1_4
-    T_gov_2_4 = struct[0].T_gov_2_4
-    T_gov_3_4 = struct[0].T_gov_3_4
-    K_imw_4 = struct[0].K_imw_4
-    omega_ref_4 = struct[0].omega_ref_4
-    T_wo_4 = struct[0].T_wo_4
-    T_1_4 = struct[0].T_1_4
-    T_2_4 = struct[0].T_2_4
-    K_stab_4 = struct[0].K_stab_4
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_1 = struct[0].P_1
-    Q_1 = struct[0].Q_1
-    P_2 = struct[0].P_2
-    Q_2 = struct[0].Q_2
-    P_3 = struct[0].P_3
-    Q_3 = struct[0].Q_3
-    P_4 = struct[0].P_4
-    Q_4 = struct[0].Q_4
-    P_5 = struct[0].P_5
-    Q_5 = struct[0].Q_5
-    P_6 = struct[0].P_6
-    Q_6 = struct[0].Q_6
-    P_7 = struct[0].P_7
-    Q_7 = struct[0].Q_7
-    P_8 = struct[0].P_8
-    Q_8 = struct[0].Q_8
-    P_9 = struct[0].P_9
-    Q_9 = struct[0].Q_9
-    P_10 = struct[0].P_10
-    Q_10 = struct[0].Q_10
-    P_11 = struct[0].P_11
-    Q_11 = struct[0].Q_11
-    v_ref_1 = struct[0].v_ref_1
-    v_pss_1 = struct[0].v_pss_1
-    p_c_1 = struct[0].p_c_1
-    v_ref_2 = struct[0].v_ref_2
-    v_pss_2 = struct[0].v_pss_2
-    p_c_2 = struct[0].p_c_2
-    v_ref_3 = struct[0].v_ref_3
-    v_pss_3 = struct[0].v_pss_3
-    p_c_3 = struct[0].p_c_3
-    v_ref_4 = struct[0].v_ref_4
-    v_pss_4 = struct[0].v_pss_4
-    p_c_4 = struct[0].p_c_4
-    
-    # Dynamical states:
-    delta_1 = struct[0].x[0,0]
-    omega_1 = struct[0].x[1,0]
-    e1q_1 = struct[0].x[2,0]
-    e1d_1 = struct[0].x[3,0]
-    v_c_1 = struct[0].x[4,0]
-    xi_v_1 = struct[0].x[5,0]
-    x_gov_1_1 = struct[0].x[6,0]
-    x_gov_2_1 = struct[0].x[7,0]
-    xi_imw_1 = struct[0].x[8,0]
-    x_wo_1 = struct[0].x[9,0]
-    x_lead_1 = struct[0].x[10,0]
-    delta_2 = struct[0].x[11,0]
-    omega_2 = struct[0].x[12,0]
-    e1q_2 = struct[0].x[13,0]
-    e1d_2 = struct[0].x[14,0]
-    v_c_2 = struct[0].x[15,0]
-    xi_v_2 = struct[0].x[16,0]
-    x_gov_1_2 = struct[0].x[17,0]
-    x_gov_2_2 = struct[0].x[18,0]
-    xi_imw_2 = struct[0].x[19,0]
-    x_wo_2 = struct[0].x[20,0]
-    x_lead_2 = struct[0].x[21,0]
-    delta_3 = struct[0].x[22,0]
-    omega_3 = struct[0].x[23,0]
-    e1q_3 = struct[0].x[24,0]
-    e1d_3 = struct[0].x[25,0]
-    v_c_3 = struct[0].x[26,0]
-    xi_v_3 = struct[0].x[27,0]
-    x_gov_1_3 = struct[0].x[28,0]
-    x_gov_2_3 = struct[0].x[29,0]
-    xi_imw_3 = struct[0].x[30,0]
-    x_wo_3 = struct[0].x[31,0]
-    x_lead_3 = struct[0].x[32,0]
-    delta_4 = struct[0].x[33,0]
-    omega_4 = struct[0].x[34,0]
-    e1q_4 = struct[0].x[35,0]
-    e1d_4 = struct[0].x[36,0]
-    v_c_4 = struct[0].x[37,0]
-    xi_v_4 = struct[0].x[38,0]
-    x_gov_1_4 = struct[0].x[39,0]
-    x_gov_2_4 = struct[0].x[40,0]
-    xi_imw_4 = struct[0].x[41,0]
-    x_wo_4 = struct[0].x[42,0]
-    x_lead_4 = struct[0].x[43,0]
-    xi_freq = struct[0].x[44,0]
-    
-    # Algebraic states:
-    V_1 = struct[0].y_run[0,0]
-    theta_1 = struct[0].y_run[1,0]
-    V_2 = struct[0].y_run[2,0]
-    theta_2 = struct[0].y_run[3,0]
-    V_3 = struct[0].y_run[4,0]
-    theta_3 = struct[0].y_run[5,0]
-    V_4 = struct[0].y_run[6,0]
-    theta_4 = struct[0].y_run[7,0]
-    V_5 = struct[0].y_run[8,0]
-    theta_5 = struct[0].y_run[9,0]
-    V_6 = struct[0].y_run[10,0]
-    theta_6 = struct[0].y_run[11,0]
-    V_7 = struct[0].y_run[12,0]
-    theta_7 = struct[0].y_run[13,0]
-    V_8 = struct[0].y_run[14,0]
-    theta_8 = struct[0].y_run[15,0]
-    V_9 = struct[0].y_run[16,0]
-    theta_9 = struct[0].y_run[17,0]
-    V_10 = struct[0].y_run[18,0]
-    theta_10 = struct[0].y_run[19,0]
-    V_11 = struct[0].y_run[20,0]
-    theta_11 = struct[0].y_run[21,0]
-    i_d_1 = struct[0].y_run[22,0]
-    i_q_1 = struct[0].y_run[23,0]
-    p_g_1 = struct[0].y_run[24,0]
-    q_g_1 = struct[0].y_run[25,0]
-    v_f_1 = struct[0].y_run[26,0]
-    p_m_ref_1 = struct[0].y_run[27,0]
-    p_m_1 = struct[0].y_run[28,0]
-    z_wo_1 = struct[0].y_run[29,0]
-    v_pss_1 = struct[0].y_run[30,0]
-    i_d_2 = struct[0].y_run[31,0]
-    i_q_2 = struct[0].y_run[32,0]
-    p_g_2 = struct[0].y_run[33,0]
-    q_g_2 = struct[0].y_run[34,0]
-    v_f_2 = struct[0].y_run[35,0]
-    p_m_ref_2 = struct[0].y_run[36,0]
-    p_m_2 = struct[0].y_run[37,0]
-    z_wo_2 = struct[0].y_run[38,0]
-    v_pss_2 = struct[0].y_run[39,0]
-    i_d_3 = struct[0].y_run[40,0]
-    i_q_3 = struct[0].y_run[41,0]
-    p_g_3 = struct[0].y_run[42,0]
-    q_g_3 = struct[0].y_run[43,0]
-    v_f_3 = struct[0].y_run[44,0]
-    p_m_ref_3 = struct[0].y_run[45,0]
-    p_m_3 = struct[0].y_run[46,0]
-    z_wo_3 = struct[0].y_run[47,0]
-    v_pss_3 = struct[0].y_run[48,0]
-    i_d_4 = struct[0].y_run[49,0]
-    i_q_4 = struct[0].y_run[50,0]
-    p_g_4 = struct[0].y_run[51,0]
-    q_g_4 = struct[0].y_run[52,0]
-    v_f_4 = struct[0].y_run[53,0]
-    p_m_ref_4 = struct[0].y_run[54,0]
-    p_m_4 = struct[0].y_run[55,0]
-    z_wo_4 = struct[0].y_run[56,0]
-    v_pss_4 = struct[0].y_run[57,0]
-    omega_coi = struct[0].y_run[58,0]
-    p_agc = struct[0].y_run[59,0]
-    
-    # Differential equations:
-    if mode == 2:
 
 
-        struct[0].f[0,0] = -K_delta_1*delta_1 + Omega_b_1*(omega_1 - omega_coi)
-        struct[0].f[1,0] = (-D_1*(omega_1 - omega_coi) - i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) - i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1)) + p_m_1)/(2*H_1)
-        struct[0].f[2,0] = (-e1q_1 - i_d_1*(-X1d_1 + X_d_1) + v_f_1)/T1d0_1
-        struct[0].f[3,0] = (-e1d_1 + i_q_1*(-X1q_1 + X_q_1))/T1q0_1
-        struct[0].f[4,0] = (V_1 - v_c_1)/T_r_1
-        struct[0].f[5,0] = -K_aw_1*(K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1 - v_f_1) - v_c_1 + v_pss_1 + v_ref_1
-        struct[0].f[6,0] = (p_m_ref_1 - x_gov_1_1)/T_gov_1_1
-        struct[0].f[7,0] = (x_gov_1_1 - x_gov_2_1)/T_gov_3_1
-        struct[0].f[8,0] = K_imw_1*(p_c_1 - p_g_1) - 1.0e-6*xi_imw_1
-        struct[0].f[9,0] = (omega_1 - x_wo_1 - 1.0)/T_wo_1
-        struct[0].f[10,0] = (-x_lead_1 + z_wo_1)/T_2_1
-        struct[0].f[11,0] = -K_delta_2*delta_2 + Omega_b_2*(omega_2 - omega_coi)
-        struct[0].f[12,0] = (-D_2*(omega_2 - omega_coi) - i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) - i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2)) + p_m_2)/(2*H_2)
-        struct[0].f[13,0] = (-e1q_2 - i_d_2*(-X1d_2 + X_d_2) + v_f_2)/T1d0_2
-        struct[0].f[14,0] = (-e1d_2 + i_q_2*(-X1q_2 + X_q_2))/T1q0_2
-        struct[0].f[15,0] = (V_2 - v_c_2)/T_r_2
-        struct[0].f[16,0] = -K_aw_2*(K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2 - v_f_2) - v_c_2 + v_pss_2 + v_ref_2
-        struct[0].f[17,0] = (p_m_ref_2 - x_gov_1_2)/T_gov_1_2
-        struct[0].f[18,0] = (x_gov_1_2 - x_gov_2_2)/T_gov_3_2
-        struct[0].f[19,0] = K_imw_2*(p_c_2 - p_g_2) - 1.0e-6*xi_imw_2
-        struct[0].f[20,0] = (omega_2 - x_wo_2 - 1.0)/T_wo_2
-        struct[0].f[21,0] = (-x_lead_2 + z_wo_2)/T_2_2
-        struct[0].f[22,0] = -K_delta_3*delta_3 + Omega_b_3*(omega_3 - omega_coi)
-        struct[0].f[23,0] = (-D_3*(omega_3 - omega_coi) - i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) - i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3)) + p_m_3)/(2*H_3)
-        struct[0].f[24,0] = (-e1q_3 - i_d_3*(-X1d_3 + X_d_3) + v_f_3)/T1d0_3
-        struct[0].f[25,0] = (-e1d_3 + i_q_3*(-X1q_3 + X_q_3))/T1q0_3
-        struct[0].f[26,0] = (V_3 - v_c_3)/T_r_3
-        struct[0].f[27,0] = -K_aw_3*(K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3 - v_f_3) - v_c_3 + v_pss_3 + v_ref_3
-        struct[0].f[28,0] = (p_m_ref_3 - x_gov_1_3)/T_gov_1_3
-        struct[0].f[29,0] = (x_gov_1_3 - x_gov_2_3)/T_gov_3_3
-        struct[0].f[30,0] = K_imw_3*(p_c_3 - p_g_3) - 1.0e-6*xi_imw_3
-        struct[0].f[31,0] = (omega_3 - x_wo_3 - 1.0)/T_wo_3
-        struct[0].f[32,0] = (-x_lead_3 + z_wo_3)/T_2_3
-        struct[0].f[33,0] = -K_delta_4*delta_4 + Omega_b_4*(omega_4 - omega_coi)
-        struct[0].f[34,0] = (-D_4*(omega_4 - omega_coi) - i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) - i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4)) + p_m_4)/(2*H_4)
-        struct[0].f[35,0] = (-e1q_4 - i_d_4*(-X1d_4 + X_d_4) + v_f_4)/T1d0_4
-        struct[0].f[36,0] = (-e1d_4 + i_q_4*(-X1q_4 + X_q_4))/T1q0_4
-        struct[0].f[37,0] = (V_4 - v_c_4)/T_r_4
-        struct[0].f[38,0] = -K_aw_4*(K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4 - v_f_4) - v_c_4 + v_pss_4 + v_ref_4
-        struct[0].f[39,0] = (p_m_ref_4 - x_gov_1_4)/T_gov_1_4
-        struct[0].f[40,0] = (x_gov_1_4 - x_gov_2_4)/T_gov_3_4
-        struct[0].f[41,0] = K_imw_4*(p_c_4 - p_g_4) - 1.0e-6*xi_imw_4
-        struct[0].f[42,0] = (omega_4 - x_wo_4 - 1.0)/T_wo_4
-        struct[0].f[43,0] = (-x_lead_4 + z_wo_4)/T_2_4
-        struct[0].f[44,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
+@numba.njit(cache=True)
+def jac_ini_ss_eval(jac_ini,x,y,u,p,xyup = 0):
+
+    jac_ini[1,0] = (-y[0]*y[22]*cos(x[0] - y[1]) + y[0]*y[23]*sin(x[0] - y[1]))/(2*p[44])
+    jac_ini[1,45] = (-y[22]*sin(x[0] - y[1]) - y[23]*cos(x[0] - y[1]))/(2*p[44])
+    jac_ini[1,46] = (y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1]))/(2*p[44])
+    jac_ini[1,67] = (-2*p[52]*y[22] - y[0]*sin(x[0] - y[1]))/(2*p[44])
+    jac_ini[1,68] = (-2*p[52]*y[23] - y[0]*cos(x[0] - y[1]))/(2*p[44])
+    jac_ini[12,11] = (-y[2]*y[31]*cos(x[11] - y[3]) + y[2]*y[32]*sin(x[11] - y[3]))/(2*p[74])
+    jac_ini[12,47] = (-y[31]*sin(x[11] - y[3]) - y[32]*cos(x[11] - y[3]))/(2*p[74])
+    jac_ini[12,48] = (y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3]))/(2*p[74])
+    jac_ini[12,76] = (-2*p[82]*y[31] - y[2]*sin(x[11] - y[3]))/(2*p[74])
+    jac_ini[12,77] = (-2*p[82]*y[32] - y[2]*cos(x[11] - y[3]))/(2*p[74])
+    jac_ini[23,22] = (-y[4]*y[40]*cos(x[22] - y[5]) + y[4]*y[41]*sin(x[22] - y[5]))/(2*p[104])
+    jac_ini[23,49] = (-y[40]*sin(x[22] - y[5]) - y[41]*cos(x[22] - y[5]))/(2*p[104])
+    jac_ini[23,50] = (y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5]))/(2*p[104])
+    jac_ini[23,85] = (-2*p[112]*y[40] - y[4]*sin(x[22] - y[5]))/(2*p[104])
+    jac_ini[23,86] = (-2*p[112]*y[41] - y[4]*cos(x[22] - y[5]))/(2*p[104])
+    jac_ini[34,33] = (-y[6]*y[49]*cos(x[33] - y[7]) + y[6]*y[50]*sin(x[33] - y[7]))/(2*p[134])
+    jac_ini[34,51] = (-y[49]*sin(x[33] - y[7]) - y[50]*cos(x[33] - y[7]))/(2*p[134])
+    jac_ini[34,52] = (y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7]))/(2*p[134])
+    jac_ini[34,94] = (-2*p[142]*y[49] - y[6]*sin(x[33] - y[7]))/(2*p[134])
+    jac_ini[34,95] = (-2*p[142]*y[50] - y[6]*cos(x[33] - y[7]))/(2*p[134])
+    jac_ini[45,45] = 2*y[0]*p[1] + y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_ini[45,46] = y[0]*y[8]*(-p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_ini[45,53] = y[0]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_ini[45,54] = y[0]*y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_ini[46,45] = 2*y[0]*(-p[2] - p[3]/2) + y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_ini[46,46] = y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_ini[46,53] = y[0]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_ini[46,54] = y[0]*y[8]*(p[2]*sin(y[1] - y[9]) + p[1]*cos(y[1] - y[9]))
+    jac_ini[47,47] = 2*y[2]*p[4] + y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_ini[47,48] = y[2]*y[10]*(-p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_ini[47,55] = y[2]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_ini[47,56] = y[2]*y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_ini[48,47] = 2*y[2]*(-p[5] - p[6]/2) + y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_ini[48,48] = y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_ini[48,55] = y[2]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_ini[48,56] = y[2]*y[10]*(p[5]*sin(y[3] - y[11]) + p[4]*cos(y[3] - y[11]))
+    jac_ini[49,49] = y[20]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5])) + 2*y[4]*p[7]
+    jac_ini[49,50] = y[20]*y[4]*(-p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_ini[49,65] = y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_ini[49,66] = y[20]*y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_ini[50,49] = y[20]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5])) + 2*y[4]*(-p[8] - p[9]/2)
+    jac_ini[50,50] = y[20]*y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_ini[50,65] = y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_ini[50,66] = y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) + p[7]*cos(y[21] - y[5]))
+    jac_ini[51,51] = y[18]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + 2*y[6]*p[10]
+    jac_ini[51,52] = y[18]*y[6]*(-p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_ini[51,63] = y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_ini[51,64] = y[18]*y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7]))
+    jac_ini[52,51] = y[18]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + 2*y[6]*(-p[11] - p[12]/2)
+    jac_ini[52,52] = y[18]*y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_ini[52,63] = y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7]))
+    jac_ini[52,64] = y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) + p[10]*cos(y[19] - y[7]))
+    jac_ini[53,45] = y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_ini[53,46] = y[0]*y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_ini[53,53] = y[0]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + 2*y[8]*(p[1] + p[13]) + y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_ini[53,54] = y[0]*y[8]*(-p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9])) + y[8]*y[10]*(-p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_ini[53,55] = y[8]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_ini[53,56] = y[8]*y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_ini[54,45] = y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_ini[54,46] = y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) + p[1]*cos(y[1] - y[9]))
+    jac_ini[54,53] = y[0]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9])) + 2*y[8]*(-p[2] - p[14] - p[3]/2 - p[15]/2) + y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_ini[54,54] = y[0]*y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_ini[54,55] = y[8]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_ini[54,56] = y[8]*y[10]*(p[14]*sin(y[9] - y[11]) + p[13]*cos(y[9] - y[11]))
+    jac_ini[55,47] = y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_ini[55,48] = y[2]*y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_ini[55,53] = y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_ini[55,54] = y[8]*y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_ini[55,55] = y[2]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + 2*y[10]*(p[4] + p[13] + p[16]) + y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_ini[55,56] = y[2]*y[10]*(-p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11])) + y[8]*y[10]*(-p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11])) + y[10]*y[12]*(-p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_ini[55,57] = y[10]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_ini[55,58] = y[10]*y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_ini[56,47] = y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_ini[56,48] = y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) + p[4]*cos(y[3] - y[11]))
+    jac_ini[56,53] = y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_ini[56,54] = y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) + p[13]*cos(y[9] - y[11]))
+    jac_ini[56,55] = y[2]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11])) + y[8]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11])) + 2*y[10]*(-p[5] - p[14] - p[17] - p[6]/2 - p[15]/2 - p[18]/2) + y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_ini[56,56] = y[2]*y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_ini[56,57] = y[10]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_ini[56,58] = y[10]*y[12]*(p[17]*sin(y[11] - y[13]) + p[16]*cos(y[11] - y[13]))
+    jac_ini[57,55] = y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_ini[57,56] = y[10]*y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_ini[57,57] = y[10]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + 2*y[12]*(p[16] + 2*p[19]) + y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_ini[57,58] = y[10]*y[12]*(-p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13])) + y[12]*y[14]*(-2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_ini[57,59] = y[12]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_ini[57,60] = y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_ini[58,55] = y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_ini[58,56] = y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) + p[16]*cos(y[11] - y[13]))
+    jac_ini[58,57] = y[10]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13])) + 2*y[12]*(-p[17] - 2*p[20] - p[18]/2 - p[21]) + y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_ini[58,58] = y[10]*y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_ini[58,59] = y[12]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_ini[58,60] = y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) + 2*p[19]*cos(y[13] - y[15]))
+    jac_ini[59,57] = y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_ini[59,58] = y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_ini[59,59] = y[12]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + 2*y[14]*(2*p[19] + 2*p[22]) + y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[59,60] = y[12]*y[14]*(-2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15])) + y[14]*y[16]*(-2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[59,61] = y[14]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[59,62] = y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[60,57] = y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_ini[60,58] = y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) + 2*p[19]*cos(y[13] - y[15]))
+    jac_ini[60,59] = y[12]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15])) + 2*y[14]*(-2*p[20] - 2*p[23] - p[21] - p[24]) + y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[60,60] = y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[60,61] = y[14]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[60,62] = y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) + 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[61,59] = y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[61,60] = y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[61,61] = y[18]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17])) + 2*y[16]*(2*p[22] + p[25])
+    jac_ini[61,62] = y[18]*y[16]*(-p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17])) + y[14]*y[16]*(-2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[61,63] = y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_ini[61,64] = y[18]*y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_ini[62,59] = y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_ini[62,60] = y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) + 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[62,61] = y[18]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17])) + y[14]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17])) + 2*y[16]*(-2*p[23] - p[26] - p[24] - p[27]/2)
+    jac_ini[62,62] = y[18]*y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_ini[62,63] = y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_ini[62,64] = y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) + p[25]*cos(y[19] - y[17]))
+    jac_ini[63,51] = y[18]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_ini[63,52] = y[18]*y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_ini[63,61] = y[18]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_ini[63,62] = y[18]*y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_ini[63,63] = 2*y[18]*(p[28] + p[10] + p[25]) + y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_ini[63,64] = y[18]*y[20]*(-p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + y[18]*y[6]*(-p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + y[18]*y[16]*(-p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_ini[63,65] = y[18]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21]))
+    jac_ini[63,66] = y[18]*y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21]))
+    jac_ini[64,51] = y[18]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_ini[64,52] = y[18]*y[6]*(p[11]*sin(y[19] - y[7]) + p[10]*cos(y[19] - y[7]))
+    jac_ini[64,61] = y[18]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_ini[64,62] = y[18]*y[16]*(p[26]*sin(y[19] - y[17]) + p[25]*cos(y[19] - y[17]))
+    jac_ini[64,63] = 2*y[18]*(-p[29] - p[11] - p[26] - p[30]/2 - p[12]/2 - p[27]/2) + y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7])) + y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_ini[64,64] = y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_ini[64,65] = y[18]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21]))
+    jac_ini[64,66] = y[18]*y[20]*(p[29]*sin(y[19] - y[21]) + p[28]*cos(y[19] - y[21]))
+    jac_ini[65,49] = y[20]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_ini[65,50] = y[20]*y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_ini[65,63] = y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21]))
+    jac_ini[65,64] = y[18]*y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21]))
+    jac_ini[65,65] = y[18]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + 2*y[20]*(p[28] + p[7]) + y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_ini[65,66] = y[18]*y[20]*(-p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[20]*y[4]*(-p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_ini[66,49] = y[20]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_ini[66,50] = y[20]*y[4]*(p[8]*sin(y[21] - y[5]) + p[7]*cos(y[21] - y[5]))
+    jac_ini[66,63] = y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21]))
+    jac_ini[66,64] = y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) + p[28]*cos(y[19] - y[21]))
+    jac_ini[66,65] = y[18]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + 2*y[20]*(-p[29] - p[8] - p[30]/2 - p[9]/2) + y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_ini[66,66] = y[18]*y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_ini[67,0] = -y[0]*sin(x[0] - y[1])
+    jac_ini[67,45] = cos(x[0] - y[1])
+    jac_ini[67,46] = y[0]*sin(x[0] - y[1])
+    jac_ini[68,0] = y[0]*cos(x[0] - y[1])
+    jac_ini[68,45] = sin(x[0] - y[1])
+    jac_ini[68,46] = -y[0]*cos(x[0] - y[1])
+    jac_ini[69,0] = y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1])
+    jac_ini[69,45] = y[22]*sin(x[0] - y[1]) + y[23]*cos(x[0] - y[1])
+    jac_ini[69,46] = -y[0]*y[22]*cos(x[0] - y[1]) + y[0]*y[23]*sin(x[0] - y[1])
+    jac_ini[69,67] = y[0]*sin(x[0] - y[1])
+    jac_ini[69,68] = y[0]*cos(x[0] - y[1])
+    jac_ini[70,0] = -y[0]*y[22]*sin(x[0] - y[1]) - y[0]*y[23]*cos(x[0] - y[1])
+    jac_ini[70,45] = y[22]*cos(x[0] - y[1]) - y[23]*sin(x[0] - y[1])
+    jac_ini[70,46] = y[0]*y[22]*sin(x[0] - y[1]) + y[0]*y[23]*cos(x[0] - y[1])
+    jac_ini[70,67] = y[0]*cos(x[0] - y[1])
+    jac_ini[70,68] = -y[0]*sin(x[0] - y[1])
+    jac_ini[71,4] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (-p[55], True)]))
+    jac_ini[71,5] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (p[56], True)]))
+    jac_ini[71,75] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (p[55], True)]))
+    jac_ini[75,10] = Piecewise(np.array([(0, (p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])) | (p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]))), (p[70]*(-p[68]/p[69] + 1), True)]))
+    jac_ini[75,74] = Piecewise(np.array([(0, (p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])) | (p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]))), (p[70]*p[68]/p[69], True)]))
+    jac_ini[76,11] = -y[2]*sin(x[11] - y[3])
+    jac_ini[76,47] = cos(x[11] - y[3])
+    jac_ini[76,48] = y[2]*sin(x[11] - y[3])
+    jac_ini[77,11] = y[2]*cos(x[11] - y[3])
+    jac_ini[77,47] = sin(x[11] - y[3])
+    jac_ini[77,48] = -y[2]*cos(x[11] - y[3])
+    jac_ini[78,11] = y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3])
+    jac_ini[78,47] = y[31]*sin(x[11] - y[3]) + y[32]*cos(x[11] - y[3])
+    jac_ini[78,48] = -y[2]*y[31]*cos(x[11] - y[3]) + y[2]*y[32]*sin(x[11] - y[3])
+    jac_ini[78,76] = y[2]*sin(x[11] - y[3])
+    jac_ini[78,77] = y[2]*cos(x[11] - y[3])
+    jac_ini[79,11] = -y[2]*y[31]*sin(x[11] - y[3]) - y[2]*y[32]*cos(x[11] - y[3])
+    jac_ini[79,47] = y[31]*cos(x[11] - y[3]) - y[32]*sin(x[11] - y[3])
+    jac_ini[79,48] = y[2]*y[31]*sin(x[11] - y[3]) + y[2]*y[32]*cos(x[11] - y[3])
+    jac_ini[79,76] = y[2]*cos(x[11] - y[3])
+    jac_ini[79,77] = -y[2]*sin(x[11] - y[3])
+    jac_ini[80,15] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (-p[85], True)]))
+    jac_ini[80,16] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (p[86], True)]))
+    jac_ini[80,84] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (p[85], True)]))
+    jac_ini[84,21] = Piecewise(np.array([(0, (p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])) | (p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]))), (p[100]*(-p[98]/p[99] + 1), True)]))
+    jac_ini[84,83] = Piecewise(np.array([(0, (p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])) | (p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]))), (p[100]*p[98]/p[99], True)]))
+    jac_ini[85,22] = -y[4]*sin(x[22] - y[5])
+    jac_ini[85,49] = cos(x[22] - y[5])
+    jac_ini[85,50] = y[4]*sin(x[22] - y[5])
+    jac_ini[86,22] = y[4]*cos(x[22] - y[5])
+    jac_ini[86,49] = sin(x[22] - y[5])
+    jac_ini[86,50] = -y[4]*cos(x[22] - y[5])
+    jac_ini[87,22] = y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5])
+    jac_ini[87,49] = y[40]*sin(x[22] - y[5]) + y[41]*cos(x[22] - y[5])
+    jac_ini[87,50] = -y[4]*y[40]*cos(x[22] - y[5]) + y[4]*y[41]*sin(x[22] - y[5])
+    jac_ini[87,85] = y[4]*sin(x[22] - y[5])
+    jac_ini[87,86] = y[4]*cos(x[22] - y[5])
+    jac_ini[88,22] = -y[4]*y[40]*sin(x[22] - y[5]) - y[4]*y[41]*cos(x[22] - y[5])
+    jac_ini[88,49] = y[40]*cos(x[22] - y[5]) - y[41]*sin(x[22] - y[5])
+    jac_ini[88,50] = y[4]*y[40]*sin(x[22] - y[5]) + y[4]*y[41]*cos(x[22] - y[5])
+    jac_ini[88,85] = y[4]*cos(x[22] - y[5])
+    jac_ini[88,86] = -y[4]*sin(x[22] - y[5])
+    jac_ini[89,26] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (-p[115], True)]))
+    jac_ini[89,27] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (p[116], True)]))
+    jac_ini[89,93] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (p[115], True)]))
+    jac_ini[93,32] = Piecewise(np.array([(0, (p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])) | (p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]))), (p[130]*(-p[128]/p[129] + 1), True)]))
+    jac_ini[93,92] = Piecewise(np.array([(0, (p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])) | (p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]))), (p[130]*p[128]/p[129], True)]))
+    jac_ini[94,33] = -y[6]*sin(x[33] - y[7])
+    jac_ini[94,51] = cos(x[33] - y[7])
+    jac_ini[94,52] = y[6]*sin(x[33] - y[7])
+    jac_ini[95,33] = y[6]*cos(x[33] - y[7])
+    jac_ini[95,51] = sin(x[33] - y[7])
+    jac_ini[95,52] = -y[6]*cos(x[33] - y[7])
+    jac_ini[96,33] = y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7])
+    jac_ini[96,51] = y[49]*sin(x[33] - y[7]) + y[50]*cos(x[33] - y[7])
+    jac_ini[96,52] = -y[6]*y[49]*cos(x[33] - y[7]) + y[6]*y[50]*sin(x[33] - y[7])
+    jac_ini[96,94] = y[6]*sin(x[33] - y[7])
+    jac_ini[96,95] = y[6]*cos(x[33] - y[7])
+    jac_ini[97,33] = -y[6]*y[49]*sin(x[33] - y[7]) - y[6]*y[50]*cos(x[33] - y[7])
+    jac_ini[97,51] = y[49]*cos(x[33] - y[7]) - y[50]*sin(x[33] - y[7])
+    jac_ini[97,52] = y[6]*y[49]*sin(x[33] - y[7]) + y[6]*y[50]*cos(x[33] - y[7])
+    jac_ini[97,94] = y[6]*cos(x[33] - y[7])
+    jac_ini[97,95] = -y[6]*sin(x[33] - y[7])
+    jac_ini[98,37] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (-p[145], True)]))
+    jac_ini[98,38] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (p[146], True)]))
+    jac_ini[98,102] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (p[145], True)]))
+    jac_ini[102,43] = Piecewise(np.array([(0, (p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])) | (p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]))), (p[160]*(-p[158]/p[159] + 1), True)]))
+    jac_ini[102,101] = Piecewise(np.array([(0, (p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])) | (p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]))), (p[160]*p[158]/p[159], True)]))
+
+    if xyup == 1:
+
+        jac_ini[0,0] = -p[53]
+        jac_ini[0,1] = p[43]
+        jac_ini[0,103] = -p[43]
+        jac_ini[1,1] = -p[51]/(2*p[44])
+        jac_ini[1,73] = 1/(2*p[44])
+        jac_ini[1,103] = p[51]/(2*p[44])
+        jac_ini[2,2] = -1/p[45]
+        jac_ini[2,67] = (p[49] - p[47])/p[45]
+        jac_ini[2,71] = 1/p[45]
+        jac_ini[3,3] = -1/p[46]
+        jac_ini[3,68] = (-p[50] + p[48])/p[46]
+        jac_ini[4,4] = -1/p[57]
+        jac_ini[4,45] = 1/p[57]
+        jac_ini[5,4] = p[55]*p[60] - 1
+        jac_ini[5,5] = -p[56]*p[60]
+        jac_ini[5,71] = p[60]
+        jac_ini[5,75] = -p[55]*p[60] + 1
+        jac_ini[6,6] = -1/p[62]
+        jac_ini[6,72] = 1/p[62]
+        jac_ini[7,6] = 1/p[64]
+        jac_ini[7,7] = -1/p[64]
+        jac_ini[8,8] = -1.00000000000000e-6
+        jac_ini[8,69] = -p[65]
+        jac_ini[9,1] = 1/p[67]
+        jac_ini[9,9] = -1/p[67]
+        jac_ini[10,10] = -1/p[69]
+        jac_ini[10,74] = 1/p[69]
+        jac_ini[11,11] = -p[83]
+        jac_ini[11,12] = p[73]
+        jac_ini[11,103] = -p[73]
+        jac_ini[12,12] = -p[81]/(2*p[74])
+        jac_ini[12,82] = 1/(2*p[74])
+        jac_ini[12,103] = p[81]/(2*p[74])
+        jac_ini[13,13] = -1/p[75]
+        jac_ini[13,76] = (p[79] - p[77])/p[75]
+        jac_ini[13,80] = 1/p[75]
+        jac_ini[14,14] = -1/p[76]
+        jac_ini[14,77] = (-p[80] + p[78])/p[76]
+        jac_ini[15,15] = -1/p[87]
+        jac_ini[15,47] = 1/p[87]
+        jac_ini[16,15] = p[85]*p[90] - 1
+        jac_ini[16,16] = -p[86]*p[90]
+        jac_ini[16,80] = p[90]
+        jac_ini[16,84] = -p[85]*p[90] + 1
+        jac_ini[17,17] = -1/p[92]
+        jac_ini[17,81] = 1/p[92]
+        jac_ini[18,17] = 1/p[94]
+        jac_ini[18,18] = -1/p[94]
+        jac_ini[19,19] = -1.00000000000000e-6
+        jac_ini[19,78] = -p[95]
+        jac_ini[20,12] = 1/p[97]
+        jac_ini[20,20] = -1/p[97]
+        jac_ini[21,21] = -1/p[99]
+        jac_ini[21,83] = 1/p[99]
+        jac_ini[22,22] = -p[113]
+        jac_ini[22,23] = p[103]
+        jac_ini[22,103] = -p[103]
+        jac_ini[23,23] = -p[111]/(2*p[104])
+        jac_ini[23,91] = 1/(2*p[104])
+        jac_ini[23,103] = p[111]/(2*p[104])
+        jac_ini[24,24] = -1/p[105]
+        jac_ini[24,85] = (p[109] - p[107])/p[105]
+        jac_ini[24,89] = 1/p[105]
+        jac_ini[25,25] = -1/p[106]
+        jac_ini[25,86] = (-p[110] + p[108])/p[106]
+        jac_ini[26,26] = -1/p[117]
+        jac_ini[26,49] = 1/p[117]
+        jac_ini[27,26] = p[115]*p[120] - 1
+        jac_ini[27,27] = -p[116]*p[120]
+        jac_ini[27,89] = p[120]
+        jac_ini[27,93] = -p[115]*p[120] + 1
+        jac_ini[28,28] = -1/p[122]
+        jac_ini[28,90] = 1/p[122]
+        jac_ini[29,28] = 1/p[124]
+        jac_ini[29,29] = -1/p[124]
+        jac_ini[30,30] = -1.00000000000000e-6
+        jac_ini[30,87] = -p[125]
+        jac_ini[31,23] = 1/p[127]
+        jac_ini[31,31] = -1/p[127]
+        jac_ini[32,32] = -1/p[129]
+        jac_ini[32,92] = 1/p[129]
+        jac_ini[33,33] = -p[143]
+        jac_ini[33,34] = p[133]
+        jac_ini[33,103] = -p[133]
+        jac_ini[34,34] = -p[141]/(2*p[134])
+        jac_ini[34,100] = 1/(2*p[134])
+        jac_ini[34,103] = p[141]/(2*p[134])
+        jac_ini[35,35] = -1/p[135]
+        jac_ini[35,94] = (p[139] - p[137])/p[135]
+        jac_ini[35,98] = 1/p[135]
+        jac_ini[36,36] = -1/p[136]
+        jac_ini[36,95] = (-p[140] + p[138])/p[136]
+        jac_ini[37,37] = -1/p[147]
+        jac_ini[37,51] = 1/p[147]
+        jac_ini[38,37] = p[145]*p[150] - 1
+        jac_ini[38,38] = -p[146]*p[150]
+        jac_ini[38,98] = p[150]
+        jac_ini[38,102] = -p[145]*p[150] + 1
+        jac_ini[39,39] = -1/p[152]
+        jac_ini[39,99] = 1/p[152]
+        jac_ini[40,39] = 1/p[154]
+        jac_ini[40,40] = -1/p[154]
+        jac_ini[41,41] = -1.00000000000000e-6
+        jac_ini[41,96] = -p[155]
+        jac_ini[42,34] = 1/p[157]
+        jac_ini[42,42] = -1/p[157]
+        jac_ini[43,43] = -1/p[159]
+        jac_ini[43,101] = 1/p[159]
+        jac_ini[44,103] = -1
+        jac_ini[45,69] = -p[42]/p[0]
+        jac_ini[46,70] = -p[42]/p[0]
+        jac_ini[47,78] = -p[72]/p[0]
+        jac_ini[48,79] = -p[72]/p[0]
+        jac_ini[49,87] = -p[102]/p[0]
+        jac_ini[50,88] = -p[102]/p[0]
+        jac_ini[51,96] = -p[132]/p[0]
+        jac_ini[52,97] = -p[132]/p[0]
+        jac_ini[67,2] = -1
+        jac_ini[67,67] = p[49]
+        jac_ini[67,68] = p[52]
+        jac_ini[68,3] = -1
+        jac_ini[68,67] = p[52]
+        jac_ini[68,68] = -p[50]
+        jac_ini[69,69] = -1
+        jac_ini[70,70] = -1
+        jac_ini[71,71] = -1
+        jac_ini[72,1] = -1/p[61]
+        jac_ini[72,8] = 1
+        jac_ini[72,72] = -1
+        jac_ini[72,104] = p[54]
+        jac_ini[73,6] = p[63]/p[64]
+        jac_ini[73,7] = -p[63]/p[64] + 1
+        jac_ini[73,73] = -1
+        jac_ini[74,1] = 1
+        jac_ini[74,9] = -1
+        jac_ini[74,74] = -1
+        jac_ini[75,75] = -1
+        jac_ini[76,13] = -1
+        jac_ini[76,76] = p[79]
+        jac_ini[76,77] = p[82]
+        jac_ini[77,14] = -1
+        jac_ini[77,76] = p[82]
+        jac_ini[77,77] = -p[80]
+        jac_ini[78,78] = -1
+        jac_ini[79,79] = -1
+        jac_ini[80,80] = -1
+        jac_ini[81,12] = -1/p[91]
+        jac_ini[81,19] = 1
+        jac_ini[81,81] = -1
+        jac_ini[81,104] = p[84]
+        jac_ini[82,17] = p[93]/p[94]
+        jac_ini[82,18] = -p[93]/p[94] + 1
+        jac_ini[82,82] = -1
+        jac_ini[83,12] = 1
+        jac_ini[83,20] = -1
+        jac_ini[83,83] = -1
+        jac_ini[84,84] = -1
+        jac_ini[85,24] = -1
+        jac_ini[85,85] = p[109]
+        jac_ini[85,86] = p[112]
+        jac_ini[86,25] = -1
+        jac_ini[86,85] = p[112]
+        jac_ini[86,86] = -p[110]
+        jac_ini[87,87] = -1
+        jac_ini[88,88] = -1
+        jac_ini[89,89] = -1
+        jac_ini[90,23] = -1/p[121]
+        jac_ini[90,30] = 1
+        jac_ini[90,90] = -1
+        jac_ini[90,104] = p[114]
+        jac_ini[91,28] = p[123]/p[124]
+        jac_ini[91,29] = -p[123]/p[124] + 1
+        jac_ini[91,91] = -1
+        jac_ini[92,23] = 1
+        jac_ini[92,31] = -1
+        jac_ini[92,92] = -1
+        jac_ini[93,93] = -1
+        jac_ini[94,35] = -1
+        jac_ini[94,94] = p[139]
+        jac_ini[94,95] = p[142]
+        jac_ini[95,36] = -1
+        jac_ini[95,94] = p[142]
+        jac_ini[95,95] = -p[140]
+        jac_ini[96,96] = -1
+        jac_ini[97,97] = -1
+        jac_ini[98,98] = -1
+        jac_ini[99,34] = -1/p[151]
+        jac_ini[99,41] = 1
+        jac_ini[99,99] = -1
+        jac_ini[99,104] = p[144]
+        jac_ini[100,39] = p[153]/p[154]
+        jac_ini[100,40] = -p[153]/p[154] + 1
+        jac_ini[100,100] = -1
+        jac_ini[101,34] = 1
+        jac_ini[101,42] = -1
+        jac_ini[101,101] = -1
+        jac_ini[102,102] = -1
+        jac_ini[103,1] = p[44]*p[42]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_ini[103,12] = p[74]*p[72]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_ini[103,23] = p[104]*p[102]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_ini[103,34] = p[134]*p[132]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_ini[103,103] = -1
+        jac_ini[104,44] = p[163]
+        jac_ini[104,103] = -p[162]
+        jac_ini[104,104] = -1
 
 
-        struct[0].g[0,0] = -P_1/S_base + V_1**2*g_1_5 + V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) - S_n_1*p_g_1/S_base
-        struct[0].g[1,0] = -Q_1/S_base + V_1**2*(-b_1_5 - bs_1_5/2) + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) - S_n_1*q_g_1/S_base
-        struct[0].g[2,0] = -P_2/S_base + V_2**2*g_2_6 + V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) - S_n_2*p_g_2/S_base
-        struct[0].g[3,0] = -Q_2/S_base + V_2**2*(-b_2_6 - bs_2_6/2) + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) - S_n_2*q_g_2/S_base
-        struct[0].g[4,0] = -P_3/S_base + V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + V_3**2*g_3_11 - S_n_3*p_g_3/S_base
-        struct[0].g[5,0] = -Q_3/S_base + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + V_3**2*(-b_3_11 - bs_3_11/2) - S_n_3*q_g_3/S_base
-        struct[0].g[6,0] = -P_4/S_base + V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_4**2*g_4_10 - S_n_4*p_g_4/S_base
-        struct[0].g[7,0] = -Q_4/S_base + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_4**2*(-b_4_10 - bs_4_10/2) - S_n_4*q_g_4/S_base
-        struct[0].g[8,0] = -P_5/S_base + V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5**2*(g_1_5 + g_5_6) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].g[9,0] = -Q_5/S_base + V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + V_5**2*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].g[10,0] = -P_6/S_base + V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6**2*(g_2_6 + g_5_6 + g_6_7) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].g[11,0] = -Q_6/S_base + V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + V_6**2*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].g[12,0] = -P_7/S_base + V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7**2*(g_6_7 + 2*g_7_8) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].g[13,0] = -Q_7/S_base + V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + V_7**2*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].g[14,0] = -P_8/S_base + V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8**2*(2*g_7_8 + 2*g_8_9) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].g[15,0] = -Q_8/S_base + V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + V_8**2*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].g[16,0] = -P_9/S_base + V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + V_9**2*(2*g_8_9 + g_9_10)
-        struct[0].g[17,0] = -Q_9/S_base + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + V_9**2*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].g[18,0] = -P_10/S_base + V_10**2*(g_10_11 + g_4_10 + g_9_10) + V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].g[19,0] = -Q_10/S_base + V_10**2*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].g[20,0] = -P_11/S_base + V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11**2*(g_10_11 + g_3_11) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].g[21,0] = -Q_11/S_base + V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_11**2*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].g[22,0] = R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1) + X1d_1*i_d_1 - e1q_1
-        struct[0].g[23,0] = R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1) - X1q_1*i_q_1 - e1d_1
-        struct[0].g[24,0] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1) - p_g_1
-        struct[0].g[25,0] = V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1) - q_g_1
-        struct[0].g[26,0] = -v_f_1 + Piecewise(np.array([(V_min_1, V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (V_max_1, V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1), (K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1, True)]))
-        struct[0].g[27,0] = K_sec_1*p_agc - p_m_ref_1 + xi_imw_1 - (omega_1 - omega_ref_1)/Droop_1
-        struct[0].g[28,0] = T_gov_2_1*(x_gov_1_1 - x_gov_2_1)/T_gov_3_1 - p_m_1 + x_gov_2_1
-        struct[0].g[29,0] = omega_1 - x_wo_1 - z_wo_1 - 1.0
-        struct[0].g[30,0] = K_stab_1*(T_1_1*(-x_lead_1 + z_wo_1)/T_2_1 + x_lead_1) - v_pss_1
-        struct[0].g[31,0] = R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2) + X1d_2*i_d_2 - e1q_2
-        struct[0].g[32,0] = R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2) - X1q_2*i_q_2 - e1d_2
-        struct[0].g[33,0] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2) - p_g_2
-        struct[0].g[34,0] = V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2) - q_g_2
-        struct[0].g[35,0] = -v_f_2 + Piecewise(np.array([(V_min_2, V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (V_max_2, V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2), (K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2, True)]))
-        struct[0].g[36,0] = K_sec_2*p_agc - p_m_ref_2 + xi_imw_2 - (omega_2 - omega_ref_2)/Droop_2
-        struct[0].g[37,0] = T_gov_2_2*(x_gov_1_2 - x_gov_2_2)/T_gov_3_2 - p_m_2 + x_gov_2_2
-        struct[0].g[38,0] = omega_2 - x_wo_2 - z_wo_2 - 1.0
-        struct[0].g[39,0] = K_stab_2*(T_1_2*(-x_lead_2 + z_wo_2)/T_2_2 + x_lead_2) - v_pss_2
-        struct[0].g[40,0] = R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3) + X1d_3*i_d_3 - e1q_3
-        struct[0].g[41,0] = R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3) - X1q_3*i_q_3 - e1d_3
-        struct[0].g[42,0] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3) - p_g_3
-        struct[0].g[43,0] = V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3) - q_g_3
-        struct[0].g[44,0] = -v_f_3 + Piecewise(np.array([(V_min_3, V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (V_max_3, V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3), (K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3, True)]))
-        struct[0].g[45,0] = K_sec_3*p_agc - p_m_ref_3 + xi_imw_3 - (omega_3 - omega_ref_3)/Droop_3
-        struct[0].g[46,0] = T_gov_2_3*(x_gov_1_3 - x_gov_2_3)/T_gov_3_3 - p_m_3 + x_gov_2_3
-        struct[0].g[47,0] = omega_3 - x_wo_3 - z_wo_3 - 1.0
-        struct[0].g[48,0] = K_stab_3*(T_1_3*(-x_lead_3 + z_wo_3)/T_2_3 + x_lead_3) - v_pss_3
-        struct[0].g[49,0] = R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4) + X1d_4*i_d_4 - e1q_4
-        struct[0].g[50,0] = R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4) - X1q_4*i_q_4 - e1d_4
-        struct[0].g[51,0] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4) - p_g_4
-        struct[0].g[52,0] = V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4) - q_g_4
-        struct[0].g[53,0] = -v_f_4 + Piecewise(np.array([(V_min_4, V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (V_max_4, V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4), (K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4, True)]))
-        struct[0].g[54,0] = K_sec_4*p_agc - p_m_ref_4 + xi_imw_4 - (omega_4 - omega_ref_4)/Droop_4
-        struct[0].g[55,0] = T_gov_2_4*(x_gov_1_4 - x_gov_2_4)/T_gov_3_4 - p_m_4 + x_gov_2_4
-        struct[0].g[56,0] = omega_4 - x_wo_4 - z_wo_4 - 1.0
-        struct[0].g[57,0] = K_stab_4*(T_1_4*(-x_lead_4 + z_wo_4)/T_2_4 + x_lead_4) - v_pss_4
-        struct[0].g[58,0] = -omega_coi + (H_1*S_n_1*omega_1 + H_2*S_n_2*omega_2 + H_3*S_n_3*omega_3 + H_4*S_n_4*omega_4)/(H_1*S_n_1 + H_2*S_n_2 + H_3*S_n_3 + H_4*S_n_4)
-        struct[0].g[59,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
 
-        struct[0].h[0,0] = V_1
-        struct[0].h[1,0] = V_2
-        struct[0].h[2,0] = V_3
-        struct[0].h[3,0] = V_4
-        struct[0].h[4,0] = V_5
-        struct[0].h[5,0] = V_6
-        struct[0].h[6,0] = V_7
-        struct[0].h[7,0] = V_8
-        struct[0].h[8,0] = V_9
-        struct[0].h[9,0] = V_10
-        struct[0].h[10,0] = V_11
-        struct[0].h[11,0] = i_d_1*(R_a_1*i_d_1 + V_1*sin(delta_1 - theta_1)) + i_q_1*(R_a_1*i_q_1 + V_1*cos(delta_1 - theta_1))
-        struct[0].h[12,0] = i_d_2*(R_a_2*i_d_2 + V_2*sin(delta_2 - theta_2)) + i_q_2*(R_a_2*i_q_2 + V_2*cos(delta_2 - theta_2))
-        struct[0].h[13,0] = i_d_3*(R_a_3*i_d_3 + V_3*sin(delta_3 - theta_3)) + i_q_3*(R_a_3*i_q_3 + V_3*cos(delta_3 - theta_3))
-        struct[0].h[14,0] = i_d_4*(R_a_4*i_d_4 + V_4*sin(delta_4 - theta_4)) + i_q_4*(R_a_4*i_q_4 + V_4*cos(delta_4 - theta_4))
-    
 
-    if mode == 10:
 
-        struct[0].Fx[0,0] = -K_delta_1
-        struct[0].Fx[0,1] = Omega_b_1
-        struct[0].Fx[1,0] = (-V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fx[1,1] = -D_1/(2*H_1)
-        struct[0].Fx[2,2] = -1/T1d0_1
-        struct[0].Fx[3,3] = -1/T1q0_1
-        struct[0].Fx[4,4] = -1/T_r_1
-        struct[0].Fx[5,4] = K_a_1*K_aw_1 - 1
-        struct[0].Fx[5,5] = -K_ai_1*K_aw_1
-        struct[0].Fx[6,6] = -1/T_gov_1_1
-        struct[0].Fx[7,6] = 1/T_gov_3_1
-        struct[0].Fx[7,7] = -1/T_gov_3_1
-        struct[0].Fx[8,8] = -0.00000100000000000000
-        struct[0].Fx[9,1] = 1/T_wo_1
-        struct[0].Fx[9,9] = -1/T_wo_1
-        struct[0].Fx[10,10] = -1/T_2_1
-        struct[0].Fx[11,11] = -K_delta_2
-        struct[0].Fx[11,12] = Omega_b_2
-        struct[0].Fx[12,11] = (-V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fx[12,12] = -D_2/(2*H_2)
-        struct[0].Fx[13,13] = -1/T1d0_2
-        struct[0].Fx[14,14] = -1/T1q0_2
-        struct[0].Fx[15,15] = -1/T_r_2
-        struct[0].Fx[16,15] = K_a_2*K_aw_2 - 1
-        struct[0].Fx[16,16] = -K_ai_2*K_aw_2
-        struct[0].Fx[17,17] = -1/T_gov_1_2
-        struct[0].Fx[18,17] = 1/T_gov_3_2
-        struct[0].Fx[18,18] = -1/T_gov_3_2
-        struct[0].Fx[19,19] = -0.00000100000000000000
-        struct[0].Fx[20,12] = 1/T_wo_2
-        struct[0].Fx[20,20] = -1/T_wo_2
-        struct[0].Fx[21,21] = -1/T_2_2
-        struct[0].Fx[22,22] = -K_delta_3
-        struct[0].Fx[22,23] = Omega_b_3
-        struct[0].Fx[23,22] = (-V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fx[23,23] = -D_3/(2*H_3)
-        struct[0].Fx[24,24] = -1/T1d0_3
-        struct[0].Fx[25,25] = -1/T1q0_3
-        struct[0].Fx[26,26] = -1/T_r_3
-        struct[0].Fx[27,26] = K_a_3*K_aw_3 - 1
-        struct[0].Fx[27,27] = -K_ai_3*K_aw_3
-        struct[0].Fx[28,28] = -1/T_gov_1_3
-        struct[0].Fx[29,28] = 1/T_gov_3_3
-        struct[0].Fx[29,29] = -1/T_gov_3_3
-        struct[0].Fx[30,30] = -0.00000100000000000000
-        struct[0].Fx[31,23] = 1/T_wo_3
-        struct[0].Fx[31,31] = -1/T_wo_3
-        struct[0].Fx[32,32] = -1/T_2_3
-        struct[0].Fx[33,33] = -K_delta_4
-        struct[0].Fx[33,34] = Omega_b_4
-        struct[0].Fx[34,33] = (-V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fx[34,34] = -D_4/(2*H_4)
-        struct[0].Fx[35,35] = -1/T1d0_4
-        struct[0].Fx[36,36] = -1/T1q0_4
-        struct[0].Fx[37,37] = -1/T_r_4
-        struct[0].Fx[38,37] = K_a_4*K_aw_4 - 1
-        struct[0].Fx[38,38] = -K_ai_4*K_aw_4
-        struct[0].Fx[39,39] = -1/T_gov_1_4
-        struct[0].Fx[40,39] = 1/T_gov_3_4
-        struct[0].Fx[40,40] = -1/T_gov_3_4
-        struct[0].Fx[41,41] = -0.00000100000000000000
-        struct[0].Fx[42,34] = 1/T_wo_4
-        struct[0].Fx[42,42] = -1/T_wo_4
-        struct[0].Fx[43,43] = -1/T_2_4
+@numba.njit(cache=True)
+def jac_run_ss_eval(jac_run,x,y,u,p,xyup = 0):
 
-    if mode == 11:
+    jac_run[1,0] = (-y[0]*y[22]*cos(x[0] - y[1]) + y[0]*y[23]*sin(x[0] - y[1]))/(2*p[44])
+    jac_run[1,45] = (-y[22]*sin(x[0] - y[1]) - y[23]*cos(x[0] - y[1]))/(2*p[44])
+    jac_run[1,46] = (y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1]))/(2*p[44])
+    jac_run[1,67] = (-2*p[52]*y[22] - y[0]*sin(x[0] - y[1]))/(2*p[44])
+    jac_run[1,68] = (-2*p[52]*y[23] - y[0]*cos(x[0] - y[1]))/(2*p[44])
+    jac_run[12,11] = (-y[2]*y[31]*cos(x[11] - y[3]) + y[2]*y[32]*sin(x[11] - y[3]))/(2*p[74])
+    jac_run[12,47] = (-y[31]*sin(x[11] - y[3]) - y[32]*cos(x[11] - y[3]))/(2*p[74])
+    jac_run[12,48] = (y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3]))/(2*p[74])
+    jac_run[12,76] = (-2*p[82]*y[31] - y[2]*sin(x[11] - y[3]))/(2*p[74])
+    jac_run[12,77] = (-2*p[82]*y[32] - y[2]*cos(x[11] - y[3]))/(2*p[74])
+    jac_run[23,22] = (-y[4]*y[40]*cos(x[22] - y[5]) + y[4]*y[41]*sin(x[22] - y[5]))/(2*p[104])
+    jac_run[23,49] = (-y[40]*sin(x[22] - y[5]) - y[41]*cos(x[22] - y[5]))/(2*p[104])
+    jac_run[23,50] = (y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5]))/(2*p[104])
+    jac_run[23,85] = (-2*p[112]*y[40] - y[4]*sin(x[22] - y[5]))/(2*p[104])
+    jac_run[23,86] = (-2*p[112]*y[41] - y[4]*cos(x[22] - y[5]))/(2*p[104])
+    jac_run[34,33] = (-y[6]*y[49]*cos(x[33] - y[7]) + y[6]*y[50]*sin(x[33] - y[7]))/(2*p[134])
+    jac_run[34,51] = (-y[49]*sin(x[33] - y[7]) - y[50]*cos(x[33] - y[7]))/(2*p[134])
+    jac_run[34,52] = (y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7]))/(2*p[134])
+    jac_run[34,94] = (-2*p[142]*y[49] - y[6]*sin(x[33] - y[7]))/(2*p[134])
+    jac_run[34,95] = (-2*p[142]*y[50] - y[6]*cos(x[33] - y[7]))/(2*p[134])
+    jac_run[45,45] = 2*y[0]*p[1] + y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_run[45,46] = y[0]*y[8]*(-p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_run[45,53] = y[0]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_run[45,54] = y[0]*y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_run[46,45] = 2*y[0]*(-p[2] - p[3]/2) + y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_run[46,46] = y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_run[46,53] = y[0]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_run[46,54] = y[0]*y[8]*(p[2]*sin(y[1] - y[9]) + p[1]*cos(y[1] - y[9]))
+    jac_run[47,47] = 2*y[2]*p[4] + y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_run[47,48] = y[2]*y[10]*(-p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_run[47,55] = y[2]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_run[47,56] = y[2]*y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_run[48,47] = 2*y[2]*(-p[5] - p[6]/2) + y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_run[48,48] = y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_run[48,55] = y[2]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_run[48,56] = y[2]*y[10]*(p[5]*sin(y[3] - y[11]) + p[4]*cos(y[3] - y[11]))
+    jac_run[49,49] = y[20]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5])) + 2*y[4]*p[7]
+    jac_run[49,50] = y[20]*y[4]*(-p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_run[49,65] = y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_run[49,66] = y[20]*y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_run[50,49] = y[20]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5])) + 2*y[4]*(-p[8] - p[9]/2)
+    jac_run[50,50] = y[20]*y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_run[50,65] = y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_run[50,66] = y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) + p[7]*cos(y[21] - y[5]))
+    jac_run[51,51] = y[18]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + 2*y[6]*p[10]
+    jac_run[51,52] = y[18]*y[6]*(-p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_run[51,63] = y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_run[51,64] = y[18]*y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7]))
+    jac_run[52,51] = y[18]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + 2*y[6]*(-p[11] - p[12]/2)
+    jac_run[52,52] = y[18]*y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_run[52,63] = y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7]))
+    jac_run[52,64] = y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) + p[10]*cos(y[19] - y[7]))
+    jac_run[53,45] = y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_run[53,46] = y[0]*y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_run[53,53] = y[0]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + 2*y[8]*(p[1] + p[13]) + y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_run[53,54] = y[0]*y[8]*(-p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9])) + y[8]*y[10]*(-p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_run[53,55] = y[8]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_run[53,56] = y[8]*y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_run[54,45] = y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_run[54,46] = y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) + p[1]*cos(y[1] - y[9]))
+    jac_run[54,53] = y[0]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9])) + 2*y[8]*(-p[2] - p[14] - p[3]/2 - p[15]/2) + y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_run[54,54] = y[0]*y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_run[54,55] = y[8]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_run[54,56] = y[8]*y[10]*(p[14]*sin(y[9] - y[11]) + p[13]*cos(y[9] - y[11]))
+    jac_run[55,47] = y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_run[55,48] = y[2]*y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_run[55,53] = y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_run[55,54] = y[8]*y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_run[55,55] = y[2]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + 2*y[10]*(p[4] + p[13] + p[16]) + y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_run[55,56] = y[2]*y[10]*(-p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11])) + y[8]*y[10]*(-p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11])) + y[10]*y[12]*(-p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_run[55,57] = y[10]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_run[55,58] = y[10]*y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_run[56,47] = y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_run[56,48] = y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) + p[4]*cos(y[3] - y[11]))
+    jac_run[56,53] = y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_run[56,54] = y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) + p[13]*cos(y[9] - y[11]))
+    jac_run[56,55] = y[2]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11])) + y[8]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11])) + 2*y[10]*(-p[5] - p[14] - p[17] - p[6]/2 - p[15]/2 - p[18]/2) + y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_run[56,56] = y[2]*y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_run[56,57] = y[10]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_run[56,58] = y[10]*y[12]*(p[17]*sin(y[11] - y[13]) + p[16]*cos(y[11] - y[13]))
+    jac_run[57,55] = y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_run[57,56] = y[10]*y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_run[57,57] = y[10]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + 2*y[12]*(p[16] + 2*p[19]) + y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_run[57,58] = y[10]*y[12]*(-p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13])) + y[12]*y[14]*(-2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_run[57,59] = y[12]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_run[57,60] = y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_run[58,55] = y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_run[58,56] = y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) + p[16]*cos(y[11] - y[13]))
+    jac_run[58,57] = y[10]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13])) + 2*y[12]*(-p[17] - 2*p[20] - p[18]/2 - p[21]) + y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_run[58,58] = y[10]*y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_run[58,59] = y[12]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_run[58,60] = y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) + 2*p[19]*cos(y[13] - y[15]))
+    jac_run[59,57] = y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_run[59,58] = y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_run[59,59] = y[12]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + 2*y[14]*(2*p[19] + 2*p[22]) + y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_run[59,60] = y[12]*y[14]*(-2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15])) + y[14]*y[16]*(-2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_run[59,61] = y[14]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_run[59,62] = y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_run[60,57] = y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_run[60,58] = y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) + 2*p[19]*cos(y[13] - y[15]))
+    jac_run[60,59] = y[12]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15])) + 2*y[14]*(-2*p[20] - 2*p[23] - p[21] - p[24]) + y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_run[60,60] = y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_run[60,61] = y[14]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_run[60,62] = y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) + 2*p[22]*cos(y[15] - y[17]))
+    jac_run[61,59] = y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_run[61,60] = y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_run[61,61] = y[18]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17])) + 2*y[16]*(2*p[22] + p[25])
+    jac_run[61,62] = y[18]*y[16]*(-p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17])) + y[14]*y[16]*(-2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_run[61,63] = y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_run[61,64] = y[18]*y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_run[62,59] = y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_run[62,60] = y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) + 2*p[22]*cos(y[15] - y[17]))
+    jac_run[62,61] = y[18]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17])) + y[14]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17])) + 2*y[16]*(-2*p[23] - p[26] - p[24] - p[27]/2)
+    jac_run[62,62] = y[18]*y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_run[62,63] = y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_run[62,64] = y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) + p[25]*cos(y[19] - y[17]))
+    jac_run[63,51] = y[18]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_run[63,52] = y[18]*y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_run[63,61] = y[18]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_run[63,62] = y[18]*y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_run[63,63] = 2*y[18]*(p[28] + p[10] + p[25]) + y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_run[63,64] = y[18]*y[20]*(-p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + y[18]*y[6]*(-p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + y[18]*y[16]*(-p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_run[63,65] = y[18]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21]))
+    jac_run[63,66] = y[18]*y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21]))
+    jac_run[64,51] = y[18]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_run[64,52] = y[18]*y[6]*(p[11]*sin(y[19] - y[7]) + p[10]*cos(y[19] - y[7]))
+    jac_run[64,61] = y[18]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_run[64,62] = y[18]*y[16]*(p[26]*sin(y[19] - y[17]) + p[25]*cos(y[19] - y[17]))
+    jac_run[64,63] = 2*y[18]*(-p[29] - p[11] - p[26] - p[30]/2 - p[12]/2 - p[27]/2) + y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7])) + y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_run[64,64] = y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_run[64,65] = y[18]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21]))
+    jac_run[64,66] = y[18]*y[20]*(p[29]*sin(y[19] - y[21]) + p[28]*cos(y[19] - y[21]))
+    jac_run[65,49] = y[20]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_run[65,50] = y[20]*y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_run[65,63] = y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21]))
+    jac_run[65,64] = y[18]*y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21]))
+    jac_run[65,65] = y[18]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + 2*y[20]*(p[28] + p[7]) + y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_run[65,66] = y[18]*y[20]*(-p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[20]*y[4]*(-p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_run[66,49] = y[20]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_run[66,50] = y[20]*y[4]*(p[8]*sin(y[21] - y[5]) + p[7]*cos(y[21] - y[5]))
+    jac_run[66,63] = y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21]))
+    jac_run[66,64] = y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) + p[28]*cos(y[19] - y[21]))
+    jac_run[66,65] = y[18]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + 2*y[20]*(-p[29] - p[8] - p[30]/2 - p[9]/2) + y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_run[66,66] = y[18]*y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_run[67,0] = -y[0]*sin(x[0] - y[1])
+    jac_run[67,45] = cos(x[0] - y[1])
+    jac_run[67,46] = y[0]*sin(x[0] - y[1])
+    jac_run[68,0] = y[0]*cos(x[0] - y[1])
+    jac_run[68,45] = sin(x[0] - y[1])
+    jac_run[68,46] = -y[0]*cos(x[0] - y[1])
+    jac_run[69,0] = y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1])
+    jac_run[69,45] = y[22]*sin(x[0] - y[1]) + y[23]*cos(x[0] - y[1])
+    jac_run[69,46] = -y[0]*y[22]*cos(x[0] - y[1]) + y[0]*y[23]*sin(x[0] - y[1])
+    jac_run[69,67] = y[0]*sin(x[0] - y[1])
+    jac_run[69,68] = y[0]*cos(x[0] - y[1])
+    jac_run[70,0] = -y[0]*y[22]*sin(x[0] - y[1]) - y[0]*y[23]*cos(x[0] - y[1])
+    jac_run[70,45] = y[22]*cos(x[0] - y[1]) - y[23]*sin(x[0] - y[1])
+    jac_run[70,46] = y[0]*y[22]*sin(x[0] - y[1]) + y[0]*y[23]*cos(x[0] - y[1])
+    jac_run[70,67] = y[0]*cos(x[0] - y[1])
+    jac_run[70,68] = -y[0]*sin(x[0] - y[1])
+    jac_run[71,4] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (-p[55], True)]))
+    jac_run[71,5] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (p[56], True)]))
+    jac_run[71,75] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (p[55], True)]))
+    jac_run[75,10] = Piecewise(np.array([(0, (p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])) | (p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]))), (p[70]*(-p[68]/p[69] + 1), True)]))
+    jac_run[75,74] = Piecewise(np.array([(0, (p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])) | (p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]))), (p[70]*p[68]/p[69], True)]))
+    jac_run[76,11] = -y[2]*sin(x[11] - y[3])
+    jac_run[76,47] = cos(x[11] - y[3])
+    jac_run[76,48] = y[2]*sin(x[11] - y[3])
+    jac_run[77,11] = y[2]*cos(x[11] - y[3])
+    jac_run[77,47] = sin(x[11] - y[3])
+    jac_run[77,48] = -y[2]*cos(x[11] - y[3])
+    jac_run[78,11] = y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3])
+    jac_run[78,47] = y[31]*sin(x[11] - y[3]) + y[32]*cos(x[11] - y[3])
+    jac_run[78,48] = -y[2]*y[31]*cos(x[11] - y[3]) + y[2]*y[32]*sin(x[11] - y[3])
+    jac_run[78,76] = y[2]*sin(x[11] - y[3])
+    jac_run[78,77] = y[2]*cos(x[11] - y[3])
+    jac_run[79,11] = -y[2]*y[31]*sin(x[11] - y[3]) - y[2]*y[32]*cos(x[11] - y[3])
+    jac_run[79,47] = y[31]*cos(x[11] - y[3]) - y[32]*sin(x[11] - y[3])
+    jac_run[79,48] = y[2]*y[31]*sin(x[11] - y[3]) + y[2]*y[32]*cos(x[11] - y[3])
+    jac_run[79,76] = y[2]*cos(x[11] - y[3])
+    jac_run[79,77] = -y[2]*sin(x[11] - y[3])
+    jac_run[80,15] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (-p[85], True)]))
+    jac_run[80,16] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (p[86], True)]))
+    jac_run[80,84] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (p[85], True)]))
+    jac_run[84,21] = Piecewise(np.array([(0, (p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])) | (p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]))), (p[100]*(-p[98]/p[99] + 1), True)]))
+    jac_run[84,83] = Piecewise(np.array([(0, (p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])) | (p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]))), (p[100]*p[98]/p[99], True)]))
+    jac_run[85,22] = -y[4]*sin(x[22] - y[5])
+    jac_run[85,49] = cos(x[22] - y[5])
+    jac_run[85,50] = y[4]*sin(x[22] - y[5])
+    jac_run[86,22] = y[4]*cos(x[22] - y[5])
+    jac_run[86,49] = sin(x[22] - y[5])
+    jac_run[86,50] = -y[4]*cos(x[22] - y[5])
+    jac_run[87,22] = y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5])
+    jac_run[87,49] = y[40]*sin(x[22] - y[5]) + y[41]*cos(x[22] - y[5])
+    jac_run[87,50] = -y[4]*y[40]*cos(x[22] - y[5]) + y[4]*y[41]*sin(x[22] - y[5])
+    jac_run[87,85] = y[4]*sin(x[22] - y[5])
+    jac_run[87,86] = y[4]*cos(x[22] - y[5])
+    jac_run[88,22] = -y[4]*y[40]*sin(x[22] - y[5]) - y[4]*y[41]*cos(x[22] - y[5])
+    jac_run[88,49] = y[40]*cos(x[22] - y[5]) - y[41]*sin(x[22] - y[5])
+    jac_run[88,50] = y[4]*y[40]*sin(x[22] - y[5]) + y[4]*y[41]*cos(x[22] - y[5])
+    jac_run[88,85] = y[4]*cos(x[22] - y[5])
+    jac_run[88,86] = -y[4]*sin(x[22] - y[5])
+    jac_run[89,26] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (-p[115], True)]))
+    jac_run[89,27] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (p[116], True)]))
+    jac_run[89,93] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (p[115], True)]))
+    jac_run[93,32] = Piecewise(np.array([(0, (p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])) | (p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]))), (p[130]*(-p[128]/p[129] + 1), True)]))
+    jac_run[93,92] = Piecewise(np.array([(0, (p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])) | (p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]))), (p[130]*p[128]/p[129], True)]))
+    jac_run[94,33] = -y[6]*sin(x[33] - y[7])
+    jac_run[94,51] = cos(x[33] - y[7])
+    jac_run[94,52] = y[6]*sin(x[33] - y[7])
+    jac_run[95,33] = y[6]*cos(x[33] - y[7])
+    jac_run[95,51] = sin(x[33] - y[7])
+    jac_run[95,52] = -y[6]*cos(x[33] - y[7])
+    jac_run[96,33] = y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7])
+    jac_run[96,51] = y[49]*sin(x[33] - y[7]) + y[50]*cos(x[33] - y[7])
+    jac_run[96,52] = -y[6]*y[49]*cos(x[33] - y[7]) + y[6]*y[50]*sin(x[33] - y[7])
+    jac_run[96,94] = y[6]*sin(x[33] - y[7])
+    jac_run[96,95] = y[6]*cos(x[33] - y[7])
+    jac_run[97,33] = -y[6]*y[49]*sin(x[33] - y[7]) - y[6]*y[50]*cos(x[33] - y[7])
+    jac_run[97,51] = y[49]*cos(x[33] - y[7]) - y[50]*sin(x[33] - y[7])
+    jac_run[97,52] = y[6]*y[49]*sin(x[33] - y[7]) + y[6]*y[50]*cos(x[33] - y[7])
+    jac_run[97,94] = y[6]*cos(x[33] - y[7])
+    jac_run[97,95] = -y[6]*sin(x[33] - y[7])
+    jac_run[98,37] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (-p[145], True)]))
+    jac_run[98,38] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (p[146], True)]))
+    jac_run[98,102] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (p[145], True)]))
+    jac_run[102,43] = Piecewise(np.array([(0, (p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])) | (p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]))), (p[160]*(-p[158]/p[159] + 1), True)]))
+    jac_run[102,101] = Piecewise(np.array([(0, (p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])) | (p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]))), (p[160]*p[158]/p[159], True)]))
 
-        struct[0].Fy[0,58] = -Omega_b_1
-        struct[0].Fy[1,0] = (-i_d_1*sin(delta_1 - theta_1) - i_q_1*cos(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,1] = (V_1*i_d_1*cos(delta_1 - theta_1) - V_1*i_q_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,22] = (-2*R_a_1*i_d_1 - V_1*sin(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,23] = (-2*R_a_1*i_q_1 - V_1*cos(delta_1 - theta_1))/(2*H_1)
-        struct[0].Fy[1,28] = 1/(2*H_1)
-        struct[0].Fy[1,58] = D_1/(2*H_1)
-        struct[0].Fy[2,22] = (X1d_1 - X_d_1)/T1d0_1
-        struct[0].Fy[2,26] = 1/T1d0_1
-        struct[0].Fy[3,23] = (-X1q_1 + X_q_1)/T1q0_1
-        struct[0].Fy[4,0] = 1/T_r_1
-        struct[0].Fy[5,26] = K_aw_1
-        struct[0].Fy[5,30] = -K_a_1*K_aw_1 + 1
-        struct[0].Fy[6,27] = 1/T_gov_1_1
-        struct[0].Fy[8,24] = -K_imw_1
-        struct[0].Fy[10,29] = 1/T_2_1
-        struct[0].Fy[11,58] = -Omega_b_2
-        struct[0].Fy[12,2] = (-i_d_2*sin(delta_2 - theta_2) - i_q_2*cos(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,3] = (V_2*i_d_2*cos(delta_2 - theta_2) - V_2*i_q_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,31] = (-2*R_a_2*i_d_2 - V_2*sin(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,32] = (-2*R_a_2*i_q_2 - V_2*cos(delta_2 - theta_2))/(2*H_2)
-        struct[0].Fy[12,37] = 1/(2*H_2)
-        struct[0].Fy[12,58] = D_2/(2*H_2)
-        struct[0].Fy[13,31] = (X1d_2 - X_d_2)/T1d0_2
-        struct[0].Fy[13,35] = 1/T1d0_2
-        struct[0].Fy[14,32] = (-X1q_2 + X_q_2)/T1q0_2
-        struct[0].Fy[15,2] = 1/T_r_2
-        struct[0].Fy[16,35] = K_aw_2
-        struct[0].Fy[16,39] = -K_a_2*K_aw_2 + 1
-        struct[0].Fy[17,36] = 1/T_gov_1_2
-        struct[0].Fy[19,33] = -K_imw_2
-        struct[0].Fy[21,38] = 1/T_2_2
-        struct[0].Fy[22,58] = -Omega_b_3
-        struct[0].Fy[23,4] = (-i_d_3*sin(delta_3 - theta_3) - i_q_3*cos(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,5] = (V_3*i_d_3*cos(delta_3 - theta_3) - V_3*i_q_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,40] = (-2*R_a_3*i_d_3 - V_3*sin(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,41] = (-2*R_a_3*i_q_3 - V_3*cos(delta_3 - theta_3))/(2*H_3)
-        struct[0].Fy[23,46] = 1/(2*H_3)
-        struct[0].Fy[23,58] = D_3/(2*H_3)
-        struct[0].Fy[24,40] = (X1d_3 - X_d_3)/T1d0_3
-        struct[0].Fy[24,44] = 1/T1d0_3
-        struct[0].Fy[25,41] = (-X1q_3 + X_q_3)/T1q0_3
-        struct[0].Fy[26,4] = 1/T_r_3
-        struct[0].Fy[27,44] = K_aw_3
-        struct[0].Fy[27,48] = -K_a_3*K_aw_3 + 1
-        struct[0].Fy[28,45] = 1/T_gov_1_3
-        struct[0].Fy[30,42] = -K_imw_3
-        struct[0].Fy[32,47] = 1/T_2_3
-        struct[0].Fy[33,58] = -Omega_b_4
-        struct[0].Fy[34,6] = (-i_d_4*sin(delta_4 - theta_4) - i_q_4*cos(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,7] = (V_4*i_d_4*cos(delta_4 - theta_4) - V_4*i_q_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,49] = (-2*R_a_4*i_d_4 - V_4*sin(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,50] = (-2*R_a_4*i_q_4 - V_4*cos(delta_4 - theta_4))/(2*H_4)
-        struct[0].Fy[34,55] = 1/(2*H_4)
-        struct[0].Fy[34,58] = D_4/(2*H_4)
-        struct[0].Fy[35,49] = (X1d_4 - X_d_4)/T1d0_4
-        struct[0].Fy[35,53] = 1/T1d0_4
-        struct[0].Fy[36,50] = (-X1q_4 + X_q_4)/T1q0_4
-        struct[0].Fy[37,6] = 1/T_r_4
-        struct[0].Fy[38,53] = K_aw_4
-        struct[0].Fy[38,57] = -K_a_4*K_aw_4 + 1
-        struct[0].Fy[39,54] = 1/T_gov_1_4
-        struct[0].Fy[41,51] = -K_imw_4
-        struct[0].Fy[43,56] = 1/T_2_4
-        struct[0].Fy[44,58] = -1
+    if xyup == 1:
 
-        struct[0].Gy[0,0] = 2*V_1*g_1_5 + V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[0,1] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[0,8] = V_1*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[0,9] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[0,24] = -S_n_1/S_base
-        struct[0].Gy[1,0] = 2*V_1*(-b_1_5 - bs_1_5/2) + V_5*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[1,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[1,8] = V_1*(b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[1,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[1,25] = -S_n_1/S_base
-        struct[0].Gy[2,2] = 2*V_2*g_2_6 + V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[2,3] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[2,10] = V_2*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[2,11] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[2,33] = -S_n_2/S_base
-        struct[0].Gy[3,2] = 2*V_2*(-b_2_6 - bs_2_6/2) + V_6*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[3,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[3,10] = V_2*(b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[3,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[3,34] = -S_n_2/S_base
-        struct[0].Gy[4,4] = V_11*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3)) + 2*V_3*g_3_11
-        struct[0].Gy[4,5] = V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[4,20] = V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[4,21] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[4,42] = -S_n_3/S_base
-        struct[0].Gy[5,4] = V_11*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3)) + 2*V_3*(-b_3_11 - bs_3_11/2)
-        struct[0].Gy[5,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[5,20] = V_3*(b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[5,21] = V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[5,43] = -S_n_3/S_base
-        struct[0].Gy[6,6] = V_10*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + 2*V_4*g_4_10
-        struct[0].Gy[6,7] = V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[6,18] = V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[6,19] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[6,51] = -S_n_4/S_base
-        struct[0].Gy[7,6] = V_10*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + 2*V_4*(-b_4_10 - bs_4_10/2)
-        struct[0].Gy[7,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[7,18] = V_4*(b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[7,19] = V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[7,52] = -S_n_4/S_base
-        struct[0].Gy[8,0] = V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[8,1] = V_1*V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[8,8] = V_1*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + 2*V_5*(g_1_5 + g_5_6) + V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[8,9] = V_1*V_5*(-b_1_5*cos(theta_1 - theta_5) - g_1_5*sin(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[8,10] = V_5*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[8,11] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[9,0] = V_5*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5))
-        struct[0].Gy[9,1] = V_1*V_5*(-b_1_5*sin(theta_1 - theta_5) + g_1_5*cos(theta_1 - theta_5))
-        struct[0].Gy[9,8] = V_1*(b_1_5*cos(theta_1 - theta_5) + g_1_5*sin(theta_1 - theta_5)) + 2*V_5*(-b_1_5 - b_5_6 - bs_1_5/2 - bs_5_6/2) + V_6*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[9,9] = V_1*V_5*(b_1_5*sin(theta_1 - theta_5) - g_1_5*cos(theta_1 - theta_5)) + V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[9,10] = V_5*(b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[9,11] = V_5*V_6*(b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[10,2] = V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[10,3] = V_2*V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[10,8] = V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[10,9] = V_5*V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[10,10] = V_2*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + 2*V_6*(g_2_6 + g_5_6 + g_6_7) + V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[10,11] = V_2*V_6*(-b_2_6*cos(theta_2 - theta_6) - g_2_6*sin(theta_2 - theta_6)) + V_5*V_6*(-b_5_6*cos(theta_5 - theta_6) - g_5_6*sin(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[10,12] = V_6*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[10,13] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[11,2] = V_6*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6))
-        struct[0].Gy[11,3] = V_2*V_6*(-b_2_6*sin(theta_2 - theta_6) + g_2_6*cos(theta_2 - theta_6))
-        struct[0].Gy[11,8] = V_6*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6))
-        struct[0].Gy[11,9] = V_5*V_6*(-b_5_6*sin(theta_5 - theta_6) + g_5_6*cos(theta_5 - theta_6))
-        struct[0].Gy[11,10] = V_2*(b_2_6*cos(theta_2 - theta_6) + g_2_6*sin(theta_2 - theta_6)) + V_5*(b_5_6*cos(theta_5 - theta_6) + g_5_6*sin(theta_5 - theta_6)) + 2*V_6*(-b_2_6 - b_5_6 - b_6_7 - bs_2_6/2 - bs_5_6/2 - bs_6_7/2) + V_7*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[11,11] = V_2*V_6*(b_2_6*sin(theta_2 - theta_6) - g_2_6*cos(theta_2 - theta_6)) + V_5*V_6*(b_5_6*sin(theta_5 - theta_6) - g_5_6*cos(theta_5 - theta_6)) + V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[11,12] = V_6*(b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[11,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[12,10] = V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[12,11] = V_6*V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[12,12] = V_6*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + 2*V_7*(g_6_7 + 2*g_7_8) + V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[12,13] = V_6*V_7*(-b_6_7*cos(theta_6 - theta_7) - g_6_7*sin(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[12,14] = V_7*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[12,15] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[13,10] = V_7*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7))
-        struct[0].Gy[13,11] = V_6*V_7*(-b_6_7*sin(theta_6 - theta_7) + g_6_7*cos(theta_6 - theta_7))
-        struct[0].Gy[13,12] = V_6*(b_6_7*cos(theta_6 - theta_7) + g_6_7*sin(theta_6 - theta_7)) + 2*V_7*(-b_6_7 - 2*b_7_8 - bs_6_7/2 - bs_7_8) + V_8*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[13,13] = V_6*V_7*(b_6_7*sin(theta_6 - theta_7) - g_6_7*cos(theta_6 - theta_7)) + V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[13,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[13,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[14,12] = V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[14,13] = V_7*V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[14,14] = V_7*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + 2*V_8*(2*g_7_8 + 2*g_8_9) + V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[14,15] = V_7*V_8*(-2*b_7_8*cos(theta_7 - theta_8) - 2*g_7_8*sin(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[14,16] = V_8*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[14,17] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[15,12] = V_8*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8))
-        struct[0].Gy[15,13] = V_7*V_8*(-2*b_7_8*sin(theta_7 - theta_8) + 2*g_7_8*cos(theta_7 - theta_8))
-        struct[0].Gy[15,14] = V_7*(2*b_7_8*cos(theta_7 - theta_8) + 2*g_7_8*sin(theta_7 - theta_8)) + 2*V_8*(-2*b_7_8 - 2*b_8_9 - bs_7_8 - bs_8_9) + V_9*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[15,15] = V_7*V_8*(2*b_7_8*sin(theta_7 - theta_8) - 2*g_7_8*cos(theta_7 - theta_8)) + V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[15,16] = V_8*(2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[15,17] = V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[16,14] = V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[16,15] = V_8*V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[16,16] = V_10*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9)) + 2*V_9*(2*g_8_9 + g_9_10)
-        struct[0].Gy[16,17] = V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9)) + V_8*V_9*(-2*b_8_9*cos(theta_8 - theta_9) - 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[16,18] = V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[16,19] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[17,14] = V_9*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9))
-        struct[0].Gy[17,15] = V_8*V_9*(-2*b_8_9*sin(theta_8 - theta_9) + 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[17,16] = V_10*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9)) + V_8*(2*b_8_9*cos(theta_8 - theta_9) + 2*g_8_9*sin(theta_8 - theta_9)) + 2*V_9*(-2*b_8_9 - b_9_10 - bs_8_9 - bs_9_10/2)
-        struct[0].Gy[17,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9)) + V_8*V_9*(2*b_8_9*sin(theta_8 - theta_9) - 2*g_8_9*cos(theta_8 - theta_9))
-        struct[0].Gy[17,18] = V_9*(b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[17,19] = V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[18,6] = V_10*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[18,7] = V_10*V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[18,16] = V_10*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[18,17] = V_10*V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[18,18] = 2*V_10*(g_10_11 + g_4_10 + g_9_10) + V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[18,19] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*cos(theta_10 - theta_4) + g_4_10*sin(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*cos(theta_10 - theta_9) + g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[18,20] = V_10*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[18,21] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[19,6] = V_10*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4))
-        struct[0].Gy[19,7] = V_10*V_4*(b_4_10*sin(theta_10 - theta_4) + g_4_10*cos(theta_10 - theta_4))
-        struct[0].Gy[19,16] = V_10*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[19,17] = V_10*V_9*(b_9_10*sin(theta_10 - theta_9) + g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[19,18] = 2*V_10*(-b_10_11 - b_4_10 - b_9_10 - bs_10_11/2 - bs_4_10/2 - bs_9_10/2) + V_11*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_4*(b_4_10*cos(theta_10 - theta_4) - g_4_10*sin(theta_10 - theta_4)) + V_9*(b_9_10*cos(theta_10 - theta_9) - g_9_10*sin(theta_10 - theta_9))
-        struct[0].Gy[19,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_10*V_4*(-b_4_10*sin(theta_10 - theta_4) - g_4_10*cos(theta_10 - theta_4)) + V_10*V_9*(-b_9_10*sin(theta_10 - theta_9) - g_9_10*cos(theta_10 - theta_9))
-        struct[0].Gy[19,20] = V_10*(b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[19,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[20,4] = V_11*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[20,5] = V_11*V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[20,18] = V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[20,19] = V_10*V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[20,20] = V_10*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + 2*V_11*(g_10_11 + g_3_11) + V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[20,21] = V_10*V_11*(-b_10_11*cos(theta_10 - theta_11) - g_10_11*sin(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*cos(theta_11 - theta_3) + g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[21,4] = V_11*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[21,5] = V_11*V_3*(b_3_11*sin(theta_11 - theta_3) + g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[21,18] = V_11*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11))
-        struct[0].Gy[21,19] = V_10*V_11*(-b_10_11*sin(theta_10 - theta_11) + g_10_11*cos(theta_10 - theta_11))
-        struct[0].Gy[21,20] = V_10*(b_10_11*cos(theta_10 - theta_11) + g_10_11*sin(theta_10 - theta_11)) + 2*V_11*(-b_10_11 - b_3_11 - bs_10_11/2 - bs_3_11/2) + V_3*(b_3_11*cos(theta_11 - theta_3) - g_3_11*sin(theta_11 - theta_3))
-        struct[0].Gy[21,21] = V_10*V_11*(b_10_11*sin(theta_10 - theta_11) - g_10_11*cos(theta_10 - theta_11)) + V_11*V_3*(-b_3_11*sin(theta_11 - theta_3) - g_3_11*cos(theta_11 - theta_3))
-        struct[0].Gy[22,0] = cos(delta_1 - theta_1)
-        struct[0].Gy[22,1] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy[22,22] = X1d_1
-        struct[0].Gy[22,23] = R_a_1
-        struct[0].Gy[23,0] = sin(delta_1 - theta_1)
-        struct[0].Gy[23,1] = -V_1*cos(delta_1 - theta_1)
-        struct[0].Gy[23,22] = R_a_1
-        struct[0].Gy[23,23] = -X1q_1
-        struct[0].Gy[24,0] = i_d_1*sin(delta_1 - theta_1) + i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy[24,1] = -V_1*i_d_1*cos(delta_1 - theta_1) + V_1*i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy[24,22] = V_1*sin(delta_1 - theta_1)
-        struct[0].Gy[24,23] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy[24,24] = -1
-        struct[0].Gy[25,0] = i_d_1*cos(delta_1 - theta_1) - i_q_1*sin(delta_1 - theta_1)
-        struct[0].Gy[25,1] = V_1*i_d_1*sin(delta_1 - theta_1) + V_1*i_q_1*cos(delta_1 - theta_1)
-        struct[0].Gy[25,22] = V_1*cos(delta_1 - theta_1)
-        struct[0].Gy[25,23] = -V_1*sin(delta_1 - theta_1)
-        struct[0].Gy[25,25] = -1
-        struct[0].Gy[26,26] = -1
-        struct[0].Gy[26,30] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gy[27,27] = -1
-        struct[0].Gy[27,59] = K_sec_1
-        struct[0].Gy[28,28] = -1
-        struct[0].Gy[29,29] = -1
-        struct[0].Gy[30,29] = K_stab_1*T_1_1/T_2_1
-        struct[0].Gy[30,30] = -1
-        struct[0].Gy[31,2] = cos(delta_2 - theta_2)
-        struct[0].Gy[31,3] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy[31,31] = X1d_2
-        struct[0].Gy[31,32] = R_a_2
-        struct[0].Gy[32,2] = sin(delta_2 - theta_2)
-        struct[0].Gy[32,3] = -V_2*cos(delta_2 - theta_2)
-        struct[0].Gy[32,31] = R_a_2
-        struct[0].Gy[32,32] = -X1q_2
-        struct[0].Gy[33,2] = i_d_2*sin(delta_2 - theta_2) + i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy[33,3] = -V_2*i_d_2*cos(delta_2 - theta_2) + V_2*i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy[33,31] = V_2*sin(delta_2 - theta_2)
-        struct[0].Gy[33,32] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy[33,33] = -1
-        struct[0].Gy[34,2] = i_d_2*cos(delta_2 - theta_2) - i_q_2*sin(delta_2 - theta_2)
-        struct[0].Gy[34,3] = V_2*i_d_2*sin(delta_2 - theta_2) + V_2*i_q_2*cos(delta_2 - theta_2)
-        struct[0].Gy[34,31] = V_2*cos(delta_2 - theta_2)
-        struct[0].Gy[34,32] = -V_2*sin(delta_2 - theta_2)
-        struct[0].Gy[34,34] = -1
-        struct[0].Gy[35,35] = -1
-        struct[0].Gy[35,39] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gy[36,36] = -1
-        struct[0].Gy[36,59] = K_sec_2
-        struct[0].Gy[37,37] = -1
-        struct[0].Gy[38,38] = -1
-        struct[0].Gy[39,38] = K_stab_2*T_1_2/T_2_2
-        struct[0].Gy[39,39] = -1
-        struct[0].Gy[40,4] = cos(delta_3 - theta_3)
-        struct[0].Gy[40,5] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy[40,40] = X1d_3
-        struct[0].Gy[40,41] = R_a_3
-        struct[0].Gy[41,4] = sin(delta_3 - theta_3)
-        struct[0].Gy[41,5] = -V_3*cos(delta_3 - theta_3)
-        struct[0].Gy[41,40] = R_a_3
-        struct[0].Gy[41,41] = -X1q_3
-        struct[0].Gy[42,4] = i_d_3*sin(delta_3 - theta_3) + i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy[42,5] = -V_3*i_d_3*cos(delta_3 - theta_3) + V_3*i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy[42,40] = V_3*sin(delta_3 - theta_3)
-        struct[0].Gy[42,41] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy[42,42] = -1
-        struct[0].Gy[43,4] = i_d_3*cos(delta_3 - theta_3) - i_q_3*sin(delta_3 - theta_3)
-        struct[0].Gy[43,5] = V_3*i_d_3*sin(delta_3 - theta_3) + V_3*i_q_3*cos(delta_3 - theta_3)
-        struct[0].Gy[43,40] = V_3*cos(delta_3 - theta_3)
-        struct[0].Gy[43,41] = -V_3*sin(delta_3 - theta_3)
-        struct[0].Gy[43,43] = -1
-        struct[0].Gy[44,44] = -1
-        struct[0].Gy[44,48] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gy[45,45] = -1
-        struct[0].Gy[45,59] = K_sec_3
-        struct[0].Gy[46,46] = -1
-        struct[0].Gy[47,47] = -1
-        struct[0].Gy[48,47] = K_stab_3*T_1_3/T_2_3
-        struct[0].Gy[48,48] = -1
-        struct[0].Gy[49,6] = cos(delta_4 - theta_4)
-        struct[0].Gy[49,7] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy[49,49] = X1d_4
-        struct[0].Gy[49,50] = R_a_4
-        struct[0].Gy[50,6] = sin(delta_4 - theta_4)
-        struct[0].Gy[50,7] = -V_4*cos(delta_4 - theta_4)
-        struct[0].Gy[50,49] = R_a_4
-        struct[0].Gy[50,50] = -X1q_4
-        struct[0].Gy[51,6] = i_d_4*sin(delta_4 - theta_4) + i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy[51,7] = -V_4*i_d_4*cos(delta_4 - theta_4) + V_4*i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy[51,49] = V_4*sin(delta_4 - theta_4)
-        struct[0].Gy[51,50] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy[51,51] = -1
-        struct[0].Gy[52,6] = i_d_4*cos(delta_4 - theta_4) - i_q_4*sin(delta_4 - theta_4)
-        struct[0].Gy[52,7] = V_4*i_d_4*sin(delta_4 - theta_4) + V_4*i_q_4*cos(delta_4 - theta_4)
-        struct[0].Gy[52,49] = V_4*cos(delta_4 - theta_4)
-        struct[0].Gy[52,50] = -V_4*sin(delta_4 - theta_4)
-        struct[0].Gy[52,52] = -1
-        struct[0].Gy[53,53] = -1
-        struct[0].Gy[53,57] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gy[54,54] = -1
-        struct[0].Gy[54,59] = K_sec_4
-        struct[0].Gy[55,55] = -1
-        struct[0].Gy[56,56] = -1
-        struct[0].Gy[57,56] = K_stab_4*T_1_4/T_2_4
-        struct[0].Gy[57,57] = -1
-        struct[0].Gy[58,58] = -1
-        struct[0].Gy[59,58] = -K_p_agc
-        struct[0].Gy[59,59] = -1
+        jac_run[0,0] = -p[53]
+        jac_run[0,1] = p[43]
+        jac_run[0,103] = -p[43]
+        jac_run[1,1] = -p[51]/(2*p[44])
+        jac_run[1,73] = 1/(2*p[44])
+        jac_run[1,103] = p[51]/(2*p[44])
+        jac_run[2,2] = -1/p[45]
+        jac_run[2,67] = (p[49] - p[47])/p[45]
+        jac_run[2,71] = 1/p[45]
+        jac_run[3,3] = -1/p[46]
+        jac_run[3,68] = (-p[50] + p[48])/p[46]
+        jac_run[4,4] = -1/p[57]
+        jac_run[4,45] = 1/p[57]
+        jac_run[5,4] = p[55]*p[60] - 1
+        jac_run[5,5] = -p[56]*p[60]
+        jac_run[5,71] = p[60]
+        jac_run[5,75] = -p[55]*p[60] + 1
+        jac_run[6,6] = -1/p[62]
+        jac_run[6,72] = 1/p[62]
+        jac_run[7,6] = 1/p[64]
+        jac_run[7,7] = -1/p[64]
+        jac_run[8,8] = -1.00000000000000e-6
+        jac_run[8,69] = -p[65]
+        jac_run[9,1] = 1/p[67]
+        jac_run[9,9] = -1/p[67]
+        jac_run[10,10] = -1/p[69]
+        jac_run[10,74] = 1/p[69]
+        jac_run[11,11] = -p[83]
+        jac_run[11,12] = p[73]
+        jac_run[11,103] = -p[73]
+        jac_run[12,12] = -p[81]/(2*p[74])
+        jac_run[12,82] = 1/(2*p[74])
+        jac_run[12,103] = p[81]/(2*p[74])
+        jac_run[13,13] = -1/p[75]
+        jac_run[13,76] = (p[79] - p[77])/p[75]
+        jac_run[13,80] = 1/p[75]
+        jac_run[14,14] = -1/p[76]
+        jac_run[14,77] = (-p[80] + p[78])/p[76]
+        jac_run[15,15] = -1/p[87]
+        jac_run[15,47] = 1/p[87]
+        jac_run[16,15] = p[85]*p[90] - 1
+        jac_run[16,16] = -p[86]*p[90]
+        jac_run[16,80] = p[90]
+        jac_run[16,84] = -p[85]*p[90] + 1
+        jac_run[17,17] = -1/p[92]
+        jac_run[17,81] = 1/p[92]
+        jac_run[18,17] = 1/p[94]
+        jac_run[18,18] = -1/p[94]
+        jac_run[19,19] = -1.00000000000000e-6
+        jac_run[19,78] = -p[95]
+        jac_run[20,12] = 1/p[97]
+        jac_run[20,20] = -1/p[97]
+        jac_run[21,21] = -1/p[99]
+        jac_run[21,83] = 1/p[99]
+        jac_run[22,22] = -p[113]
+        jac_run[22,23] = p[103]
+        jac_run[22,103] = -p[103]
+        jac_run[23,23] = -p[111]/(2*p[104])
+        jac_run[23,91] = 1/(2*p[104])
+        jac_run[23,103] = p[111]/(2*p[104])
+        jac_run[24,24] = -1/p[105]
+        jac_run[24,85] = (p[109] - p[107])/p[105]
+        jac_run[24,89] = 1/p[105]
+        jac_run[25,25] = -1/p[106]
+        jac_run[25,86] = (-p[110] + p[108])/p[106]
+        jac_run[26,26] = -1/p[117]
+        jac_run[26,49] = 1/p[117]
+        jac_run[27,26] = p[115]*p[120] - 1
+        jac_run[27,27] = -p[116]*p[120]
+        jac_run[27,89] = p[120]
+        jac_run[27,93] = -p[115]*p[120] + 1
+        jac_run[28,28] = -1/p[122]
+        jac_run[28,90] = 1/p[122]
+        jac_run[29,28] = 1/p[124]
+        jac_run[29,29] = -1/p[124]
+        jac_run[30,30] = -1.00000000000000e-6
+        jac_run[30,87] = -p[125]
+        jac_run[31,23] = 1/p[127]
+        jac_run[31,31] = -1/p[127]
+        jac_run[32,32] = -1/p[129]
+        jac_run[32,92] = 1/p[129]
+        jac_run[33,33] = -p[143]
+        jac_run[33,34] = p[133]
+        jac_run[33,103] = -p[133]
+        jac_run[34,34] = -p[141]/(2*p[134])
+        jac_run[34,100] = 1/(2*p[134])
+        jac_run[34,103] = p[141]/(2*p[134])
+        jac_run[35,35] = -1/p[135]
+        jac_run[35,94] = (p[139] - p[137])/p[135]
+        jac_run[35,98] = 1/p[135]
+        jac_run[36,36] = -1/p[136]
+        jac_run[36,95] = (-p[140] + p[138])/p[136]
+        jac_run[37,37] = -1/p[147]
+        jac_run[37,51] = 1/p[147]
+        jac_run[38,37] = p[145]*p[150] - 1
+        jac_run[38,38] = -p[146]*p[150]
+        jac_run[38,98] = p[150]
+        jac_run[38,102] = -p[145]*p[150] + 1
+        jac_run[39,39] = -1/p[152]
+        jac_run[39,99] = 1/p[152]
+        jac_run[40,39] = 1/p[154]
+        jac_run[40,40] = -1/p[154]
+        jac_run[41,41] = -1.00000000000000e-6
+        jac_run[41,96] = -p[155]
+        jac_run[42,34] = 1/p[157]
+        jac_run[42,42] = -1/p[157]
+        jac_run[43,43] = -1/p[159]
+        jac_run[43,101] = 1/p[159]
+        jac_run[44,103] = -1
+        jac_run[45,69] = -p[42]/p[0]
+        jac_run[46,70] = -p[42]/p[0]
+        jac_run[47,78] = -p[72]/p[0]
+        jac_run[48,79] = -p[72]/p[0]
+        jac_run[49,87] = -p[102]/p[0]
+        jac_run[50,88] = -p[102]/p[0]
+        jac_run[51,96] = -p[132]/p[0]
+        jac_run[52,97] = -p[132]/p[0]
+        jac_run[67,2] = -1
+        jac_run[67,67] = p[49]
+        jac_run[67,68] = p[52]
+        jac_run[68,3] = -1
+        jac_run[68,67] = p[52]
+        jac_run[68,68] = -p[50]
+        jac_run[69,69] = -1
+        jac_run[70,70] = -1
+        jac_run[71,71] = -1
+        jac_run[72,1] = -1/p[61]
+        jac_run[72,8] = 1
+        jac_run[72,72] = -1
+        jac_run[72,104] = p[54]
+        jac_run[73,6] = p[63]/p[64]
+        jac_run[73,7] = -p[63]/p[64] + 1
+        jac_run[73,73] = -1
+        jac_run[74,1] = 1
+        jac_run[74,9] = -1
+        jac_run[74,74] = -1
+        jac_run[75,75] = -1
+        jac_run[76,13] = -1
+        jac_run[76,76] = p[79]
+        jac_run[76,77] = p[82]
+        jac_run[77,14] = -1
+        jac_run[77,76] = p[82]
+        jac_run[77,77] = -p[80]
+        jac_run[78,78] = -1
+        jac_run[79,79] = -1
+        jac_run[80,80] = -1
+        jac_run[81,12] = -1/p[91]
+        jac_run[81,19] = 1
+        jac_run[81,81] = -1
+        jac_run[81,104] = p[84]
+        jac_run[82,17] = p[93]/p[94]
+        jac_run[82,18] = -p[93]/p[94] + 1
+        jac_run[82,82] = -1
+        jac_run[83,12] = 1
+        jac_run[83,20] = -1
+        jac_run[83,83] = -1
+        jac_run[84,84] = -1
+        jac_run[85,24] = -1
+        jac_run[85,85] = p[109]
+        jac_run[85,86] = p[112]
+        jac_run[86,25] = -1
+        jac_run[86,85] = p[112]
+        jac_run[86,86] = -p[110]
+        jac_run[87,87] = -1
+        jac_run[88,88] = -1
+        jac_run[89,89] = -1
+        jac_run[90,23] = -1/p[121]
+        jac_run[90,30] = 1
+        jac_run[90,90] = -1
+        jac_run[90,104] = p[114]
+        jac_run[91,28] = p[123]/p[124]
+        jac_run[91,29] = -p[123]/p[124] + 1
+        jac_run[91,91] = -1
+        jac_run[92,23] = 1
+        jac_run[92,31] = -1
+        jac_run[92,92] = -1
+        jac_run[93,93] = -1
+        jac_run[94,35] = -1
+        jac_run[94,94] = p[139]
+        jac_run[94,95] = p[142]
+        jac_run[95,36] = -1
+        jac_run[95,94] = p[142]
+        jac_run[95,95] = -p[140]
+        jac_run[96,96] = -1
+        jac_run[97,97] = -1
+        jac_run[98,98] = -1
+        jac_run[99,34] = -1/p[151]
+        jac_run[99,41] = 1
+        jac_run[99,99] = -1
+        jac_run[99,104] = p[144]
+        jac_run[100,39] = p[153]/p[154]
+        jac_run[100,40] = -p[153]/p[154] + 1
+        jac_run[100,100] = -1
+        jac_run[101,34] = 1
+        jac_run[101,42] = -1
+        jac_run[101,101] = -1
+        jac_run[102,102] = -1
+        jac_run[103,1] = p[44]*p[42]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_run[103,12] = p[74]*p[72]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_run[103,23] = p[104]*p[102]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_run[103,34] = p[134]*p[132]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_run[103,103] = -1
+        jac_run[104,44] = p[163]
+        jac_run[104,103] = -p[162]
+        jac_run[104,104] = -1
 
-        struct[0].Gu[0,0] = -1/S_base
-        struct[0].Gu[1,1] = -1/S_base
-        struct[0].Gu[2,2] = -1/S_base
-        struct[0].Gu[3,3] = -1/S_base
-        struct[0].Gu[4,4] = -1/S_base
-        struct[0].Gu[5,5] = -1/S_base
-        struct[0].Gu[6,6] = -1/S_base
-        struct[0].Gu[7,7] = -1/S_base
-        struct[0].Gu[8,8] = -1/S_base
-        struct[0].Gu[9,9] = -1/S_base
-        struct[0].Gu[10,10] = -1/S_base
-        struct[0].Gu[11,11] = -1/S_base
-        struct[0].Gu[12,12] = -1/S_base
-        struct[0].Gu[13,13] = -1/S_base
-        struct[0].Gu[14,14] = -1/S_base
-        struct[0].Gu[15,15] = -1/S_base
-        struct[0].Gu[16,16] = -1/S_base
-        struct[0].Gu[17,17] = -1/S_base
-        struct[0].Gu[18,18] = -1/S_base
-        struct[0].Gu[19,19] = -1/S_base
-        struct[0].Gu[20,20] = -1/S_base
-        struct[0].Gu[21,21] = -1/S_base
-        struct[0].Gu[26,22] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gu[26,23] = Piecewise(np.array([(0, (V_min_1 > K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1) | (V_max_1 < K_a_1*(-v_c_1 + v_pss_1 + v_ref_1) + K_ai_1*xi_v_1)), (K_a_1, True)]))
-        struct[0].Gu[30,23] = -1
-        struct[0].Gu[35,25] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gu[35,26] = Piecewise(np.array([(0, (V_min_2 > K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2) | (V_max_2 < K_a_2*(-v_c_2 + v_pss_2 + v_ref_2) + K_ai_2*xi_v_2)), (K_a_2, True)]))
-        struct[0].Gu[39,26] = -1
-        struct[0].Gu[44,28] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gu[44,29] = Piecewise(np.array([(0, (V_min_3 > K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3) | (V_max_3 < K_a_3*(-v_c_3 + v_pss_3 + v_ref_3) + K_ai_3*xi_v_3)), (K_a_3, True)]))
-        struct[0].Gu[48,29] = -1
-        struct[0].Gu[53,31] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gu[53,32] = Piecewise(np.array([(0, (V_min_4 > K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4) | (V_max_4 < K_a_4*(-v_c_4 + v_pss_4 + v_ref_4) + K_ai_4*xi_v_4)), (K_a_4, True)]))
-        struct[0].Gu[57,32] = -1
+
+
+
+
+@numba.njit(cache=True)
+def jac_trap_eval(jac_trap,x,y,u,p,xyup = 0):
+
+    jac_trap[1,0] = -0.25*Dt*(-y[0]*y[22]*cos(x[0] - y[1]) + y[0]*y[23]*sin(x[0] - y[1]))/p[44]
+    jac_trap[1,45] = -0.25*Dt*(-y[22]*sin(x[0] - y[1]) - y[23]*cos(x[0] - y[1]))/p[44]
+    jac_trap[1,46] = -0.25*Dt*(y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1]))/p[44]
+    jac_trap[1,67] = -0.25*Dt*(-2*p[52]*y[22] - y[0]*sin(x[0] - y[1]))/p[44]
+    jac_trap[1,68] = -0.25*Dt*(-2*p[52]*y[23] - y[0]*cos(x[0] - y[1]))/p[44]
+    jac_trap[12,11] = -0.25*Dt*(-y[2]*y[31]*cos(x[11] - y[3]) + y[2]*y[32]*sin(x[11] - y[3]))/p[74]
+    jac_trap[12,47] = -0.25*Dt*(-y[31]*sin(x[11] - y[3]) - y[32]*cos(x[11] - y[3]))/p[74]
+    jac_trap[12,48] = -0.25*Dt*(y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3]))/p[74]
+    jac_trap[12,76] = -0.25*Dt*(-2*p[82]*y[31] - y[2]*sin(x[11] - y[3]))/p[74]
+    jac_trap[12,77] = -0.25*Dt*(-2*p[82]*y[32] - y[2]*cos(x[11] - y[3]))/p[74]
+    jac_trap[23,22] = -0.25*Dt*(-y[4]*y[40]*cos(x[22] - y[5]) + y[4]*y[41]*sin(x[22] - y[5]))/p[104]
+    jac_trap[23,49] = -0.25*Dt*(-y[40]*sin(x[22] - y[5]) - y[41]*cos(x[22] - y[5]))/p[104]
+    jac_trap[23,50] = -0.25*Dt*(y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5]))/p[104]
+    jac_trap[23,85] = -0.25*Dt*(-2*p[112]*y[40] - y[4]*sin(x[22] - y[5]))/p[104]
+    jac_trap[23,86] = -0.25*Dt*(-2*p[112]*y[41] - y[4]*cos(x[22] - y[5]))/p[104]
+    jac_trap[34,33] = -0.25*Dt*(-y[6]*y[49]*cos(x[33] - y[7]) + y[6]*y[50]*sin(x[33] - y[7]))/p[134]
+    jac_trap[34,51] = -0.25*Dt*(-y[49]*sin(x[33] - y[7]) - y[50]*cos(x[33] - y[7]))/p[134]
+    jac_trap[34,52] = -0.25*Dt*(y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7]))/p[134]
+    jac_trap[34,94] = -0.25*Dt*(-2*p[142]*y[49] - y[6]*sin(x[33] - y[7]))/p[134]
+    jac_trap[34,95] = -0.25*Dt*(-2*p[142]*y[50] - y[6]*cos(x[33] - y[7]))/p[134]
+    jac_trap[45,45] = 2*y[0]*p[1] + y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_trap[45,46] = y[0]*y[8]*(-p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_trap[45,53] = y[0]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_trap[45,54] = y[0]*y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_trap[46,45] = 2*y[0]*(-p[2] - p[3]/2) + y[8]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_trap[46,46] = y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_trap[46,53] = y[0]*(p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9]))
+    jac_trap[46,54] = y[0]*y[8]*(p[2]*sin(y[1] - y[9]) + p[1]*cos(y[1] - y[9]))
+    jac_trap[47,47] = 2*y[2]*p[4] + y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_trap[47,48] = y[2]*y[10]*(-p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_trap[47,55] = y[2]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_trap[47,56] = y[2]*y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_trap[48,47] = 2*y[2]*(-p[5] - p[6]/2) + y[10]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_trap[48,48] = y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_trap[48,55] = y[2]*(p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11]))
+    jac_trap[48,56] = y[2]*y[10]*(p[5]*sin(y[3] - y[11]) + p[4]*cos(y[3] - y[11]))
+    jac_trap[49,49] = y[20]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5])) + 2*y[4]*p[7]
+    jac_trap[49,50] = y[20]*y[4]*(-p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_trap[49,65] = y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_trap[49,66] = y[20]*y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_trap[50,49] = y[20]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5])) + 2*y[4]*(-p[8] - p[9]/2)
+    jac_trap[50,50] = y[20]*y[4]*(p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_trap[50,65] = y[4]*(p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_trap[50,66] = y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) + p[7]*cos(y[21] - y[5]))
+    jac_trap[51,51] = y[18]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + 2*y[6]*p[10]
+    jac_trap[51,52] = y[18]*y[6]*(-p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_trap[51,63] = y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_trap[51,64] = y[18]*y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7]))
+    jac_trap[52,51] = y[18]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + 2*y[6]*(-p[11] - p[12]/2)
+    jac_trap[52,52] = y[18]*y[6]*(p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_trap[52,63] = y[6]*(p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7]))
+    jac_trap[52,64] = y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) + p[10]*cos(y[19] - y[7]))
+    jac_trap[53,45] = y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9]))
+    jac_trap[53,46] = y[0]*y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_trap[53,53] = y[0]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + 2*y[8]*(p[1] + p[13]) + y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_trap[53,54] = y[0]*y[8]*(-p[2]*cos(y[1] - y[9]) - p[1]*sin(y[1] - y[9])) + y[8]*y[10]*(-p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_trap[53,55] = y[8]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_trap[53,56] = y[8]*y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_trap[54,45] = y[8]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9]))
+    jac_trap[54,46] = y[0]*y[8]*(-p[2]*sin(y[1] - y[9]) + p[1]*cos(y[1] - y[9]))
+    jac_trap[54,53] = y[0]*(p[2]*cos(y[1] - y[9]) + p[1]*sin(y[1] - y[9])) + 2*y[8]*(-p[2] - p[14] - p[3]/2 - p[15]/2) + y[10]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_trap[54,54] = y[0]*y[8]*(p[2]*sin(y[1] - y[9]) - p[1]*cos(y[1] - y[9])) + y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_trap[54,55] = y[8]*(p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11]))
+    jac_trap[54,56] = y[8]*y[10]*(p[14]*sin(y[9] - y[11]) + p[13]*cos(y[9] - y[11]))
+    jac_trap[55,47] = y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11]))
+    jac_trap[55,48] = y[2]*y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_trap[55,53] = y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11]))
+    jac_trap[55,54] = y[8]*y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_trap[55,55] = y[2]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + 2*y[10]*(p[4] + p[13] + p[16]) + y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_trap[55,56] = y[2]*y[10]*(-p[5]*cos(y[3] - y[11]) - p[4]*sin(y[3] - y[11])) + y[8]*y[10]*(-p[14]*cos(y[9] - y[11]) - p[13]*sin(y[9] - y[11])) + y[10]*y[12]*(-p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_trap[55,57] = y[10]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_trap[55,58] = y[10]*y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_trap[56,47] = y[10]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11]))
+    jac_trap[56,48] = y[2]*y[10]*(-p[5]*sin(y[3] - y[11]) + p[4]*cos(y[3] - y[11]))
+    jac_trap[56,53] = y[10]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11]))
+    jac_trap[56,54] = y[8]*y[10]*(-p[14]*sin(y[9] - y[11]) + p[13]*cos(y[9] - y[11]))
+    jac_trap[56,55] = y[2]*(p[5]*cos(y[3] - y[11]) + p[4]*sin(y[3] - y[11])) + y[8]*(p[14]*cos(y[9] - y[11]) + p[13]*sin(y[9] - y[11])) + 2*y[10]*(-p[5] - p[14] - p[17] - p[6]/2 - p[15]/2 - p[18]/2) + y[12]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_trap[56,56] = y[2]*y[10]*(p[5]*sin(y[3] - y[11]) - p[4]*cos(y[3] - y[11])) + y[8]*y[10]*(p[14]*sin(y[9] - y[11]) - p[13]*cos(y[9] - y[11])) + y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_trap[56,57] = y[10]*(p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13]))
+    jac_trap[56,58] = y[10]*y[12]*(p[17]*sin(y[11] - y[13]) + p[16]*cos(y[11] - y[13]))
+    jac_trap[57,55] = y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13]))
+    jac_trap[57,56] = y[10]*y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_trap[57,57] = y[10]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + 2*y[12]*(p[16] + 2*p[19]) + y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_trap[57,58] = y[10]*y[12]*(-p[17]*cos(y[11] - y[13]) - p[16]*sin(y[11] - y[13])) + y[12]*y[14]*(-2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_trap[57,59] = y[12]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_trap[57,60] = y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_trap[58,55] = y[12]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13]))
+    jac_trap[58,56] = y[10]*y[12]*(-p[17]*sin(y[11] - y[13]) + p[16]*cos(y[11] - y[13]))
+    jac_trap[58,57] = y[10]*(p[17]*cos(y[11] - y[13]) + p[16]*sin(y[11] - y[13])) + 2*y[12]*(-p[17] - 2*p[20] - p[18]/2 - p[21]) + y[14]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_trap[58,58] = y[10]*y[12]*(p[17]*sin(y[11] - y[13]) - p[16]*cos(y[11] - y[13])) + y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_trap[58,59] = y[12]*(2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15]))
+    jac_trap[58,60] = y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) + 2*p[19]*cos(y[13] - y[15]))
+    jac_trap[59,57] = y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15]))
+    jac_trap[59,58] = y[12]*y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_trap[59,59] = y[12]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + 2*y[14]*(2*p[19] + 2*p[22]) + y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[59,60] = y[12]*y[14]*(-2*p[20]*cos(y[13] - y[15]) - 2*p[19]*sin(y[13] - y[15])) + y[14]*y[16]*(-2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[59,61] = y[14]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[59,62] = y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[60,57] = y[14]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15]))
+    jac_trap[60,58] = y[12]*y[14]*(-2*p[20]*sin(y[13] - y[15]) + 2*p[19]*cos(y[13] - y[15]))
+    jac_trap[60,59] = y[12]*(2*p[20]*cos(y[13] - y[15]) + 2*p[19]*sin(y[13] - y[15])) + 2*y[14]*(-2*p[20] - 2*p[23] - p[21] - p[24]) + y[16]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[60,60] = y[12]*y[14]*(2*p[20]*sin(y[13] - y[15]) - 2*p[19]*cos(y[13] - y[15])) + y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[60,61] = y[14]*(2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[60,62] = y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) + 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[61,59] = y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[61,60] = y[14]*y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[61,61] = y[18]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17])) + 2*y[16]*(2*p[22] + p[25])
+    jac_trap[61,62] = y[18]*y[16]*(-p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17])) + y[14]*y[16]*(-2*p[23]*cos(y[15] - y[17]) - 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[61,63] = y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_trap[61,64] = y[18]*y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_trap[62,59] = y[16]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17]))
+    jac_trap[62,60] = y[14]*y[16]*(-2*p[23]*sin(y[15] - y[17]) + 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[62,61] = y[18]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17])) + y[14]*(2*p[23]*cos(y[15] - y[17]) + 2*p[22]*sin(y[15] - y[17])) + 2*y[16]*(-2*p[23] - p[26] - p[24] - p[27]/2)
+    jac_trap[62,62] = y[18]*y[16]*(p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17])) + y[14]*y[16]*(2*p[23]*sin(y[15] - y[17]) - 2*p[22]*cos(y[15] - y[17]))
+    jac_trap[62,63] = y[16]*(p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_trap[62,64] = y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) + p[25]*cos(y[19] - y[17]))
+    jac_trap[63,51] = y[18]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7]))
+    jac_trap[63,52] = y[18]*y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_trap[63,61] = y[18]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_trap[63,62] = y[18]*y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_trap[63,63] = 2*y[18]*(p[28] + p[10] + p[25]) + y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_trap[63,64] = y[18]*y[20]*(-p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + y[18]*y[6]*(-p[11]*cos(y[19] - y[7]) + p[10]*sin(y[19] - y[7])) + y[18]*y[16]*(-p[26]*cos(y[19] - y[17]) + p[25]*sin(y[19] - y[17]))
+    jac_trap[63,65] = y[18]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21]))
+    jac_trap[63,66] = y[18]*y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21]))
+    jac_trap[64,51] = y[18]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7]))
+    jac_trap[64,52] = y[18]*y[6]*(p[11]*sin(y[19] - y[7]) + p[10]*cos(y[19] - y[7]))
+    jac_trap[64,61] = y[18]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_trap[64,62] = y[18]*y[16]*(p[26]*sin(y[19] - y[17]) + p[25]*cos(y[19] - y[17]))
+    jac_trap[64,63] = 2*y[18]*(-p[29] - p[11] - p[26] - p[30]/2 - p[12]/2 - p[27]/2) + y[20]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[6]*(p[11]*cos(y[19] - y[7]) - p[10]*sin(y[19] - y[7])) + y[16]*(p[26]*cos(y[19] - y[17]) - p[25]*sin(y[19] - y[17]))
+    jac_trap[64,64] = y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[18]*y[6]*(-p[11]*sin(y[19] - y[7]) - p[10]*cos(y[19] - y[7])) + y[18]*y[16]*(-p[26]*sin(y[19] - y[17]) - p[25]*cos(y[19] - y[17]))
+    jac_trap[64,65] = y[18]*(p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21]))
+    jac_trap[64,66] = y[18]*y[20]*(p[29]*sin(y[19] - y[21]) + p[28]*cos(y[19] - y[21]))
+    jac_trap[65,49] = y[20]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_trap[65,50] = y[20]*y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_trap[65,63] = y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21]))
+    jac_trap[65,64] = y[18]*y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21]))
+    jac_trap[65,65] = y[18]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + 2*y[20]*(p[28] + p[7]) + y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_trap[65,66] = y[18]*y[20]*(-p[29]*cos(y[19] - y[21]) - p[28]*sin(y[19] - y[21])) + y[20]*y[4]*(-p[8]*cos(y[21] - y[5]) + p[7]*sin(y[21] - y[5]))
+    jac_trap[66,49] = y[20]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_trap[66,50] = y[20]*y[4]*(p[8]*sin(y[21] - y[5]) + p[7]*cos(y[21] - y[5]))
+    jac_trap[66,63] = y[20]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21]))
+    jac_trap[66,64] = y[18]*y[20]*(-p[29]*sin(y[19] - y[21]) + p[28]*cos(y[19] - y[21]))
+    jac_trap[66,65] = y[18]*(p[29]*cos(y[19] - y[21]) + p[28]*sin(y[19] - y[21])) + 2*y[20]*(-p[29] - p[8] - p[30]/2 - p[9]/2) + y[4]*(p[8]*cos(y[21] - y[5]) - p[7]*sin(y[21] - y[5]))
+    jac_trap[66,66] = y[18]*y[20]*(p[29]*sin(y[19] - y[21]) - p[28]*cos(y[19] - y[21])) + y[20]*y[4]*(-p[8]*sin(y[21] - y[5]) - p[7]*cos(y[21] - y[5]))
+    jac_trap[67,0] = -y[0]*sin(x[0] - y[1])
+    jac_trap[67,45] = cos(x[0] - y[1])
+    jac_trap[67,46] = y[0]*sin(x[0] - y[1])
+    jac_trap[68,0] = y[0]*cos(x[0] - y[1])
+    jac_trap[68,45] = sin(x[0] - y[1])
+    jac_trap[68,46] = -y[0]*cos(x[0] - y[1])
+    jac_trap[69,0] = y[0]*y[22]*cos(x[0] - y[1]) - y[0]*y[23]*sin(x[0] - y[1])
+    jac_trap[69,45] = y[22]*sin(x[0] - y[1]) + y[23]*cos(x[0] - y[1])
+    jac_trap[69,46] = -y[0]*y[22]*cos(x[0] - y[1]) + y[0]*y[23]*sin(x[0] - y[1])
+    jac_trap[69,67] = y[0]*sin(x[0] - y[1])
+    jac_trap[69,68] = y[0]*cos(x[0] - y[1])
+    jac_trap[70,0] = -y[0]*y[22]*sin(x[0] - y[1]) - y[0]*y[23]*cos(x[0] - y[1])
+    jac_trap[70,45] = y[22]*cos(x[0] - y[1]) - y[23]*sin(x[0] - y[1])
+    jac_trap[70,46] = y[0]*y[22]*sin(x[0] - y[1]) + y[0]*y[23]*cos(x[0] - y[1])
+    jac_trap[70,67] = y[0]*cos(x[0] - y[1])
+    jac_trap[70,68] = -y[0]*sin(x[0] - y[1])
+    jac_trap[71,4] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (-p[55], True)]))
+    jac_trap[71,5] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (p[56], True)]))
+    jac_trap[71,75] = Piecewise(np.array([(0, (p[58] > p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5]) | (p[59] < p[55]*(-x[4] + y[30] + u[22]) + p[56]*x[5])), (p[55], True)]))
+    jac_trap[75,10] = Piecewise(np.array([(0, (p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])) | (p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]))), (p[70]*(-p[68]/p[69] + 1), True)]))
+    jac_trap[75,74] = Piecewise(np.array([(0, (p[71] < p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10])) | (p[71] < -p[70]*(p[68]*(-x[10] + y[29])/p[69] + x[10]))), (p[70]*p[68]/p[69], True)]))
+    jac_trap[76,11] = -y[2]*sin(x[11] - y[3])
+    jac_trap[76,47] = cos(x[11] - y[3])
+    jac_trap[76,48] = y[2]*sin(x[11] - y[3])
+    jac_trap[77,11] = y[2]*cos(x[11] - y[3])
+    jac_trap[77,47] = sin(x[11] - y[3])
+    jac_trap[77,48] = -y[2]*cos(x[11] - y[3])
+    jac_trap[78,11] = y[2]*y[31]*cos(x[11] - y[3]) - y[2]*y[32]*sin(x[11] - y[3])
+    jac_trap[78,47] = y[31]*sin(x[11] - y[3]) + y[32]*cos(x[11] - y[3])
+    jac_trap[78,48] = -y[2]*y[31]*cos(x[11] - y[3]) + y[2]*y[32]*sin(x[11] - y[3])
+    jac_trap[78,76] = y[2]*sin(x[11] - y[3])
+    jac_trap[78,77] = y[2]*cos(x[11] - y[3])
+    jac_trap[79,11] = -y[2]*y[31]*sin(x[11] - y[3]) - y[2]*y[32]*cos(x[11] - y[3])
+    jac_trap[79,47] = y[31]*cos(x[11] - y[3]) - y[32]*sin(x[11] - y[3])
+    jac_trap[79,48] = y[2]*y[31]*sin(x[11] - y[3]) + y[2]*y[32]*cos(x[11] - y[3])
+    jac_trap[79,76] = y[2]*cos(x[11] - y[3])
+    jac_trap[79,77] = -y[2]*sin(x[11] - y[3])
+    jac_trap[80,15] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (-p[85], True)]))
+    jac_trap[80,16] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (p[86], True)]))
+    jac_trap[80,84] = Piecewise(np.array([(0, (p[88] > p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16]) | (p[89] < p[85]*(-x[15] + y[39] + u[26]) + p[86]*x[16])), (p[85], True)]))
+    jac_trap[84,21] = Piecewise(np.array([(0, (p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])) | (p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]))), (p[100]*(-p[98]/p[99] + 1), True)]))
+    jac_trap[84,83] = Piecewise(np.array([(0, (p[101] < p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21])) | (p[101] < -p[100]*(p[98]*(-x[21] + y[38])/p[99] + x[21]))), (p[100]*p[98]/p[99], True)]))
+    jac_trap[85,22] = -y[4]*sin(x[22] - y[5])
+    jac_trap[85,49] = cos(x[22] - y[5])
+    jac_trap[85,50] = y[4]*sin(x[22] - y[5])
+    jac_trap[86,22] = y[4]*cos(x[22] - y[5])
+    jac_trap[86,49] = sin(x[22] - y[5])
+    jac_trap[86,50] = -y[4]*cos(x[22] - y[5])
+    jac_trap[87,22] = y[4]*y[40]*cos(x[22] - y[5]) - y[4]*y[41]*sin(x[22] - y[5])
+    jac_trap[87,49] = y[40]*sin(x[22] - y[5]) + y[41]*cos(x[22] - y[5])
+    jac_trap[87,50] = -y[4]*y[40]*cos(x[22] - y[5]) + y[4]*y[41]*sin(x[22] - y[5])
+    jac_trap[87,85] = y[4]*sin(x[22] - y[5])
+    jac_trap[87,86] = y[4]*cos(x[22] - y[5])
+    jac_trap[88,22] = -y[4]*y[40]*sin(x[22] - y[5]) - y[4]*y[41]*cos(x[22] - y[5])
+    jac_trap[88,49] = y[40]*cos(x[22] - y[5]) - y[41]*sin(x[22] - y[5])
+    jac_trap[88,50] = y[4]*y[40]*sin(x[22] - y[5]) + y[4]*y[41]*cos(x[22] - y[5])
+    jac_trap[88,85] = y[4]*cos(x[22] - y[5])
+    jac_trap[88,86] = -y[4]*sin(x[22] - y[5])
+    jac_trap[89,26] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (-p[115], True)]))
+    jac_trap[89,27] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (p[116], True)]))
+    jac_trap[89,93] = Piecewise(np.array([(0, (p[118] > p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27]) | (p[119] < p[115]*(-x[26] + y[48] + u[30]) + p[116]*x[27])), (p[115], True)]))
+    jac_trap[93,32] = Piecewise(np.array([(0, (p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])) | (p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]))), (p[130]*(-p[128]/p[129] + 1), True)]))
+    jac_trap[93,92] = Piecewise(np.array([(0, (p[131] < p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32])) | (p[131] < -p[130]*(p[128]*(-x[32] + y[47])/p[129] + x[32]))), (p[130]*p[128]/p[129], True)]))
+    jac_trap[94,33] = -y[6]*sin(x[33] - y[7])
+    jac_trap[94,51] = cos(x[33] - y[7])
+    jac_trap[94,52] = y[6]*sin(x[33] - y[7])
+    jac_trap[95,33] = y[6]*cos(x[33] - y[7])
+    jac_trap[95,51] = sin(x[33] - y[7])
+    jac_trap[95,52] = -y[6]*cos(x[33] - y[7])
+    jac_trap[96,33] = y[6]*y[49]*cos(x[33] - y[7]) - y[6]*y[50]*sin(x[33] - y[7])
+    jac_trap[96,51] = y[49]*sin(x[33] - y[7]) + y[50]*cos(x[33] - y[7])
+    jac_trap[96,52] = -y[6]*y[49]*cos(x[33] - y[7]) + y[6]*y[50]*sin(x[33] - y[7])
+    jac_trap[96,94] = y[6]*sin(x[33] - y[7])
+    jac_trap[96,95] = y[6]*cos(x[33] - y[7])
+    jac_trap[97,33] = -y[6]*y[49]*sin(x[33] - y[7]) - y[6]*y[50]*cos(x[33] - y[7])
+    jac_trap[97,51] = y[49]*cos(x[33] - y[7]) - y[50]*sin(x[33] - y[7])
+    jac_trap[97,52] = y[6]*y[49]*sin(x[33] - y[7]) + y[6]*y[50]*cos(x[33] - y[7])
+    jac_trap[97,94] = y[6]*cos(x[33] - y[7])
+    jac_trap[97,95] = -y[6]*sin(x[33] - y[7])
+    jac_trap[98,37] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (-p[145], True)]))
+    jac_trap[98,38] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (p[146], True)]))
+    jac_trap[98,102] = Piecewise(np.array([(0, (p[148] > p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38]) | (p[149] < p[145]*(-x[37] + y[57] + u[34]) + p[146]*x[38])), (p[145], True)]))
+    jac_trap[102,43] = Piecewise(np.array([(0, (p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])) | (p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]))), (p[160]*(-p[158]/p[159] + 1), True)]))
+    jac_trap[102,101] = Piecewise(np.array([(0, (p[161] < p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43])) | (p[161] < -p[160]*(p[158]*(-x[43] + y[56])/p[159] + x[43]))), (p[160]*p[158]/p[159], True)]))
+
+    if xyup == 1:
+
+        jac_trap[0,0] = 0.5*Dt*p[53] + 1
+        jac_trap[0,1] = -0.5*Dt*p[43]
+        jac_trap[0,103] = 0.5*Dt*p[43]
+        jac_trap[1,1] = 0.25*p[51]*Dt/p[44] + 1
+        jac_trap[1,73] = -0.25*Dt/p[44]
+        jac_trap[1,103] = -0.25*p[51]*Dt/p[44]
+        jac_trap[2,2] = 0.5*Dt/p[45] + 1
+        jac_trap[2,67] = -0.5*Dt*(p[49] - p[47])/p[45]
+        jac_trap[2,71] = -0.5*Dt/p[45]
+        jac_trap[3,3] = 0.5*Dt/p[46] + 1
+        jac_trap[3,68] = -0.5*Dt*(-p[50] + p[48])/p[46]
+        jac_trap[4,4] = 0.5*Dt/p[57] + 1
+        jac_trap[4,45] = -0.5*Dt/p[57]
+        jac_trap[5,4] = -0.5*Dt*(p[55]*p[60] - 1)
+        jac_trap[5,5] = 0.5*Dt*p[56]*p[60] + 1
+        jac_trap[5,71] = -0.5*Dt*p[60]
+        jac_trap[5,75] = -0.5*Dt*(-p[55]*p[60] + 1)
+        jac_trap[6,6] = 0.5*Dt/p[62] + 1
+        jac_trap[6,72] = -0.5*Dt/p[62]
+        jac_trap[7,6] = -0.5*Dt/p[64]
+        jac_trap[7,7] = 0.5*Dt/p[64] + 1
+        jac_trap[8,8] = 5.0e-7*Dt + 1
+        jac_trap[8,69] = 0.5*Dt*p[65]
+        jac_trap[9,1] = -0.5*Dt/p[67]
+        jac_trap[9,9] = 0.5*Dt/p[67] + 1
+        jac_trap[10,10] = 0.5*Dt/p[69] + 1
+        jac_trap[10,74] = -0.5*Dt/p[69]
+        jac_trap[11,11] = 0.5*Dt*p[83] + 1
+        jac_trap[11,12] = -0.5*Dt*p[73]
+        jac_trap[11,103] = 0.5*Dt*p[73]
+        jac_trap[12,12] = 0.25*p[81]*Dt/p[74] + 1
+        jac_trap[12,82] = -0.25*Dt/p[74]
+        jac_trap[12,103] = -0.25*p[81]*Dt/p[74]
+        jac_trap[13,13] = 0.5*Dt/p[75] + 1
+        jac_trap[13,76] = -0.5*Dt*(p[79] - p[77])/p[75]
+        jac_trap[13,80] = -0.5*Dt/p[75]
+        jac_trap[14,14] = 0.5*Dt/p[76] + 1
+        jac_trap[14,77] = -0.5*Dt*(-p[80] + p[78])/p[76]
+        jac_trap[15,15] = 0.5*Dt/p[87] + 1
+        jac_trap[15,47] = -0.5*Dt/p[87]
+        jac_trap[16,15] = -0.5*Dt*(p[85]*p[90] - 1)
+        jac_trap[16,16] = 0.5*Dt*p[86]*p[90] + 1
+        jac_trap[16,80] = -0.5*Dt*p[90]
+        jac_trap[16,84] = -0.5*Dt*(-p[85]*p[90] + 1)
+        jac_trap[17,17] = 0.5*Dt/p[92] + 1
+        jac_trap[17,81] = -0.5*Dt/p[92]
+        jac_trap[18,17] = -0.5*Dt/p[94]
+        jac_trap[18,18] = 0.5*Dt/p[94] + 1
+        jac_trap[19,19] = 5.0e-7*Dt + 1
+        jac_trap[19,78] = 0.5*Dt*p[95]
+        jac_trap[20,12] = -0.5*Dt/p[97]
+        jac_trap[20,20] = 0.5*Dt/p[97] + 1
+        jac_trap[21,21] = 0.5*Dt/p[99] + 1
+        jac_trap[21,83] = -0.5*Dt/p[99]
+        jac_trap[22,22] = 0.5*Dt*p[113] + 1
+        jac_trap[22,23] = -0.5*Dt*p[103]
+        jac_trap[22,103] = 0.5*Dt*p[103]
+        jac_trap[23,23] = 0.25*p[111]*Dt/p[104] + 1
+        jac_trap[23,91] = -0.25*Dt/p[104]
+        jac_trap[23,103] = -0.25*p[111]*Dt/p[104]
+        jac_trap[24,24] = 0.5*Dt/p[105] + 1
+        jac_trap[24,85] = -0.5*Dt*(p[109] - p[107])/p[105]
+        jac_trap[24,89] = -0.5*Dt/p[105]
+        jac_trap[25,25] = 0.5*Dt/p[106] + 1
+        jac_trap[25,86] = -0.5*Dt*(-p[110] + p[108])/p[106]
+        jac_trap[26,26] = 0.5*Dt/p[117] + 1
+        jac_trap[26,49] = -0.5*Dt/p[117]
+        jac_trap[27,26] = -0.5*Dt*(p[115]*p[120] - 1)
+        jac_trap[27,27] = 0.5*Dt*p[116]*p[120] + 1
+        jac_trap[27,89] = -0.5*Dt*p[120]
+        jac_trap[27,93] = -0.5*Dt*(-p[115]*p[120] + 1)
+        jac_trap[28,28] = 0.5*Dt/p[122] + 1
+        jac_trap[28,90] = -0.5*Dt/p[122]
+        jac_trap[29,28] = -0.5*Dt/p[124]
+        jac_trap[29,29] = 0.5*Dt/p[124] + 1
+        jac_trap[30,30] = 5.0e-7*Dt + 1
+        jac_trap[30,87] = 0.5*Dt*p[125]
+        jac_trap[31,23] = -0.5*Dt/p[127]
+        jac_trap[31,31] = 0.5*Dt/p[127] + 1
+        jac_trap[32,32] = 0.5*Dt/p[129] + 1
+        jac_trap[32,92] = -0.5*Dt/p[129]
+        jac_trap[33,33] = 0.5*Dt*p[143] + 1
+        jac_trap[33,34] = -0.5*Dt*p[133]
+        jac_trap[33,103] = 0.5*Dt*p[133]
+        jac_trap[34,34] = 0.25*p[141]*Dt/p[134] + 1
+        jac_trap[34,100] = -0.25*Dt/p[134]
+        jac_trap[34,103] = -0.25*p[141]*Dt/p[134]
+        jac_trap[35,35] = 0.5*Dt/p[135] + 1
+        jac_trap[35,94] = -0.5*Dt*(p[139] - p[137])/p[135]
+        jac_trap[35,98] = -0.5*Dt/p[135]
+        jac_trap[36,36] = 0.5*Dt/p[136] + 1
+        jac_trap[36,95] = -0.5*Dt*(-p[140] + p[138])/p[136]
+        jac_trap[37,37] = 0.5*Dt/p[147] + 1
+        jac_trap[37,51] = -0.5*Dt/p[147]
+        jac_trap[38,37] = -0.5*Dt*(p[145]*p[150] - 1)
+        jac_trap[38,38] = 0.5*Dt*p[146]*p[150] + 1
+        jac_trap[38,98] = -0.5*Dt*p[150]
+        jac_trap[38,102] = -0.5*Dt*(-p[145]*p[150] + 1)
+        jac_trap[39,39] = 0.5*Dt/p[152] + 1
+        jac_trap[39,99] = -0.5*Dt/p[152]
+        jac_trap[40,39] = -0.5*Dt/p[154]
+        jac_trap[40,40] = 0.5*Dt/p[154] + 1
+        jac_trap[41,41] = 5.0e-7*Dt + 1
+        jac_trap[41,96] = 0.5*Dt*p[155]
+        jac_trap[42,34] = -0.5*Dt/p[157]
+        jac_trap[42,42] = 0.5*Dt/p[157] + 1
+        jac_trap[43,43] = 0.5*Dt/p[159] + 1
+        jac_trap[43,101] = -0.5*Dt/p[159]
+        jac_trap[44,44] = 1
+        jac_trap[44,103] = 0.5*Dt
+        jac_trap[45,69] = -p[42]/p[0]
+        jac_trap[46,70] = -p[42]/p[0]
+        jac_trap[47,78] = -p[72]/p[0]
+        jac_trap[48,79] = -p[72]/p[0]
+        jac_trap[49,87] = -p[102]/p[0]
+        jac_trap[50,88] = -p[102]/p[0]
+        jac_trap[51,96] = -p[132]/p[0]
+        jac_trap[52,97] = -p[132]/p[0]
+        jac_trap[67,2] = -1
+        jac_trap[67,67] = p[49]
+        jac_trap[67,68] = p[52]
+        jac_trap[68,3] = -1
+        jac_trap[68,67] = p[52]
+        jac_trap[68,68] = -p[50]
+        jac_trap[69,69] = -1
+        jac_trap[70,70] = -1
+        jac_trap[71,71] = -1
+        jac_trap[72,1] = -1/p[61]
+        jac_trap[72,8] = 1
+        jac_trap[72,72] = -1
+        jac_trap[72,104] = p[54]
+        jac_trap[73,6] = p[63]/p[64]
+        jac_trap[73,7] = -p[63]/p[64] + 1
+        jac_trap[73,73] = -1
+        jac_trap[74,1] = 1
+        jac_trap[74,9] = -1
+        jac_trap[74,74] = -1
+        jac_trap[75,75] = -1
+        jac_trap[76,13] = -1
+        jac_trap[76,76] = p[79]
+        jac_trap[76,77] = p[82]
+        jac_trap[77,14] = -1
+        jac_trap[77,76] = p[82]
+        jac_trap[77,77] = -p[80]
+        jac_trap[78,78] = -1
+        jac_trap[79,79] = -1
+        jac_trap[80,80] = -1
+        jac_trap[81,12] = -1/p[91]
+        jac_trap[81,19] = 1
+        jac_trap[81,81] = -1
+        jac_trap[81,104] = p[84]
+        jac_trap[82,17] = p[93]/p[94]
+        jac_trap[82,18] = -p[93]/p[94] + 1
+        jac_trap[82,82] = -1
+        jac_trap[83,12] = 1
+        jac_trap[83,20] = -1
+        jac_trap[83,83] = -1
+        jac_trap[84,84] = -1
+        jac_trap[85,24] = -1
+        jac_trap[85,85] = p[109]
+        jac_trap[85,86] = p[112]
+        jac_trap[86,25] = -1
+        jac_trap[86,85] = p[112]
+        jac_trap[86,86] = -p[110]
+        jac_trap[87,87] = -1
+        jac_trap[88,88] = -1
+        jac_trap[89,89] = -1
+        jac_trap[90,23] = -1/p[121]
+        jac_trap[90,30] = 1
+        jac_trap[90,90] = -1
+        jac_trap[90,104] = p[114]
+        jac_trap[91,28] = p[123]/p[124]
+        jac_trap[91,29] = -p[123]/p[124] + 1
+        jac_trap[91,91] = -1
+        jac_trap[92,23] = 1
+        jac_trap[92,31] = -1
+        jac_trap[92,92] = -1
+        jac_trap[93,93] = -1
+        jac_trap[94,35] = -1
+        jac_trap[94,94] = p[139]
+        jac_trap[94,95] = p[142]
+        jac_trap[95,36] = -1
+        jac_trap[95,94] = p[142]
+        jac_trap[95,95] = -p[140]
+        jac_trap[96,96] = -1
+        jac_trap[97,97] = -1
+        jac_trap[98,98] = -1
+        jac_trap[99,34] = -1/p[151]
+        jac_trap[99,41] = 1
+        jac_trap[99,99] = -1
+        jac_trap[99,104] = p[144]
+        jac_trap[100,39] = p[153]/p[154]
+        jac_trap[100,40] = -p[153]/p[154] + 1
+        jac_trap[100,100] = -1
+        jac_trap[101,34] = 1
+        jac_trap[101,42] = -1
+        jac_trap[101,101] = -1
+        jac_trap[102,102] = -1
+        jac_trap[103,1] = p[44]*p[42]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_trap[103,12] = p[74]*p[72]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_trap[103,23] = p[104]*p[102]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_trap[103,34] = p[134]*p[132]/(p[44]*p[42] + p[74]*p[72] + p[104]*p[102] + p[134]*p[132])
+        jac_trap[103,103] = -1
+        jac_trap[104,44] = p[163]
+        jac_trap[104,103] = -p[162]
+        jac_trap[104,104] = -1
+
+
+
+
+
+@numba.njit(cache=True)
+def h_run_eval(h_run,x,y,u,p,xyup = 0):
+
+    h_run[0] = y[0]
+    h_run[1] = y[2]
+    h_run[2] = y[4]
+    h_run[3] = y[6]
+    h_run[4] = y[8]
+    h_run[5] = y[10]
+    h_run[6] = y[12]
+    h_run[7] = y[14]
+    h_run[8] = y[16]
+    h_run[9] = y[18]
+    h_run[10] = y[20]
+    h_run[11] = y[22]*(p[52]*y[22] + y[0]*sin(x[0] - y[1])) + y[23]*(p[52]*y[23] + y[0]*cos(x[0] - y[1]))
+    h_run[12] = y[31]*(p[82]*y[31] + y[2]*sin(x[11] - y[3])) + y[32]*(p[82]*y[32] + y[2]*cos(x[11] - y[3]))
+    h_run[13] = y[40]*(p[112]*y[40] + y[4]*sin(x[22] - y[5])) + y[41]*(p[112]*y[41] + y[4]*cos(x[22] - y[5]))
+    h_run[14] = y[49]*(p[142]*y[49] + y[6]*sin(x[33] - y[7])) + y[50]*(p[142]*y[50] + y[6]*cos(x[33] - y[7]))
+
 
 
 
@@ -4301,128 +2025,6 @@ def ssate(struct,xy):
     struct[0].x[:,0] = xy[:N_x,0]
     struct[0].y_ini[:,0] = xy[N_x:,0]
     return xy,it
-
-
-@numba.njit(cache=True) 
-def daesolver(struct): 
-    sin = np.sin
-    cos = np.cos
-    sqrt = np.sqrt
-    i = 0 
-    
-    Dt = struct[i].Dt 
-
-    N_x = struct[i].N_x
-    N_y = struct[i].N_y
-    N_z = struct[i].N_z
-
-    decimation = struct[i].decimation 
-    eye = np.eye(N_x)
-    t = struct[i].t 
-    t_end = struct[i].t_end 
-    if struct[i].it == 0:
-        run(t,struct, 1) 
-        struct[i].it_store = 0  
-        struct[i]['T'][0] = t 
-        struct[i].X[0,:] = struct[i].x[:,0]  
-        struct[i].Y[0,:] = struct[i].y_run[:,0]  
-        struct[i].Z[0,:] = struct[i].h[:,0]  
-
-    solver = struct[i].solvern 
-    while t<t_end: 
-        struct[i].it += 1
-        struct[i].t += Dt
-        
-        t = struct[i].t
-
-
-            
-        if solver == 5: # Teapezoidal DAE as in Milano's book
-
-            run(t,struct, 2) 
-            run(t,struct, 3) 
-
-            x = np.copy(struct[i].x[:]) 
-            y = np.copy(struct[i].y_run[:]) 
-            f = np.copy(struct[i].f[:]) 
-            g = np.copy(struct[i].g[:]) 
-            
-            for iter in range(struct[i].imax):
-                run(t,struct, 2) 
-                run(t,struct, 3) 
-                run(t,struct,10) 
-                run(t,struct,11) 
-                
-                x_i = struct[i].x[:] 
-                y_i = struct[i].y_run[:]  
-                f_i = struct[i].f[:] 
-                g_i = struct[i].g[:]                 
-                F_x_i = struct[i].Fx[:,:]
-                F_y_i = struct[i].Fy[:,:] 
-                G_x_i = struct[i].Gx[:,:] 
-                G_y_i = struct[i].Gy[:,:]                
-
-                A_c_i = np.vstack((np.hstack((eye-0.5*Dt*F_x_i, -0.5*Dt*F_y_i)),
-                                   np.hstack((G_x_i,         G_y_i))))
-                     
-                f_n_i = x_i - x - 0.5*Dt*(f_i+f) 
-                # print(t,iter,g_i)
-                Dxy_i = np.linalg.solve(-A_c_i,np.vstack((f_n_i,g_i))) 
-                
-                x_i = x_i + Dxy_i[0:N_x]
-                y_i = y_i + Dxy_i[N_x:(N_x+N_y)]
-
-                struct[i].x[:] = x_i
-                struct[i].y_run[:] = y_i
-
-        # [f_i,g_i,F_x_i,F_y_i,G_x_i,G_y_i] =  smib_transient(x_i,y_i,u);
-        
-        # A_c_i = [[eye(N_x)-0.5*Dt*F_x_i, -0.5*Dt*F_y_i],
-        #          [                G_x_i,         G_y_i]];
-             
-        # f_n_i = x_i - x - 0.5*Dt*(f_i+f);
-        
-        # Dxy_i = -A_c_i\[f_n_i.',g_i.'].';
-        
-        # x_i = x_i + Dxy_i(1:N_x);
-        # y_i = y_i + Dxy_i(N_x+1:N_x+N_y);
-                
-                xy = np.vstack((x_i,y_i))
-                max_relative = 0.0
-                for it_var in range(N_x+N_y):
-                    abs_value = np.abs(xy[it_var,0])
-                    if abs_value < 0.001:
-                        abs_value = 0.001
-                                             
-                    relative_error = np.abs(Dxy_i[it_var,0])/abs_value
-                    
-                    if relative_error > max_relative: max_relative = relative_error
-                    
-                if max_relative<struct[i].itol:
-                    
-                    break
-                
-                # if iter>struct[i].imax-2:
-                    
-                #     print('Convergence problem')
-
-            struct[i].x[:] = x_i
-            struct[i].y_run[:] = y_i
-                
-        # channels 
-        if struct[i].store == 1:
-            it_store = struct[i].it_store
-            if struct[i].it >= it_store*decimation: 
-                struct[i]['T'][it_store+1] = t 
-                struct[i].X[it_store+1,:] = struct[i].x[:,0] 
-                struct[i].Y[it_store+1,:] = struct[i].y_run[:,0]
-                struct[i].Z[it_store+1,:] = struct[i].h[:,0]
-                struct[i].iters[it_store+1,0] = iter
-                struct[i].it_store += 1 
-            
-    struct[i].t = t
-
-    return t
 
 
 

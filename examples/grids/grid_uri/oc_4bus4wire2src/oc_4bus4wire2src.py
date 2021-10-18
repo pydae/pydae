@@ -23,21 +23,21 @@ class oc_4bus4wire2src_class:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 1
-        self.N_y = 96 
-        self.N_z = 22 
+        self.N_x = 5
+        self.N_y = 97 
+        self.N_z = 32 
         self.N_store = 10000 
-        self.params_list = ['X_B1_sa', 'R_B1_sa', 'X_B1_sb', 'R_B1_sb', 'X_B1_sc', 'R_B1_sc', 'X_B1_sn', 'R_B1_sn', 'X_B1_ng', 'R_B1_ng', 'X_B4_sa', 'R_B4_sa', 'X_B4_sb', 'R_B4_sb', 'X_B4_sc', 'R_B4_sc', 'X_B4_sn', 'R_B4_sn', 'X_B4_ng', 'R_B4_ng'] 
-        self.params_values_list  = [0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001, 0.01, 0.001] 
-        self.inputs_ini_list = ['i_B2_n_r', 'i_B2_n_i', 'i_B3_n_r', 'i_B3_n_i', 'p_B2_a', 'q_B2_a', 'p_B2_b', 'q_B2_b', 'p_B2_c', 'q_B2_c', 'p_B3_a', 'q_B3_a', 'p_B3_b', 'q_B3_b', 'p_B3_c', 'q_B3_c', 'e_B1_an', 'e_B1_bn', 'e_B1_cn', 'phi_B1', 'e_B4_an', 'e_B4_bn', 'e_B4_cn', 'phi_B4', 'u_dummy'] 
-        self.inputs_ini_values_list  = [-8.224533812913847e-12, -5.952463449725065e-12, -8.224533812913847e-12, -5.952463449725065e-12, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 1.0] 
-        self.inputs_run_list = ['i_B2_n_r', 'i_B2_n_i', 'i_B3_n_r', 'i_B3_n_i', 'p_B2_a', 'q_B2_a', 'p_B2_b', 'q_B2_b', 'p_B2_c', 'q_B2_c', 'p_B3_a', 'q_B3_a', 'p_B3_b', 'q_B3_b', 'p_B3_c', 'q_B3_c', 'e_B1_an', 'e_B1_bn', 'e_B1_cn', 'phi_B1', 'e_B4_an', 'e_B4_bn', 'e_B4_cn', 'phi_B4', 'u_dummy'] 
-        self.inputs_run_values_list = [-8.224533812913847e-12, -5.952463449725065e-12, -8.224533812913847e-12, -5.952463449725065e-12, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 1.0] 
-        self.outputs_list = ['v_B2_a_m', 'v_B2_b_m', 'v_B2_c_m', 'v_B2_n_m', 'v_B3_a_m', 'v_B3_b_m', 'v_B3_c_m', 'v_B3_n_m', 'v_B1_a_m', 'v_B1_b_m', 'v_B1_c_m', 'v_B1_n_m', 'v_B4_a_m', 'v_B4_b_m', 'v_B4_c_m', 'v_B4_n_m', 'p_B1_pos', 'p_B1_neg', 'p_B1_zer', 'p_B4_pos', 'p_B4_neg', 'p_B4_zer'] 
-        self.x_list = ['x_dummy'] 
-        self.y_run_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B3_a_r', 'v_B3_a_i', 'v_B3_b_r', 'v_B3_b_i', 'v_B3_c_r', 'v_B3_c_i', 'v_B3_n_r', 'v_B3_n_i', 'v_B1_a_r', 'v_B1_a_i', 'v_B1_b_r', 'v_B1_b_i', 'v_B1_c_r', 'v_B1_c_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B4_a_r', 'v_B4_a_i', 'v_B4_b_r', 'v_B4_b_i', 'v_B4_c_r', 'v_B4_c_i', 'v_B4_n_r', 'v_B4_n_i', 'i_l_B1_B2_a_r', 'i_l_B1_B2_a_i', 'i_l_B1_B2_b_r', 'i_l_B1_B2_b_i', 'i_l_B1_B2_c_r', 'i_l_B1_B2_c_i', 'i_l_B1_B2_n_r', 'i_l_B1_B2_n_i', 'i_l_B2_B3_a_r', 'i_l_B2_B3_a_i', 'i_l_B2_B3_b_r', 'i_l_B2_B3_b_i', 'i_l_B2_B3_c_r', 'i_l_B2_B3_c_i', 'i_l_B2_B3_n_r', 'i_l_B2_B3_n_i', 'i_l_B3_B4_a_r', 'i_l_B3_B4_a_i', 'i_l_B3_B4_b_r', 'i_l_B3_B4_b_i', 'i_l_B3_B4_c_r', 'i_l_B3_B4_c_i', 'i_l_B3_B4_n_r', 'i_l_B3_B4_n_i', 'i_load_B2_a_r', 'i_load_B2_a_i', 'i_load_B2_b_r', 'i_load_B2_b_i', 'i_load_B2_c_r', 'i_load_B2_c_i', 'i_load_B2_n_r', 'i_load_B2_n_i', 'i_load_B3_a_r', 'i_load_B3_a_i', 'i_load_B3_b_r', 'i_load_B3_b_i', 'i_load_B3_c_r', 'i_load_B3_c_i', 'i_load_B3_n_r', 'i_load_B3_n_i', 'i_B1_a_r', 'i_B1_b_r', 'i_B1_c_r', 'i_B1_n_r', 'i_B1_ng_r', 'e_B1_ng_r', 'i_B1_a_i', 'i_B1_b_i', 'i_B1_c_i', 'i_B1_n_i', 'i_B1_ng_i', 'e_B1_ng_i', 'i_B4_a_r', 'i_B4_b_r', 'i_B4_c_r', 'i_B4_n_r', 'i_B4_ng_r', 'e_B4_ng_r', 'i_B4_a_i', 'i_B4_b_i', 'i_B4_c_i', 'i_B4_n_i', 'i_B4_ng_i', 'e_B4_ng_i'] 
+        self.params_list = ['X_B1_sa', 'R_B1_sa', 'X_B1_sb', 'R_B1_sb', 'X_B1_sc', 'R_B1_sc', 'X_B1_sn', 'R_B1_sn', 'S_n_B1', 'X_B1_ng', 'R_B1_ng', 'K_f_B1', 'T_f_B1', 'K_sec_B1', 'K_delta_B1', 'X_B4_sa', 'R_B4_sa', 'X_B4_sb', 'R_B4_sb', 'X_B4_sc', 'R_B4_sc', 'X_B4_sn', 'R_B4_sn', 'S_n_B4', 'X_B4_ng', 'R_B4_ng', 'K_f_B4', 'T_f_B4', 'K_sec_B4', 'K_delta_B4', 'K_agc'] 
+        self.params_values_list  = [0.1, 0.01, 0.1, 0.01, 0.1, 0.01, 0.1, 0.01, 100000.0, 0.1, 0.01, 0.1, 1.0, 0.5, 0.001, 0.1, 0.01, 0.1, 0.01, 0.1, 0.01, 0.1, 0.01, 100000.0, 0.1, 0.01, 0.1, 1.0, 0.5, 0.0, 0.001] 
+        self.inputs_ini_list = ['i_B2_n_r', 'i_B2_n_i', 'i_B3_n_r', 'i_B3_n_i', 'p_B2_a', 'q_B2_a', 'p_B2_b', 'q_B2_b', 'p_B2_c', 'q_B2_c', 'p_B3_a', 'q_B3_a', 'p_B3_b', 'q_B3_b', 'p_B3_c', 'q_B3_c', 'e_B1_an', 'e_B1_bn', 'e_B1_cn', 'phi_B1', 'p_B1_ref', 'omega_B1_ref', 'e_B4_an', 'e_B4_bn', 'e_B4_cn', 'phi_B4', 'p_B4_ref', 'omega_B4_ref'] 
+        self.inputs_ini_values_list  = [-8.224533812913847e-12, -5.952463449725065e-12, -8.224533812913847e-12, -5.952463449725065e-12, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 0.0, 1.0, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 0.0, 1.0] 
+        self.inputs_run_list = ['i_B2_n_r', 'i_B2_n_i', 'i_B3_n_r', 'i_B3_n_i', 'p_B2_a', 'q_B2_a', 'p_B2_b', 'q_B2_b', 'p_B2_c', 'q_B2_c', 'p_B3_a', 'q_B3_a', 'p_B3_b', 'q_B3_b', 'p_B3_c', 'q_B3_c', 'e_B1_an', 'e_B1_bn', 'e_B1_cn', 'phi_B1', 'p_B1_ref', 'omega_B1_ref', 'e_B4_an', 'e_B4_bn', 'e_B4_cn', 'phi_B4', 'p_B4_ref', 'omega_B4_ref'] 
+        self.inputs_run_values_list = [-8.224533812913847e-12, -5.952463449725065e-12, -8.224533812913847e-12, -5.952463449725065e-12, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018256e-09, 6.381276858813941e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 1.2485570081018254e-09, 6.381276858813937e-10, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 0.0, 1.0, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 0.0, 1.0] 
+        self.outputs_list = ['v_B2_a_m', 'v_B2_b_m', 'v_B2_c_m', 'v_B2_n_m', 'v_B3_a_m', 'v_B3_b_m', 'v_B3_c_m', 'v_B3_n_m', 'v_B1_a_m', 'v_B1_b_m', 'v_B1_c_m', 'v_B1_n_m', 'v_B4_a_m', 'v_B4_b_m', 'v_B4_c_m', 'v_B4_n_m', 'p_B1_pos', 'p_B1_neg', 'p_B1_zer', 'e_B1_an', 'e_B1_bn', 'e_B1_cn', 'p_B1_ref', 'omega_B1_ref', 'p_B4_pos', 'p_B4_neg', 'p_B4_zer', 'e_B4_an', 'e_B4_bn', 'e_B4_cn', 'p_B4_ref', 'omega_B4_ref'] 
+        self.x_list = ['phi_B1', 'omega_B1', 'phi_B4', 'omega_B4', 'xi_freq'] 
+        self.y_run_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B3_a_r', 'v_B3_a_i', 'v_B3_b_r', 'v_B3_b_i', 'v_B3_c_r', 'v_B3_c_i', 'v_B3_n_r', 'v_B3_n_i', 'v_B1_a_r', 'v_B1_a_i', 'v_B1_b_r', 'v_B1_b_i', 'v_B1_c_r', 'v_B1_c_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B4_a_r', 'v_B4_a_i', 'v_B4_b_r', 'v_B4_b_i', 'v_B4_c_r', 'v_B4_c_i', 'v_B4_n_r', 'v_B4_n_i', 'i_l_B1_B2_a_r', 'i_l_B1_B2_a_i', 'i_l_B1_B2_b_r', 'i_l_B1_B2_b_i', 'i_l_B1_B2_c_r', 'i_l_B1_B2_c_i', 'i_l_B1_B2_n_r', 'i_l_B1_B2_n_i', 'i_l_B2_B3_a_r', 'i_l_B2_B3_a_i', 'i_l_B2_B3_b_r', 'i_l_B2_B3_b_i', 'i_l_B2_B3_c_r', 'i_l_B2_B3_c_i', 'i_l_B2_B3_n_r', 'i_l_B2_B3_n_i', 'i_l_B3_B4_a_r', 'i_l_B3_B4_a_i', 'i_l_B3_B4_b_r', 'i_l_B3_B4_b_i', 'i_l_B3_B4_c_r', 'i_l_B3_B4_c_i', 'i_l_B3_B4_n_r', 'i_l_B3_B4_n_i', 'i_load_B2_a_r', 'i_load_B2_a_i', 'i_load_B2_b_r', 'i_load_B2_b_i', 'i_load_B2_c_r', 'i_load_B2_c_i', 'i_load_B2_n_r', 'i_load_B2_n_i', 'i_load_B3_a_r', 'i_load_B3_a_i', 'i_load_B3_b_r', 'i_load_B3_b_i', 'i_load_B3_c_r', 'i_load_B3_c_i', 'i_load_B3_n_r', 'i_load_B3_n_i', 'i_B1_a_r', 'i_B1_b_r', 'i_B1_c_r', 'i_B1_n_r', 'i_B1_ng_r', 'e_B1_ng_r', 'i_B1_a_i', 'i_B1_b_i', 'i_B1_c_i', 'i_B1_n_i', 'i_B1_ng_i', 'e_B1_ng_i', 'i_B4_a_r', 'i_B4_b_r', 'i_B4_c_r', 'i_B4_n_r', 'i_B4_ng_r', 'e_B4_ng_r', 'i_B4_a_i', 'i_B4_b_i', 'i_B4_c_i', 'i_B4_n_i', 'i_B4_ng_i', 'e_B4_ng_i', 'omega_coi'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B3_a_r', 'v_B3_a_i', 'v_B3_b_r', 'v_B3_b_i', 'v_B3_c_r', 'v_B3_c_i', 'v_B3_n_r', 'v_B3_n_i', 'v_B1_a_r', 'v_B1_a_i', 'v_B1_b_r', 'v_B1_b_i', 'v_B1_c_r', 'v_B1_c_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B4_a_r', 'v_B4_a_i', 'v_B4_b_r', 'v_B4_b_i', 'v_B4_c_r', 'v_B4_c_i', 'v_B4_n_r', 'v_B4_n_i', 'i_l_B1_B2_a_r', 'i_l_B1_B2_a_i', 'i_l_B1_B2_b_r', 'i_l_B1_B2_b_i', 'i_l_B1_B2_c_r', 'i_l_B1_B2_c_i', 'i_l_B1_B2_n_r', 'i_l_B1_B2_n_i', 'i_l_B2_B3_a_r', 'i_l_B2_B3_a_i', 'i_l_B2_B3_b_r', 'i_l_B2_B3_b_i', 'i_l_B2_B3_c_r', 'i_l_B2_B3_c_i', 'i_l_B2_B3_n_r', 'i_l_B2_B3_n_i', 'i_l_B3_B4_a_r', 'i_l_B3_B4_a_i', 'i_l_B3_B4_b_r', 'i_l_B3_B4_b_i', 'i_l_B3_B4_c_r', 'i_l_B3_B4_c_i', 'i_l_B3_B4_n_r', 'i_l_B3_B4_n_i', 'i_load_B2_a_r', 'i_load_B2_a_i', 'i_load_B2_b_r', 'i_load_B2_b_i', 'i_load_B2_c_r', 'i_load_B2_c_i', 'i_load_B2_n_r', 'i_load_B2_n_i', 'i_load_B3_a_r', 'i_load_B3_a_i', 'i_load_B3_b_r', 'i_load_B3_b_i', 'i_load_B3_c_r', 'i_load_B3_c_i', 'i_load_B3_n_r', 'i_load_B3_n_i', 'i_B1_a_r', 'i_B1_b_r', 'i_B1_c_r', 'i_B1_n_r', 'i_B1_ng_r', 'e_B1_ng_r', 'i_B1_a_i', 'i_B1_b_i', 'i_B1_c_i', 'i_B1_n_i', 'i_B1_ng_i', 'e_B1_ng_i', 'i_B4_a_r', 'i_B4_b_r', 'i_B4_c_r', 'i_B4_n_r', 'i_B4_ng_r', 'e_B4_ng_r', 'i_B4_a_i', 'i_B4_b_i', 'i_B4_c_i', 'i_B4_n_i', 'i_B4_ng_i', 'e_B4_ng_i'] 
+        self.y_ini_list = ['v_B2_a_r', 'v_B2_a_i', 'v_B2_b_r', 'v_B2_b_i', 'v_B2_c_r', 'v_B2_c_i', 'v_B2_n_r', 'v_B2_n_i', 'v_B3_a_r', 'v_B3_a_i', 'v_B3_b_r', 'v_B3_b_i', 'v_B3_c_r', 'v_B3_c_i', 'v_B3_n_r', 'v_B3_n_i', 'v_B1_a_r', 'v_B1_a_i', 'v_B1_b_r', 'v_B1_b_i', 'v_B1_c_r', 'v_B1_c_i', 'v_B1_n_r', 'v_B1_n_i', 'v_B4_a_r', 'v_B4_a_i', 'v_B4_b_r', 'v_B4_b_i', 'v_B4_c_r', 'v_B4_c_i', 'v_B4_n_r', 'v_B4_n_i', 'i_l_B1_B2_a_r', 'i_l_B1_B2_a_i', 'i_l_B1_B2_b_r', 'i_l_B1_B2_b_i', 'i_l_B1_B2_c_r', 'i_l_B1_B2_c_i', 'i_l_B1_B2_n_r', 'i_l_B1_B2_n_i', 'i_l_B2_B3_a_r', 'i_l_B2_B3_a_i', 'i_l_B2_B3_b_r', 'i_l_B2_B3_b_i', 'i_l_B2_B3_c_r', 'i_l_B2_B3_c_i', 'i_l_B2_B3_n_r', 'i_l_B2_B3_n_i', 'i_l_B3_B4_a_r', 'i_l_B3_B4_a_i', 'i_l_B3_B4_b_r', 'i_l_B3_B4_b_i', 'i_l_B3_B4_c_r', 'i_l_B3_B4_c_i', 'i_l_B3_B4_n_r', 'i_l_B3_B4_n_i', 'i_load_B2_a_r', 'i_load_B2_a_i', 'i_load_B2_b_r', 'i_load_B2_b_i', 'i_load_B2_c_r', 'i_load_B2_c_i', 'i_load_B2_n_r', 'i_load_B2_n_i', 'i_load_B3_a_r', 'i_load_B3_a_i', 'i_load_B3_b_r', 'i_load_B3_b_i', 'i_load_B3_c_r', 'i_load_B3_c_i', 'i_load_B3_n_r', 'i_load_B3_n_i', 'i_B1_a_r', 'i_B1_b_r', 'i_B1_c_r', 'i_B1_n_r', 'i_B1_ng_r', 'e_B1_ng_r', 'i_B1_a_i', 'i_B1_b_i', 'i_B1_c_i', 'i_B1_n_i', 'i_B1_ng_i', 'e_B1_ng_i', 'i_B4_a_r', 'i_B4_b_r', 'i_B4_c_r', 'i_B4_n_r', 'i_B4_ng_r', 'e_B4_ng_r', 'i_B4_a_i', 'i_B4_b_i', 'i_B4_c_i', 'i_B4_n_i', 'i_B4_ng_i', 'e_B4_ng_i', 'omega_coi'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -745,8 +745,13 @@ def ini(struct,mode):
     R_B1_sc = struct[0].R_B1_sc
     X_B1_sn = struct[0].X_B1_sn
     R_B1_sn = struct[0].R_B1_sn
+    S_n_B1 = struct[0].S_n_B1
     X_B1_ng = struct[0].X_B1_ng
     R_B1_ng = struct[0].R_B1_ng
+    K_f_B1 = struct[0].K_f_B1
+    T_f_B1 = struct[0].T_f_B1
+    K_sec_B1 = struct[0].K_sec_B1
+    K_delta_B1 = struct[0].K_delta_B1
     X_B4_sa = struct[0].X_B4_sa
     R_B4_sa = struct[0].R_B4_sa
     X_B4_sb = struct[0].X_B4_sb
@@ -755,8 +760,14 @@ def ini(struct,mode):
     R_B4_sc = struct[0].R_B4_sc
     X_B4_sn = struct[0].X_B4_sn
     R_B4_sn = struct[0].R_B4_sn
+    S_n_B4 = struct[0].S_n_B4
     X_B4_ng = struct[0].X_B4_ng
     R_B4_ng = struct[0].R_B4_ng
+    K_f_B4 = struct[0].K_f_B4
+    T_f_B4 = struct[0].T_f_B4
+    K_sec_B4 = struct[0].K_sec_B4
+    K_delta_B4 = struct[0].K_delta_B4
+    K_agc = struct[0].K_agc
     
     # Inputs:
     i_B2_n_r = struct[0].i_B2_n_r
@@ -779,14 +790,21 @@ def ini(struct,mode):
     e_B1_bn = struct[0].e_B1_bn
     e_B1_cn = struct[0].e_B1_cn
     phi_B1 = struct[0].phi_B1
+    p_B1_ref = struct[0].p_B1_ref
+    omega_B1_ref = struct[0].omega_B1_ref
     e_B4_an = struct[0].e_B4_an
     e_B4_bn = struct[0].e_B4_bn
     e_B4_cn = struct[0].e_B4_cn
     phi_B4 = struct[0].phi_B4
-    u_dummy = struct[0].u_dummy
+    p_B4_ref = struct[0].p_B4_ref
+    omega_B4_ref = struct[0].omega_B4_ref
     
     # Dynamical states:
-    x_dummy = struct[0].x[0,0]
+    phi_B1 = struct[0].x[0,0]
+    omega_B1 = struct[0].x[1,0]
+    phi_B4 = struct[0].x[2,0]
+    omega_B4 = struct[0].x[3,0]
+    xi_freq = struct[0].x[4,0]
     
     # Algebraic states:
     v_B2_a_r = struct[0].y_ini[0,0]
@@ -885,12 +903,17 @@ def ini(struct,mode):
     i_B4_n_i = struct[0].y_ini[93,0]
     i_B4_ng_i = struct[0].y_ini[94,0]
     e_B4_ng_i = struct[0].y_ini[95,0]
+    omega_coi = struct[0].y_ini[96,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = u_dummy - x_dummy
+        struct[0].f[0,0] = -K_delta_B1*phi_B1 + 314.159265358979*omega_B1 - 314.159265358979*omega_coi
+        struct[0].f[1,0] = (-K_f_B1*(K_sec_B1*xi_freq - 0.333333333333333*i_B1_a_i*v_B1_a_i - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) - 0.333333333333333*i_B1_a_r*v_B1_a_r - 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) - 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) - 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r - 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i + 0.166666666666667*i_B1_b_r*v_B1_c_r + 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r - 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i + 0.166666666666667*i_B1_c_r*v_B1_b_r - 0.333333333333333*i_B1_c_r*v_B1_c_r + p_B1_ref + v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) + v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) - v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) - v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r))/S_n_B1 - omega_B1 + omega_B1_ref)/T_f_B1
+        struct[0].f[2,0] = -K_delta_B4*phi_B4 + 314.159265358979*omega_B4 - 314.159265358979*omega_coi
+        struct[0].f[3,0] = (-K_f_B4*(K_sec_B4*xi_freq - 0.333333333333333*i_B4_a_i*v_B4_a_i - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) - 0.333333333333333*i_B4_a_r*v_B4_a_r - 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) - 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) - 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r - 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i + 0.166666666666667*i_B4_b_r*v_B4_c_r + 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r - 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i + 0.166666666666667*i_B4_c_r*v_B4_b_r - 0.333333333333333*i_B4_c_r*v_B4_c_r + p_B4_ref + v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) + v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) - v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) - v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r))/S_n_B4 - omega_B4 + omega_B4_ref)/T_f_B4
+        struct[0].f[4,0] = K_agc*(1 - omega_coi)
     
     # Algebraic equations:
     if mode == 3:
@@ -921,6 +944,7 @@ def ini(struct,mode):
         struct[0].g[90,0] = -1.0*R_B4_sa*i_B4_a_i - 1.0*X_B4_sa*i_B4_a_r + 1.0*e_B4_an*sin(phi_B4) - 1.0*v_B4_a_i + 1.0*v_B4_n_i
         struct[0].g[91,0] = -1.0*R_B4_sb*i_B4_b_i - 1.0*X_B4_sb*i_B4_b_r + 1.0*e_B4_bn*sin(phi_B4 - 2.0943951023932) - 1.0*v_B4_b_i + 1.0*v_B4_n_i
         struct[0].g[92,0] = -1.0*R_B4_sc*i_B4_c_i - 1.0*X_B4_sc*i_B4_c_r + 1.0*e_B4_cn*sin(phi_B4 - 4.18879020478639) - 1.0*v_B4_c_i + 1.0*v_B4_n_i
+        struct[0].g[96,0] = omega_coi - (S_n_B1*omega_B1 + S_n_B4*omega_B4)/(S_n_B1 + S_n_B4)
     
     # Outputs:
     if mode == 3:
@@ -944,18 +968,74 @@ def ini(struct,mode):
         struct[0].h[16,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i + 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r - 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i - 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) + v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[17,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r) + v_B1_a_r*(0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(-0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[18,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 0.333333333333333*i_B1_a_i*v_B1_b_i + 0.333333333333333*i_B1_a_i*v_B1_c_i + 0.333333333333333*i_B1_a_r*v_B1_a_r + 0.333333333333333*i_B1_a_r*v_B1_b_r + 0.333333333333333*i_B1_a_r*v_B1_c_r + 0.333333333333333*i_B1_b_i*v_B1_a_i + 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.333333333333333*i_B1_b_i*v_B1_c_i + 0.333333333333333*i_B1_b_r*v_B1_a_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.333333333333333*i_B1_b_r*v_B1_c_r + 0.333333333333333*i_B1_c_i*v_B1_a_i + 0.333333333333333*i_B1_c_i*v_B1_b_i + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.333333333333333*i_B1_c_r*v_B1_a_r + 0.333333333333333*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r
-        struct[0].h[19,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[20,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[21,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[19,0] = e_B1_an
+        struct[0].h[20,0] = e_B1_bn
+        struct[0].h[21,0] = e_B1_cn
+        struct[0].h[22,0] = p_B1_ref
+        struct[0].h[23,0] = omega_B1_ref
+        struct[0].h[24,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[25,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[26,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[27,0] = e_B4_an
+        struct[0].h[28,0] = e_B4_bn
+        struct[0].h[29,0] = e_B4_cn
+        struct[0].h[30,0] = p_B4_ref
+        struct[0].h[31,0] = omega_B4_ref
     
 
     if mode == 10:
 
-        pass
+        struct[0].Fx_ini[0,0] = -K_delta_B1
+        struct[0].Fx_ini[1,1] = -1/T_f_B1
+        struct[0].Fx_ini[1,4] = -K_f_B1*K_sec_B1/(S_n_B1*T_f_B1)
+        struct[0].Fx_ini[2,2] = -K_delta_B4
+        struct[0].Fx_ini[3,3] = -1/T_f_B4
+        struct[0].Fx_ini[3,4] = -K_f_B4*K_sec_B4/(S_n_B4*T_f_B4)
 
     if mode == 11:
 
+        struct[0].Fy_ini[0,96] = -314.159265358979 
+        struct[0].Fy_ini[1,16] = -K_f_B1*(-0.333333333333333*i_B1_a_r + 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,17] = -K_f_B1*(-0.333333333333333*i_B1_a_i + 0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r + 0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,18] = -K_f_B1*(-0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.333333333333333*i_B1_b_r + 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,19] = -K_f_B1*(0.166666666666667*i_B1_a_i + 0.288675134594813*i_B1_a_r - 0.333333333333333*i_B1_b_i + 0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,20] = -K_f_B1*(0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.333333333333333*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,21] = -K_f_B1*(0.166666666666667*i_B1_a_i - 0.288675134594813*i_B1_a_r + 0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r - 0.333333333333333*i_B1_c_i)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,72] = -K_f_B1*(-0.333333333333333*v_B1_a_r + 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,73] = -K_f_B1*(-0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.333333333333333*v_B1_b_r + 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,74] = -K_f_B1*(0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.333333333333333*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,78] = -K_f_B1*(-0.333333333333333*v_B1_a_i + 0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r + 0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,79] = -K_f_B1*(0.166666666666667*v_B1_a_i + 0.288675134594813*v_B1_a_r - 0.333333333333333*v_B1_b_i + 0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,80] = -K_f_B1*(0.166666666666667*v_B1_a_i - 0.288675134594813*v_B1_a_r + 0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r - 0.333333333333333*v_B1_c_i)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[2,96] = -314.159265358979 
+        struct[0].Fy_ini[3,24] = -K_f_B4*(-0.333333333333333*i_B4_a_r + 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,25] = -K_f_B4*(-0.333333333333333*i_B4_a_i + 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r + 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,26] = -K_f_B4*(-0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.333333333333333*i_B4_b_r + 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,27] = -K_f_B4*(0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r - 0.333333333333333*i_B4_b_i + 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,28] = -K_f_B4*(0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.333333333333333*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,29] = -K_f_B4*(0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r + 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r - 0.333333333333333*i_B4_c_i)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,84] = -K_f_B4*(-0.333333333333333*v_B4_a_r + 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,85] = -K_f_B4*(-0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.333333333333333*v_B4_b_r + 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,86] = -K_f_B4*(0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.333333333333333*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,90] = -K_f_B4*(-0.333333333333333*v_B4_a_i + 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r + 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,91] = -K_f_B4*(0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r - 0.333333333333333*v_B4_b_i + 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,92] = -K_f_B4*(0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r + 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r - 0.333333333333333*v_B4_c_i)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[4,96] = -K_agc 
 
+        struct[0].Gx_ini[72,0] = -e_B1_an*sin(phi_B1)
+        struct[0].Gx_ini[73,0] = -e_B1_bn*sin(phi_B1 - 2.0943951023932)
+        struct[0].Gx_ini[74,0] = -e_B1_cn*sin(phi_B1 - 4.18879020478639)
+        struct[0].Gx_ini[78,0] = 1.0*e_B1_an*cos(phi_B1)
+        struct[0].Gx_ini[79,0] = 1.0*e_B1_bn*cos(phi_B1 - 2.0943951023932)
+        struct[0].Gx_ini[80,0] = 1.0*e_B1_cn*cos(phi_B1 - 4.18879020478639)
+        struct[0].Gx_ini[84,2] = -e_B4_an*sin(phi_B4)
+        struct[0].Gx_ini[85,2] = -e_B4_bn*sin(phi_B4 - 2.0943951023932)
+        struct[0].Gx_ini[86,2] = -e_B4_cn*sin(phi_B4 - 4.18879020478639)
+        struct[0].Gx_ini[90,2] = 1.0*e_B4_an*cos(phi_B4)
+        struct[0].Gx_ini[91,2] = 1.0*e_B4_bn*cos(phi_B4 - 2.0943951023932)
+        struct[0].Gx_ini[92,2] = 1.0*e_B4_cn*cos(phi_B4 - 4.18879020478639)
+        struct[0].Gx_ini[96,1] = -S_n_B1/(S_n_B1 + S_n_B4)
+        struct[0].Gx_ini[96,3] = -S_n_B4/(S_n_B1 + S_n_B4)
 
         struct[0].Gy_ini[56,0] = i_load_B2_a_r
         struct[0].Gy_ini[56,1] = i_load_B2_a_i
@@ -1084,8 +1164,13 @@ def run(t,struct,mode):
     R_B1_sc = struct[0].R_B1_sc
     X_B1_sn = struct[0].X_B1_sn
     R_B1_sn = struct[0].R_B1_sn
+    S_n_B1 = struct[0].S_n_B1
     X_B1_ng = struct[0].X_B1_ng
     R_B1_ng = struct[0].R_B1_ng
+    K_f_B1 = struct[0].K_f_B1
+    T_f_B1 = struct[0].T_f_B1
+    K_sec_B1 = struct[0].K_sec_B1
+    K_delta_B1 = struct[0].K_delta_B1
     X_B4_sa = struct[0].X_B4_sa
     R_B4_sa = struct[0].R_B4_sa
     X_B4_sb = struct[0].X_B4_sb
@@ -1094,8 +1179,14 @@ def run(t,struct,mode):
     R_B4_sc = struct[0].R_B4_sc
     X_B4_sn = struct[0].X_B4_sn
     R_B4_sn = struct[0].R_B4_sn
+    S_n_B4 = struct[0].S_n_B4
     X_B4_ng = struct[0].X_B4_ng
     R_B4_ng = struct[0].R_B4_ng
+    K_f_B4 = struct[0].K_f_B4
+    T_f_B4 = struct[0].T_f_B4
+    K_sec_B4 = struct[0].K_sec_B4
+    K_delta_B4 = struct[0].K_delta_B4
+    K_agc = struct[0].K_agc
     
     # Inputs:
     i_B2_n_r = struct[0].i_B2_n_r
@@ -1118,14 +1209,21 @@ def run(t,struct,mode):
     e_B1_bn = struct[0].e_B1_bn
     e_B1_cn = struct[0].e_B1_cn
     phi_B1 = struct[0].phi_B1
+    p_B1_ref = struct[0].p_B1_ref
+    omega_B1_ref = struct[0].omega_B1_ref
     e_B4_an = struct[0].e_B4_an
     e_B4_bn = struct[0].e_B4_bn
     e_B4_cn = struct[0].e_B4_cn
     phi_B4 = struct[0].phi_B4
-    u_dummy = struct[0].u_dummy
+    p_B4_ref = struct[0].p_B4_ref
+    omega_B4_ref = struct[0].omega_B4_ref
     
     # Dynamical states:
-    x_dummy = struct[0].x[0,0]
+    phi_B1 = struct[0].x[0,0]
+    omega_B1 = struct[0].x[1,0]
+    phi_B4 = struct[0].x[2,0]
+    omega_B4 = struct[0].x[3,0]
+    xi_freq = struct[0].x[4,0]
     
     # Algebraic states:
     v_B2_a_r = struct[0].y_run[0,0]
@@ -1224,6 +1322,7 @@ def run(t,struct,mode):
     i_B4_n_i = struct[0].y_run[93,0]
     i_B4_ng_i = struct[0].y_run[94,0]
     e_B4_ng_i = struct[0].y_run[95,0]
+    omega_coi = struct[0].y_run[96,0]
     
     struct[0].u_run[0,0] = i_B2_n_r
     struct[0].u_run[1,0] = i_B2_n_i
@@ -1245,16 +1344,23 @@ def run(t,struct,mode):
     struct[0].u_run[17,0] = e_B1_bn
     struct[0].u_run[18,0] = e_B1_cn
     struct[0].u_run[19,0] = phi_B1
-    struct[0].u_run[20,0] = e_B4_an
-    struct[0].u_run[21,0] = e_B4_bn
-    struct[0].u_run[22,0] = e_B4_cn
-    struct[0].u_run[23,0] = phi_B4
-    struct[0].u_run[24,0] = u_dummy
+    struct[0].u_run[20,0] = p_B1_ref
+    struct[0].u_run[21,0] = omega_B1_ref
+    struct[0].u_run[22,0] = e_B4_an
+    struct[0].u_run[23,0] = e_B4_bn
+    struct[0].u_run[24,0] = e_B4_cn
+    struct[0].u_run[25,0] = phi_B4
+    struct[0].u_run[26,0] = p_B4_ref
+    struct[0].u_run[27,0] = omega_B4_ref
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = u_dummy - x_dummy
+        struct[0].f[0,0] = -K_delta_B1*phi_B1 + 314.159265358979*omega_B1 - 314.159265358979*omega_coi
+        struct[0].f[1,0] = (-K_f_B1*(K_sec_B1*xi_freq - 0.333333333333333*i_B1_a_i*v_B1_a_i - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) - 0.333333333333333*i_B1_a_r*v_B1_a_r - 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) - 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) - 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r - 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i + 0.166666666666667*i_B1_b_r*v_B1_c_r + 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r - 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i + 0.166666666666667*i_B1_c_r*v_B1_b_r - 0.333333333333333*i_B1_c_r*v_B1_c_r + p_B1_ref + v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) + v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) - v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) - v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r))/S_n_B1 - omega_B1 + omega_B1_ref)/T_f_B1
+        struct[0].f[2,0] = -K_delta_B4*phi_B4 + 314.159265358979*omega_B4 - 314.159265358979*omega_coi
+        struct[0].f[3,0] = (-K_f_B4*(K_sec_B4*xi_freq - 0.333333333333333*i_B4_a_i*v_B4_a_i - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) - 0.333333333333333*i_B4_a_r*v_B4_a_r - 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) - 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) - 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r - 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i + 0.166666666666667*i_B4_b_r*v_B4_c_r + 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r - 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i + 0.166666666666667*i_B4_c_r*v_B4_b_r - 0.333333333333333*i_B4_c_r*v_B4_c_r + p_B4_ref + v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) + v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) - v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) - v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r))/S_n_B4 - omega_B4 + omega_B4_ref)/T_f_B4
+        struct[0].f[4,0] = K_agc*(1 - omega_coi)
     
     # Algebraic equations:
     if mode == 3:
@@ -1285,6 +1391,7 @@ def run(t,struct,mode):
         struct[0].g[90,0] = -1.0*R_B4_sa*i_B4_a_i - 1.0*X_B4_sa*i_B4_a_r + 1.0*e_B4_an*sin(phi_B4) - 1.0*v_B4_a_i + 1.0*v_B4_n_i
         struct[0].g[91,0] = -1.0*R_B4_sb*i_B4_b_i - 1.0*X_B4_sb*i_B4_b_r + 1.0*e_B4_bn*sin(phi_B4 - 2.0943951023932) - 1.0*v_B4_b_i + 1.0*v_B4_n_i
         struct[0].g[92,0] = -1.0*R_B4_sc*i_B4_c_i - 1.0*X_B4_sc*i_B4_c_r + 1.0*e_B4_cn*sin(phi_B4 - 4.18879020478639) - 1.0*v_B4_c_i + 1.0*v_B4_n_i
+        struct[0].g[96,0] = omega_coi - (S_n_B1*omega_B1 + S_n_B4*omega_B4)/(S_n_B1 + S_n_B4)
     
     # Outputs:
     if mode == 3:
@@ -1308,18 +1415,74 @@ def run(t,struct,mode):
         struct[0].h[16,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i + 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r - 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i - 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) + v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[17,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r) + v_B1_a_r*(0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(-0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[18,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 0.333333333333333*i_B1_a_i*v_B1_b_i + 0.333333333333333*i_B1_a_i*v_B1_c_i + 0.333333333333333*i_B1_a_r*v_B1_a_r + 0.333333333333333*i_B1_a_r*v_B1_b_r + 0.333333333333333*i_B1_a_r*v_B1_c_r + 0.333333333333333*i_B1_b_i*v_B1_a_i + 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.333333333333333*i_B1_b_i*v_B1_c_i + 0.333333333333333*i_B1_b_r*v_B1_a_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.333333333333333*i_B1_b_r*v_B1_c_r + 0.333333333333333*i_B1_c_i*v_B1_a_i + 0.333333333333333*i_B1_c_i*v_B1_b_i + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.333333333333333*i_B1_c_r*v_B1_a_r + 0.333333333333333*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r
-        struct[0].h[19,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[20,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[21,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[19,0] = e_B1_an
+        struct[0].h[20,0] = e_B1_bn
+        struct[0].h[21,0] = e_B1_cn
+        struct[0].h[22,0] = p_B1_ref
+        struct[0].h[23,0] = omega_B1_ref
+        struct[0].h[24,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[25,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[26,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[27,0] = e_B4_an
+        struct[0].h[28,0] = e_B4_bn
+        struct[0].h[29,0] = e_B4_cn
+        struct[0].h[30,0] = p_B4_ref
+        struct[0].h[31,0] = omega_B4_ref
     
 
     if mode == 10:
 
-        pass
+        struct[0].Fx[0,0] = -K_delta_B1
+        struct[0].Fx[1,1] = -1/T_f_B1
+        struct[0].Fx[1,4] = -K_f_B1*K_sec_B1/(S_n_B1*T_f_B1)
+        struct[0].Fx[2,2] = -K_delta_B4
+        struct[0].Fx[3,3] = -1/T_f_B4
+        struct[0].Fx[3,4] = -K_f_B4*K_sec_B4/(S_n_B4*T_f_B4)
 
     if mode == 11:
 
+        struct[0].Fy[0,96] = -314.159265358979
+        struct[0].Fy[1,16] = -K_f_B1*(-0.333333333333333*i_B1_a_r + 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,17] = -K_f_B1*(-0.333333333333333*i_B1_a_i + 0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r + 0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,18] = -K_f_B1*(-0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.333333333333333*i_B1_b_r + 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,19] = -K_f_B1*(0.166666666666667*i_B1_a_i + 0.288675134594813*i_B1_a_r - 0.333333333333333*i_B1_b_i + 0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,20] = -K_f_B1*(0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.333333333333333*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,21] = -K_f_B1*(0.166666666666667*i_B1_a_i - 0.288675134594813*i_B1_a_r + 0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r - 0.333333333333333*i_B1_c_i)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,72] = -K_f_B1*(-0.333333333333333*v_B1_a_r + 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,73] = -K_f_B1*(-0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.333333333333333*v_B1_b_r + 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,74] = -K_f_B1*(0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.333333333333333*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,78] = -K_f_B1*(-0.333333333333333*v_B1_a_i + 0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r + 0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,79] = -K_f_B1*(0.166666666666667*v_B1_a_i + 0.288675134594813*v_B1_a_r - 0.333333333333333*v_B1_b_i + 0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,80] = -K_f_B1*(0.166666666666667*v_B1_a_i - 0.288675134594813*v_B1_a_r + 0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r - 0.333333333333333*v_B1_c_i)/(S_n_B1*T_f_B1)
+        struct[0].Fy[2,96] = -314.159265358979
+        struct[0].Fy[3,24] = -K_f_B4*(-0.333333333333333*i_B4_a_r + 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,25] = -K_f_B4*(-0.333333333333333*i_B4_a_i + 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r + 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,26] = -K_f_B4*(-0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.333333333333333*i_B4_b_r + 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,27] = -K_f_B4*(0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r - 0.333333333333333*i_B4_b_i + 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,28] = -K_f_B4*(0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.333333333333333*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,29] = -K_f_B4*(0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r + 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r - 0.333333333333333*i_B4_c_i)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,84] = -K_f_B4*(-0.333333333333333*v_B4_a_r + 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,85] = -K_f_B4*(-0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.333333333333333*v_B4_b_r + 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,86] = -K_f_B4*(0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.333333333333333*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,90] = -K_f_B4*(-0.333333333333333*v_B4_a_i + 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r + 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,91] = -K_f_B4*(0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r - 0.333333333333333*v_B4_b_i + 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,92] = -K_f_B4*(0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r + 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r - 0.333333333333333*v_B4_c_i)/(S_n_B4*T_f_B4)
+        struct[0].Fy[4,96] = -K_agc
 
+        struct[0].Gx[72,0] = -e_B1_an*sin(phi_B1)
+        struct[0].Gx[73,0] = -e_B1_bn*sin(phi_B1 - 2.0943951023932)
+        struct[0].Gx[74,0] = -e_B1_cn*sin(phi_B1 - 4.18879020478639)
+        struct[0].Gx[78,0] = 1.0*e_B1_an*cos(phi_B1)
+        struct[0].Gx[79,0] = 1.0*e_B1_bn*cos(phi_B1 - 2.0943951023932)
+        struct[0].Gx[80,0] = 1.0*e_B1_cn*cos(phi_B1 - 4.18879020478639)
+        struct[0].Gx[84,2] = -e_B4_an*sin(phi_B4)
+        struct[0].Gx[85,2] = -e_B4_bn*sin(phi_B4 - 2.0943951023932)
+        struct[0].Gx[86,2] = -e_B4_cn*sin(phi_B4 - 4.18879020478639)
+        struct[0].Gx[90,2] = 1.0*e_B4_an*cos(phi_B4)
+        struct[0].Gx[91,2] = 1.0*e_B4_bn*cos(phi_B4 - 2.0943951023932)
+        struct[0].Gx[92,2] = 1.0*e_B4_cn*cos(phi_B4 - 4.18879020478639)
+        struct[0].Gx[96,1] = -S_n_B1/(S_n_B1 + S_n_B4)
+        struct[0].Gx[96,3] = -S_n_B4/(S_n_B1 + S_n_B4)
 
         struct[0].Gy[56,0] = i_load_B2_a_r
         struct[0].Gy[56,1] = i_load_B2_a_i
@@ -1436,6 +1599,12 @@ def run(t,struct,mode):
 
     if mode > 12:
 
+        struct[0].Fu[0,19] = -K_delta_B1
+        struct[0].Fu[1,20] = -K_f_B1/(S_n_B1*T_f_B1)
+        struct[0].Fu[1,21] = 1/T_f_B1
+        struct[0].Fu[2,25] = -K_delta_B4
+        struct[0].Fu[3,26] = -K_f_B4/(S_n_B4*T_f_B4)
+        struct[0].Fu[3,27] = 1/T_f_B4
 
         struct[0].Gu[72,16] = cos(phi_B1)
         struct[0].Gu[72,19] = -e_B1_an*sin(phi_B1)
@@ -1449,18 +1618,18 @@ def run(t,struct,mode):
         struct[0].Gu[79,19] = 1.0*e_B1_bn*cos(phi_B1 - 2.0943951023932)
         struct[0].Gu[80,18] = 1.0*sin(phi_B1 - 4.18879020478639)
         struct[0].Gu[80,19] = 1.0*e_B1_cn*cos(phi_B1 - 4.18879020478639)
-        struct[0].Gu[84,20] = cos(phi_B4)
-        struct[0].Gu[84,23] = -e_B4_an*sin(phi_B4)
-        struct[0].Gu[85,21] = cos(phi_B4 - 2.0943951023932)
-        struct[0].Gu[85,23] = -e_B4_bn*sin(phi_B4 - 2.0943951023932)
-        struct[0].Gu[86,22] = cos(phi_B4 - 4.18879020478639)
-        struct[0].Gu[86,23] = -e_B4_cn*sin(phi_B4 - 4.18879020478639)
-        struct[0].Gu[90,20] = 1.0*sin(phi_B4)
-        struct[0].Gu[90,23] = 1.0*e_B4_an*cos(phi_B4)
-        struct[0].Gu[91,21] = 1.0*sin(phi_B4 - 2.0943951023932)
-        struct[0].Gu[91,23] = 1.0*e_B4_bn*cos(phi_B4 - 2.0943951023932)
-        struct[0].Gu[92,22] = 1.0*sin(phi_B4 - 4.18879020478639)
-        struct[0].Gu[92,23] = 1.0*e_B4_cn*cos(phi_B4 - 4.18879020478639)
+        struct[0].Gu[84,22] = cos(phi_B4)
+        struct[0].Gu[84,25] = -e_B4_an*sin(phi_B4)
+        struct[0].Gu[85,23] = cos(phi_B4 - 2.0943951023932)
+        struct[0].Gu[85,25] = -e_B4_bn*sin(phi_B4 - 2.0943951023932)
+        struct[0].Gu[86,24] = cos(phi_B4 - 4.18879020478639)
+        struct[0].Gu[86,25] = -e_B4_cn*sin(phi_B4 - 4.18879020478639)
+        struct[0].Gu[90,22] = 1.0*sin(phi_B4)
+        struct[0].Gu[90,25] = 1.0*e_B4_an*cos(phi_B4)
+        struct[0].Gu[91,23] = 1.0*sin(phi_B4 - 2.0943951023932)
+        struct[0].Gu[91,25] = 1.0*e_B4_bn*cos(phi_B4 - 2.0943951023932)
+        struct[0].Gu[92,24] = 1.0*sin(phi_B4 - 4.18879020478639)
+        struct[0].Gu[92,25] = 1.0*e_B4_cn*cos(phi_B4 - 4.18879020478639)
 
 
         struct[0].Hy[0,0] = 1.0*v_B2_a_r*(v_B2_a_i**2 + v_B2_a_r**2)**(-0.5)
@@ -1531,43 +1700,53 @@ def run(t,struct,mode):
         struct[0].Hy[18,78] = 0.333333333333333*v_B1_a_i + 0.333333333333333*v_B1_b_i + 0.333333333333333*v_B1_c_i
         struct[0].Hy[18,79] = 0.333333333333333*v_B1_a_i + 0.333333333333333*v_B1_b_i + 0.333333333333333*v_B1_c_i
         struct[0].Hy[18,80] = 0.333333333333333*v_B1_a_i + 0.333333333333333*v_B1_b_i + 0.333333333333333*v_B1_c_i
-        struct[0].Hy[19,24] = 0.333333333333333*i_B4_a_r - 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r + 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
-        struct[0].Hy[19,25] = 0.333333333333333*i_B4_a_i - 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r - 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r
-        struct[0].Hy[19,26] = 0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r + 0.333333333333333*i_B4_b_r - 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
-        struct[0].Hy[19,27] = -0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r + 0.333333333333333*i_B4_b_i - 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r
-        struct[0].Hy[19,28] = -0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r + 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r + 0.333333333333333*i_B4_c_r
-        struct[0].Hy[19,29] = -0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r - 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r + 0.333333333333333*i_B4_c_i
-        struct[0].Hy[19,84] = 0.333333333333333*v_B4_a_r - 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r + 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
-        struct[0].Hy[19,85] = 0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r + 0.333333333333333*v_B4_b_r - 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
-        struct[0].Hy[19,86] = -0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r + 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r + 0.333333333333333*v_B4_c_r
-        struct[0].Hy[19,90] = 0.333333333333333*v_B4_a_i - 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r - 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r
-        struct[0].Hy[19,91] = -0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r + 0.333333333333333*v_B4_b_i - 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r
-        struct[0].Hy[19,92] = -0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r - 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r + 0.333333333333333*v_B4_c_i
-        struct[0].Hy[20,24] = 0.333333333333333*i_B4_a_r + 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r - 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
-        struct[0].Hy[20,25] = 0.333333333333333*i_B4_a_i - 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r - 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r
-        struct[0].Hy[20,26] = -0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
-        struct[0].Hy[20,27] = -0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r + 0.333333333333333*i_B4_b_i - 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r
-        struct[0].Hy[20,28] = 0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r - 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r + 0.333333333333333*i_B4_c_r
-        struct[0].Hy[20,29] = -0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r - 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r + 0.333333333333333*i_B4_c_i
-        struct[0].Hy[20,84] = 0.333333333333333*v_B4_a_r + 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r - 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
-        struct[0].Hy[20,85] = -0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
-        struct[0].Hy[20,86] = 0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r - 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r + 0.333333333333333*v_B4_c_r
-        struct[0].Hy[20,90] = 0.333333333333333*v_B4_a_i - 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r - 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r
-        struct[0].Hy[20,91] = -0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r + 0.333333333333333*v_B4_b_i - 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r
-        struct[0].Hy[20,92] = -0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r - 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r + 0.333333333333333*v_B4_c_i
-        struct[0].Hy[21,24] = 0.333333333333333*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.333333333333333*i_B4_c_r
-        struct[0].Hy[21,25] = 0.333333333333333*i_B4_a_i + 0.333333333333333*i_B4_b_i + 0.333333333333333*i_B4_c_i
-        struct[0].Hy[21,26] = 0.333333333333333*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.333333333333333*i_B4_c_r
-        struct[0].Hy[21,27] = 0.333333333333333*i_B4_a_i + 0.333333333333333*i_B4_b_i + 0.333333333333333*i_B4_c_i
-        struct[0].Hy[21,28] = 0.333333333333333*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.333333333333333*i_B4_c_r
-        struct[0].Hy[21,29] = 0.333333333333333*i_B4_a_i + 0.333333333333333*i_B4_b_i + 0.333333333333333*i_B4_c_i
-        struct[0].Hy[21,84] = 0.333333333333333*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.333333333333333*v_B4_c_r
-        struct[0].Hy[21,85] = 0.333333333333333*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.333333333333333*v_B4_c_r
-        struct[0].Hy[21,86] = 0.333333333333333*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.333333333333333*v_B4_c_r
-        struct[0].Hy[21,90] = 0.333333333333333*v_B4_a_i + 0.333333333333333*v_B4_b_i + 0.333333333333333*v_B4_c_i
-        struct[0].Hy[21,91] = 0.333333333333333*v_B4_a_i + 0.333333333333333*v_B4_b_i + 0.333333333333333*v_B4_c_i
-        struct[0].Hy[21,92] = 0.333333333333333*v_B4_a_i + 0.333333333333333*v_B4_b_i + 0.333333333333333*v_B4_c_i
+        struct[0].Hy[24,24] = 0.333333333333333*i_B4_a_r - 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r + 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
+        struct[0].Hy[24,25] = 0.333333333333333*i_B4_a_i - 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r - 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r
+        struct[0].Hy[24,26] = 0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r + 0.333333333333333*i_B4_b_r - 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
+        struct[0].Hy[24,27] = -0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r + 0.333333333333333*i_B4_b_i - 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r
+        struct[0].Hy[24,28] = -0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r + 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r + 0.333333333333333*i_B4_c_r
+        struct[0].Hy[24,29] = -0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r - 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r + 0.333333333333333*i_B4_c_i
+        struct[0].Hy[24,84] = 0.333333333333333*v_B4_a_r - 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r + 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
+        struct[0].Hy[24,85] = 0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r + 0.333333333333333*v_B4_b_r - 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
+        struct[0].Hy[24,86] = -0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r + 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r + 0.333333333333333*v_B4_c_r
+        struct[0].Hy[24,90] = 0.333333333333333*v_B4_a_i - 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r - 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r
+        struct[0].Hy[24,91] = -0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r + 0.333333333333333*v_B4_b_i - 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r
+        struct[0].Hy[24,92] = -0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r - 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r + 0.333333333333333*v_B4_c_i
+        struct[0].Hy[25,24] = 0.333333333333333*i_B4_a_r + 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r - 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
+        struct[0].Hy[25,25] = 0.333333333333333*i_B4_a_i - 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r - 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r
+        struct[0].Hy[25,26] = -0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r
+        struct[0].Hy[25,27] = -0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r + 0.333333333333333*i_B4_b_i - 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r
+        struct[0].Hy[25,28] = 0.288675134594813*i_B4_a_i - 0.166666666666667*i_B4_a_r - 0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r + 0.333333333333333*i_B4_c_r
+        struct[0].Hy[25,29] = -0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r - 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r + 0.333333333333333*i_B4_c_i
+        struct[0].Hy[25,84] = 0.333333333333333*v_B4_a_r + 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r - 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
+        struct[0].Hy[25,85] = -0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r
+        struct[0].Hy[25,86] = 0.288675134594813*v_B4_a_i - 0.166666666666667*v_B4_a_r - 0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r + 0.333333333333333*v_B4_c_r
+        struct[0].Hy[25,90] = 0.333333333333333*v_B4_a_i - 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r - 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r
+        struct[0].Hy[25,91] = -0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r + 0.333333333333333*v_B4_b_i - 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r
+        struct[0].Hy[25,92] = -0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r - 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r + 0.333333333333333*v_B4_c_i
+        struct[0].Hy[26,24] = 0.333333333333333*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.333333333333333*i_B4_c_r
+        struct[0].Hy[26,25] = 0.333333333333333*i_B4_a_i + 0.333333333333333*i_B4_b_i + 0.333333333333333*i_B4_c_i
+        struct[0].Hy[26,26] = 0.333333333333333*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.333333333333333*i_B4_c_r
+        struct[0].Hy[26,27] = 0.333333333333333*i_B4_a_i + 0.333333333333333*i_B4_b_i + 0.333333333333333*i_B4_c_i
+        struct[0].Hy[26,28] = 0.333333333333333*i_B4_a_r + 0.333333333333333*i_B4_b_r + 0.333333333333333*i_B4_c_r
+        struct[0].Hy[26,29] = 0.333333333333333*i_B4_a_i + 0.333333333333333*i_B4_b_i + 0.333333333333333*i_B4_c_i
+        struct[0].Hy[26,84] = 0.333333333333333*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.333333333333333*v_B4_c_r
+        struct[0].Hy[26,85] = 0.333333333333333*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.333333333333333*v_B4_c_r
+        struct[0].Hy[26,86] = 0.333333333333333*v_B4_a_r + 0.333333333333333*v_B4_b_r + 0.333333333333333*v_B4_c_r
+        struct[0].Hy[26,90] = 0.333333333333333*v_B4_a_i + 0.333333333333333*v_B4_b_i + 0.333333333333333*v_B4_c_i
+        struct[0].Hy[26,91] = 0.333333333333333*v_B4_a_i + 0.333333333333333*v_B4_b_i + 0.333333333333333*v_B4_c_i
+        struct[0].Hy[26,92] = 0.333333333333333*v_B4_a_i + 0.333333333333333*v_B4_b_i + 0.333333333333333*v_B4_c_i
 
+        struct[0].Hu[19,16] = 1
+        struct[0].Hu[20,17] = 1
+        struct[0].Hu[21,18] = 1
+        struct[0].Hu[22,20] = 1
+        struct[0].Hu[23,21] = 1
+        struct[0].Hu[27,22] = 1
+        struct[0].Hu[28,23] = 1
+        struct[0].Hu[29,24] = 1
+        struct[0].Hu[30,26] = 1
+        struct[0].Hu[31,27] = 1
 
 
 
@@ -1582,8 +1761,13 @@ def ini_nn(struct,mode):
     R_B1_sc = struct[0].R_B1_sc
     X_B1_sn = struct[0].X_B1_sn
     R_B1_sn = struct[0].R_B1_sn
+    S_n_B1 = struct[0].S_n_B1
     X_B1_ng = struct[0].X_B1_ng
     R_B1_ng = struct[0].R_B1_ng
+    K_f_B1 = struct[0].K_f_B1
+    T_f_B1 = struct[0].T_f_B1
+    K_sec_B1 = struct[0].K_sec_B1
+    K_delta_B1 = struct[0].K_delta_B1
     X_B4_sa = struct[0].X_B4_sa
     R_B4_sa = struct[0].R_B4_sa
     X_B4_sb = struct[0].X_B4_sb
@@ -1592,8 +1776,14 @@ def ini_nn(struct,mode):
     R_B4_sc = struct[0].R_B4_sc
     X_B4_sn = struct[0].X_B4_sn
     R_B4_sn = struct[0].R_B4_sn
+    S_n_B4 = struct[0].S_n_B4
     X_B4_ng = struct[0].X_B4_ng
     R_B4_ng = struct[0].R_B4_ng
+    K_f_B4 = struct[0].K_f_B4
+    T_f_B4 = struct[0].T_f_B4
+    K_sec_B4 = struct[0].K_sec_B4
+    K_delta_B4 = struct[0].K_delta_B4
+    K_agc = struct[0].K_agc
     
     # Inputs:
     i_B2_n_r = struct[0].i_B2_n_r
@@ -1616,14 +1806,21 @@ def ini_nn(struct,mode):
     e_B1_bn = struct[0].e_B1_bn
     e_B1_cn = struct[0].e_B1_cn
     phi_B1 = struct[0].phi_B1
+    p_B1_ref = struct[0].p_B1_ref
+    omega_B1_ref = struct[0].omega_B1_ref
     e_B4_an = struct[0].e_B4_an
     e_B4_bn = struct[0].e_B4_bn
     e_B4_cn = struct[0].e_B4_cn
     phi_B4 = struct[0].phi_B4
-    u_dummy = struct[0].u_dummy
+    p_B4_ref = struct[0].p_B4_ref
+    omega_B4_ref = struct[0].omega_B4_ref
     
     # Dynamical states:
-    x_dummy = struct[0].x[0,0]
+    phi_B1 = struct[0].x[0,0]
+    omega_B1 = struct[0].x[1,0]
+    phi_B4 = struct[0].x[2,0]
+    omega_B4 = struct[0].x[3,0]
+    xi_freq = struct[0].x[4,0]
     
     # Algebraic states:
     v_B2_a_r = struct[0].y_ini[0,0]
@@ -1722,12 +1919,17 @@ def ini_nn(struct,mode):
     i_B4_n_i = struct[0].y_ini[93,0]
     i_B4_ng_i = struct[0].y_ini[94,0]
     e_B4_ng_i = struct[0].y_ini[95,0]
+    omega_coi = struct[0].y_ini[96,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = u_dummy - x_dummy
+        struct[0].f[0,0] = -K_delta_B1*phi_B1 + 314.159265358979*omega_B1 - 314.159265358979*omega_coi
+        struct[0].f[1,0] = (-K_f_B1*(K_sec_B1*xi_freq - 0.333333333333333*i_B1_a_i*v_B1_a_i - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) - 0.333333333333333*i_B1_a_r*v_B1_a_r - 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) - 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) - 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r - 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i + 0.166666666666667*i_B1_b_r*v_B1_c_r + 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r - 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i + 0.166666666666667*i_B1_c_r*v_B1_b_r - 0.333333333333333*i_B1_c_r*v_B1_c_r + p_B1_ref + v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) + v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) - v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) - v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r))/S_n_B1 - omega_B1 + omega_B1_ref)/T_f_B1
+        struct[0].f[2,0] = -K_delta_B4*phi_B4 + 314.159265358979*omega_B4 - 314.159265358979*omega_coi
+        struct[0].f[3,0] = (-K_f_B4*(K_sec_B4*xi_freq - 0.333333333333333*i_B4_a_i*v_B4_a_i - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) - 0.333333333333333*i_B4_a_r*v_B4_a_r - 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) - 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) - 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r - 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i + 0.166666666666667*i_B4_b_r*v_B4_c_r + 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r - 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i + 0.166666666666667*i_B4_c_r*v_B4_b_r - 0.333333333333333*i_B4_c_r*v_B4_c_r + p_B4_ref + v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) + v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) - v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) - v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r))/S_n_B4 - omega_B4 + omega_B4_ref)/T_f_B4
+        struct[0].f[4,0] = K_agc*(1 - omega_coi)
     
     # Algebraic equations:
     if mode == 3:
@@ -1829,6 +2031,7 @@ def ini_nn(struct,mode):
         struct[0].g[93,0] = -1.0*R_B4_sn*i_B4_n_i - 1.0*X_B4_sn*i_B4_n_r + 1.0*e_B4_ng_i - 1.0*v_B4_n_i
         struct[0].g[94,0] = 1.0*i_B4_a_i + 1.0*i_B4_b_i + 1.0*i_B4_c_i + 1.0*i_B4_n_i - 1.0*i_B4_ng_i
         struct[0].g[95,0] = 1.0*R_B4_ng*i_B4_ng_i + 1.0*X_B4_ng*i_B4_ng_r - 1.0*e_B4_ng_i
+        struct[0].g[96,0] = omega_coi - (S_n_B1*omega_B1 + S_n_B4*omega_B4)/(S_n_B1 + S_n_B4)
     
     # Outputs:
     if mode == 3:
@@ -1852,17 +2055,61 @@ def ini_nn(struct,mode):
         struct[0].h[16,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i + 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r - 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i - 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) + v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[17,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r) + v_B1_a_r*(0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(-0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[18,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 0.333333333333333*i_B1_a_i*v_B1_b_i + 0.333333333333333*i_B1_a_i*v_B1_c_i + 0.333333333333333*i_B1_a_r*v_B1_a_r + 0.333333333333333*i_B1_a_r*v_B1_b_r + 0.333333333333333*i_B1_a_r*v_B1_c_r + 0.333333333333333*i_B1_b_i*v_B1_a_i + 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.333333333333333*i_B1_b_i*v_B1_c_i + 0.333333333333333*i_B1_b_r*v_B1_a_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.333333333333333*i_B1_b_r*v_B1_c_r + 0.333333333333333*i_B1_c_i*v_B1_a_i + 0.333333333333333*i_B1_c_i*v_B1_b_i + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.333333333333333*i_B1_c_r*v_B1_a_r + 0.333333333333333*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r
-        struct[0].h[19,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[20,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[21,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[19,0] = e_B1_an
+        struct[0].h[20,0] = e_B1_bn
+        struct[0].h[21,0] = e_B1_cn
+        struct[0].h[22,0] = p_B1_ref
+        struct[0].h[23,0] = omega_B1_ref
+        struct[0].h[24,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[25,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[26,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[27,0] = e_B4_an
+        struct[0].h[28,0] = e_B4_bn
+        struct[0].h[29,0] = e_B4_cn
+        struct[0].h[30,0] = p_B4_ref
+        struct[0].h[31,0] = omega_B4_ref
     
 
     if mode == 10:
 
-        struct[0].Fx_ini[0,0] = -1
+        struct[0].Fx_ini[0,0] = -K_delta_B1
+        struct[0].Fx_ini[0,1] = 314.159265358979
+        struct[0].Fx_ini[1,1] = -1/T_f_B1
+        struct[0].Fx_ini[1,4] = -K_f_B1*K_sec_B1/(S_n_B1*T_f_B1)
+        struct[0].Fx_ini[2,2] = -K_delta_B4
+        struct[0].Fx_ini[2,3] = 314.159265358979
+        struct[0].Fx_ini[3,3] = -1/T_f_B4
+        struct[0].Fx_ini[3,4] = -K_f_B4*K_sec_B4/(S_n_B4*T_f_B4)
 
     if mode == 11:
 
+        struct[0].Fy_ini[0,96] = -314.159265358979 
+        struct[0].Fy_ini[1,16] = -K_f_B1*(-0.333333333333333*i_B1_a_r + 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,17] = -K_f_B1*(-0.333333333333333*i_B1_a_i + 0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r + 0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,18] = -K_f_B1*(-0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.333333333333333*i_B1_b_r + 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,19] = -K_f_B1*(0.166666666666667*i_B1_a_i + 0.288675134594813*i_B1_a_r - 0.333333333333333*i_B1_b_i + 0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,20] = -K_f_B1*(0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.333333333333333*i_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,21] = -K_f_B1*(0.166666666666667*i_B1_a_i - 0.288675134594813*i_B1_a_r + 0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r - 0.333333333333333*i_B1_c_i)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,72] = -K_f_B1*(-0.333333333333333*v_B1_a_r + 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,73] = -K_f_B1*(-0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.333333333333333*v_B1_b_r + 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,74] = -K_f_B1*(0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.333333333333333*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,78] = -K_f_B1*(-0.333333333333333*v_B1_a_i + 0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r + 0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,79] = -K_f_B1*(0.166666666666667*v_B1_a_i + 0.288675134594813*v_B1_a_r - 0.333333333333333*v_B1_b_i + 0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[1,80] = -K_f_B1*(0.166666666666667*v_B1_a_i - 0.288675134594813*v_B1_a_r + 0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r - 0.333333333333333*v_B1_c_i)/(S_n_B1*T_f_B1) 
+        struct[0].Fy_ini[2,96] = -314.159265358979 
+        struct[0].Fy_ini[3,24] = -K_f_B4*(-0.333333333333333*i_B4_a_r + 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,25] = -K_f_B4*(-0.333333333333333*i_B4_a_i + 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r + 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,26] = -K_f_B4*(-0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.333333333333333*i_B4_b_r + 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,27] = -K_f_B4*(0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r - 0.333333333333333*i_B4_b_i + 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,28] = -K_f_B4*(0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.333333333333333*i_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,29] = -K_f_B4*(0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r + 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r - 0.333333333333333*i_B4_c_i)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,84] = -K_f_B4*(-0.333333333333333*v_B4_a_r + 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,85] = -K_f_B4*(-0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.333333333333333*v_B4_b_r + 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,86] = -K_f_B4*(0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.333333333333333*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,90] = -K_f_B4*(-0.333333333333333*v_B4_a_i + 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r + 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,91] = -K_f_B4*(0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r - 0.333333333333333*v_B4_b_i + 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[3,92] = -K_f_B4*(0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r + 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r - 0.333333333333333*v_B4_c_i)/(S_n_B4*T_f_B4) 
+        struct[0].Fy_ini[4,96] = -K_agc 
 
         struct[0].Gy_ini[0,0] = -292.221995392108
         struct[0].Gy_ini[0,1] = -139.986584618974
@@ -2350,6 +2597,7 @@ def ini_nn(struct,mode):
         struct[0].Gy_ini[95,88] = 1.0*X_B4_ng
         struct[0].Gy_ini[95,94] = 1.0*R_B4_ng
         struct[0].Gy_ini[95,95] = -1.00000000000000
+        struct[0].Gy_ini[96,96] = 1
 
 
 
@@ -2364,8 +2612,13 @@ def run_nn(t,struct,mode):
     R_B1_sc = struct[0].R_B1_sc
     X_B1_sn = struct[0].X_B1_sn
     R_B1_sn = struct[0].R_B1_sn
+    S_n_B1 = struct[0].S_n_B1
     X_B1_ng = struct[0].X_B1_ng
     R_B1_ng = struct[0].R_B1_ng
+    K_f_B1 = struct[0].K_f_B1
+    T_f_B1 = struct[0].T_f_B1
+    K_sec_B1 = struct[0].K_sec_B1
+    K_delta_B1 = struct[0].K_delta_B1
     X_B4_sa = struct[0].X_B4_sa
     R_B4_sa = struct[0].R_B4_sa
     X_B4_sb = struct[0].X_B4_sb
@@ -2374,8 +2627,14 @@ def run_nn(t,struct,mode):
     R_B4_sc = struct[0].R_B4_sc
     X_B4_sn = struct[0].X_B4_sn
     R_B4_sn = struct[0].R_B4_sn
+    S_n_B4 = struct[0].S_n_B4
     X_B4_ng = struct[0].X_B4_ng
     R_B4_ng = struct[0].R_B4_ng
+    K_f_B4 = struct[0].K_f_B4
+    T_f_B4 = struct[0].T_f_B4
+    K_sec_B4 = struct[0].K_sec_B4
+    K_delta_B4 = struct[0].K_delta_B4
+    K_agc = struct[0].K_agc
     
     # Inputs:
     i_B2_n_r = struct[0].i_B2_n_r
@@ -2398,14 +2657,21 @@ def run_nn(t,struct,mode):
     e_B1_bn = struct[0].e_B1_bn
     e_B1_cn = struct[0].e_B1_cn
     phi_B1 = struct[0].phi_B1
+    p_B1_ref = struct[0].p_B1_ref
+    omega_B1_ref = struct[0].omega_B1_ref
     e_B4_an = struct[0].e_B4_an
     e_B4_bn = struct[0].e_B4_bn
     e_B4_cn = struct[0].e_B4_cn
     phi_B4 = struct[0].phi_B4
-    u_dummy = struct[0].u_dummy
+    p_B4_ref = struct[0].p_B4_ref
+    omega_B4_ref = struct[0].omega_B4_ref
     
     # Dynamical states:
-    x_dummy = struct[0].x[0,0]
+    phi_B1 = struct[0].x[0,0]
+    omega_B1 = struct[0].x[1,0]
+    phi_B4 = struct[0].x[2,0]
+    omega_B4 = struct[0].x[3,0]
+    xi_freq = struct[0].x[4,0]
     
     # Algebraic states:
     v_B2_a_r = struct[0].y_run[0,0]
@@ -2504,12 +2770,17 @@ def run_nn(t,struct,mode):
     i_B4_n_i = struct[0].y_run[93,0]
     i_B4_ng_i = struct[0].y_run[94,0]
     e_B4_ng_i = struct[0].y_run[95,0]
+    omega_coi = struct[0].y_run[96,0]
     
     # Differential equations:
     if mode == 2:
 
 
-        struct[0].f[0,0] = u_dummy - x_dummy
+        struct[0].f[0,0] = -K_delta_B1*phi_B1 + 314.159265358979*omega_B1 - 314.159265358979*omega_coi
+        struct[0].f[1,0] = (-K_f_B1*(K_sec_B1*xi_freq - 0.333333333333333*i_B1_a_i*v_B1_a_i - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) - 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) - 0.333333333333333*i_B1_a_r*v_B1_a_r - 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) - 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) - 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r - 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i + 0.166666666666667*i_B1_b_r*v_B1_c_r + 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r - 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i + 0.166666666666667*i_B1_c_r*v_B1_b_r - 0.333333333333333*i_B1_c_r*v_B1_c_r + p_B1_ref + v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) + v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) - v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) - v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r))/S_n_B1 - omega_B1 + omega_B1_ref)/T_f_B1
+        struct[0].f[2,0] = -K_delta_B4*phi_B4 + 314.159265358979*omega_B4 - 314.159265358979*omega_coi
+        struct[0].f[3,0] = (-K_f_B4*(K_sec_B4*xi_freq - 0.333333333333333*i_B4_a_i*v_B4_a_i - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) - 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) - 0.333333333333333*i_B4_a_r*v_B4_a_r - 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) - 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) - 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r - 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i + 0.166666666666667*i_B4_b_r*v_B4_c_r + 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r - 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i + 0.166666666666667*i_B4_c_r*v_B4_b_r - 0.333333333333333*i_B4_c_r*v_B4_c_r + p_B4_ref + v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) + v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) - v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) - v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r))/S_n_B4 - omega_B4 + omega_B4_ref)/T_f_B4
+        struct[0].f[4,0] = K_agc*(1 - omega_coi)
     
     # Algebraic equations:
     if mode == 3:
@@ -2611,6 +2882,7 @@ def run_nn(t,struct,mode):
         struct[0].g[93,0] = -1.0*R_B4_sn*i_B4_n_i - 1.0*X_B4_sn*i_B4_n_r + 1.0*e_B4_ng_i - 1.0*v_B4_n_i
         struct[0].g[94,0] = 1.0*i_B4_a_i + 1.0*i_B4_b_i + 1.0*i_B4_c_i + 1.0*i_B4_n_i - 1.0*i_B4_ng_i
         struct[0].g[95,0] = 1.0*R_B4_ng*i_B4_ng_i + 1.0*X_B4_ng*i_B4_ng_r - 1.0*e_B4_ng_i
+        struct[0].g[96,0] = omega_coi - (S_n_B1*omega_B1 + S_n_B4*omega_B4)/(S_n_B1 + S_n_B4)
     
     # Outputs:
     if mode == 3:
@@ -2634,17 +2906,61 @@ def run_nn(t,struct,mode):
         struct[0].h[16,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i + 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r - 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i - 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r) + v_B1_a_r*(-0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[17,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r) + 1.0*i_B1_a_i*(-0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r) + 0.333333333333333*i_B1_a_r*v_B1_a_r + 1.0*i_B1_a_r*(0.288675134594813*v_B1_b_i - 0.166666666666667*v_B1_b_r) + 1.0*i_B1_a_r*(-0.288675134594813*v_B1_c_i - 0.166666666666667*v_B1_c_r) + 0.333333333333333*i_B1_b_i*v_B1_b_i - 0.166666666666667*i_B1_b_i*v_B1_c_i - 0.288675134594813*i_B1_b_i*v_B1_c_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.288675134594813*i_B1_b_r*v_B1_c_i - 0.166666666666667*i_B1_b_r*v_B1_c_r - 0.166666666666667*i_B1_c_i*v_B1_b_i + 0.288675134594813*i_B1_c_i*v_B1_b_r + 0.333333333333333*i_B1_c_i*v_B1_c_i - 0.288675134594813*i_B1_c_r*v_B1_b_i - 0.166666666666667*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r - v_B1_a_i*(0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r) - v_B1_a_i*(0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r) + v_B1_a_r*(0.288675134594813*i_B1_b_i - 0.166666666666667*i_B1_b_r) + v_B1_a_r*(-0.288675134594813*i_B1_c_i - 0.166666666666667*i_B1_c_r)
         struct[0].h[18,0] = 0.333333333333333*i_B1_a_i*v_B1_a_i + 0.333333333333333*i_B1_a_i*v_B1_b_i + 0.333333333333333*i_B1_a_i*v_B1_c_i + 0.333333333333333*i_B1_a_r*v_B1_a_r + 0.333333333333333*i_B1_a_r*v_B1_b_r + 0.333333333333333*i_B1_a_r*v_B1_c_r + 0.333333333333333*i_B1_b_i*v_B1_a_i + 0.333333333333333*i_B1_b_i*v_B1_b_i + 0.333333333333333*i_B1_b_i*v_B1_c_i + 0.333333333333333*i_B1_b_r*v_B1_a_r + 0.333333333333333*i_B1_b_r*v_B1_b_r + 0.333333333333333*i_B1_b_r*v_B1_c_r + 0.333333333333333*i_B1_c_i*v_B1_a_i + 0.333333333333333*i_B1_c_i*v_B1_b_i + 0.333333333333333*i_B1_c_i*v_B1_c_i + 0.333333333333333*i_B1_c_r*v_B1_a_r + 0.333333333333333*i_B1_c_r*v_B1_b_r + 0.333333333333333*i_B1_c_r*v_B1_c_r
-        struct[0].h[19,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[20,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
-        struct[0].h[21,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[19,0] = e_B1_an
+        struct[0].h[20,0] = e_B1_bn
+        struct[0].h[21,0] = e_B1_cn
+        struct[0].h[22,0] = p_B1_ref
+        struct[0].h[23,0] = omega_B1_ref
+        struct[0].h[24,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i + 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r - 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i - 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r) + v_B4_a_r*(-0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[25,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r) + 1.0*i_B4_a_i*(-0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r) + 0.333333333333333*i_B4_a_r*v_B4_a_r + 1.0*i_B4_a_r*(0.288675134594813*v_B4_b_i - 0.166666666666667*v_B4_b_r) + 1.0*i_B4_a_r*(-0.288675134594813*v_B4_c_i - 0.166666666666667*v_B4_c_r) + 0.333333333333333*i_B4_b_i*v_B4_b_i - 0.166666666666667*i_B4_b_i*v_B4_c_i - 0.288675134594813*i_B4_b_i*v_B4_c_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.288675134594813*i_B4_b_r*v_B4_c_i - 0.166666666666667*i_B4_b_r*v_B4_c_r - 0.166666666666667*i_B4_c_i*v_B4_b_i + 0.288675134594813*i_B4_c_i*v_B4_b_r + 0.333333333333333*i_B4_c_i*v_B4_c_i - 0.288675134594813*i_B4_c_r*v_B4_b_i - 0.166666666666667*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r - v_B4_a_i*(0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r) - v_B4_a_i*(0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r) + v_B4_a_r*(0.288675134594813*i_B4_b_i - 0.166666666666667*i_B4_b_r) + v_B4_a_r*(-0.288675134594813*i_B4_c_i - 0.166666666666667*i_B4_c_r)
+        struct[0].h[26,0] = 0.333333333333333*i_B4_a_i*v_B4_a_i + 0.333333333333333*i_B4_a_i*v_B4_b_i + 0.333333333333333*i_B4_a_i*v_B4_c_i + 0.333333333333333*i_B4_a_r*v_B4_a_r + 0.333333333333333*i_B4_a_r*v_B4_b_r + 0.333333333333333*i_B4_a_r*v_B4_c_r + 0.333333333333333*i_B4_b_i*v_B4_a_i + 0.333333333333333*i_B4_b_i*v_B4_b_i + 0.333333333333333*i_B4_b_i*v_B4_c_i + 0.333333333333333*i_B4_b_r*v_B4_a_r + 0.333333333333333*i_B4_b_r*v_B4_b_r + 0.333333333333333*i_B4_b_r*v_B4_c_r + 0.333333333333333*i_B4_c_i*v_B4_a_i + 0.333333333333333*i_B4_c_i*v_B4_b_i + 0.333333333333333*i_B4_c_i*v_B4_c_i + 0.333333333333333*i_B4_c_r*v_B4_a_r + 0.333333333333333*i_B4_c_r*v_B4_b_r + 0.333333333333333*i_B4_c_r*v_B4_c_r
+        struct[0].h[27,0] = e_B4_an
+        struct[0].h[28,0] = e_B4_bn
+        struct[0].h[29,0] = e_B4_cn
+        struct[0].h[30,0] = p_B4_ref
+        struct[0].h[31,0] = omega_B4_ref
     
 
     if mode == 10:
 
-        struct[0].Fx[0,0] = -1
+        struct[0].Fx[0,0] = -K_delta_B1
+        struct[0].Fx[0,1] = 314.159265358979
+        struct[0].Fx[1,1] = -1/T_f_B1
+        struct[0].Fx[1,4] = -K_f_B1*K_sec_B1/(S_n_B1*T_f_B1)
+        struct[0].Fx[2,2] = -K_delta_B4
+        struct[0].Fx[2,3] = 314.159265358979
+        struct[0].Fx[3,3] = -1/T_f_B4
+        struct[0].Fx[3,4] = -K_f_B4*K_sec_B4/(S_n_B4*T_f_B4)
 
     if mode == 11:
 
+        struct[0].Fy[0,96] = -314.159265358979
+        struct[0].Fy[1,16] = -K_f_B1*(-0.333333333333333*i_B1_a_r + 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,17] = -K_f_B1*(-0.333333333333333*i_B1_a_i + 0.166666666666667*i_B1_b_i - 0.288675134594813*i_B1_b_r + 0.166666666666667*i_B1_c_i + 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,18] = -K_f_B1*(-0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.333333333333333*i_B1_b_r + 0.288675134594813*i_B1_c_i + 0.166666666666667*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,19] = -K_f_B1*(0.166666666666667*i_B1_a_i + 0.288675134594813*i_B1_a_r - 0.333333333333333*i_B1_b_i + 0.166666666666667*i_B1_c_i - 0.288675134594813*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,20] = -K_f_B1*(0.288675134594813*i_B1_a_i + 0.166666666666667*i_B1_a_r - 0.288675134594813*i_B1_b_i + 0.166666666666667*i_B1_b_r - 0.333333333333333*i_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,21] = -K_f_B1*(0.166666666666667*i_B1_a_i - 0.288675134594813*i_B1_a_r + 0.166666666666667*i_B1_b_i + 0.288675134594813*i_B1_b_r - 0.333333333333333*i_B1_c_i)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,72] = -K_f_B1*(-0.333333333333333*v_B1_a_r + 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,73] = -K_f_B1*(-0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.333333333333333*v_B1_b_r + 0.288675134594813*v_B1_c_i + 0.166666666666667*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,74] = -K_f_B1*(0.288675134594813*v_B1_a_i + 0.166666666666667*v_B1_a_r - 0.288675134594813*v_B1_b_i + 0.166666666666667*v_B1_b_r - 0.333333333333333*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,78] = -K_f_B1*(-0.333333333333333*v_B1_a_i + 0.166666666666667*v_B1_b_i - 0.288675134594813*v_B1_b_r + 0.166666666666667*v_B1_c_i + 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,79] = -K_f_B1*(0.166666666666667*v_B1_a_i + 0.288675134594813*v_B1_a_r - 0.333333333333333*v_B1_b_i + 0.166666666666667*v_B1_c_i - 0.288675134594813*v_B1_c_r)/(S_n_B1*T_f_B1)
+        struct[0].Fy[1,80] = -K_f_B1*(0.166666666666667*v_B1_a_i - 0.288675134594813*v_B1_a_r + 0.166666666666667*v_B1_b_i + 0.288675134594813*v_B1_b_r - 0.333333333333333*v_B1_c_i)/(S_n_B1*T_f_B1)
+        struct[0].Fy[2,96] = -314.159265358979
+        struct[0].Fy[3,24] = -K_f_B4*(-0.333333333333333*i_B4_a_r + 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,25] = -K_f_B4*(-0.333333333333333*i_B4_a_i + 0.166666666666667*i_B4_b_i - 0.288675134594813*i_B4_b_r + 0.166666666666667*i_B4_c_i + 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,26] = -K_f_B4*(-0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.333333333333333*i_B4_b_r + 0.288675134594813*i_B4_c_i + 0.166666666666667*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,27] = -K_f_B4*(0.166666666666667*i_B4_a_i + 0.288675134594813*i_B4_a_r - 0.333333333333333*i_B4_b_i + 0.166666666666667*i_B4_c_i - 0.288675134594813*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,28] = -K_f_B4*(0.288675134594813*i_B4_a_i + 0.166666666666667*i_B4_a_r - 0.288675134594813*i_B4_b_i + 0.166666666666667*i_B4_b_r - 0.333333333333333*i_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,29] = -K_f_B4*(0.166666666666667*i_B4_a_i - 0.288675134594813*i_B4_a_r + 0.166666666666667*i_B4_b_i + 0.288675134594813*i_B4_b_r - 0.333333333333333*i_B4_c_i)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,84] = -K_f_B4*(-0.333333333333333*v_B4_a_r + 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,85] = -K_f_B4*(-0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.333333333333333*v_B4_b_r + 0.288675134594813*v_B4_c_i + 0.166666666666667*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,86] = -K_f_B4*(0.288675134594813*v_B4_a_i + 0.166666666666667*v_B4_a_r - 0.288675134594813*v_B4_b_i + 0.166666666666667*v_B4_b_r - 0.333333333333333*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,90] = -K_f_B4*(-0.333333333333333*v_B4_a_i + 0.166666666666667*v_B4_b_i - 0.288675134594813*v_B4_b_r + 0.166666666666667*v_B4_c_i + 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,91] = -K_f_B4*(0.166666666666667*v_B4_a_i + 0.288675134594813*v_B4_a_r - 0.333333333333333*v_B4_b_i + 0.166666666666667*v_B4_c_i - 0.288675134594813*v_B4_c_r)/(S_n_B4*T_f_B4)
+        struct[0].Fy[3,92] = -K_f_B4*(0.166666666666667*v_B4_a_i - 0.288675134594813*v_B4_a_r + 0.166666666666667*v_B4_b_i + 0.288675134594813*v_B4_b_r - 0.333333333333333*v_B4_c_i)/(S_n_B4*T_f_B4)
+        struct[0].Fy[4,96] = -K_agc
 
         struct[0].Gy[0,0] = -292.221995392108
         struct[0].Gy[0,1] = -139.986584618974
@@ -3132,6 +3448,7 @@ def run_nn(t,struct,mode):
         struct[0].Gy[95,88] = 1.0*X_B4_ng
         struct[0].Gy[95,94] = 1.0*R_B4_ng
         struct[0].Gy[95,95] = -1.00000000000000
+        struct[0].Gy[96,96] = 1
 
         struct[0].Gu[56,4] = -1
         struct[0].Gu[57,6] = -1
@@ -3157,18 +3474,18 @@ def run_nn(t,struct,mode):
         struct[0].Gu[79,19] = 1.0*e_B1_bn*cos(phi_B1 - 2.0943951023932)
         struct[0].Gu[80,18] = 1.0*sin(phi_B1 - 4.18879020478639)
         struct[0].Gu[80,19] = 1.0*e_B1_cn*cos(phi_B1 - 4.18879020478639)
-        struct[0].Gu[84,20] = cos(phi_B4)
-        struct[0].Gu[84,23] = -e_B4_an*sin(phi_B4)
-        struct[0].Gu[85,21] = cos(phi_B4 - 2.0943951023932)
-        struct[0].Gu[85,23] = -e_B4_bn*sin(phi_B4 - 2.0943951023932)
-        struct[0].Gu[86,22] = cos(phi_B4 - 4.18879020478639)
-        struct[0].Gu[86,23] = -e_B4_cn*sin(phi_B4 - 4.18879020478639)
-        struct[0].Gu[90,20] = 1.0*sin(phi_B4)
-        struct[0].Gu[90,23] = 1.0*e_B4_an*cos(phi_B4)
-        struct[0].Gu[91,21] = 1.0*sin(phi_B4 - 2.0943951023932)
-        struct[0].Gu[91,23] = 1.0*e_B4_bn*cos(phi_B4 - 2.0943951023932)
-        struct[0].Gu[92,22] = 1.0*sin(phi_B4 - 4.18879020478639)
-        struct[0].Gu[92,23] = 1.0*e_B4_cn*cos(phi_B4 - 4.18879020478639)
+        struct[0].Gu[84,22] = cos(phi_B4)
+        struct[0].Gu[84,25] = -e_B4_an*sin(phi_B4)
+        struct[0].Gu[85,23] = cos(phi_B4 - 2.0943951023932)
+        struct[0].Gu[85,25] = -e_B4_bn*sin(phi_B4 - 2.0943951023932)
+        struct[0].Gu[86,24] = cos(phi_B4 - 4.18879020478639)
+        struct[0].Gu[86,25] = -e_B4_cn*sin(phi_B4 - 4.18879020478639)
+        struct[0].Gu[90,22] = 1.0*sin(phi_B4)
+        struct[0].Gu[90,25] = 1.0*e_B4_an*cos(phi_B4)
+        struct[0].Gu[91,23] = 1.0*sin(phi_B4 - 2.0943951023932)
+        struct[0].Gu[91,25] = 1.0*e_B4_bn*cos(phi_B4 - 2.0943951023932)
+        struct[0].Gu[92,24] = 1.0*sin(phi_B4 - 4.18879020478639)
+        struct[0].Gu[92,25] = 1.0*e_B4_cn*cos(phi_B4 - 4.18879020478639)
 
 
 
@@ -3367,20 +3684,20 @@ def daesolver(struct):
 
 
 def nonzeros():
-    Fx_ini_rows = [0]
+    Fx_ini_rows = [0, 0, 1, 1, 2, 2, 3, 3]
 
-    Fx_ini_cols = [0]
+    Fx_ini_cols = [0, 1, 1, 4, 2, 3, 3, 4]
 
-    Fy_ini_rows = []
+    Fy_ini_rows = [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4]
 
-    Fy_ini_cols = []
+    Fy_ini_cols = [96, 16, 17, 18, 19, 20, 21, 72, 73, 74, 78, 79, 80, 96, 24, 25, 26, 27, 28, 29, 84, 85, 86, 90, 91, 92, 96]
 
-    Gx_ini_rows = []
+    Gx_ini_rows = [72, 73, 74, 78, 79, 80, 84, 85, 86, 90, 91, 92, 96, 96]
 
-    Gx_ini_cols = []
+    Gx_ini_cols = [0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 3]
 
-    Gy_ini_rows = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 31, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 36, 36, 36, 36, 36, 37, 37, 37, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 41, 41, 41, 41, 41, 42, 42, 42, 42, 42, 43, 43, 43, 43, 43, 44, 44, 44, 44, 44, 45, 45, 45, 45, 45, 46, 46, 46, 46, 47, 47, 47, 47, 48, 48, 48, 48, 48, 49, 49, 49, 49, 49, 50, 50, 50, 50, 50, 51, 51, 51, 51, 51, 52, 52, 52, 52, 52, 53, 53, 53, 53, 53, 54, 54, 54, 54, 55, 55, 55, 55, 56, 56, 56, 56, 56, 56, 57, 57, 57, 57, 57, 57, 58, 58, 58, 58, 58, 58, 59, 59, 59, 59, 59, 59, 60, 60, 60, 60, 60, 60, 61, 61, 61, 61, 61, 61, 62, 62, 62, 62, 63, 63, 63, 63, 64, 64, 64, 64, 64, 64, 65, 65, 65, 65, 65, 65, 66, 66, 66, 66, 66, 66, 67, 67, 67, 67, 67, 67, 68, 68, 68, 68, 68, 68, 69, 69, 69, 69, 69, 69, 70, 70, 70, 70, 71, 71, 71, 71, 72, 72, 72, 72, 73, 73, 73, 73, 74, 74, 74, 74, 75, 75, 75, 75, 76, 76, 76, 76, 76, 77, 77, 77, 78, 78, 78, 78, 79, 79, 79, 79, 80, 80, 80, 80, 81, 81, 81, 81, 82, 82, 82, 82, 82, 83, 83, 83, 84, 84, 84, 84, 85, 85, 85, 85, 86, 86, 86, 86, 87, 87, 87, 87, 88, 88, 88, 88, 88, 89, 89, 89, 90, 90, 90, 90, 91, 91, 91, 91, 92, 92, 92, 92, 93, 93, 93, 93, 94, 94, 94, 94, 94, 95, 95, 95]
+    Gy_ini_rows = [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 28, 28, 28, 28, 28, 29, 29, 29, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 31, 32, 32, 32, 32, 32, 33, 33, 33, 33, 33, 34, 34, 34, 34, 34, 35, 35, 35, 35, 35, 36, 36, 36, 36, 36, 37, 37, 37, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 40, 41, 41, 41, 41, 41, 42, 42, 42, 42, 42, 43, 43, 43, 43, 43, 44, 44, 44, 44, 44, 45, 45, 45, 45, 45, 46, 46, 46, 46, 47, 47, 47, 47, 48, 48, 48, 48, 48, 49, 49, 49, 49, 49, 50, 50, 50, 50, 50, 51, 51, 51, 51, 51, 52, 52, 52, 52, 52, 53, 53, 53, 53, 53, 54, 54, 54, 54, 55, 55, 55, 55, 56, 56, 56, 56, 56, 56, 57, 57, 57, 57, 57, 57, 58, 58, 58, 58, 58, 58, 59, 59, 59, 59, 59, 59, 60, 60, 60, 60, 60, 60, 61, 61, 61, 61, 61, 61, 62, 62, 62, 62, 63, 63, 63, 63, 64, 64, 64, 64, 64, 64, 65, 65, 65, 65, 65, 65, 66, 66, 66, 66, 66, 66, 67, 67, 67, 67, 67, 67, 68, 68, 68, 68, 68, 68, 69, 69, 69, 69, 69, 69, 70, 70, 70, 70, 71, 71, 71, 71, 72, 72, 72, 72, 73, 73, 73, 73, 74, 74, 74, 74, 75, 75, 75, 75, 76, 76, 76, 76, 76, 77, 77, 77, 78, 78, 78, 78, 79, 79, 79, 79, 80, 80, 80, 80, 81, 81, 81, 81, 82, 82, 82, 82, 82, 83, 83, 83, 84, 84, 84, 84, 85, 85, 85, 85, 86, 86, 86, 86, 87, 87, 87, 87, 88, 88, 88, 88, 88, 89, 89, 89, 90, 90, 90, 90, 91, 91, 91, 91, 92, 92, 92, 92, 93, 93, 93, 93, 94, 94, 94, 94, 94, 95, 95, 95, 96]
 
-    Gy_ini_cols = [0, 1, 8, 9, 16, 17, 56, 0, 1, 8, 9, 16, 17, 57, 2, 3, 10, 11, 18, 19, 58, 2, 3, 10, 11, 18, 19, 59, 4, 5, 12, 13, 20, 21, 60, 4, 5, 12, 13, 20, 21, 61, 6, 7, 14, 15, 22, 23, 6, 7, 14, 15, 22, 23, 0, 1, 8, 9, 24, 25, 64, 0, 1, 8, 9, 24, 25, 65, 2, 3, 10, 11, 26, 27, 66, 2, 3, 10, 11, 26, 27, 67, 4, 5, 12, 13, 28, 29, 68, 4, 5, 12, 13, 28, 29, 69, 6, 7, 14, 15, 30, 31, 6, 7, 14, 15, 30, 31, 0, 1, 16, 17, 72, 0, 1, 16, 17, 78, 2, 3, 18, 19, 73, 2, 3, 18, 19, 79, 4, 5, 20, 21, 74, 4, 5, 20, 21, 80, 6, 7, 22, 23, 75, 6, 7, 22, 23, 81, 8, 9, 24, 25, 84, 8, 9, 24, 25, 90, 10, 11, 26, 27, 85, 10, 11, 26, 27, 91, 12, 13, 28, 29, 86, 12, 13, 28, 29, 92, 14, 15, 30, 31, 87, 14, 15, 30, 31, 93, 0, 1, 16, 17, 32, 0, 1, 16, 17, 33, 2, 3, 18, 19, 34, 2, 3, 18, 19, 35, 4, 5, 20, 21, 36, 4, 5, 20, 21, 37, 32, 34, 36, 38, 33, 35, 37, 39, 0, 1, 8, 9, 40, 0, 1, 8, 9, 41, 2, 3, 10, 11, 42, 2, 3, 10, 11, 43, 4, 5, 12, 13, 44, 4, 5, 12, 13, 45, 40, 42, 44, 46, 41, 43, 45, 47, 8, 9, 24, 25, 48, 8, 9, 24, 25, 49, 10, 11, 26, 27, 50, 10, 11, 26, 27, 51, 12, 13, 28, 29, 52, 12, 13, 28, 29, 53, 48, 50, 52, 54, 49, 51, 53, 55, 0, 1, 6, 7, 56, 57, 2, 3, 6, 7, 58, 59, 4, 5, 6, 7, 60, 61, 0, 1, 6, 7, 56, 57, 2, 3, 6, 7, 58, 59, 4, 5, 6, 7, 60, 61, 56, 58, 60, 62, 57, 59, 61, 63, 8, 9, 14, 15, 64, 65, 10, 11, 14, 15, 66, 67, 12, 13, 14, 15, 68, 69, 8, 9, 14, 15, 64, 65, 10, 11, 14, 15, 66, 67, 12, 13, 14, 15, 68, 69, 64, 66, 68, 70, 65, 67, 69, 71, 16, 22, 72, 78, 18, 22, 73, 79, 20, 22, 74, 80, 22, 75, 77, 81, 72, 73, 74, 75, 76, 76, 77, 82, 17, 23, 72, 78, 19, 23, 73, 79, 21, 23, 74, 80, 23, 75, 81, 83, 78, 79, 80, 81, 82, 76, 82, 83, 24, 30, 84, 90, 26, 30, 85, 91, 28, 30, 86, 92, 30, 87, 89, 93, 84, 85, 86, 87, 88, 88, 89, 94, 25, 31, 84, 90, 27, 31, 85, 91, 29, 31, 86, 92, 31, 87, 93, 95, 90, 91, 92, 93, 94, 88, 94, 95]
+    Gy_ini_cols = [0, 1, 8, 9, 16, 17, 56, 0, 1, 8, 9, 16, 17, 57, 2, 3, 10, 11, 18, 19, 58, 2, 3, 10, 11, 18, 19, 59, 4, 5, 12, 13, 20, 21, 60, 4, 5, 12, 13, 20, 21, 61, 6, 7, 14, 15, 22, 23, 6, 7, 14, 15, 22, 23, 0, 1, 8, 9, 24, 25, 64, 0, 1, 8, 9, 24, 25, 65, 2, 3, 10, 11, 26, 27, 66, 2, 3, 10, 11, 26, 27, 67, 4, 5, 12, 13, 28, 29, 68, 4, 5, 12, 13, 28, 29, 69, 6, 7, 14, 15, 30, 31, 6, 7, 14, 15, 30, 31, 0, 1, 16, 17, 72, 0, 1, 16, 17, 78, 2, 3, 18, 19, 73, 2, 3, 18, 19, 79, 4, 5, 20, 21, 74, 4, 5, 20, 21, 80, 6, 7, 22, 23, 75, 6, 7, 22, 23, 81, 8, 9, 24, 25, 84, 8, 9, 24, 25, 90, 10, 11, 26, 27, 85, 10, 11, 26, 27, 91, 12, 13, 28, 29, 86, 12, 13, 28, 29, 92, 14, 15, 30, 31, 87, 14, 15, 30, 31, 93, 0, 1, 16, 17, 32, 0, 1, 16, 17, 33, 2, 3, 18, 19, 34, 2, 3, 18, 19, 35, 4, 5, 20, 21, 36, 4, 5, 20, 21, 37, 32, 34, 36, 38, 33, 35, 37, 39, 0, 1, 8, 9, 40, 0, 1, 8, 9, 41, 2, 3, 10, 11, 42, 2, 3, 10, 11, 43, 4, 5, 12, 13, 44, 4, 5, 12, 13, 45, 40, 42, 44, 46, 41, 43, 45, 47, 8, 9, 24, 25, 48, 8, 9, 24, 25, 49, 10, 11, 26, 27, 50, 10, 11, 26, 27, 51, 12, 13, 28, 29, 52, 12, 13, 28, 29, 53, 48, 50, 52, 54, 49, 51, 53, 55, 0, 1, 6, 7, 56, 57, 2, 3, 6, 7, 58, 59, 4, 5, 6, 7, 60, 61, 0, 1, 6, 7, 56, 57, 2, 3, 6, 7, 58, 59, 4, 5, 6, 7, 60, 61, 56, 58, 60, 62, 57, 59, 61, 63, 8, 9, 14, 15, 64, 65, 10, 11, 14, 15, 66, 67, 12, 13, 14, 15, 68, 69, 8, 9, 14, 15, 64, 65, 10, 11, 14, 15, 66, 67, 12, 13, 14, 15, 68, 69, 64, 66, 68, 70, 65, 67, 69, 71, 16, 22, 72, 78, 18, 22, 73, 79, 20, 22, 74, 80, 22, 75, 77, 81, 72, 73, 74, 75, 76, 76, 77, 82, 17, 23, 72, 78, 19, 23, 73, 79, 21, 23, 74, 80, 23, 75, 81, 83, 78, 79, 80, 81, 82, 76, 82, 83, 24, 30, 84, 90, 26, 30, 85, 91, 28, 30, 86, 92, 30, 87, 89, 93, 84, 85, 86, 87, 88, 88, 89, 94, 25, 31, 84, 90, 27, 31, 85, 91, 29, 31, 86, 92, 31, 87, 93, 95, 90, 91, 92, 93, 94, 88, 94, 95, 96]
 
     return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols
