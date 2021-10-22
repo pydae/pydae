@@ -75,6 +75,13 @@ class {name}_class:
         data = np.array(self.sp_jac_trap_ia)
         self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
         
+    def update(self):
+
+        self.Time = np.zeros(self.N_store)
+        self.X = np.zeros((self.N_store,self.N_x))
+        self.Y = np.zeros((self.N_store,self.N_y))
+        self.Z = np.zeros((self.N_store,self.N_z))
+        self.iters = np.zeros(self.N_store)
         
     def ss_ini(self):
 
@@ -331,6 +338,45 @@ class {name}_class:
             if item in self.y_ini_list:
                 self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
 
+    def load_params(self,data_input):
+
+        if type(data_input) == str:
+            json_file = data_input
+            self.json_file = json_file
+            self.json_data = open(json_file).read().replace("'",'"')
+            data = json.loads(self.json_data)
+        elif type(data_input) == dict:
+            data = data_input
+
+        self.data = data
+        for item in self.data:
+            self.struct[0][item] = self.data[item]
+            if item in self.params_list:
+                self.params_values_list[self.params_list.index(item)] = self.data[item]
+            elif item in self.inputs_ini_list:
+                self.inputs_ini_values_list[self.inputs_ini_list.index(item)] = self.data[item]
+            elif item in self.inputs_run_list:
+                self.inputs_run_values_list[self.inputs_run_list.index(item)] = self.data[item]
+            else: 
+                print(f'parameter or input {item} not found')
+
+    def save_params(self,file_name = 'parameters.json'):
+        params_dict = {}
+        for item in self.params_list:
+            params_dict.update({item:self.get_value(item)})
+
+        params_dict_str = json.dumps(params_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(params_dict_str)
+
+    def save_inputs_ini(self,file_name = 'inputs_ini.json'):
+        inputs_ini_dict = {}
+        for item in self.inputs_ini_list:
+            inputs_ini_dict.update({item:self.get_value(item)})
+
+        inputs_ini_dict_str = json.dumps(inputs_ini_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(inputs_ini_dict_str)
 
 @numba.njit(cache=True)
 def sstate(xy,u,p,N_x,N_y,max_it=50,tol=1e-8):

@@ -366,10 +366,16 @@ def sym2str(sym_exp,x,y,u,p,multi_eval=False):
         
     return matrix_str   
 
-def vector2string(vector,function_header,vector_name,x,y,u,p,multi_eval=False):
+def vector2string(vector,function_header,vector_name,x,y,u,p,aux={},multi_eval=False):
     string = ''
     string_i = ''
     N  = len(vector)
+    
+    for item in aux:
+        str_element = sym2str(aux[item],x,y,u,p,multi_eval=multi_eval)
+        string_i += f'{" "*4}{item} = {str_element}\n'
+     
+    string_i += '\n'
     
     for it in range(N):
         str_element = sym2str(vector[it],x,y,u,p,multi_eval=multi_eval)
@@ -568,6 +574,12 @@ def sys2num(sys):
     
 
     name = sys['name']
+    
+    if 'aux_dict' in sys:
+        aux_dict = sys['aux_dict']
+    else:
+        aux_dict = {}
+        
 
     f_ini_eval = ''
     f_run_eval = ''
@@ -580,35 +592,35 @@ def sys2num(sys):
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def f_ini_eval(f_ini,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
-    f_ini_eval += vector2string(sys['f'],function_header,'f_ini',x,y,u,p,multi_eval=False)
+    f_ini_eval += vector2string(sys['f'],function_header,'f_ini',x,y,u,p,aux=aux_dict,multi_eval=False)
 
     
     # f: differential equations for foreward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def f_run_eval(f_run,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
-    f_run_eval += vector2string(sys['f'],function_header,'f_run',x,y,u,p,multi_eval=False)
+    f_run_eval += vector2string(sys['f'],function_header,'f_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
 
     # g: algebraic equations for backward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def g_ini_eval(g_ini,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
-    g_ini_eval = vector2string(sys['g'],function_header,'g_ini',x,y,u,p,multi_eval=False)
+    g_ini_eval = vector2string(sys['g'],function_header,'g_ini',x,y,u,p,aux=aux_dict,multi_eval=False)
 
     
     # g: algebraic equations for forward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def g_run_eval(g_run,x,y,u,p,xyup = 1):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
-    g_run_eval = vector2string(sys['g'],function_header,'g_run',x,y,u,p,multi_eval=False)
+    g_run_eval = vector2string(sys['g'],function_header,'g_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
     
     # h: outputs for the foreward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def h_eval(h_run,x,y,u,p,xyup = 1):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
-    h_run_eval = vector2string(sys['h'],function_header,'h_run',x,y,u,p,multi_eval=False)
+    h_run_eval = vector2string(sys['h'],function_header,'h_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
     
     
