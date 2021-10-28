@@ -622,8 +622,28 @@ def sys2num(sys):
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     h_run_eval = vector2string(sys['h'],function_header,'h_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    
-    
+ 
+    # GPU f: differential equations for foreward problem
+    function_header  = '@cuda.jit(device=True)\n'
+    function_header += 'def f_run_gpu(f_run,x,u,p):\n\n'
+    function_header += '    sin = math.sin\n'
+    function_header += '    cos = math.cos\n'
+    function_header += '    abs = math.abs\n'
+    x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
+    f_run_gpu = vector2string(sys['f'],function_header,'f_run',x,y,u,p,aux=aux_dict,multi_eval=False)
+
+    # GPU h: outputs
+    function_header  = '@cuda.jit(device=True)\n'
+    function_header += 'def h_eval_gpu(z,x,u,p):\n\n'
+    function_header += '    sin = math.sin\n'
+    function_header += '    cos = math.cos\n'
+    function_header += '    abs = math.abs\n'
+    x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
+    h_run_gpu = vector2string(sys['h'],function_header,'z',x,y,u,p,aux=aux_dict,multi_eval=False)
+
+
+
+  
     xy0_eval = ''
     if 'xy0_dict' in sys:    
         if numba_enable: xy0_eval += '@numba.njit(cache=True)\n'
@@ -700,7 +720,12 @@ def sys2num(sys):
     module += g_ini_eval
     module += '\n'*3
     module += g_run_eval
+    module += '\n'*3    
+    module += f_run_gpu
     module += '\n'*3
+    module += h_run_gpu
+    module += '\n'*3  
+
     module += jac_ini_ss_eval
     module += '\n'*3
     module += jac_ss_eval

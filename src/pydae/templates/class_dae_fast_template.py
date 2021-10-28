@@ -3,6 +3,8 @@ import numba
 import scipy.optimize as sopt
 import scipy.sparse as sspa
 from scipy.sparse.linalg import spsolve
+from numba import cuda
+
 
 import json
 
@@ -558,3 +560,23 @@ def daesolver_sp(t,t_end,it,it_store,xy,u,p,sp_jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y
                 it_store += 1 
 
     return t,it,it_store,xy
+
+
+@cuda.jit()
+def ode_solve(x,u,p,f_run,u_idxs,z_i,z,sim):
+
+    N_i,N_j,N_x,N_z,Dt = sim
+
+    # index of thread on GPU:
+    i = cuda.grid(1)
+
+    if i < x.size:
+        for j in range(N_j):
+            f_run_eval(f_run[i,:],x[i,:],u[i,u_idxs[j],:],p[i,:])
+            for k in range(N_x):
+              x[i,k] +=  Dt*f_run[i,k]
+
+            # outputs in time range
+            #z[i,j] = u[i,idxs[j],0]
+            z[i,j] = x[i,1]
+        h_eval(z_i[i,:],x[i,:],u[i,u_idxs[j],:],p[i,:])
