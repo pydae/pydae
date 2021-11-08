@@ -159,6 +159,7 @@ class {name}_class:
         u = self.u_run
         
         t,it,it_store,xy = daesolver(t,t_end,it,it_store,xy,u,p,
+                                  self.jac_trap,
                                   self.Time,
                                   self.X,
                                   self.Y,
@@ -576,9 +577,9 @@ def sstate(xy,u,p,jac_ini_ss,N_x,N_y,max_it=50,tol=1e-8):
             
             
 @numba.njit(cache=True) 
-def daesolver(t,t_end,it,it_store,xy,u,p,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
 
-    jac_trap = np.zeros((N_x+N_y,N_x+N_y),dtype=np.float64)
+
     fg = np.zeros((N_x+N_y,1),dtype=np.float64)
     fg_i = np.zeros((N_x+N_y),dtype=np.float64)
     x = xy[:N_x]
@@ -587,7 +588,8 @@ def daesolver(t,t_end,it,it_store,xy,u,p,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation
     f = fg[:N_x]
     g = fg[N_x:]
     h = np.zeros((N_z),dtype=np.float64)
-    jac_trap_eval(jac_trap,x,y,u,p,Dt,xyup=1) 
+    jac_trap_eval_up(jac_trap,x,y,u,p,Dt,xyup=1) 
+    jac_trap_eval_xy(jac_trap,x,y,u,p,Dt,xyup=1) 
     
     if it == 0:
         f_run_eval(f,x,y,u,p)
