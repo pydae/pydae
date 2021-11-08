@@ -14,7 +14,7 @@ import pkgutil
 import re
 from sympy.matrices.sparsetools import _doktocsr
 from sympy import SparseMatrix
-
+import time
 def sym_gen_str():
 
     str = '''\
@@ -397,25 +397,40 @@ def matrix2string(matrix,function_header,matrix_name,x,y,u,p):
     string = ''
     string_xy = ''
     string_up = ''
+    string_num = ''
     N_row,N_col = matrix.shape
     
     for irow in range(N_row):
         for icol in range(N_col):
-            str_element = sym2str(matrix[irow,icol],x,y,u,p)
+            element = matrix[irow,icol]
             
-            if str_element != 0:
+            if element.is_number:
+                str_element = str(element)
+            else:
+                str_element = sym2str(element,x,y,u,p)
+            
+            if str_element != '0':
                 str_element = arg2np(str_element,"Piecewise")
                 if 'x' in str_element or 'y' in str_element:
                     string_xy += f'{" "*4}{matrix_name}[{irow},{icol}] = {str_element}\n'
+                elif 'u' in str_element or 'p' in str_element or 'Dt' in str_element:
+                    string_up += f'{" "*4}{matrix_name}[{irow},{icol}] = {str_element}\n'
                 else:
-                    string_up += f'{" "*8}{matrix_name}[{irow},{icol}] = {str_element}\n'
+                    string_num += f'{" "*4}{matrix_name}[{irow},{icol}] = {str_element}\n'
+
+                    
 
     string += '\n'
-    string += function_header
+    string += '@numba.njit(cache=True)\n'
+    string += function_header.replace('(','_xy(')
     string += string_xy
     string += '\n'
-    string += f'{" "*4}if xyup == 1:\n\n'
+    string += '@numba.njit(cache=True)\n'
+    string += function_header.replace('(','_up(')
     string += string_up
+    string += '\n'
+    string += function_header.replace('(','_num(')
+    string += string_num
     string += '\n'
     
     return string
@@ -426,22 +441,40 @@ def spmatrix2string(spmatrix_list,function_header,matrix_name,x,y,u,p):
     string = ''
     string_xy = ''
     string_up = ''
+    string_num = ''
     
     for irow in range(len(data)):
-        str_element = sym2str(data[irow],x,y,u,p)
+
+        element = data[irow]
+        
+        if element.is_number:
+            str_element = str(element)
+        else:
+            str_element = sym2str(element,x,y,u,p)        
+        
         if str_element != 0:
+            str_element = arg2np(str_element,"Piecewise")
             if 'x' in str_element or 'y' in str_element:
                 string_xy += f'{" "*4}{matrix_name}[{irow}] = {str_element}\n'
+            elif 'u' in str_element or 'p' in str_element or 'Dt' in str_element:
+                string_up += f'{" "*4}{matrix_name}[{irow}] = {str_element}\n'
             else:
-                string_up += f'{" "*8}{matrix_name}[{irow}] = {str_element}\n'
+                string_num+= f'{" "*4}{matrix_name}[{irow}] = {str_element}\n'
+                
 
     string += '\n'
-    string += function_header
+    string += '@numba.njit(cache=True)\n'
+    string += function_header.replace('(','_xy(')
     string += string_xy
     string += '\n'
-    string += f'{" "*4}if xyup == 1:\n\n'
+    string += '@numba.njit(cache=True)\n'
+    string += function_header.replace('(','_up(')
     string += string_up
     string += '\n'
+    string += function_header.replace('(','_num(')
+    string += string_num
+    string += '\n'
+    
     string += f'def {matrix_name}_vectors():\n\n'
     string += f'{" "*4}{matrix_name}_ia = ' + str(spmatrix_list[1]) + '\n'
     string += f'{" "*4}{matrix_name}_ja = ' + str(spmatrix_list[2]) + '\n'    
@@ -452,7 +485,7 @@ def spmatrix2string(spmatrix_list,function_header,matrix_name,x,y,u,p):
     return string
 
 
-def sys2num(sys):
+def sys2num(sys, verbose=False):
     
     params = sys['params_dict']
     h_dict = sys['h_dict']
@@ -561,9 +594,13 @@ def sys2num(sys):
     N_u = len(u_run)
     N_z = len(h_dict)
     
+    t_0 = time.time()
+    if verbose: print(f'computing jac_ini (time: {time.time()-t_0}')
     jac_ini = sym.Matrix([[Fx_ini,Fy_ini],[Gx_ini,Gy_ini]]) 
+    if verbose: print(f'computing jac_run (time: {time.time()-t_0}')
     jac_run = sym.Matrix([[Fx_run,Fy_run],[Gx_run,Gy_run]]) 
     
+    if verbose: print(f'computing jac_trap (time: {time.time()-t_0}')
     eye = sym.eye(N_x, real=True)
     Dt = sym.Symbol('Dt',real=True)
     jac_trap = sym.Matrix([[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],[Gx_run,Gy_run]])    
@@ -587,14 +624,15 @@ def sys2num(sys):
     
     numba_enable = True
     tab = ' '*4
-    
+
+    if verbose: print(f'generating f_ini_eval string (time: {time.time()-t_0}')    
     # f: differential equations for backward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def f_ini_eval(f_ini,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
     f_ini_eval += vector2string(sys['f'],function_header,'f_ini',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    
+    if verbose: print(f'generating f_run_eval string (time: {time.time()-t_0}')        
     # f: differential equations for foreward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def f_run_eval(f_run,x,y,u,p,xyup = 0):\n\n'
@@ -602,42 +640,46 @@ def sys2num(sys):
     f_run_eval += vector2string(sys['f'],function_header,'f_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
 
+    if verbose: print(f'generating g_ini_eval string (time: {time.time()-t_0}')        
     # g: algebraic equations for backward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def g_ini_eval(g_ini,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
     g_ini_eval = vector2string(sys['g'],function_header,'g_ini',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    
+    if verbose: print(f'generating g_run_eval string (time: {time.time()-t_0}')           
     # g: algebraic equations for forward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def g_run_eval(g_run,x,y,u,p,xyup = 1):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     g_run_eval = vector2string(sys['g'],function_header,'g_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    
+    if verbose: print(f'generating h_run_eval string (time: {time.time()-t_0}')               
     # h: outputs for the foreward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def h_eval(h_run,x,y,u,p,xyup = 1):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     h_run_eval = vector2string(sys['h'],function_header,'h_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
- 
+    if verbose: print(f'generating f_run_gpu string (time: {time.time()-t_0}')      
     # GPU f: differential equations for foreward problem
     function_header  = '@cuda.jit(device=True)\n'
     function_header += 'def f_run_gpu(f_run,x,u,p):\n\n'
     function_header += '    sin = math.sin\n'
     function_header += '    cos = math.cos\n'
-    function_header += '    abs = math.abs\n'
+    function_header += '    sqrt = math.sqrt\n'
+    function_header += '    abs = math.fabs\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     f_run_gpu = vector2string(sys['f'],function_header,'f_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
+    if verbose: print(f'generating h_run_gpu string (time: {time.time()-t_0}')      
     # GPU h: outputs
     function_header  = '@cuda.jit(device=True)\n'
     function_header += 'def h_eval_gpu(z,x,u,p):\n\n'
     function_header += '    sin = math.sin\n'
     function_header += '    cos = math.cos\n'
-    function_header += '    abs = math.abs\n'
+    function_header += '    sqrt = math.sqrt\n'
+    function_header += '    abs = math.fabs\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     h_run_gpu = vector2string(sys['h'],function_header,'z',x,y,u,p,aux=aux_dict,multi_eval=False)
 
@@ -661,25 +703,39 @@ def sys2num(sys):
         xy0_eval += f'{tab}\n'    
         
     
+    if verbose: print(f'generating jac_ini_ss_eval string (time: {time.time()-t_0}')      
 ### jacobian steady state backward   
-    function_header =  '@numba.njit(cache=True)\n'
-    function_header += 'def jac_ini_ss_eval(jac_ini,x,y,u,p,xyup = 1):\n\n'
+    function_header = 'def jac_ini_ss_eval(jac_ini,x,y,u,p,xyup = 1):\n\n'
     matrix_name = 'jac_ini'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
     jac_ini_ss_eval = matrix2string(jac_ini,function_header,matrix_name,x,y,u,p)
 
+    if verbose: print(f'generating sp_jac_ini_eval string (time: {time.time()-t_0}')      
     
+## sparse jacobian ini 
+    spmatrix_list = _doktocsr(SparseMatrix(jac_ini))
+
+    function_header =  '@numba.njit(cache=True)\n'
+    function_header = 'def sp_jac_ini_eval(sp_jac_ini,x,y,u,p,Dt,xyup = 1):\n\n'
+    matrix_name = 'sp_jac_ini'
+    x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
+    sp_jac_ini_eval = spmatrix2string(spmatrix_list,function_header,matrix_name,x,y,u,p)
+    
+    
+    
+    if verbose: print(f'generating jac_ss_eval string (time: {time.time()-t_0}')      
 ## jacobian steady state forward
     function_header =  '@numba.njit(cache=True)\n'
-    function_header += 'def jac_run_ss_eval(jac_run,x,y,u,p,xyup = 1):\n\n'
+    function_header = 'def jac_run_ss_eval(jac_run,x,y,u,p,xyup = 1):\n\n'
     matrix_name = 'jac_run'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     jac_ss_eval = matrix2string(jac_run,function_header,matrix_name,x,y,u,p)
 
 
+    if verbose: print(f'generating jac_trap_eval string (time: {time.time()-t_0}')      
 ## jacobian trapezoidal 
     function_header =  '@numba.njit(cache=True)\n'
-    function_header += 'def jac_trap_eval(jac_trap,x,y,u,p,Dt,xyup = 1):\n\n'
+    function_header = 'def jac_trap_eval(jac_trap,x,y,u,p,Dt,xyup = 1):\n\n'
     matrix_name = 'jac_trap'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     jac_trap_eval = matrix2string(jac_trap,function_header,matrix_name,x,y,u,p)
@@ -687,7 +743,7 @@ def sys2num(sys):
 ## sparse jacobian trapezoidal 
     spmatrix_list = _doktocsr(SparseMatrix(jac_trap))
     function_header =  '@numba.njit(cache=True)\n'
-    function_header += 'def sp_jac_trap_eval(sp_jac_trap,x,y,u,p,Dt,xyup = 1):\n\n'
+    function_header = 'def sp_jac_trap_eval(sp_jac_trap,x,y,u,p,Dt,xyup = 1):\n\n'
     matrix_name = 'sp_jac_trap'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     sp_jac_trap_eval = spmatrix2string(spmatrix_list,function_header,matrix_name,x,y,u,p)
@@ -711,6 +767,7 @@ def sys2num(sys):
     class_template = class_template.replace('{inputs_run_values_list}', str([(sys['u_run_dict'][item]) for item in sys['u_run_dict']]))
     class_template = class_template.replace('{outputs_list}', str([str(item) for item in h_dict]))
 
+    if verbose: print(f'writting file (time: {time.time()-t_0}')      
     module = class_template
     module += '\n'*3
     module += f_ini_eval
@@ -727,6 +784,8 @@ def sys2num(sys):
     module += '\n'*3  
 
     module += jac_ini_ss_eval
+    module += '\n'*3
+    module += sp_jac_ini_eval
     module += '\n'*3
     module += jac_ss_eval
     module += '\n'*3
