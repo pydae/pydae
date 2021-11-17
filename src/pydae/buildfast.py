@@ -121,7 +121,7 @@ def check_system(sys):
     if contains_duplicates:
         print('error: y_run contains duplicates')
        
-def system(sys):
+def system(sys, verbose=False):
     '''
     
 
@@ -145,6 +145,9 @@ def system(sys):
         DESCRIPTION.
 
     '''
+    
+    t_0 = time.time()
+    if verbose: print(f'check_system (time: {time.time()-t_0})')
     check_system(sys)
     
     f = sym.Matrix(sys['f_list']).T
@@ -158,19 +161,25 @@ def system(sys):
     u_run = sym.Matrix(u_run_list).T 
     h =  sym.Matrix(list(sys['h_dict'].values())).T     
 
+    if verbose: print(f'computing jacobians Fx_run,Fy_run  (time: {time.time()-t_0})')
     Fx_run = f.jacobian(x)
     Fy_run = f.jacobian(y_run)
+    if verbose: print(f'computing jacobians Gx_run,Gy_run  (time: {time.time()-t_0})')
     Gx_run = g.jacobian(x)
     Gy_run = g.jacobian(y_run)
 
+    if verbose: print(f'computing jacobians Fu_run,Gu_run  (time: {time.time()-t_0})')
     Fu_run = f.jacobian(u_run)
     Gu_run = g.jacobian(u_run)
-    
+
+    if verbose: print(f'computing jacobians Fx_ini,Fy_ini  (time: {time.time()-t_0}')   
     Fx_ini = f.jacobian(x)
     Fy_ini = f.jacobian(y_ini)
+    if verbose: print(f'computing jacobians Gx_ini,Gy_ini  (time: {time.time()-t_0}')
     Gx_ini = g.jacobian(x)
     Gy_ini = g.jacobian(y_ini)
-    
+
+    if verbose: print(f'computing jacobians Hx_run,Hy_run,Hu_run  (time: {time.time()-t_0})')   
     Hx_run = h.jacobian(x)
     Hy_run = h.jacobian(y_run)   
     Hu_run = h.jacobian(u_run)
@@ -229,7 +238,9 @@ def system(sys):
     sys['Gx_run_cols'] = Gx_run_cols 
     sys['Gy_run_rows'] = Gy_run_rows 
     sys['Gy_run_cols'] = Gy_run_cols 
+    
 
+    if verbose: print(f'end system  (time: {time.time()-t_0})')   
     
     return sys
 
@@ -595,12 +606,12 @@ def sys2num(sys, verbose=False):
     N_z = len(h_dict)
     
     t_0 = time.time()
-    if verbose: print(f'computing jac_ini (time: {time.time()-t_0}')
+    if verbose: print(f'computing jac_ini (time: {time.time()-t_0})')
     jac_ini = sym.Matrix([[Fx_ini,Fy_ini],[Gx_ini,Gy_ini]]) 
-    if verbose: print(f'computing jac_run (time: {time.time()-t_0}')
+    if verbose: print(f'computing jac_run (time: {time.time()-t_0})')
     jac_run = sym.Matrix([[Fx_run,Fy_run],[Gx_run,Gy_run]]) 
     
-    if verbose: print(f'computing jac_trap (time: {time.time()-t_0}')
+    if verbose: print(f'computing jac_trap (time: {time.time()-t_0})')
     eye = sym.eye(N_x, real=True)
     Dt = sym.Symbol('Dt',real=True)
     jac_trap = sym.Matrix([[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],[Gx_run,Gy_run]])    
@@ -625,14 +636,14 @@ def sys2num(sys, verbose=False):
     numba_enable = True
     tab = ' '*4
 
-    if verbose: print(f'generating f_ini_eval string (time: {time.time()-t_0}')    
+    if verbose: print(f'generating f_ini_eval string (time: {time.time()-t_0})')    
     # f: differential equations for backward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def f_ini_eval(f_ini,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
     f_ini_eval += vector2string(sys['f'],function_header,'f_ini',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    if verbose: print(f'generating f_run_eval string (time: {time.time()-t_0}')        
+    if verbose: print(f'generating f_run_eval string (time: {time.time()-t_0})')        
     # f: differential equations for foreward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def f_run_eval(f_run,x,y,u,p,xyup = 0):\n\n'
@@ -640,28 +651,28 @@ def sys2num(sys, verbose=False):
     f_run_eval += vector2string(sys['f'],function_header,'f_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
 
-    if verbose: print(f'generating g_ini_eval string (time: {time.time()-t_0}')        
+    if verbose: print(f'generating g_ini_eval string (time: {time.time()-t_0})')        
     # g: algebraic equations for backward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def g_ini_eval(g_ini,x,y,u,p,xyup = 0):\n\n'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
     g_ini_eval = vector2string(sys['g'],function_header,'g_ini',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    if verbose: print(f'generating g_run_eval string (time: {time.time()-t_0}')           
+    if verbose: print(f'generating g_run_eval string (time: {time.time()-t_0})')           
     # g: algebraic equations for forward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def g_run_eval(g_run,x,y,u,p,xyup = 1):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     g_run_eval = vector2string(sys['g'],function_header,'g_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    if verbose: print(f'generating h_run_eval string (time: {time.time()-t_0}')               
+    if verbose: print(f'generating h_run_eval string (time: {time.time()-t_0})')               
     # h: outputs for the foreward problem
     function_header  = '@numba.njit(cache=True)\n'
     function_header += 'def h_eval(h_run,x,y,u,p,xyup = 1):\n\n'
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     h_run_eval = vector2string(sys['h'],function_header,'h_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    if verbose: print(f'generating f_run_gpu string (time: {time.time()-t_0}')      
+    if verbose: print(f'generating f_run_gpu string (time: {time.time()-t_0})')      
     # GPU f: differential equations for foreward problem
     function_header  = '@cuda.jit(device=True)\n'
     function_header += 'def f_run_gpu(f_run,x,u,p):\n\n'
@@ -672,7 +683,7 @@ def sys2num(sys, verbose=False):
     x,y,u,p = sys['x'],sys['y_run'],sys['u_run'],sys['params_dict'].keys()
     f_run_gpu = vector2string(sys['f'],function_header,'f_run',x,y,u,p,aux=aux_dict,multi_eval=False)
 
-    if verbose: print(f'generating h_run_gpu string (time: {time.time()-t_0}')      
+    if verbose: print(f'generating h_run_gpu string (time: {time.time()-t_0})')      
     # GPU h: outputs
     function_header  = '@cuda.jit(device=True)\n'
     function_header += 'def h_eval_gpu(z,x,u,p):\n\n'
@@ -703,18 +714,17 @@ def sys2num(sys, verbose=False):
         xy0_eval += f'{tab}\n'    
         
     
-    if verbose: print(f'generating jac_ini_ss_eval string (time: {time.time()-t_0}')      
-### jacobian steady state backward   
+### jacobian steady state backward 
+    if verbose: print(f'generating jac_ini_ss_eval string (time: {time.time()-t_0})')       
     function_header = 'def jac_ini_ss_eval(jac_ini,x,y,u,p,xyup = 1):\n\n'
     matrix_name = 'jac_ini'
     x,y,u,p = sys['x'],sys['y_ini'],sys['u_ini'],sys['params_dict'].keys()
     jac_ini_ss_eval = matrix2string(jac_ini,function_header,matrix_name,x,y,u,p)
 
-    if verbose: print(f'generating sp_jac_ini_eval string (time: {time.time()-t_0}')      
     
 ## sparse jacobian ini 
+    if verbose: print(f'generating sp_jac_ini_eval string (time: {time.time()-t_0})')      
     spmatrix_list = _doktocsr(SparseMatrix(jac_ini))
-
     function_header =  '@numba.njit(cache=True)\n'
     function_header = 'def sp_jac_ini_eval(sp_jac_ini,x,y,u,p,Dt,xyup = 1):\n\n'
     matrix_name = 'sp_jac_ini'
@@ -723,8 +733,8 @@ def sys2num(sys, verbose=False):
     
     
     
-    if verbose: print(f'generating jac_ss_eval string (time: {time.time()-t_0}')      
 ## jacobian steady state forward
+    if verbose: print(f'generating jac_ss_eval string (time: {time.time()-t_0})')      
     function_header =  '@numba.njit(cache=True)\n'
     function_header = 'def jac_run_ss_eval(jac_run,x,y,u,p,xyup = 1):\n\n'
     matrix_name = 'jac_run'
@@ -732,8 +742,8 @@ def sys2num(sys, verbose=False):
     jac_ss_eval = matrix2string(jac_run,function_header,matrix_name,x,y,u,p)
 
 
-    if verbose: print(f'generating jac_trap_eval string (time: {time.time()-t_0}')      
 ## jacobian trapezoidal 
+    if verbose: print(f'generating jac_trap_eval string (time: {time.time()-t_0})')      
     function_header =  '@numba.njit(cache=True)\n'
     function_header = 'def jac_trap_eval(jac_trap,x,y,u,p,Dt,xyup = 1):\n\n'
     matrix_name = 'jac_trap'
@@ -741,6 +751,7 @@ def sys2num(sys, verbose=False):
     jac_trap_eval = matrix2string(jac_trap,function_header,matrix_name,x,y,u,p)
 
 ## sparse jacobian trapezoidal 
+    if verbose: print(f'generating sp_jac_trap_eval string (time: {time.time()-t_0})')      
     spmatrix_list = _doktocsr(SparseMatrix(jac_trap))
     function_header =  '@numba.njit(cache=True)\n'
     function_header = 'def sp_jac_trap_eval(sp_jac_trap,x,y,u,p,Dt,xyup = 1):\n\n'
@@ -814,6 +825,7 @@ def sys2num(sys, verbose=False):
     with open(f'{name}.py','w') as fobj:
         fobj.write(module)
    
+    if verbose: print(f'sys2num (time: {time.time()-t_0})')      
 
 
 
