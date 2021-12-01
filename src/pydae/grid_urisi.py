@@ -113,7 +113,7 @@ def urisi2dae(grid):
 
     #I_aux = ( I_known_sym - Y_iv @ V_known_sym)   # with current injections
     I_aux = (            - Y_iv @ V_known_sym)     # without current injections
-    print(I_aux)
+
     #g_cplx = -V_unknown_sym + inv_Y_ii @ I_aux
     if I_aux.shape[1] == 0:
         g_cplx = -Y_ii @ V_unknown_sym 
@@ -227,8 +227,8 @@ def urisi2dae(grid):
         N_conductors = len(line['bus_j_nodes'])
         
         if N_conductors == 3:
-            if 'monitor' in line:
-                if line['monitor']:
+            if 'vsc_line' in line:
+                if line['vsc_line']:
                                
                     bus_j_name = line['bus_j']
                     bus_k_name = line['bus_k']
@@ -250,12 +250,30 @@ def urisi2dae(grid):
                     y_list += [i_l_b_i]
                     y_list += [i_l_c_r]
                     y_list += [i_l_c_i]    
+                    
+            if 'monitor' in line:
+                if line['monitor']:
+                               
+                    bus_j_name = line['bus_j']
+                    bus_k_name = line['bus_k']
+                    # i_l_a_r = sym.Symbol()
+                    # i_l_a_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_a_i")
+                    # i_l_b_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_r")
+                    # i_l_b_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_b_i")
+                    # i_l_c_r = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_r")
+                    # i_l_c_i = sym.Symbol(f"i_l_{bus_j_name}_{bus_k_name}_c_i")
+                    phases = ['a','b','c']
+                    for it in range(len(phases)):
+                        ph = phases[it]
+                        h_dict.update({f"i_l_{bus_j_name}_{bus_k_name}_{ph}_r" : sym.re(I_lines[it_single_line+it,0])})
+                        h_dict.update({f"i_l_{bus_j_name}_{bus_k_name}_{ph}_i" : sym.im(I_lines[it_single_line+it,0])})
+   
             if line['type'] == 'z': it_single_line += N_conductors
             if line['type'] == 'pi': it_single_line += 3*N_conductors
 
         if N_conductors == 4:
-            if 'monitor' in line:
-                if line['monitor']:
+            if 'vsc_line' in line:
+                if line['vsc_line']:
                                
                     bus_j_name = line['bus_j']
                     bus_k_name = line['bus_k']
@@ -283,9 +301,24 @@ def urisi2dae(grid):
                     y_list += [i_l_c_i] 
                     y_list += [i_l_n_r]
                     y_list += [i_l_n_i]
-            if line['type'] == 'z': it_single_line += N_conductors
-            if line['type'] == 'pi': it_single_line += 3*N_conductors        
+     
 
+                    
+            if 'monitor' in line:
+                if line['monitor']:
+                               
+                    bus_j_name = line['bus_j']
+                    bus_k_name = line['bus_k']
+
+                    phases = ['a','b','c','n']
+                    for it in range(len(phases)):
+                        ph = phases[it]
+                        h_dict.update({f"i_l_{bus_j_name}_{bus_k_name}_{ph}_r" : sym.re(I_lines[it_single_line+it,0])})
+                        h_dict.update({f"i_l_{bus_j_name}_{bus_k_name}_{ph}_i" : sym.im(I_lines[it_single_line+it,0])})
+   
+            if line['type'] == 'z': it_single_line += N_conductors
+            if line['type'] == 'pi': it_single_line += 3*N_conductors   
+                                       
     if hasattr(grid,'loads'):
         loads = grid.loads
     else:
@@ -331,10 +364,10 @@ def urisi2dae(grid):
             g_list[2*g_idx+0] += i_real_1
             g_list[2*g_idx+1] += i_imag_1    
 
-            print(g_list[2*g_idx+0])
-            print(i_real_1)
-            print(g_list[2*g_idx+1])
-            print(i_imag_1)
+            # print(g_list[2*g_idx+0])
+            # print(i_real_1)
+            # print(g_list[2*g_idx+1])
+            # print(i_imag_1)
             
             # add phase 2 current to g
             bus_idx = grid.nodes.index(f"{bus_name}.{load['bus_nodes'][1]}")
@@ -342,10 +375,10 @@ def urisi2dae(grid):
             g_list[2*g_idx+0] += i_real_2
             g_list[2*g_idx+1] += i_imag_2  
             
-            print(g_list[2*g_idx+0])
-            print(i_real_2)
-            print(g_list[2*g_idx+1])
-            print(i_imag_2)
+            # print(g_list[2*g_idx+0])
+            # print(i_real_2)
+            # print(g_list[2*g_idx+1])
+            # print(i_imag_2)
             
             y_list += [i_real_2,i_imag_2]
             

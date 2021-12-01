@@ -40,23 +40,23 @@
         ],
 "lines":[
         {"bus_j": "R1",  "bus_k": "R2",  "code": "UG1", "m": 35.0, "monitor":true},
-        {"bus_j": "R2",  "bus_k": "R3",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R3",  "bus_k": "R4",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R4",  "bus_k": "R5",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R5",  "bus_k": "R6",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R6",  "bus_k": "R7",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R7",  "bus_k": "R8",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R8",  "bus_k": "R9",  "code": "UG1", "m": 35.0 },
-        {"bus_j": "R9",  "bus_k": "R10", "code": "UG1", "m": 35.0 },
-        {"bus_j": "R3",  "bus_k": "R11", "code": "UG3", "m": 35.0 },
-        {"bus_j": "R4",  "bus_k": "R12", "code": "UG3", "m": 35.0 },
-        {"bus_j": "R12", "bus_k": "R13", "code": "UG3", "m": 35.0 },
-        {"bus_j": "R13", "bus_k": "R14", "code": "UG3", "m": 35.0 },
-        {"bus_j": "R14", "bus_k": "R15", "code": "UG3", "m": 35.0 },
-        {"bus_j": "R6",  "bus_k": "R16", "code": "UG3", "m": 30.0 },
-        {"bus_j": "R9",  "bus_k": "R17", "code": "UG3", "m": 30.0 },
-        {"bus_j": "R10", "bus_k": "R18", "code": "UG3", "m": 30.0 },   
-        {"bus_j": "D1",  "bus_k": "D3" ,  "code": "UG1dc", "m":  70.0, "monitor":true},
+        {"bus_j": "R2",  "bus_k": "R3",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R3",  "bus_k": "R4",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R4",  "bus_k": "R5",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R5",  "bus_k": "R6",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R6",  "bus_k": "R7",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R7",  "bus_k": "R8",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R8",  "bus_k": "R9",  "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R9",  "bus_k": "R10", "code": "UG1", "m": 35.0, "monitor":true },
+        {"bus_j": "R3",  "bus_k": "R11", "code": "UG3", "m": 35.0, "monitor":true },
+        {"bus_j": "R4",  "bus_k": "R12", "code": "UG3", "m": 35.0, "monitor":true },
+        {"bus_j": "R12", "bus_k": "R13", "code": "UG3", "m": 35.0, "monitor":true },
+        {"bus_j": "R13", "bus_k": "R14", "code": "UG3", "m": 35.0, "monitor":true },
+        {"bus_j": "R14", "bus_k": "R15", "code": "UG3", "m": 35.0, "monitor":true },
+        {"bus_j": "R6",  "bus_k": "R16", "code": "UG3", "m": 30.0, "monitor":true },
+        {"bus_j": "R9",  "bus_k": "R17", "code": "UG3", "m": 30.0, "monitor":true },
+        {"bus_j": "R10", "bus_k": "R18", "code": "UG3", "m": 30.0, "monitor":true },   
+        {"bus_j": "D1",  "bus_k": "D3" ,  "code": "UG1dc", "m":  70.0, "vsc_line":true},
         {"bus_j": "D3",  "bus_k": "D4" ,  "code": "UG1dc", "m":  35.0, "monitor":true},
         {"bus_j": "D4",  "bus_k": "D6" ,  "code": "UG1dc", "m":  70.0, "monitor":true},
         {"bus_j": "D6",  "bus_k": "D9" ,  "code": "UG1dc", "m": 105.0, "monitor":true},
@@ -117,17 +117,17 @@
 					 "X":[[ 0.747,  0.673,  0.651,  0.673],
        					[ 0.673,  0.747,  0.673,  0.651],
        					[ 0.651,  0.673,  0.747,  0.673],
-       					[ 0.673,  0.651,  0.673,  0.747]]
+       					[ 0.673,  0.651,  0.673,  0.747]], "I_max":200.0
 					},
 				"UG3":
 					{"R":[[ 0.871,  0.049,  0.049,  0.049],
-       					[ 0.049,  0.871,  0.049,  0.049],
-       					[ 0.049,  0.049,  0.871,  0.049],
-       					[ 0.049,  0.049,  0.049,  0.871]],
+       					  [ 0.049,  0.871,  0.049,  0.049],
+       					  [ 0.049,  0.049,  0.871,  0.049],
+       					  [ 0.049,  0.049,  0.049,  0.871]],
 					 "X":[[ 0.797,  0.719,  0.697,  0.719],
-       					[ 0.719,  0.797,  0.719,  0.697],
-       					[ 0.697,  0.719,  0.797,  0.719],
-       					[ 0.719,  0.697,  0.719,  0.797]]
+       					  [ 0.719,  0.797,  0.719,  0.697],
+       					  [ 0.697,  0.719,  0.797,  0.719],
+       					  [ 0.719,  0.697,  0.719,  0.797]], "I_max":100.0
 					},
                "UG1dc":
                     {"R":[[ 0.211,  0.0,  0.0,  0.0],
@@ -137,7 +137,7 @@
                      "X":[[ 0.0,  0.0,  0.0,  0.0],
                           [ 0.0,  0.0,  0.0,  0.0],
                           [ 0.0,  0.0,  0.0,  0.0],
-                          [ 0.0,  0.0,  0.0,  0.0]]
+                          [ 0.0,  0.0,  0.0,  0.0]], "I_max":300.0
             }
 				}
 }

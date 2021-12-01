@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:ns3="http://www.w3.org/1999/xlink" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" height="581.80493" version="1.1" width="306.04492" id="svg180" sodipodi:docname="cigre.svg" inkscape:version="1.1 (c68e22c387, 2021-05-23)">
+  <sodipodi:namedview id="namedview182" pagecolor="#ffffff" bordercolor="#666666" borderopacity="1.0" inkscape:pageshadow="2" inkscape:pageopacity="0.0" inkscape:pagecheckerboard="0" showgrid="false" inkscape:zoom="0.78125" inkscape:cx="-76.16" inkscape:cy="401.28" inkscape:window-width="1600" inkscape:window-height="812" inkscape:window-x="-8" inkscape:window-y="-8" inkscape:window-maximized="1" inkscape:current-layer="g5936" inkscape:snap-intersection-paths="true" inkscape:snap-bbox="true" inkscape:snap-smooth-nodes="true" fit-margin-top="5" fit-margin-left="5" fit-margin-right="5" fit-margin-bottom="5" lock-margins="true" />
+  <defs id="defs2" />
+  <g id="g3943" transform="rotate(90,168.00064,541.64557)">
+    <path style="fill:#5cb85c;stroke:none;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" d="m 161.75534,614.44668 22.93554,-26.55063 17.41129,20.43073 -23.13844,26.77352 z" id="path3050-3" sodipodi:nodetypes="ccccc" />
+    <rect style="fill:#337ab7;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194-9-8-3" width="20.631113" height="24.537434" x="182.5289" y="586.58258" rx="5.6568542" ry="5.6568542" />
+    <rect style="fill:#d9534f;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194-9-5-3-2" width="20.631113" height="24.537434" x="160.0289" y="612.08258" rx="5.6568542" ry="5.6568542" />
+  </g>
+  <path style="fill:#5cb85c;stroke:none;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" d="m 234.74937,218.75065 25.59426,-22.59083 17.41129,21.10955 -26.08,23.04 z" id="path3050" sodipodi:nodetypes="ccccc" />
+  <rect style="fill:#5cb85c;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194" width="43.055714" height="22.901604" x="77.017075" y="60.038574" rx="5.6568542" ry="5.6568542" />
+  <rect style="fill:#337ab7;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194-9" width="19.255705" height="22.901604" x="101.66707" y="60.538574" rx="5.6568542" ry="5.6568542" />
+  <rect style="fill:#337ab7;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194-9-8" width="20.631113" height="24.537434" x="258.4794" y="194.72067" rx="5.6568542" ry="5.6568542" />
+  <rect style="fill:#d9534f;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194-9-5" width="19.255705" height="22.901604" x="75.667068" y="60.038574" rx="5.6568542" ry="5.6568542" />
+  <rect style="fill:#d9534f;stroke-width:2;-inkscape-stroke:none;stop-color:#000000" id="rect2194-9-5-3" width="20.631113" height="24.537434" x="232.9794" y="217.22067" rx="5.6568542" ry="5.6568542" />
+  <rect height="14" id="R0" width="14" x="78.794922" y="16.109375" style="stroke-width:1" />
+  <text fill="#000000" id="R0_tt" x="78.904297" y="13.109375" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R0</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R1_tt" x="56.043945" y="76.366325" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R1</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R2_tt" x="55.794922" y="128.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R2</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R3_tt" x="57.850578" y="196.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R3</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R4_tt" x="57.689453" y="233.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R4</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R5_tt" x="57.824219" y="283.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R5</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R6_tt" x="59.554916" y="321.92938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R6</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R7_tt" x="57.777344" y="390.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R7</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R8_tt" x="57.756828" y="443.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R8</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R9_tt" x="57.794922" y="495.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R9</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R10_tt" x="53.663979" y="533.58429" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R10</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R11_tt" x="6.7949219" y="180.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R11</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R12_tt" x="126.29492" y="251.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R12</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R13_tt" x="178.79492" y="251.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R13</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R14_tt" x="210.33493" y="250.84937" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R14</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R15_tt" x="230.81491" y="303.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R15</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R16_tt" x="4.7949219" y="338.24939" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R16</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R17_tt" x="158.79492" y="495.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R17</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="R18_tt" x="6.7949219" y="549.12939" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R18</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D1_tt" x="121.48242" y="76.366325" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D1</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D3_tt" x="121.29492" y="158.85168" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D3</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D4_tt" x="119.29492" y="196.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D4</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D6_tt" x="119.61493" y="346.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D6</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D9_tt" x="118.17493" y="459.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D9</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D10_tt" x="124.6451" y="572.37598" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D10</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D11_tt" x="6.7949219" y="158.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D11</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D16_tt" x="4.7949219" y="361.38937" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D16</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D17_tt" x="158.79492" y="473.48938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D17</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D18_tt" x="6.7949219" y="571.70935" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D18</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D14_tt" x="280.79492" y="208.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D14</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <text fill="#000000" id="D15_tt" x="260.15491" y="303.98938" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">D15</text>
+  <set attributeName="visibility" begin="R18.mouseover" end="R18.mouseout" to="visible" ns3:href="R18_tt" />
+  <line id="l_R1_R2_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="66.989372" y2="119.48937" style="stroke:#ff0000" />
+  <line id="l_R1_R2_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="66.989372" y2="119.48937" style="stroke:#ff0000" />
+  <line id="l_R1_R2_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="66.989372" y2="119.48937" style="stroke:#ff0000" />
+  <line id="l_R1_R2_n" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="89.794922" x2="89.794922" y1="66.989372" y2="119.48937" style="stroke:#010000" />
+  <line id="l_R2_R3_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="119.48937" y2="171.98938" style="stroke:#ff0000" />
+  <line id="l_R2_R3_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="119.48937" y2="171.98938" style="stroke:#ff0000" />
+  <g id="g5908" transform="translate(-69.205078,-8.010626)">
+    <line id="l_R2_R3_a" stroke="#191928" stroke-width="2" x1="150" x2="150" y1="127.5" y2="180" style="stroke:#ff0000" />
+    <line id="l_R2_R3_n" stroke="#191928" stroke-width="2" x1="159" x2="159" y1="127.5" y2="180" style="stroke:#000000" />
+  </g>
+  <line id="l_R3_R4_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="171.98938" y2="224.48938" style="stroke:#ff0000" />
+  <line id="l_R3_R4_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="171.98938" y2="224.48938" style="stroke:#ff0000" />
+  <line id="l_R3_R4_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="171.98938" y2="224.48938" style="stroke:#ff0000" />
+  <line id="l_R3_R4_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="171.98938" y2="224.48938" style="stroke:#000000" />
+  <line id="l_R4_R5_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="235.98938" y2="274.98938" style="stroke:#c10000" />
+  <line id="l_R4_R5_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="235.98938" y2="274.98938" style="stroke:#c00000" />
+  <line id="l_R4_R5_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="235.98938" y2="274.98938" style="stroke:#be0000" />
+  <line id="l_R4_R5_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="235.98938" y2="274.98938" style="stroke:#000000" />
+  <line id="l_R5_R6_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="288.98938" y2="329.48938" style="stroke:#c10000" />
+  <line id="l_R5_R6_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="276.98938" y2="329.48938" style="stroke:#c00000" />
+  <line id="l_R5_R6_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="288.98938" y2="329.48938" style="stroke:#be0000" />
+  <line id="l_R5_R6_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="288.98938" y2="329.48938" style="stroke:#000000" />
+  <line id="l_R6_R7_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="329.48938" y2="381.98938" style="stroke:#580000" />
+  <line id="l_R6_R7_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="329.48938" y2="381.98938" style="stroke:#580000" />
+  <line id="l_R6_R7_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="329.48938" y2="381.98938" style="stroke:#570000" />
+  <line id="l_R6_R7_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="329.48938" y2="381.98938" style="stroke:#000000" />
+  <line id="l_R7_R8_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="381.98938" y2="434.48938" style="stroke:#580000" />
+  <line id="l_R7_R8_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="381.98938" y2="434.48938" style="stroke:#580000" />
+  <line id="l_R7_R8_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="381.98938" y2="434.48938" style="stroke:#570000" />
+  <line id="l_R7_R8_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="381.98938" y2="434.48938" style="stroke:#000000" />
+  <line id="l_R8_R9_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="434.48938" y2="486.98938" style="stroke:#580000" />
+  <line id="l_R8_R9_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="434.48938" y2="486.98938" style="stroke:#580000" />
+  <line id="l_R8_R9_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="434.48938" y2="486.98938" style="stroke:#570000" />
+  <line id="l_R8_R9_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="434.48938" y2="486.98938" style="stroke:#000000" />
+  <line id="l_R9_R10_a" stroke="#191928" stroke-width="2" x1="80.794922" x2="80.794922" y1="486.98938" y2="539.48938" style="stroke:#1d0000" />
+  <line id="l_R9_R10_b" stroke="#191928" stroke-width="2" x1="83.794922" x2="83.794922" y1="486.98938" y2="539.48938" style="stroke:#1d0000" />
+  <line id="l_R9_R10_c" stroke="#191928" stroke-width="2" x1="86.794922" x2="86.794922" y1="486.98938" y2="539.48938" style="stroke:#1d0000" />
+  <line id="l_R9_R10_n" stroke="#191928" stroke-width="2" x1="89.794922" x2="89.794922" y1="486.98938" y2="539.48938" style="stroke:#000000" />
+  <line id="l_R3_R11_a" stroke="#191928" stroke-width="1.81405" x1="78.294922" x2="47.794918" y1="171.98938" y2="171.98938" style="stroke:#380000" />
+  <line id="l_R3_R11_b" stroke="#191928" stroke-width="1.81405" x1="85.316185" x2="47.794918" y1="174.98938" y2="174.98938" style="stroke:#380000" />
+  <line id="l_R3_R11_c" stroke="#191928" stroke-width="1.81405" x1="78.294922" x2="47.794918" y1="177.98938" y2="177.98938" style="stroke:#380000" />
+  <line id="l_R3_R11_n" stroke="#191928" stroke-width="1.81405" x1="78.294922" x2="47.794918" y1="180.98938" y2="180.98938" style="stroke:#000000" />
+  <line id="l_R4_R12_b" stroke="#191928" stroke-width="2" x1="80.794922" x2="133.29492" y1="227.48938" y2="227.48938" style="stroke:#cc0000" />
+  <line id="l_R4_R12_c" stroke="#191928" stroke-width="2" x1="80.794922" x2="133.29492" y1="230.48938" y2="230.48938" style="stroke:#ca0000" />
+  <g id="g5916" transform="translate(-69.205078,-8.010626)">
+    <line id="l_R4_R12_a" stroke="#191928" stroke-width="2" x1="150" x2="202.5" y1="232.5" y2="232.5" style="stroke:#cd0000" />
+    <line id="l_R4_R12_n" stroke="#191928" stroke-width="2" x1="150" x2="202.5" y1="241.5" y2="241.5" style="stroke:#000000" />
+  </g>
+  <line id="l_R12_R13_a" stroke="#191928" stroke-width="2" x1="133.29492" x2="185.79492" y1="224.48938" y2="224.48938" style="stroke:#cd0000" />
+  <line id="l_R12_R13_b" stroke="#191928" stroke-width="2" x1="133.29492" x2="185.79492" y1="227.48938" y2="227.48938" style="stroke:#cc0000" />
+  <line id="l_R12_R13_c" stroke="#191928" stroke-width="2" x1="133.29492" x2="185.79492" y1="230.48938" y2="230.48938" style="stroke:#ca0000" />
+  <line id="l_R12_R13_n" stroke="#191928" stroke-width="2" x1="133.29492" x2="185.79492" y1="233.48938" y2="233.48938" style="stroke:#000000" />
+  <line id="l_R13_R14_a" stroke="#191928" stroke-width="2" x1="185.79492" x2="238.29492" y1="224.48938" y2="224.48938" style="stroke:#cd0000" />
+  <line id="l_R13_R14_b" stroke="#191928" stroke-width="2" x1="185.79492" x2="238.29492" y1="227.48938" y2="227.48938" style="stroke:#cc0000" />
+  <line id="l_R13_R14_c" stroke="#191928" stroke-width="2" x1="185.79492" x2="238.29492" y1="230.48938" y2="230.48938" style="stroke:#ca0000" />
+  <line id="l_R13_R14_n" stroke="#191928" stroke-width="2" x1="185.79492" x2="238.29492" y1="233.48938" y2="233.48938" style="stroke:#000000" />
+  <line id="l_R14_R15_b" stroke="#191928" stroke-width="2" x1="241.29492" x2="241.29492" y1="224.48938" y2="276.98938" style="stroke:#cc0000" />
+  <line id="l_R14_R15_c" stroke="#191928" stroke-width="2" x1="244.29492" x2="244.29492" y1="224.48938" y2="276.98938" style="stroke:#ca0000" />
+  <g id="g5924" transform="translate(-69.205078,-8.010626)">
+    <line id="l_R14_R15_a" stroke="#191928" stroke-width="2" x1="307.5" x2="307.5" y1="232.5" y2="285" style="stroke:#cd0000" />
+    <line id="l_R14_R15_n" stroke="#191928" stroke-width="2" x1="316.5" x2="316.5" y1="232.5" y2="285" style="stroke:#000000" />
+  </g>
+  <line id="l_R6_R16_b" stroke="#191928" stroke-width="1.74574" x1="80.794922" x2="40.794922" y1="332.48938" y2="332.48938" style="stroke:#d20000" />
+  <line id="l_R6_R16_c" stroke="#191928" stroke-width="1.74574" x1="80.794922" x2="40.794922" y1="335.48938" y2="335.48938" style="stroke:#d10000" />
+  <g id="g5932" transform="translate(-69.205078,-8.010626)">
+    <line id="l_R6_R16_a" stroke="#191928" stroke-width="1.74574" x1="150" x2="110" y1="337.5" y2="337.5" style="stroke:#d30000" />
+    <line id="l_R6_R16_n" stroke="#191928" stroke-width="1.74574" x1="150" x2="110" y1="346.5" y2="346.5" style="stroke:#000000" />
+  </g>
+  <line id="l_R9_R17_a" stroke="#191928" stroke-width="2.35885" x1="80.794922" x2="143.39169" y1="486.98938" y2="486.98938" style="stroke:#870000" />
+  <line id="l_R9_R17_b" stroke="#191928" stroke-width="2.35273" x1="80.794922" x2="143.06747" y1="489.98938" y2="489.98938" style="stroke:#860000" />
+  <line id="l_R9_R17_c" stroke="#191928" stroke-width="2.35273" x1="80.794922" x2="143.06747" y1="492.98938" y2="492.98938" style="stroke:#850000" />
+  <line id="l_R9_R17_n" stroke="#191928" stroke-width="2.35885" x1="80.794922" x2="143.39169" y1="495.98938" y2="495.98938" style="stroke:#000000" />
+  <line id="l_R10_R18_b" stroke="#191928" stroke-width="2" x1="80.794922" x2="35.794922" y1="542.48938" y2="542.48938" style="stroke:#b50000" />
+  <line id="l_R10_R18_c" stroke="#191928" stroke-width="2" x1="80.794922" x2="35.794922" y1="545.48938" y2="545.48938" style="stroke:#b30000" />
+  <g id="g5940" transform="translate(-69.205078,-8.010626)">
+    <line id="l_R10_R18_a" stroke="#191928" stroke-width="2" x1="150" x2="105" y1="547.5" y2="547.5" style="stroke:#b60000" />
+    <line id="l_R10_R18_n" stroke="#191928" stroke-width="2" x1="150" x2="105" y1="556.5" y2="556.5" style="stroke:#000000" />
+  </g>
+  <line id="l_D1_D3_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="109.29492" x2="109.29492" y1="66.989372" y2="149.48938" style="stroke:none;stroke-width:2" />
+  <line id="l_D1_D3_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="112.29492" x2="112.29492" y1="66.989372" y2="149.48938" style="stroke:none;stroke-width:2" />
+  <g id="g5912" transform="translate(-69.205078,-8.010626)">
+    <line id="l_D1_D3_a" stroke="#191928" stroke-width="2" x1="175.5" x2="175.5" y1="75" y2="157.5" style="stroke:#ff0000" />
+    <line id="l_D1_D3_n" stroke="#191928" stroke-width="2" x1="184.5" x2="184.5" y1="75" y2="157.5" style="stroke:#ff0000" />
+  </g>
+  <line id="l_D3_D4_a" stroke="#191928" stroke-width="2" x1="106.29492" x2="106.29492" y1="149.48938" y2="201.98938" style="stroke:#ff0000" />
+  <line id="l_D3_D4_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="109.29492" x2="109.29492" y1="149.48938" y2="201.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D3_D4_n" stroke="#191928" stroke-width="2" x1="115.29492" x2="115.29492" y1="149.48938" y2="201.98938" style="stroke:#ff0000" />
+  <line id="l_D4_D6_a" stroke="#191928" stroke-width="2" x1="106.29492" x2="106.29492" y1="201.98938" y2="351.98938" style="stroke:#ff0000" />
+  <line id="l_D4_D6_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="109.29492" x2="109.29492" y1="201.98938" y2="351.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D4_D6_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="112.29492" x2="112.29492" y1="201.98938" y2="351.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D4_D6_n" stroke="#191928" stroke-width="2" x1="115.29492" x2="115.29492" y1="201.98938" y2="351.98938" style="stroke:#ff0000" />
+  <line id="l_D6_D9_a" stroke="#191928" stroke-width="2" x1="106.29492" x2="106.29492" y1="351.98938" y2="464.48938" style="stroke:#ff0000" />
+  <line id="l_D6_D9_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="109.29492" x2="109.29492" y1="351.98938" y2="464.48938" style="stroke:none;stroke-width:2" />
+  <line id="l_D6_D9_n" stroke="#191928" stroke-width="2" x1="115.29492" x2="115.29492" y1="351.98938" y2="464.48938" style="stroke:#ff0000" />
+  <line id="l_D9_D10_a" stroke="#191928" stroke-width="2" x1="106.29492" x2="106.29492" y1="464.48938" y2="561.98938" style="stroke:#820000" />
+  <line id="l_D9_D10_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="109.29492" x2="109.29492" y1="464.48938" y2="561.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D9_D10_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="112.29492" x2="112.29492" y1="464.48938" y2="561.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D9_D10_n" stroke="#191928" stroke-width="2" x1="115.29492" x2="115.29492" y1="464.48938" y2="561.98938" style="stroke:#820000" />
+  <line id="l_D3_D11_a" stroke="#191928" stroke-width="1.81405" x1="103.79492" x2="47.794922" y1="149.48938" y2="149.48938" style="stroke:#b20000" />
+  <line id="l_D3_D11_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="106.29492" x2="35.794922" y1="152.48938" y2="152.48938" style="stroke:none;stroke-width:2" />
+  <line id="l_D3_D11_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="106.29492" x2="35.794922" y1="155.48938" y2="155.48938" style="stroke:none;stroke-width:2" />
+  <line id="l_D3_D11_n" stroke="#191928" stroke-width="1.81405" x1="103.79492" x2="47.794922" y1="158.48938" y2="158.48938" style="stroke:#b20000" />
+  <line id="l_D6_D16_b" stroke="#191928" stroke-width="1.83275" x1="106.29492" x2="40.794922" y1="354.98938" y2="354.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D6_D16_c" stroke="#191928" stroke-width="1.83275" x1="106.29492" x2="40.794922" y1="357.98938" y2="357.98938" style="stroke:none;stroke-width:2" />
+  <g id="g5936" transform="translate(-69.205078,-8.010626)">
+    <line id="l_D6_D16_a" stroke="#191928" stroke-width="1.83275" x1="175.5" x2="110" y1="360" y2="360" style="stroke:#ac0000" />
+    <line id="l_D6_D16_n" stroke="#191928" stroke-width="1.83275" x1="175.5" x2="110" y1="369" y2="369" style="stroke:#ac0000" />
+  </g>
+  <line id="l_D9_D17_a" stroke="#191928" stroke-width="2.79808" x1="117.79492" x2="141.79492" y1="464.48938" y2="464.48938" style="stroke:#a90000" />
+  <line id="l_D9_D17_b" stroke="#191928" stroke-width="2.28184" x1="106.29492" x2="143.55746" y1="467.48938" y2="467.48938" style="stroke:none;stroke-width:2" />
+  <line id="l_D9_D17_c" stroke="#191928" stroke-width="2.79393" x1="106.29492" x2="144.3494" y1="470.48938" y2="470.48938" style="stroke:none;stroke-width:2" />
+  <line id="l_D9_D17_n" stroke="#191928" stroke-width="2.83925" x1="117.79492" x2="141.79492" y1="473.48938" y2="473.48938" style="stroke:#a90000" />
+  <line id="l_D10_D18_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="106.29492" x2="35.794922" y1="564.98938" y2="564.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D10_D18_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="106.29492" x2="35.794922" y1="567.98938" y2="567.98938" style="stroke:none;stroke-width:2" />
+  <g id="g5944" transform="translate(-69.205078,-8.010626)">
+    <line id="l_D10_D18_a" stroke="#191928" stroke-width="2" x1="175.5" x2="105" y1="570" y2="570" style="stroke:#a90000" />
+    <line id="l_D10_D18_n" stroke="#191928" stroke-width="2" x1="175.5" x2="105" y1="579" y2="579" style="stroke:#a90000" />
+  </g>
+  <line id="l_D4_D14_b" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="106.29492" x2="263.79492" y1="204.98938" y2="204.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D4_D14_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="106.29492" x2="263.79492" y1="207.98938" y2="207.98938" style="stroke:none;stroke-width:2" />
+  <g id="g5920" transform="translate(-69.205078,-8.010626)">
+    <line id="l_D4_D14_a" stroke="#191928" stroke-width="2" x1="175.5" x2="333" y1="210" y2="210" style="stroke:#ad0000" />
+    <line id="l_D4_D14_n" stroke="#191928" stroke-width="2" x1="175.5" x2="333" y1="219" y2="219" style="stroke:#ad0000" />
+  </g>
+  <line id="l_D14_D15_b" stroke="#191928" stroke-width="1.82574" x1="266.79492" x2="266.79492" y1="214.48938" y2="276.98938" style="stroke:none;stroke-width:2" />
+  <line id="l_D14_D15_c" stroke="#191928" stroke-width="1.82574" x1="269.79492" x2="269.79492" y1="214.48938" y2="276.98938" style="stroke:none;stroke-width:2" />
+  <g id="g5928" transform="translate(-69.205078,-8.010626)">
+    <line id="l_D14_D15_a" stroke="#191928" stroke-width="1.82574" x1="333" x2="333" y1="219" y2="285" style="stroke:#ad0000" />
+    <line id="l_D14_D15_n" stroke="#191928" stroke-width="1.82574" x1="342" x2="342" y1="219.26646" y2="285" style="stroke:#ad0000" />
+  </g>
+  <line stroke="#191928" x1="80.794922" x2="80.794922" y1="55.753639" y2="66.989372" id="line178" style="stroke:#000000;stroke-width:2" />
+  <line stroke="#191928" x1="83.794922" x2="83.794922" y1="57.263863" y2="66.989372" id="line178-9" style="stroke:#000000;stroke-width:2" />
+  <line stroke="#191928" x1="86.794922" x2="86.794922" y1="57.263863" y2="66.989372" id="line178-9-9" style="stroke:#000000;stroke-width:2" />
+  <line stroke="#191928" x1="89.794922" x2="89.794922" y1="55.753647" y2="66.989372" id="line178-9-3" style="stroke:#000000;stroke-width:2" />
+  <rect height="14" id="R8" width="14" x="78.294922" y="432.48938" style="stroke-width:1" />
+  <rect height="14" id="R7" width="14" x="78.294922" y="379.98938" style="stroke-width:1" />
+  <rect height="14" id="D18" width="14" x="33.794922" y="559.48938" style="fill:#000000;stroke-width:1" />
+  <rect height="14" id="R1" width="14" x="78.294922" y="64.956039" style="stroke-width:1" />
+  <rect height="14" id="D1" width="14" x="103.79492" y="64.989372" style="stroke-width:1" />
+  <rect height="14" id="R2" width="14" x="78.294922" y="117.48937" style="stroke-width:1" />
+  <line id="l_D3_D4_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="112.29492" x2="112.29492" y1="149.48938" y2="201.98938" style="stroke:none;stroke-width:2" />
+  <rect height="14" id="D3" width="14" x="103.79492" y="147.48938" style="stroke-width:1" />
+  <rect height="14" id="R11" width="14" x="33.794922" y="169.98938" style="stroke-width:1" />
+  <rect height="14" id="D11" width="14" x="33.794922" y="147.48938" style="stroke-width:1" />
+  <rect height="14" id="R3" width="14" x="78.294922" y="169.98938" style="stroke-width:1" />
+  <rect height="14" id="R4" width="14" x="78.294922" y="221.98938" style="stroke-width:1" />
+  <rect height="14" id="R12" width="14" x="131.29492" y="221.98938" style="stroke-width:1" />
+  <rect height="14" id="D4" width="14" x="103.79492" y="199.48938" style="stroke-width:1" />
+  <rect height="14" id="R5" width="14" x="78.294922" y="274.98938" style="stroke-width:1" />
+  <rect height="14" id="R6" width="14" x="78.294922" y="326.98938" style="stroke-width:1" />
+  <rect height="14" id="R16" width="14" x="33.794922" y="326.98938" style="stroke-width:1" />
+  <rect height="14" id="D16" width="14" x="33.794922" y="349.48938" style="stroke-width:1" />
+  <line id="l_D6_D9_c" stroke="rgb(10%,10%,16%)" stroke-width="2" x1="110.79492" x2="110.79492" y1="351.98938" y2="464.48938" style="stroke:none;stroke-width:2" />
+  <rect height="14" id="R9" width="14" x="78.294922" y="484.98938" style="stroke-width:1" />
+  <rect height="14" id="D9" width="14" x="103.79492" y="462.48938" style="stroke-width:1" />
+  <rect height="14" id="R10" width="14" x="78.294922" y="536.98938" style="stroke-width:1" />
+  <rect height="14" id="R18" width="14" x="33.794922" y="536.98938" style="stroke-width:1" />
+  <rect height="14" id="D10" width="14" x="103.79492" y="559.48938" style="stroke-width:1" />
+  <rect height="14" id="R13" width="14" x="183.79492" y="221.98938" style="stroke-width:1" />
+  <rect height="14" id="R14" width="14" x="235.79492" y="221.98938" style="stroke-width:1" />
+  <rect height="14" id="R15" width="14" x="235.79492" y="274.98938" style="stroke-width:1" />
+  <rect height="14" id="D14" width="14" x="261.29492" y="199.48938" style="stroke-width:1" />
+  <rect height="14" id="D15" width="14" x="261.29492" y="274.98938" style="stroke-width:1" />
+  <rect height="14" id="D6" width="14" x="104.29492" y="349.48938" style="stroke-width:1" />
+  <circle style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1" id="path6184" cx="85.294922" cy="50.549377" r="6.8800001" />
+  <circle style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000" id="path6184-7" cx="85.294922" cy="42.731071" r="6.8800001" />
+  <g id="g6550" transform="translate(-80.065079,-8.010626)">
+    <line stroke="#191928" x1="162.36" x2="162.36" y1="36.532356" y2="44.55022" id="line178-2" style="stroke:#000000;stroke-width:2" />
+    <line stroke="#191928" x1="165.36" x2="165.36" y1="36.532356" y2="43.861698" id="line178-9-7" style="stroke:#000000;stroke-width:2" />
+    <line stroke="#191928" x1="168.36" x2="168.36" y1="36.532356" y2="44.55022" id="line178-9-9-8" style="stroke:#000000;stroke-width:2" />
+  </g>
+  <rect height="14" id="R17" width="14" x="141.79492" y="484.98938" style="stroke-width:1" />
+  <rect height="14" id="D17" width="14" x="141.79492" y="462.48938" style="stroke-width:1" />
+</svg>

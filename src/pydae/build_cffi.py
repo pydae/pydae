@@ -164,25 +164,25 @@ def system(sys, verbose=False):
     u_run = sym.Matrix(u_run_list).T 
     h =  sym.Matrix(list(sys['h_dict'].values())).T     
 
-    if verbose: print(f'computing jacobians Fx_run,Fy_run  (time: {time.time()-t_0})')
+    if verbose: print(f'computing jacobians Fx_run,Fy_run  (time: {time.time()-t_0:0.3f} s)')
     Fx_run = f.jacobian(x)
     Fy_run = f.jacobian(y_run)
-    if verbose: print(f'computing jacobians Gx_run,Gy_run  (time: {time.time()-t_0})')
+    if verbose: print(f'computing jacobians Gx_run,Gy_run  (time: {time.time()-t_0:0.3f} s)')
     Gx_run = g.jacobian(x)
     Gy_run = g.jacobian(y_run)
 
-    if verbose: print(f'computing jacobians Fu_run,Gu_run  (time: {time.time()-t_0})')
+    if verbose: print(f'computing jacobians Fu_run,Gu_run  (time: {time.time()-t_0:0.3f} s)')
     Fu_run = f.jacobian(u_run)
     Gu_run = g.jacobian(u_run)
 
-    if verbose: print(f'computing jacobians Fx_ini,Fy_ini  (time: {time.time()-t_0}')   
+    if verbose: print(f'computing jacobians Fx_ini,Fy_ini  (time: {time.time()-t_0:0.3f} s)')   
     Fx_ini = f.jacobian(x)
     Fy_ini = f.jacobian(y_ini)
-    if verbose: print(f'computing jacobians Gx_ini,Gy_ini  (time: {time.time()-t_0}')
+    if verbose: print(f'computing jacobians Gx_ini,Gy_ini  (time: {time.time()-t_0:0.3f} s)')
     Gx_ini = g.jacobian(x)
     Gy_ini = g.jacobian(y_ini)
 
-    if verbose: print(f'computing jacobians Hx_run,Hy_run,Hu_run  (time: {time.time()-t_0})')   
+    if verbose: print(f'computing jacobians Hx_run,Hy_run,Hu_run  (time: {time.time()-t_0} s)')   
     Hx_run = h.jacobian(x)
     Hy_run = h.jacobian(y_run)   
     Hu_run = h.jacobian(u_run)
@@ -247,7 +247,7 @@ def system(sys, verbose=False):
     sys['N_u'] = len(u_run)
     sys['N_z'] = len(h)
 
-    if verbose: print(f'end system  (time: {time.time()-t_0})')   
+    if verbose: print(f'end system  (time: {time.time()-t_0:0.3f} s)')   
     
     return sys
 
@@ -310,7 +310,7 @@ def jacobians(sys, verbose=False):
     sys['jac_trap'] = jac_trap
     
 
-    if verbose: print(f'end of jacobians computation (time: {time.time()-t_0})')
+    if verbose: print(f'end of jacobians computation (time: {time.time()-t_0:0.3f})')
 
 
 
@@ -416,35 +416,35 @@ def mreplace(string,replacements):
         string = str(string).replace(item,replacements[item])
     return string
 
-def sym2str(sym_exp,x,y,u,p,multi_eval=False):
+# def sym2str(sym_exp,x,y,u,p,multi_eval=False):
     
-    matrix_str = str(sym_exp)
+#     matrix_str = str(sym_exp)
     
-    mev = ''
-    if multi_eval:
-        mev = 'i,'
+#     mev = ''
+#     if multi_eval:
+#         mev = 'i,'
     
-    if sym_exp == 0:
-        matrix_str = 0
-        return matrix_str
+#     if sym_exp == 0:
+#         matrix_str = 0
+#         return matrix_str
         
 
-    for it in range(len(x)):
-        name = str(x[it])
-        matrix_str = re.sub(r'\b' + name + r'\b',f'x[{mev}{it}]',matrix_str)
-    for it in range(len(y)):
-        name = str(y[it])
-        matrix_str = re.sub(r'\b' + name + r'\b',f'y[{mev}{it}]',matrix_str)
-    for it in range(len(u)):
-        name = str(u[it])
-        matrix_str = re.sub(r'\b' + name + r'\b',f'u[{mev}{it}]',matrix_str)
-    it = 0
-    for item in p:
-        name = str(item)
-        matrix_str = re.sub(r'\b' + name + r'\b',f'p[{mev}{it}]',matrix_str)
-        it+=1
+#     for it in range(len(x)):
+#         name = str(x[it])
+#         matrix_str = re.sub(r'\b' + name + r'\b',f'x[{mev}{it}]',matrix_str)
+#     for it in range(len(y)):
+#         name = str(y[it])
+#         matrix_str = re.sub(r'\b' + name + r'\b',f'y[{mev}{it}]',matrix_str)
+#     for it in range(len(u)):
+#         name = str(u[it])
+#         matrix_str = re.sub(r'\b' + name + r'\b',f'u[{mev}{it}]',matrix_str)
+#     it = 0
+#     for item in p:
+#         name = str(item)
+#         matrix_str = re.sub(r'\b' + name + r'\b',f'p[{mev}{it}]',matrix_str)
+#         it+=1
         
-    return matrix_str   
+#     return matrix_str   
 
 def vector2string(vector,function_header,vector_name,x,y,u,p,aux={},multi_eval=False):
     string = ''
@@ -528,9 +528,11 @@ def spmatrix2def(spmatrix_list,matrix_name):
     return string
 
 
-def sys2num(name,sys, verbose=False):
+def sys2num(sys, verbose=False):
     
     t_0 = time.time()
+    
+    name = sys['name']
     N_x = sys['N_x']
     N_y = sys['N_y']
     N_z = sys['N_z']
@@ -565,7 +567,7 @@ def sys2num(name,sys, verbose=False):
     with open(f'{name}.py','w') as fobj:
         fobj.write(module)
    
-    if verbose: print(f'sys2num (time: {time.time()-t_0})')      
+    if verbose: print(f'sys2num (time: {time.time()-t_0:0.3f})')      
 
 
 
@@ -596,10 +598,16 @@ def sym2xyup(string,sys,inirun):
 def sym2str(fun_name,vector,sys,inirun):
     LHS = sym.Symbol('LHS')
 
+    string_sym = ''
+    for irow in range(len(vector)):
+        string_sym += sym.ccode(Assignment(LHS,vector[irow])).replace('LHS',f'out[{irow}]') +'\n#'
+        
+    string_src = sym2xyup(string_sym,sys,inirun=inirun)
+    string_split = string_src.split('#')
     string = ''
     for irow in range(len(vector)):
         string_sym = sym.ccode(Assignment(LHS,vector[irow])).replace('LHS',f'out[{irow}]') +'\n'
-        string += sym2xyup(string_sym,sys,inirun=inirun)
+        string += string_split[irow]
 
     defs   = f'void {fun_name}_eval(double *out,double *x,double *y,double *u,double *p,double Dt);' + '\n' 
     source = f'void {fun_name}_eval(double *out,double *x,double *y,double *u,double *p,double Dt)'  + '{'+ '\n'*2
@@ -609,17 +617,16 @@ def sym2str(fun_name,vector,sys,inirun):
         
                 
 def sym2rhs(data,indices,indptr,shape,sys,inirun):
-    LHS = sym.Symbol('LHS')
-    #init_printing(use_unicode=True)
+    '''
+    Takes a sparse symbolic CRS matrix (data,indices,indptr) and convert it as a
+    string replacing symbolic names by x,y,u,p names.
+    
+    
+    '''
 
-    string = ''
-    string_xy = ''
-    string_up = ''
-    string_num = ''
     
     rhs_list = []
     
-
     for irow in range(len(indptr)-1):
         for k in range(indptr[irow],indptr[irow+1]):
             icol = indices[k]
@@ -637,6 +644,44 @@ def sym2rhs(data,indices,indptr,shape,sys,inirun):
                 rhs_list += [(string_i,tipo,irow,icol)]
                 
     return rhs_list
+
+def sym2rhs2(data,indices,indptr,shape,sys,inirun):
+
+
+    rhs_list = []
+    
+    string_full_sym = ''
+    
+    for irow in range(len(indptr)-1):
+        for k in range(indptr[irow],indptr[irow+1]):
+            icol = indices[k]
+            data_k = data[k]
+            if not data[irow] == 0:
+                string_sym = sym.ccode(data_k) + ';\n#'
+                string_full_sym += string_sym
+    
+
+    string_full = sym2xyup(string_full_sym,sys,inirun)
+    
+    string_split = string_full.split('#')  
+    for irow in range(len(indptr)-1):
+        for k in range(indptr[irow],indptr[irow+1]):
+            icol = indices[k]
+            data_k = string_split[k]
+            if not data_k == 0:
+                string_i = data_k
+                
+                tipo = 'num'
+                if 'x[' in string_i or 'y[' in string_i:
+                    tipo = 'xy' 
+                elif 'p[' in string_i or 'u[' in string_i or 'Dt' in string_i:
+                    tipo = 'up' 
+               
+                rhs_list += [(string_i,tipo,irow,icol)]
+
+                
+    return rhs_list
+
 
 def rhs2str(rhs_list,lhs_name,shape,mode='crs'):
     string_xy = ''
@@ -686,20 +731,29 @@ def str2src(fun_name,string_xy,string_up,string_num,matrix_name='out'):
     return defs,source
     
 
-def sym2src(sys):
+def sym2src(sys, verbose=False):
+    
+    t_0 = time.time()
     
     jac_ini=sys['jac_ini']
     jac_trap=sys['jac_trap']
     
+    if verbose: print(f'writting f_ini and g_ini code (time: {time.time()-t_0:0.3f} s)')
 
     defs_f_ini,source_f_ini = sym2str('f_ini',sys['f'],sys,'ini')
     defs_g_ini,source_g_ini = sym2str('g_ini',sys['g'],sys,'ini')
+
+    if verbose: print(f'writting f_run and g_run code (time: {time.time()-t_0:0.3f} s)')
     
     defs_f_run,source_f_run = sym2str('f_run',sys['f'],sys,'run')
     defs_g_run,source_g_run = sym2str('g_run',sys['g'],sys,'run')
-    
+
+    if verbose: print(f'writting h_run code (time: {time.time()-t_0:0.3f} s)')   
     defs_h,source_h = sym2str('h',sys['h'],sys,'run')
     
+    
+    if verbose: print(f'converting jac_ini to sp_jac_ini  (time: {time.time()-t_0:0.3f} s)')
+
     sp_jac_ini_list = _doktocsr(SparseMatrix(jac_ini))
     
     data = sp_jac_ini_list[0]
@@ -707,10 +761,10 @@ def sym2src(sys):
     indptr = sp_jac_ini_list[2]
     shape = sp_jac_ini_list[3]
     
-    t_0 = time.time()
+    if verbose: print(f'running sym2rhs for sp_jac_ini (time: {time.time()-t_0:0.3f} s)')
     #sym2rhs(data,indices,indptr,shape,sys,inirun)
-    rhs_list = sym2rhs(data,indices,indptr,shape,sys,'ini')       
-    print(time.time()-t_0)
+    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'ini')       
+
 
     sp_jac_ini_list = _doktocsr(SparseMatrix(jac_ini))
     sys['sp_jac_ini_list'] = sp_jac_ini_list
@@ -720,7 +774,7 @@ def sym2src(sys):
     indptr = sp_jac_ini_list[2]
     shape = sp_jac_ini_list[3]
     
-    rhs_list = sym2rhs(data,indices,indptr,shape,sys,'ini')       
+    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'ini')       
     string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')
     
     defs_de_ini,source_de_ini = str2src('de_jac_ini',string_xy,string_up,string_num,matrix_name='out')
@@ -733,25 +787,32 @@ def sym2src(sys):
     defs = defs_de_ini + defs_sp_ini
     source = source_de_ini + source_sp_ini
     
+    if verbose: print(f'converting jac_trap to sp_jac_trap  (time: {time.time()-t_0:0.3f} s)')   
     sp_jac_trap_list = _doktocsr(SparseMatrix(jac_trap))
-    
+
+
     sys['sp_jac_trap_list'] = sp_jac_trap_list
     data = sp_jac_trap_list[0]
     indices = sp_jac_trap_list[1]
     indptr = sp_jac_trap_list[2]
     
-    t_0 = time.time()
-    rhs_list = sym2rhs(data,indices,indptr,shape,sys,'run')       
-    print(time.time()-t_0)
-    
+    if verbose: print(f'running sym2rhs for sp_jac_trap (time: {time.time()-t_0:0.3f} s)')
+    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'run')       
+
+    if verbose: print(f'wrtting  de_jac_trap code (time: {time.time()-t_0:0.3f} s)')   
     string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')
     defs_de_run,source_de_run = str2src('de_jac_trap',string_xy,string_up,string_num,matrix_name='out')
-    
+
+    if verbose: print(f'writting sp_jac_trap code (time: {time.time()-t_0:0.3f} s)')      
     string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='crs')
     defs_sp_run,source_sp_run = str2src('sp_jac_trap',string_xy,string_up,string_num,matrix_name='out')
     
+    if verbose: print(f'writting full source (time: {time.time()-t_0:0.3f} s)')      
     defs = defs_f_ini + defs_g_ini + defs_f_run + defs_g_run + defs_h + defs_de_ini + defs_sp_ini + defs_de_run + defs_sp_run
     source = source_f_ini + source_g_ini + source_f_run + source_h +source_g_run+ source_de_ini + source_sp_ini + source_de_run + source_sp_run
+
+    if verbose: print(f'Code wrote in {time.time()-t_0:0.3f} s')
+
 
     return defs,source
 
@@ -763,7 +824,20 @@ def compile_module(name,defs,source):
     t_0 = time.time()
     ffi.compile()
     print(f'Compilation time: {time.time()-t_0:0.2f} s')
-    
+
+def build(sys,verbose=False):
+    name = sys['name']
+    sys = system(sys,verbose=verbose)
+    jacobians(sys,verbose=verbose)
+    defs,source = sym2src(sys,verbose=verbose)
+    with open(f'defs_{name}_cffi.h', 'w') as f:
+        f.write(defs)
+    with open(f'source_{name}_cffi.c', 'w') as f:
+        f.write(source)
+    compile_module(f'{name}_cffi',defs,source)
+    sys2num(sys,verbose=verbose)
+        
+    return sys
     
 if __name__ == "__main__":
 
@@ -823,11 +897,11 @@ if __name__ == "__main__":
            'u_ini_dict':u_ini_dict,
            'h_dict':{'p_m':p_m,'p_e':p_e, 'v_f':v_f}}
     
-    sys = system(sys_dict)
-    jacobians(sys)
-    defs,source = sym2src(sys)
+    sys = system(sys_dict,verbose=True)
+    jacobians(sys,verbose=True)
+    defs,source = sym2src(sys,verbose=True)
     compile_module('build_test',defs,source)
-    #sys2num('build_test',sys, verbose=False)
+    #sys2num('build_test',sys, verbose=True)
    # sys2num(sys_dict)                                                             
 
 

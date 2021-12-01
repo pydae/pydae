@@ -102,7 +102,7 @@ class {name}_class:
         self.Y = np.zeros((self.N_store,self.N_y))
         self.Z = np.zeros((self.N_store,self.N_z))
         self.iters = np.zeros(self.N_store) 
-        self.u_run = np.array(self.u_run_values_list)
+        self.u_run = np.array(self.u_run_values_list,dtype=np.float64)
         
         self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
         data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
@@ -275,12 +275,12 @@ class {name}_class:
             
         if name in self.x_list:
             idx = self.x_list.index(name)
-            value = self.x[idx]
+            value = self.xy[idx]
             return value
             
         if name in self.y_run_list:
             idy = self.y_run_list.index(name)
-            value = self.y_run[idy]
+            value = self.xy[self.N_x+idy]
             return value
         
         if name in self.params_list:
@@ -326,6 +326,7 @@ class {name}_class:
     def set_value(self,name_,value):
         if name_ in self.inputs_ini_list:
             self.u_ini[self.inputs_ini_list.index(name_)] = value
+            #return
         if name_ in self.inputs_run_list:
             self.u_run[self.inputs_run_list.index(name_)] = value
             return
@@ -378,6 +379,10 @@ class {name}_class:
             else:
                 self.load_xy_0(file_name = xy_0)
                 
+        if type(xy_0) == float or type(xy_0) == int:
+            self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
+
+
         self.xy_ini = self.ss_ini()
         self.ini2run()
         #jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)

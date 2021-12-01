@@ -41,11 +41,39 @@ class svg():
         for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
             tspan.text = string
  
-    def set_title(self,element_id,string):
+    def set_title(self,text_id,string):
         for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
             if text.attrib['id'] == text_id: text_obj = text
         for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
             tspan.text = string
+            
+    def set_rect_style(self,object_id,new_style):
+        #style="fill:#337ab7"
+        for rect in self.root.findall('.//{http://www.w3.org/2000/svg}rect'):
+            if rect.attrib['id'] == object_id: 
+                #print(rect.attrib['style'])
+                #if 'style' in rect.attrib:
+                #    rect.attrib['style'].update(new_style)
+                #else:
+                 rect.attrib['style'] = new_style
+
+    def set_line_style(self,object_id,new_style):
+        #style="fill:#337ab7"
+        for rect in self.root.findall('.//{http://www.w3.org/2000/svg}line'):
+            if rect.attrib['id'] == object_id: 
+                #if 'style' in rect.attrib:
+                #    rect.attrib['style'].update(new_style)
+                #else:
+                 rect.attrib['style'] = new_style
+                
+    def set_color(self,type_,id_,rgb):
+        if type_ == 'rect':
+            self.set_rect_style(id_,f"fill:#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}")
+            
+        if type_ == 'line':
+            self.set_line_style(id_,f"stroke:#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}")
+        
+        
             
 class animatesvg():
     
