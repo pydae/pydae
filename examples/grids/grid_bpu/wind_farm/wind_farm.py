@@ -1,6 +1,39 @@
 import numpy as np
 import numba
 import scipy.optimize as sopt
+import scipy.sparse as sspa
+from scipy.sparse.linalg import spsolve,spilu,splu
+from numba import cuda
+import cffi
+import numba.core.typing.cffi_utils as cffi_support
+
+ffi = cffi.FFI()
+
+import wind_farm_cffi as jacs
+
+cffi_support.register_module(jacs)
+f_ini_eval = jacs.lib.f_ini_eval
+g_ini_eval = jacs.lib.g_ini_eval
+f_run_eval = jacs.lib.f_run_eval
+g_run_eval = jacs.lib.g_run_eval
+h_eval  = jacs.lib.h_eval
+
+de_jac_ini_xy_eval = jacs.lib.de_jac_ini_xy_eval
+de_jac_ini_up_eval = jacs.lib.de_jac_ini_up_eval
+de_jac_ini_num_eval = jacs.lib.de_jac_ini_num_eval
+
+sp_jac_ini_xy_eval = jacs.lib.sp_jac_ini_xy_eval
+sp_jac_ini_up_eval = jacs.lib.sp_jac_ini_up_eval
+sp_jac_ini_num_eval = jacs.lib.sp_jac_ini_num_eval
+
+de_jac_trap_xy_eval= jacs.lib.de_jac_trap_xy_eval            
+de_jac_trap_up_eval= jacs.lib.de_jac_trap_up_eval        
+de_jac_trap_num_eval= jacs.lib.de_jac_trap_num_eval
+
+sp_jac_trap_xy_eval= jacs.lib.sp_jac_trap_xy_eval            
+sp_jac_trap_up_eval= jacs.lib.sp_jac_trap_up_eval        
+sp_jac_trap_num_eval= jacs.lib.sp_jac_trap_num_eval
+
 import json
 
 sin = np.sin
@@ -52,170 +85,339 @@ class wind_farm_class:
         self.u_run_list = self.inputs_run_list
         self.u_run_values_list = self.inputs_run_values_list
         self.N_u = len(self.u_run_list)
-        Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols = nonzeros()
+        self.u_ini = np.array(self.inputs_ini_values_list)
+        self.p = np.array(self.params_values_list)
+        self.xy_0 = np.zeros((self.N_x+self.N_y,))
+        self.xy = np.zeros((self.N_x+self.N_y,))
+        self.z = np.zeros((self.N_z,))
+        
+        self.jac_ini = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+        self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+        self.jac_trap = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+        
+        self.yini2urun = list(set(self.u_run_list).intersection(set(self.y_ini_list)))
+        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.u_ini_list)))
+        self.Time = np.zeros(self.N_store)
+        self.X = np.zeros((self.N_store,self.N_x))
+        self.Y = np.zeros((self.N_store,self.N_y))
+        self.Z = np.zeros((self.N_store,self.N_z))
+        self.iters = np.zeros(self.N_store) 
+        self.u_run = np.array(self.u_run_values_list,dtype=np.float64)
+        
+        self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
+        data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
+        self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
 
-        self.Fx_ini_rows = np.array(Fx_ini_rows) 
-        if len(Fx_ini_rows) == 1: 
-            self.Fx_ini_rows = np.array([[Fx_ini_rows]]).reshape(1,) 
-            self.Fx_ini_cols = np.array([[Fx_ini_cols]]).reshape(1,)  
+        self.J_run_d = np.array(self.sp_jac_trap_ia)*0.0
+        self.J_run_i = np.array(self.sp_jac_trap_ia)
+        self.J_run_p = np.array(self.sp_jac_trap_ja)
+        
+        self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
+        self.J_trap_i = np.array(self.sp_jac_trap_ia)
+        self.J_trap_p = np.array(self.sp_jac_trap_ja)
+        
+        self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
+        data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
+        self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
+
+        self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
+        self.J_ini_i = np.array(self.sp_jac_ini_ia)
+        self.J_ini_p = np.array(self.sp_jac_ini_ja)
+        
+
+        
+        self.max_it,self.itol,self.store = 50,1e-8,1 
+        self.lmax_it,self.ltol,self.ldamp=50,1e-8,1.1
+        self.mode = 0 
+
+        self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.1
+
+        self.fill_factor_ini,self.drop_tol_ini,self.drop_rule_ini = 10,0.001,'column'       
+        self.fill_factor_run,self.drop_tol_run,self.drop_rule_run = 10,0.001,'column' 
+        
+        # numerical elements of jacobians computing:
+        x = self.xy[:self.N_x]
+        y = self.xy[self.N_x:]
+        
+        de_jac_ini_eval(self.jac_ini,x,y,self.u_ini,self.p,self.Dt)
+        de_jac_trap_eval(self.jac_trap,x,y,self.u_run,self.p,self.Dt)
+   
+        sp_jac_ini_eval(self.J_ini_d,x,y,self.u_ini,self.p,self.Dt)
+        sp_jac_trap_eval(self.J_trap_d,x,y,self.u_run,self.p,self.Dt)
+   
+
+
+        
+    def update(self):
+
+        self.Time = np.zeros(self.N_store)
+        self.X = np.zeros((self.N_store,self.N_x))
+        self.Y = np.zeros((self.N_store,self.N_y))
+        self.Z = np.zeros((self.N_store,self.N_z))
+        self.iters = np.zeros(self.N_store)
+        
+    def ss_ini(self):
+
+        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,self.jac_ini,self.N_x,self.N_y)
+        self.xy_ini = xy_ini
+        self.N_iters = it
+        
+        return xy_ini
+    
+    # def ini(self,up_dict,xy_0={}):
+
+    #     for item in up_dict:
+    #         self.set_value(item,up_dict[item])
             
-        self.Fx_ini_cols = np.array(Fx_ini_cols)
-        self.Fy_ini_rows = np.array(Fy_ini_rows)        
-        self.Fy_ini_cols = np.array(Fy_ini_cols)
-        self.Gx_ini_rows = np.array(Gx_ini_rows)        
-        self.Gx_ini_cols = np.array(Gx_ini_cols)
-        self.Gy_ini_rows = np.array(Gy_ini_rows)        
-        self.Gy_ini_cols = np.array(Gy_ini_cols)
+    #     self.xy_ini = self.ss_ini()
+    #     self.ini2run()
+    #     jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+    #     jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
         
         
-        self.yini2urun = list(set(self.inputs_run_list).intersection(set(self.y_ini_list)))
-        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.inputs_ini_list)))
-
-        self.update() 
+        
+    
+    def run(self,t_end,up_dict):
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+            
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        
+        t,it,it_store,xy = daesolver(t,t_end,it,it_store,xy,u,p,
+                                  self.jac_trap,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  max_it=50,itol=1e-8,store=1)
+        
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+ 
+    def runsp(self,t_end,up_dict):
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+            
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        
+        t,it,it_store,xy = daesolver_sp(t,t_end,it,it_store,xy,u,p,
+                                  self.sp_jac_trap,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  max_it=50,itol=1e-8,store=1)
+        
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+        
+    def post(self):
+        
+        self.Time = self.Time[:self.it_store]
+        self.X = self.X[:self.it_store]
+        self.Y = self.Y[:self.it_store]
+        self.Z = self.Z[:self.it_store]
+        
+    def ini2run(self):
+        
+        ## y_ini to y_run
+        self.y_ini = self.xy_ini[self.N_x:]
+        self.y_run = np.copy(self.y_ini)
+        self.u_run = np.copy(self.u_ini)
+        
+        ## y_ini to u_run
+        for item in self.yini2urun:
+            self.u_run[self.u_run_list.index(item)] = self.y_ini[self.y_ini_list.index(item)]
                 
-    def update(self): 
-
-        self.N_steps = int(np.ceil(self.t_end/self.Dt)) 
-        dt = [  
-              ('t_end', np.float64),
-              ('Dt', np.float64),
-              ('decimation', np.float64),
-              ('itol', np.float64),
-              ('Dt_max', np.float64),
-              ('Dt_min', np.float64),
-              ('solvern', np.int64),
-              ('imax', np.int64),
-              ('N_steps', np.int64),
-              ('N_store', np.int64),
-              ('N_x', np.int64),
-              ('N_y', np.int64),
-              ('N_z', np.int64),
-              ('t', np.float64),
-              ('it', np.int64),
-              ('it_store', np.int64),
-              ('idx', np.int64),
-              ('idy', np.int64),
-              ('f', np.float64, (self.N_x,1)),
-              ('x', np.float64, (self.N_x,1)),
-              ('x_0', np.float64, (self.N_x,1)),
-              ('g', np.float64, (self.N_y,1)),
-              ('y_run', np.float64, (self.N_y,1)),
-              ('y_ini', np.float64, (self.N_y,1)),
-              ('u_run', np.float64, (self.N_u,1)),
-              ('y_0', np.float64, (self.N_y,1)),
-              ('h', np.float64, (self.N_z,1)),
-              ('Fx', np.float64, (self.N_x,self.N_x)),
-              ('Fy', np.float64, (self.N_x,self.N_y)),
-              ('Gx', np.float64, (self.N_y,self.N_x)),
-              ('Gy', np.float64, (self.N_y,self.N_y)),
-              ('Fu', np.float64, (self.N_x,self.N_u)),
-              ('Gu', np.float64, (self.N_y,self.N_u)),
-              ('Hx', np.float64, (self.N_z,self.N_x)),
-              ('Hy', np.float64, (self.N_z,self.N_y)),
-              ('Hu', np.float64, (self.N_z,self.N_u)),
-              ('Fx_ini', np.float64, (self.N_x,self.N_x)),
-              ('Fy_ini', np.float64, (self.N_x,self.N_y)),
-              ('Gx_ini', np.float64, (self.N_y,self.N_x)),
-              ('Gy_ini', np.float64, (self.N_y,self.N_y)),
-              ('T', np.float64, (self.N_store+1,1)),
-              ('X', np.float64, (self.N_store+1,self.N_x)),
-              ('Y', np.float64, (self.N_store+1,self.N_y)),
-              ('Z', np.float64, (self.N_store+1,self.N_z)),
-              ('iters', np.float64, (self.N_store+1,1)),
-              ('store', np.int64),
-              ('Fx_ini_rows', np.int64, self.Fx_ini_rows.shape),
-              ('Fx_ini_cols', np.int64, self.Fx_ini_cols.shape),
-              ('Fy_ini_rows', np.int64, self.Fy_ini_rows.shape),
-              ('Fy_ini_cols', np.int64, self.Fy_ini_cols.shape),
-              ('Gx_ini_rows', np.int64, self.Gx_ini_rows.shape),
-              ('Gx_ini_cols', np.int64, self.Gx_ini_cols.shape),
-              ('Gy_ini_rows', np.int64, self.Gy_ini_rows.shape),
-              ('Gy_ini_cols', np.int64, self.Gy_ini_cols.shape),
-              ('Ac_ini', np.float64, ((self.N_x+self.N_y,self.N_x+self.N_y))),   
-              ('fg', np.float64, ((self.N_x+self.N_y,1))),  
-             ]
-
-
-
+        ## u_ini to y_run
+        for item in self.uini2yrun:
+            self.y_run[self.y_run_list.index(item)] = self.u_ini[self.u_ini_list.index(item)]
+            
         
-        
-        values = [
-                self.t_end,                          
-                self.Dt,
-                self.decimation,
-                self.itol,
-                self.Dt_max,
-                self.Dt_min,
-                self.solvern,
-                self.imax,
-                self.N_steps,
-                self.N_store,
-                self.N_x,
-                self.N_y,
-                self.N_z,
-                self.t,
-                self.it,
-                self.it_store,
-                0,                                     # idx
-                0,                                     # idy
-                np.zeros((self.N_x,1)),                # f
-                np.zeros((self.N_x,1)),                # x
-                np.zeros((self.N_x,1)),                # x_0
-                np.zeros((self.N_y,1)),                # g
-                np.zeros((self.N_y,1)),                # y_run
-                np.zeros((self.N_y,1)),                # y_ini
-                np.zeros((self.N_u,1)),                # u_run
-                np.zeros((self.N_y,1)),                # y_0
-                np.zeros((self.N_z,1)),                # h
-                np.zeros((self.N_x,self.N_x)),         # Fx   
-                np.zeros((self.N_x,self.N_y)),         # Fy 
-                np.zeros((self.N_y,self.N_x)),         # Gx 
-                np.zeros((self.N_y,self.N_y)),         # Fy
-                np.zeros((self.N_x,self.N_u)),         # Fu 
-                np.zeros((self.N_y,self.N_u)),         # Gu 
-                np.zeros((self.N_z,self.N_x)),         # Hx 
-                np.zeros((self.N_z,self.N_y)),         # Hy 
-                np.zeros((self.N_z,self.N_u)),         # Hu 
-                np.zeros((self.N_x,self.N_x)),         # Fx_ini  
-                np.zeros((self.N_x,self.N_y)),         # Fy_ini 
-                np.zeros((self.N_y,self.N_x)),         # Gx_ini 
-                np.zeros((self.N_y,self.N_y)),         # Fy_ini 
-                np.zeros((self.N_store+1,1)),          # T
-                np.zeros((self.N_store+1,self.N_x)),   # X
-                np.zeros((self.N_store+1,self.N_y)),   # Y
-                np.zeros((self.N_store+1,self.N_z)),   # Z
-                np.zeros((self.N_store+1,1)),          # iters
-                1,
-                self.Fx_ini_rows,       
-                self.Fx_ini_cols,
-                self.Fy_ini_rows,       
-                self.Fy_ini_cols,
-                self.Gx_ini_rows,        
-                self.Gx_ini_cols,
-                self.Gy_ini_rows,       
-                self.Gy_ini_cols,
-                np.zeros((self.N_x+self.N_y,self.N_x+self.N_y)),  
-                np.zeros((self.N_x+self.N_y,1)),
-                ]  
-
-        dt += [(item,np.float64) for item in self.params_list]
-        values += [item for item in self.params_values_list]
-
-        for item_id,item_val in zip(self.inputs_ini_list,self.inputs_ini_values_list):
-            if item_id in self.inputs_run_list: continue
-            dt += [(item_id,np.float64)]
-            values += [item_val]
-
-        dt += [(item,np.float64) for item in self.inputs_run_list]
-        values += [item for item in self.inputs_run_values_list]
-
-        self.struct = np.rec.array([tuple(values)], dtype=np.dtype(dt))
-        
-        xy0 = np.zeros((self.N_x+self.N_y,))
-        self.ini_dae_jacobian_nn(xy0)
-        self.run_dae_jacobian_nn(xy0)
+        self.x = self.xy_ini[:self.N_x]
+        self.xy[:self.N_x] = self.x
+        self.xy[self.N_x:] = self.y_run
+        c_h_eval(self.z,self.x,self.y_run,self.u_ini,self.p,self.Dt)
         
 
+        
+    def get_value(self,name):
+        
+        if name in self.inputs_run_list:
+            value = self.u_run[self.inputs_run_list.index(name)]
+            return value
+            
+        if name in self.x_list:
+            idx = self.x_list.index(name)
+            value = self.xy[idx]
+            return value
+            
+        if name in self.y_run_list:
+            idy = self.y_run_list.index(name)
+            value = self.xy[self.N_x+idy]
+            return value
+        
+        if name in self.params_list:
+            idp = self.params_list.index(name)
+            value = self.p[idp]
+            return value
+            
+        if name in self.outputs_list:
+            idz = self.outputs_list.index(name)
+            value = self.z[idz]
+            return value
+
+    def get_values(self,name):
+        if name in self.x_list:
+            values = self.X[:,self.x_list.index(name)]
+        if name in self.y_run_list:
+            values = self.Y[:,self.y_run_list.index(name)]
+        if name in self.outputs_list:
+            values = self.Z[:,self.outputs_list.index(name)]
+                        
+        return values
+
+    def get_mvalue(self,names):
+        '''
+
+        Parameters
+        ----------
+        names : list
+            list of variables names to return each value.
+
+        Returns
+        -------
+        mvalue : TYPE
+            list of value of each variable.
+
+        '''
+        mvalue = []
+        for name in names:
+            mvalue += [self.get_value(name)]
+                        
+        return mvalue
+    
+    def set_value(self,name_,value):
+        if name_ in self.inputs_ini_list:
+            self.u_ini[self.inputs_ini_list.index(name_)] = value
+            #return
+        if name_ in self.inputs_run_list:
+            self.u_run[self.inputs_run_list.index(name_)] = value
+            return
+        elif name_ in self.params_list:
+            self.p[self.params_list.index(name_)] = value
+            return
+        else:
+            print(f'Input or parameter {name_} not found.')
+ 
+    def report_x(self,value_format='5.2f'):
+        for item in self.x_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_y(self,value_format='5.2f'):
+        for item in self.y_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def report_u(self,value_format='5.2f'):
+        for item in self.inputs_run_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_z(self,value_format='5.2f'):
+        for item in self.outputs_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+
+    def report_params(self,value_format='5.2f'):
+        for item in self.params_list:
+            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            
+    def ini(self,up_dict,xy_0={}):
+        
+        self.it = 0
+        self.it_store = 0
+        self.t = 0.0
+    
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+            
+        if type(xy_0) == dict:
+            xy_0_dict = xy_0
+            self.dict2xy0(xy_0_dict)
+            
+        if type(xy_0) == str:
+            if xy_0 == 'eval':
+                N_x = self.N_x
+                self.xy_0_new = np.copy(self.xy_0)*0
+                xy0_eval(self.xy_0_new[:N_x],self.xy_0_new[N_x:],self.u_ini,self.p)
+                self.xy_0_evaluated = np.copy(self.xy_0_new)
+                self.xy_0 = np.copy(self.xy_0_new)
+            else:
+                self.load_xy_0(file_name = xy_0)
+                
+        if type(xy_0) == float or type(xy_0) == int:
+            self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
+
+
+        self.xy_ini = self.ss_ini()
+        self.ini2run()
+        #jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+        #jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+    
+    def dict2xy0(self,xy_0_dict):
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_0[self.y_ini_list.index(item) + self.N_x] = xy_0_dict[item]
+        
+    
+    def save_xy_0(self,file_name = 'xy_0.json'):
+        xy_0_dict = {}
+        for item in self.x_list:
+            xy_0_dict.update({item:self.get_value(item)})
+        for item in self.y_ini_list:
+            xy_0_dict.update({item:self.get_value(item)})
+    
+        xy_0_str = json.dumps(xy_0_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(xy_0_str)
+    
+    def load_xy_0(self,file_name = 'xy_0.json'):
+        with open(file_name) as fobj:
+            xy_0_str = fobj.read()
+        xy_0_dict = json.loads(xy_0_str)
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
 
     def load_params(self,data_input):
 
@@ -257,2261 +459,861 @@ class wind_farm_class:
         with open(file_name,'w') as fobj:
             fobj.write(inputs_ini_dict_str)
 
-    def ini_problem(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        if self.compile:
-            ini(self.struct,2)
-            ini(self.struct,3)       
-        else:
-            ini.py_func(self.struct,2)
-            ini.py_func(self.struct,3)                   
-        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
-        return fg
-
-    def run_problem(self,x):
-        t = self.struct[0].t
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        
-        if self.compile:
-            run(t,self.struct,2)
-            run(t,self.struct,3)
-            run(t,self.struct,10)
-            run(t,self.struct,11)
-            run(t,self.struct,12)
-            run(t,self.struct,13)
-        else:
-            run.py_func(t,self.struct,2)
-            run.py_func(t,self.struct,3)
-            run.py_func(t,self.struct,10)
-            run.py_func(t,self.struct,11)
-            run.py_func(t,self.struct,12)
-            run.py_func(t,self.struct,13)            
-        
-        fg = np.vstack((self.struct[0].f,self.struct[0].g))[:,0]
-        return fg
+    def eval_preconditioner_ini(self):
     
+        sp_jac_trap_eval(self.sp_jac_ini.data,self.x,self.y_run,self.u_run,self.p,self.Dt)
+    
+        P_slu = spilu(self.sp_jac_ini,
+                  fill_factor=self.fill_factor_ini,
+                  drop_tol=self.drop_tol_ini,
+                  drop_rule = self.drop_rule_ini)
+    
+        self.P_slu = P_slu
+        P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu)   
+        self.P_d = P_d
+        self.P_i = P_i
+        self.P_p = P_p
+    
+        self.perm_r = perm_r
+        self.perm_c = perm_c
+            
+    
+    def eval_preconditioner_run(self):
+    
+        sp_jac_trap_eval(self.J_run_d,self.x,self.y_run,self.u_run,self.p,self.Dt)
+    
+        self.sp_jac_trap.data = self.J_run_d 
+        P_slu_run = spilu(self.sp_jac_trap,
+                          fill_factor=self.fill_factor_run,
+                          drop_tol=self.drop_tol_run,
+                          drop_rule = self.drop_rule_run)
+    
+        self.P_slu_run = P_slu_run
+        P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu_run)   
+        self.P_run_d = P_d
+        self.P_run_i = P_i
+        self.P_run_p = P_p
+    
+        self.perm_run_r = perm_r
+        self.perm_run_c = perm_c
+        
+    def sprun(self,t_end,up_dict):
+        
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+    
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        self.iparams_run = np.zeros(10,dtype=np.float64)
+    
+        t,it,it_store,xy = spdaesolver(t,t_end,it,it_store,xy,u,p,
+                                  self.jac_trap,
+                                  self.J_run_d,self.J_run_i,self.J_run_p,
+                                  self.P_run_d,self.P_run_i,self.P_run_p,self.perm_run_r,self.perm_run_c,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  self.iparams_run,
+                                  max_it=self.max_it,itol=self.max_it,store=self.store,
+                                  lmax_it=self.lmax_it,ltol=self.ltol,ldamp=self.ldamp,mode=self.mode)
+    
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+            
+    def spini(self,up_dict,xy_0={}):
+    
+        self.it = 0
+        self.it_store = 0
+        self.t = 0.0
+    
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+    
+        if type(xy_0) == dict:
+            xy_0_dict = xy_0
+            self.dict2xy0(xy_0_dict)
+    
+        if type(xy_0) == str:
+            if xy_0 == 'eval':
+                N_x = self.N_x
+                self.xy_0_new = np.copy(self.xy_0)*0
+                xy0_eval(self.xy_0_new[:N_x],self.xy_0_new[N_x:],self.u_ini,self.p)
+                self.xy_0_evaluated = np.copy(self.xy_0_new)
+                self.xy_0 = np.copy(self.xy_0_new)
+            else:
+                self.load_xy_0(file_name = xy_0)
+    
+        self.xy_ini = self.spss_ini()
+        self.ini2run()
+        #jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+        #jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
 
-    def run_dae_jacobian(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        run(0.0,self.struct,10)
-        run(0.0,self.struct,11)     
-        run(0.0,self.struct,12)
-        run(0.0,self.struct,13)
-        A_c = np.block([[self.struct[0].Fx,self.struct[0].Fy],
-                        [self.struct[0].Gx,self.struct[0].Gy]])
-        return A_c
+        
+    def spss_ini(self):
+        J_d,J_i,J_p = csr2pydae(self.sp_jac_ini)
+        
+        xy_ini,it,iparams = spsstate(self.xy,self.u_ini,self.p,
+                 J_d,J_i,J_p,
+                 self.P_d,self.P_i,self.P_p,self.perm_r,self.perm_c,
+                 self.N_x,self.N_y,
+                 max_it=self.max_it,tol=self.itol,
+                 lmax_it=self.lmax_it_ini,
+                 ltol=self.ltol_ini,
+                 ldamp=self.ldamp)
 
-    def run_dae_jacobian_nn(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_run[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        run_nn(0.0,self.struct,10)
-        run_nn(0.0,self.struct,11)     
-        run_nn(0.0,self.struct,12)
-        run_nn(0.0,self.struct,13)
  
-
+        self.xy_ini = xy_ini
+        self.N_iters = it
+        self.iparams = iparams
     
-    def eval_jacobians(self):
+        return xy_ini
 
-        run(0.0,self.struct,10)
-        run(0.0,self.struct,11)  
-        run(0.0,self.struct,12) 
+    #def import_cffi(self):
+        
 
-        return 1
+        
+
+           
+            
 
 
-    def ini_dae_jacobian(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        if self.compile:
-            ini(self.struct,10)
-            ini(self.struct,11) 
-        else:
-            ini.py_func(self.struct,10)
-            ini.py_func(self.struct,11)             
-        A_c = np.block([[self.struct[0].Fx_ini,self.struct[0].Fy_ini],
-                        [self.struct[0].Gx_ini,self.struct[0].Gy_ini]])
-        return A_c
 
-    def ini_dae_jacobian_nn(self,x):
-        self.struct[0].x[:,0] = x[0:self.N_x]
-        self.struct[0].y_ini[:,0] = x[self.N_x:(self.N_x+self.N_y)]
-        ini_nn(self.struct,10)
-        ini_nn(self.struct,11)       
+def daesolver_sp(t,t_end,it,it_store,xy,u,p,sp_jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    h = np.zeros((N_z),dtype=np.float64)
+    sp_jac_trap_eval_up(sp_jac_trap.data,x,y,u,p,Dt,xyup=1)
+    
+    if it == 0:
+        f_run_eval(f,x,y,u,p)
+        h_eval(h,x,y,u,p)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = h  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f,x,y,u,p)
+        g_run_eval(g,x,y,u,p)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f,x,y,u,p)
+            g_run_eval(g,x,y,u,p)
+            sp_jac_trap_eval(sp_jac_trap.data,x,y,u,p,Dt,xyup=1)            
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = spsolve(sp_jac_trap,-fg_i) 
+
+            x = x + Dxy_i[:N_x]
+            y = y + Dxy_i[N_x:]              
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(h,x,y,u,p)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = h
+                iters[it_store+1] = iti
+                it_store += 1 
+
+    return t,it,it_store,xy
+
+
+
+
+@numba.njit()
+def sprichardson(A_d,A_i,A_p,b,P_d,P_i,P_p,perm_r,perm_c,x,iparams,damp=1.0,max_it=100,tol=1e-3):
+    N_A = A_p.shape[0]-1
+    f = np.zeros(N_A)
+    for it in range(max_it):
+        spMvmul(N_A,A_d,A_i,A_p,x,f) 
+        f -= b                          # A@x-b
+        x = x - damp*splu_solve(P_d,P_i,P_p,perm_r,perm_c,f)   
+        if np.linalg.norm(f,2) < tol: break
+    iparams[0] = it
+    return x
+    
+    
+
+@numba.njit()
+def spsstate(xy,u,p,
+             J_d,J_i,J_p,
+             P_d,P_i,P_p,perm_r,perm_c,
+             N_x,N_y,
+             max_it=50,tol=1e-8,
+             lmax_it=20,ltol=1e-8,ldamp=1.0):
+    
+   
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    iparams = np.array([0],dtype=np.int64)    
+    
+    f_c_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_c_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+    J_d_ptr=ffi.from_buffer(np.ascontiguousarray(J_d))
+
+    sp_jac_ini_num_eval(J_d_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+    sp_jac_ini_up_eval(J_d_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+    
+    #sp_jac_ini_eval_up(J_d,x,y,u,p,0.0)
+
+    Dxy = np.zeros(N_x + N_y)
+    for it in range(max_it):
+        
+        x = xy[:N_x]
+        y = xy[N_x:]   
+       
+        sp_jac_ini_xy_eval(J_d_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+
+        
+        f_ini_eval(f_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        g_ini_eval(g_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        
+        #f_ini_eval(f,x,y,u,p)
+        #g_ini_eval(g,x,y,u,p)
+        
+        fg[:N_x] = f
+        fg[N_x:] = g
+               
+        Dxy = sprichardson(J_d,J_i,J_p,-fg,P_d,P_i,P_p,perm_r,perm_c,Dxy,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+   
+        xy += Dxy
+        #if np.max(np.abs(fg))<tol: break
+        if np.linalg.norm(fg,np.inf)<tol: break
+
+    return xy,it,iparams
+
+
+@numba.njit() 
+def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    h = np.zeros((N_z),dtype=np.float64)
+    
+    f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    h_ptr=ffi.from_buffer(np.ascontiguousarray(h))
+    x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    jac_trap_ptr=ffi.from_buffer(np.ascontiguousarray(jac_trap))
+    
+    de_jac_trap_num_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
+    de_jac_trap_up_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    
+    if it == 0:
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = h  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+
+            x += Dxy_i[:N_x]
+            y += Dxy_i[N_x:] 
+            
+            #print(Dxy_i)
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = h
+                iters[it_store+1] = iti
+                it_store += 1 
+
+    return t,it,it_store,xy
+    
+@numba.njit() 
+def spdaesolver(t,t_end,it,it_store,xy,u,p,jac_trap,
+                J_d,J_i,J_p,
+                P_d,P_i,P_p,perm_r,perm_c,
+                T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,
+                iparams,
+                max_it=50,itol=1e-8,store=1,
+                lmax_it=20,ltol=1e-4,ldamp=1.0,mode=0):
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    h = np.zeros((N_z),dtype=np.float64)
+    Dxy_i_0 = np.zeros(N_x+N_y,dtype=np.float64)
+    
+    f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    h_ptr=ffi.from_buffer(np.ascontiguousarray(h))
+    x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    J_d_ptr=ffi.from_buffer(np.ascontiguousarray(J_d))
+    
+    sp_jac_trap_num_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
+    sp_jac_trap_up_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    sp_jac_trap_xy_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    
+    if it == 0:
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = h  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            sp_jac_trap_xy_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            #Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+            Dxy_i = sprichardson(J_d,J_i,J_p,-fg_i,P_d,P_i,P_p,perm_r,perm_c,
+                                 Dxy_i_0,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+
+            x += Dxy_i[:N_x]
+            y += Dxy_i[N_x:] 
+            
+            #print(Dxy_i)
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = h
+                iters[it_store+1] = iti
+                it_store += 1 
+
+    return t,it,it_store,xy
+
+
+@cuda.jit()
+def ode_solve(x,u,p,f_run,u_idxs,z_i,z,sim):
+
+    N_i,N_j,N_x,N_z,Dt = sim
+
+    # index of thread on GPU:
+    i = cuda.grid(1)
+
+    if i < x.size:
+        for j in range(N_j):
+            f_run_eval(f_run[i,:],x[i,:],u[i,u_idxs[j],:],p[i,:])
+            for k in range(N_x):
+              x[i,k] +=  Dt*f_run[i,k]
+
+            # outputs in time range
+            #z[i,j] = u[i,idxs[j],0]
+            z[i,j] = x[i,1]
+        h_eval(z_i[i,:],x[i,:],u[i,u_idxs[j],:],p[i,:])
+        
+def csr2pydae(A_csr):
+    '''
+    From scipy CSR to the three vectors:
+    
+    - data
+    - indices
+    - indptr
+    
+    '''
+    
+    A_d = A_csr.data
+    A_i = A_csr.indices
+    A_p = A_csr.indptr
+    
+    return A_d,A_i,A_p
+    
+def slu2pydae(P_slu):
+    '''
+    From SupderLU matrix to the three vectors:
+    
+    - data
+    - indices
+    - indptr
+    
+    and the premutation vectors:
+    
+    - perm_r
+    - perm_c
+    
+    '''
+    N = P_slu.shape[0]
+    P_slu_full = P_slu.L.A - sspa.eye(N,format='csr') + P_slu.U.A
+    perm_r = P_slu.perm_r
+    perm_c = P_slu.perm_c
+    P_csr = sspa.csr_matrix(P_slu_full)
+    
+    P_d = P_csr.data
+    P_i = P_csr.indices
+    P_p = P_csr.indptr
+    
+    return P_d,P_i,P_p,perm_r,perm_c
+
+@numba.njit(cache=True)
+def spMvmul(N,A_data,A_indices,A_indptr,x,y):
+    '''
+    y = A @ x
+    
+    with A in sparse CRS form
+    '''
+    #y = np.zeros(x.shape[0])
+    for i in range(N):
+        y[i] = 0.0
+        for j in range(A_indptr[i],A_indptr[i + 1]):
+            y[i] = y[i] + A_data[j]*x[A_indices[j]]
+            
+            
+@numba.njit(cache=True)
+def splu_solve(LU_d,LU_i,LU_p,perm_r,perm_c,b):
+    N = len(b)
+    y = np.zeros(N)
+    x = np.zeros(N)
+    z = np.zeros(N)
+    bp = np.zeros(N)
+    
+    for i in range(N): 
+        bp[perm_r[i]] = b[i]
+        
+    for i in range(N): 
+        y[i] = bp[i]
+        for j in range(LU_p[i],LU_p[i+1]):
+            if LU_i[j]>i-1: break
+            y[i] -= LU_d[j] * y[LU_i[j]]
+
+    for i in range(N-1,-1,-1): #(int i = N - 1; i >= 0; i--) 
+        z[i] = y[i]
+        den = 0.0
+        for j in range(LU_p[i],LU_p[i+1]): #(int k = i + 1; k < N; k++)
+            if LU_i[j] > i:
+                z[i] -= LU_d[j] * z[LU_i[j]]
+            if LU_i[j] == i: den = LU_d[j]
+        z[i] = z[i]/den
  
+    for i in range(N):
+        x[i] = z[perm_c[i]]
+        
+    return x
 
-    def f_ode(self,x):
-        self.struct[0].x[:,0] = x
-        run(self.struct,1)
-        return self.struct[0].f[:,0]
 
-    def f_odeint(self,x,t):
-        self.struct[0].x[:,0] = x
-        run(self.struct,1)
-        return self.struct[0].f[:,0]
 
-    def f_ivp(self,t,x):
-        self.struct[0].x[:,0] = x
-        run(self.struct,1)
-        return self.struct[0].f[:,0]
-
-    def Fx_ode(self,x):
-        self.struct[0].x[:,0] = x
-        run(self.struct,10)
-        return self.struct[0].Fx
-
-    def eval_A(self):
-        
-        Fx = self.struct[0].Fx
-        Fy = self.struct[0].Fy
-        Gx = self.struct[0].Gx
-        Gy = self.struct[0].Gy
-        
-        A = Fx - Fy @ np.linalg.solve(Gy,Gx)
-        
-        self.A = A
-        
-        return A
-
-    def eval_A_ini(self):
-        
-        Fx = self.struct[0].Fx_ini
-        Fy = self.struct[0].Fy_ini
-        Gx = self.struct[0].Gx_ini
-        Gy = self.struct[0].Gy_ini
-        
-        A = Fx - Fy @ np.linalg.solve(Gy,Gx)
-        
-        
-        return A
+@numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
+def de_jac_ini_eval(de_jac_ini,x,y,u,p,Dt):   
+    '''
+    Computes the dense full initialization jacobian:
     
-    def reset(self):
-        for param,param_value in zip(self.params_list,self.params_values_list):
-            self.struct[0][param] = param_value
-        for input_name,input_value in zip(self.inputs_ini_list,self.inputs_ini_values_list):
-            self.struct[0][input_name] = input_value   
-        for input_name,input_value in zip(self.inputs_run_list,self.inputs_run_values_list):
-            self.struct[0][input_name] = input_value  
-
-    def simulate(self,events,xy0=0):
-        
-        # initialize both the ini and the run system
-        self.initialize(events,xy0=xy0)
-        
-        # simulation run
-        for event in events:  
-            # make all the desired changes
-            self.run([event]) 
-            
-        # post process
-        T,X,Y,Z = self.post()
-        
-        return T,X,Y,Z
+    jac_ini = [[Fx_ini, Fy_ini],
+               [Gx_ini, Gy_ini]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
     
-
-    
-    def run(self,events):
+    Parameters
+    ----------
+    de_jac_ini : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
         
-
-        # simulation run
-        for event in events:  
-            # make all the desired changes
-            for item in event:
-                self.struct[0][item] = event[item]
-            daesolver(self.struct)    # run until next event
-            
-        return 1
+    with N = N_x+N_y
  
-    def rtrun(self,events):
-        
+    Returns
+    -------
+    
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+    
+    de_jac_ini_ptr=ffi.from_buffer(np.ascontiguousarray(de_jac_ini))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
 
-        # simulation run
-        for event in events:  
-            # make all the desired changes
-            for item in event:
-                self.struct[0][item] = event[item]
-            self.struct[0].it_store = self.struct[0].N_store-1
-            daesolver(self.struct)    # run until next event
-            
-            
-        return 1
+    de_jac_ini_num_eval(de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_ini_up_eval( de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_ini_xy_eval( de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
     
-    def post(self):
-        
-        # post process result    
-        T = self.struct[0]['T'][:self.struct[0].it_store]
-        X = self.struct[0]['X'][:self.struct[0].it_store,:]
-        Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-        Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-        iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-    
-        self.T = T
-        self.X = X
-        self.Y = Y
-        self.Z = Z
-        self.iters = iters
-        
-        return T,X,Y,Z
-        
-    def save_0(self,file_name = 'xy_0.json'):
-        xy_0_dict = {}
-        for item in self.x_list:
-            xy_0_dict.update({item:self.get_value(item)})
-        for item in self.y_ini_list:
-            xy_0_dict.update({item:self.get_value(item)})
-    
-        xy_0_str = json.dumps(xy_0_dict, indent=4)
-        with open(file_name,'w') as fobj:
-            fobj.write(xy_0_str)
+    return de_jac_ini
 
-    def load_0(self,file_name = 'xy_0.json'):
-        with open(file_name) as fobj:
-            xy_0_str = fobj.read()
-        xy_0_dict = json.loads(xy_0_str)
+@numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
+def de_jac_trap_eval(de_jac_trap,x,y,u,p,Dt):   
+    '''
+    Computes the dense full trapezoidal jacobian:
     
-        for item in xy_0_dict:
-            if item in self.x_list:
-                self.xy_prev[self.x_list.index(item)] = xy_0_dict[item]
-            if item in self.y_ini_list:
-                self.xy_prev[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]
+    jac_trap = [[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],
+                [             Gx_run,         Gy_run]]
                 
-            
-    def initialize(self,events=[{}],xy0=0,compile=True):
-        '''
-        
-
-        Parameters
-        ----------
-        events : dictionary 
-            Dictionary with at least 't_end' and all inputs and parameters 
-            that need to be changed.
-        xy0 : float or string, optional
-            0 means all states should be zero as initial guess. 
-            If not zero all the states initial guess are the given input.
-            If 'prev' it uses the last known initialization result as initial guess.
-
-        Returns
-        -------
-        T : TYPE
-            DESCRIPTION.
-        X : TYPE
-            DESCRIPTION.
-        Y : TYPE
-            DESCRIPTION.
-        Z : TYPE
-            DESCRIPTION.
-
-        '''
-        
-        self.compile = compile
-        
-        # simulation parameters
-        self.struct[0].it = 0       # set time step to zero
-        self.struct[0].it_store = 0 # set storage to zero
-        self.struct[0].t = 0.0      # set time to zero
-                    
-        # initialization
-        it_event = 0
-        event = events[it_event]
-        for item in event:
-            self.struct[0][item] = event[item]
-            
-        
-        ## compute initial conditions using x and y_ini 
-        if type(xy0) == str:
-            if xy0 == 'prev':
-                xy0 = self.xy_prev
-            else:
-                self.load_0(xy0)
-                xy0 = self.xy_prev
-        elif type(xy0) == dict:
-            with open('xy_0.json','w') as fobj:
-                fobj.write(json.dumps(xy0))
-            self.load_0('xy_0.json')
-            xy0 = self.xy_prev            
-        else:
-            if xy0 == 0:
-                xy0 = np.zeros(self.N_x+self.N_y)
-            elif xy0 == 1:
-                xy0 = np.ones(self.N_x+self.N_y)
-            else:
-                xy0 = xy0*np.ones(self.N_x+self.N_y)
-
-        #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-
-        
-        if self.sopt_root_jac:
-            sol = sopt.root(self.ini_problem, xy0, 
-                            jac=self.ini_dae_jacobian, 
-                            method=self.sopt_root_method, tol=self.initialization_tol)
-        else:
-            sol = sopt.root(self.ini_problem, xy0, method=self.sopt_root_method)
-
-        self.initialization_ok = True
-        if sol.success == False:
-            print('initialization not found!')
-            self.initialization_ok = False
-
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
-
-        if self.initialization_ok:
-            xy = sol.x
-            self.xy_prev = xy
-            self.struct[0].x[:,0] = xy[0:self.N_x]
-            self.struct[0].y_run[:,0] = xy[self.N_x:]
-
-            ## y_ini to u_run
-            for item in self.inputs_run_list:
-                if item in self.y_ini_list:
-                    self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
-
-            ## u_ini to y_run
-            for item in self.inputs_ini_list:
-                if item in self.y_run_list:
-                    self.struct[0].y_run[self.y_run_list.index(item)] = self.struct[0][item]
-
-
-            #xy = sopt.fsolve(self.ini_problem,xy0, jac=self.ini_dae_jacobian )
-            if self.sopt_root_jac:
-                sol = sopt.root(self.run_problem, xy0, 
-                                jac=self.run_dae_jacobian, 
-                                method=self.sopt_root_method, tol=self.initialization_tol)
-            else:
-                sol = sopt.root(self.run_problem, xy0, method=self.sopt_root_method)
-
-            if self.compile:
-                # evaluate f and g
-                run(0.0,self.struct,2)
-                run(0.0,self.struct,3)                
+    for the given x,y,u,p vectors and Dt time increment.
     
-                # evaluate run jacobians 
-                run(0.0,self.struct,10)
-                run(0.0,self.struct,11)                
-                run(0.0,self.struct,12) 
-                run(0.0,self.struct,14) 
+    Parameters
+    ----------
+    de_jac_trap : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (run problem).
+    u : (N_u,) array_like
+        Vector with inputs (run problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+ 
+    Returns
+    -------
+    
+    de_jac_trap : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+        
+    de_jac_trap_ptr = ffi.from_buffer(np.ascontiguousarray(de_jac_trap))
+    x_c_ptr = ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr = ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr = ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr = ffi.from_buffer(np.ascontiguousarray(p))
+
+    de_jac_trap_num_eval(de_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_trap_up_eval( de_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_trap_xy_eval( de_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return de_jac_trap
+
+
+@numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+def sp_jac_trap_eval(sp_jac_trap,x,y,u,p,Dt):   
+    '''
+    Computes the sparse full trapezoidal jacobian:
+    
+    jac_trap = [[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],
+                [             Gx_run,         Gy_run]]
                 
-            else:
-                # evaluate f and g
-                run.py_func(0.0,self.struct,2)
-                run.py_func(0.0,self.struct,3)                
+    for the given x,y,u,p vectors and Dt time increment.
     
-                # evaluate run jacobians 
-                run.py_func(0.0,self.struct,10)
-                run.py_func(0.0,self.struct,11)                
-                run.py_func(0.0,self.struct,12) 
-                run.py_func(0.0,self.struct,14)                 
+    Parameters
+    ----------
+    sp_jac_trap : (Nnz,) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (run problem).
+    u : (N_u,) array_like
+        Vector with inputs (run problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+        
+    with Nnz the number of non-zeros elements in the jacobian.
+ 
+    Returns
+    -------
+    
+    sp_jac_trap : (Nnz,) array_like
+                  Updated matrix.    
+    
+    '''        
+    sp_jac_trap_ptr=ffi.from_buffer(np.ascontiguousarray(sp_jac_trap))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    sp_jac_trap_num_eval(sp_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    sp_jac_trap_up_eval( sp_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    sp_jac_trap_xy_eval( sp_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return sp_jac_trap
+
+@numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+def sp_jac_ini_eval(sp_jac_ini,x,y,u,p,Dt):   
+    '''
+    Computes the SPARSE full initialization jacobian:
+    
+    jac_ini = [[Fx_ini, Fy_ini],
+               [Gx_ini, Gy_ini]]
                 
-             
-            # post process result    
-            T = self.struct[0]['T'][:self.struct[0].it_store]
-            X = self.struct[0]['X'][:self.struct[0].it_store,:]
-            Y = self.struct[0]['Y'][:self.struct[0].it_store,:]
-            Z = self.struct[0]['Z'][:self.struct[0].it_store,:]
-            iters = self.struct[0]['iters'][:self.struct[0].it_store,:]
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_ini : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
         
-            self.T = T
-            self.X = X
-            self.Y = Y
-            self.Z = Z
-            self.iters = iters
-            
-        return self.initialization_ok
+    with N = N_x+N_y
+ 
+    Returns
+    -------
     
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
     
-    def get_value(self,name):
-        if name in self.inputs_run_list:
-            value = self.struct[0][name]
-        if name in self.x_list:
-            idx = self.x_list.index(name)
-            value = self.struct[0].x[idx,0]
-        if name in self.y_run_list:
-            idy = self.y_run_list.index(name)
-            value = self.struct[0].y_run[idy,0]
-        if name in self.params_list:
-            value = self.struct[0][name]
-        if name in self.outputs_list:
-            value = self.struct[0].h[self.outputs_list.index(name),0] 
-
-        return value
+    '''
     
-    def get_values(self,name):
-        if name in self.x_list:
-            values = self.X[:,self.x_list.index(name)]
-        if name in self.y_run_list:
-            values = self.Y[:,self.y_run_list.index(name)]
-        if name in self.outputs_list:
-            values = self.Z[:,self.outputs_list.index(name)]
-                        
-        return values
+    sp_jac_ini_ptr=ffi.from_buffer(np.ascontiguousarray(sp_jac_ini))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
 
-    def get_mvalue(self,names):
-        '''
-
-        Parameters
-        ----------
-        names : list
-            list of variables names to return each value.
-
-        Returns
-        -------
-        mvalue : TYPE
-            list of value of each variable.
-
-        '''
-        mvalue = []
-        for name in names:
-            mvalue += [self.get_value(name)]
-                        
-        return mvalue
+    sp_jac_ini_num_eval(sp_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    sp_jac_ini_up_eval( sp_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    sp_jac_ini_xy_eval( sp_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
     
-    def set_value(self,name_,value):
-        if name_ in self.inputs_run_list:
-            self.struct[0][name_] = value
-            return
-        elif name_ in self.params_list:
-            self.struct[0][name_] = value
-            return
-        elif name_ in self.inputs_ini_list:
-            self.struct[0][name_] = value
-            return 
-        else:
-            print(f'Input or parameter {name_} not found.')
+    return sp_jac_ini
 
-    def set_values(self,dictionary):
-        
-        for item in dictionary:
-            self.set_value(item,dictionary[item])
-            
-            
-    def report_x(self,value_format='5.2f', decimals=2):
-        for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
 
-    def report_y(self,value_format='5.2f', decimals=2):
-        for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-            
-    def report_u(self,value_format='5.2f', decimals=2):
-        for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-
-    def report_z(self,value_format='5.2f', decimals=2):
-        for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-
-    def report_params(self,value_format='5.2f', decimals=2):
-        for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.{decimals}f}')
-            
-    def get_x(self):
-        return self.struct[0].x
+@numba.njit()
+def sstate(xy,u,p,jac_ini_ss,N_x,N_y,max_it=50,tol=1e-8):
     
-    def ss(self):
-        
-        ssate(self.struct,self.xy_prev.reshape(len(self.xy_prev),1))
-        
-        ## y_ini to y_run
-        self.struct[0].y_run = self.struct[0].y_ini
-        
-        ## y_ini to u_run
-        for item in self.yini2urun:
-            self.struct[0][item] = self.struct[0].y_ini[self.y_ini_list.index(item)]
-                
-        ## u_ini to y_run
-        for item in self.uini2yrun:
-            self.struct[0].y_run[self.y_run_list.index(item)] = self.struct[0][item]
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+
+    f_c_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_c_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+    jac_ini_ss_ptr=ffi.from_buffer(np.ascontiguousarray(jac_ini_ss))
+
+    de_jac_ini_num_eval(jac_ini_ss_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+    de_jac_ini_up_eval(jac_ini_ss_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+
+    for it in range(max_it):
+        de_jac_ini_xy_eval(jac_ini_ss_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        f_ini_eval(f_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        g_ini_eval(g_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        fg[:N_x] = f
+        fg[N_x:] = g
+        xy += np.linalg.solve(jac_ini_ss,-fg)
+        if np.max(np.abs(fg))<tol: break
 
-
-
-
-
-
-@numba.njit(cache=True)
-def ini(struct,mode):
-
-    # Parameters:
-    S_base = struct[0].S_base
-    g_W1mv_W2mv = struct[0].g_W1mv_W2mv
-    b_W1mv_W2mv = struct[0].b_W1mv_W2mv
-    bs_W1mv_W2mv = struct[0].bs_W1mv_W2mv
-    g_W2mv_W3mv = struct[0].g_W2mv_W3mv
-    b_W2mv_W3mv = struct[0].b_W2mv_W3mv
-    bs_W2mv_W3mv = struct[0].bs_W2mv_W3mv
-    g_W3mv_POImv = struct[0].g_W3mv_POImv
-    b_W3mv_POImv = struct[0].b_W3mv_POImv
-    bs_W3mv_POImv = struct[0].bs_W3mv_POImv
-    g_STmv_POImv = struct[0].g_STmv_POImv
-    b_STmv_POImv = struct[0].b_STmv_POImv
-    bs_STmv_POImv = struct[0].bs_STmv_POImv
-    g_POI_GRID = struct[0].g_POI_GRID
-    b_POI_GRID = struct[0].b_POI_GRID
-    bs_POI_GRID = struct[0].bs_POI_GRID
-    g_POI_POImv = struct[0].g_POI_POImv
-    b_POI_POImv = struct[0].b_POI_POImv
-    bs_POI_POImv = struct[0].bs_POI_POImv
-    g_W1mv_W1lv = struct[0].g_W1mv_W1lv
-    b_W1mv_W1lv = struct[0].b_W1mv_W1lv
-    bs_W1mv_W1lv = struct[0].bs_W1mv_W1lv
-    g_W2mv_W2lv = struct[0].g_W2mv_W2lv
-    b_W2mv_W2lv = struct[0].b_W2mv_W2lv
-    bs_W2mv_W2lv = struct[0].bs_W2mv_W2lv
-    g_W3mv_W3lv = struct[0].g_W3mv_W3lv
-    b_W3mv_W3lv = struct[0].b_W3mv_W3lv
-    bs_W3mv_W3lv = struct[0].bs_W3mv_W3lv
-    g_STmv_STlv = struct[0].g_STmv_STlv
-    b_STmv_STlv = struct[0].b_STmv_STlv
-    bs_STmv_STlv = struct[0].bs_STmv_STlv
-    U_W1lv_n = struct[0].U_W1lv_n
-    U_W2lv_n = struct[0].U_W2lv_n
-    U_W3lv_n = struct[0].U_W3lv_n
-    U_STlv_n = struct[0].U_STlv_n
-    U_W1mv_n = struct[0].U_W1mv_n
-    U_W2mv_n = struct[0].U_W2mv_n
-    U_W3mv_n = struct[0].U_W3mv_n
-    U_POImv_n = struct[0].U_POImv_n
-    U_STmv_n = struct[0].U_STmv_n
-    U_POI_n = struct[0].U_POI_n
-    U_GRID_n = struct[0].U_GRID_n
-    S_n_GRID = struct[0].S_n_GRID
-    Omega_b_GRID = struct[0].Omega_b_GRID
-    K_p_GRID = struct[0].K_p_GRID
-    T_p_GRID = struct[0].T_p_GRID
-    K_q_GRID = struct[0].K_q_GRID
-    T_v_GRID = struct[0].T_v_GRID
-    X_v_GRID = struct[0].X_v_GRID
-    R_v_GRID = struct[0].R_v_GRID
-    K_delta_GRID = struct[0].K_delta_GRID
-    K_sec_GRID = struct[0].K_sec_GRID
-    Droop_GRID = struct[0].Droop_GRID
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_W1lv = struct[0].P_W1lv
-    Q_W1lv = struct[0].Q_W1lv
-    P_W2lv = struct[0].P_W2lv
-    Q_W2lv = struct[0].Q_W2lv
-    P_W3lv = struct[0].P_W3lv
-    Q_W3lv = struct[0].Q_W3lv
-    P_STlv = struct[0].P_STlv
-    Q_STlv = struct[0].Q_STlv
-    P_W1mv = struct[0].P_W1mv
-    Q_W1mv = struct[0].Q_W1mv
-    P_W2mv = struct[0].P_W2mv
-    Q_W2mv = struct[0].Q_W2mv
-    P_W3mv = struct[0].P_W3mv
-    Q_W3mv = struct[0].Q_W3mv
-    P_POImv = struct[0].P_POImv
-    Q_POImv = struct[0].Q_POImv
-    P_STmv = struct[0].P_STmv
-    Q_STmv = struct[0].Q_STmv
-    P_POI = struct[0].P_POI
-    Q_POI = struct[0].Q_POI
-    P_GRID = struct[0].P_GRID
-    Q_GRID = struct[0].Q_GRID
-    v_ref_GRID = struct[0].v_ref_GRID
-    p_m_GRID = struct[0].p_m_GRID
-    p_c_GRID = struct[0].p_c_GRID
-    omega_ref_GRID = struct[0].omega_ref_GRID
-    q_ref_GRID = struct[0].q_ref_GRID
-    
-    # Dynamical states:
-    delta_GRID = struct[0].x[0,0]
-    xi_p_GRID = struct[0].x[1,0]
-    e_qv_GRID = struct[0].x[2,0]
-    xi_freq = struct[0].x[3,0]
-    
-    # Algebraic states:
-    V_W1lv = struct[0].y_ini[0,0]
-    theta_W1lv = struct[0].y_ini[1,0]
-    V_W2lv = struct[0].y_ini[2,0]
-    theta_W2lv = struct[0].y_ini[3,0]
-    V_W3lv = struct[0].y_ini[4,0]
-    theta_W3lv = struct[0].y_ini[5,0]
-    V_STlv = struct[0].y_ini[6,0]
-    theta_STlv = struct[0].y_ini[7,0]
-    V_W1mv = struct[0].y_ini[8,0]
-    theta_W1mv = struct[0].y_ini[9,0]
-    V_W2mv = struct[0].y_ini[10,0]
-    theta_W2mv = struct[0].y_ini[11,0]
-    V_W3mv = struct[0].y_ini[12,0]
-    theta_W3mv = struct[0].y_ini[13,0]
-    V_POImv = struct[0].y_ini[14,0]
-    theta_POImv = struct[0].y_ini[15,0]
-    V_STmv = struct[0].y_ini[16,0]
-    theta_STmv = struct[0].y_ini[17,0]
-    V_POI = struct[0].y_ini[18,0]
-    theta_POI = struct[0].y_ini[19,0]
-    V_GRID = struct[0].y_ini[20,0]
-    theta_GRID = struct[0].y_ini[21,0]
-    omega_GRID = struct[0].y_ini[22,0]
-    i_d_GRID = struct[0].y_ini[23,0]
-    i_q_GRID = struct[0].y_ini[24,0]
-    p_g_GRID = struct[0].y_ini[25,0]
-    q_g_GRID = struct[0].y_ini[26,0]
-    p_m_GRID = struct[0].y_ini[27,0]
-    omega_coi = struct[0].y_ini[28,0]
-    p_agc = struct[0].y_ini[29,0]
-    
-    # Differential equations:
-    if mode == 2:
-
-
-        struct[0].f[0,0] = -K_delta_GRID*delta_GRID + Omega_b_GRID*(omega_GRID - omega_coi)
-        struct[0].f[1,0] = -i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID
-        struct[0].f[2,0] = (K_q_GRID*(-q_g_GRID + q_ref_GRID) - e_qv_GRID + v_ref_GRID)/T_v_GRID
-        struct[0].f[3,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-        struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy_ini) @ np.ascontiguousarray(struct[0].y_ini)
-
-        struct[0].g[0,0] = -P_W1lv/S_base + V_W1lv**2*g_W1mv_W1lv + V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].g[1,0] = -Q_W1lv/S_base + V_W1lv**2*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].g[2,0] = -P_W2lv/S_base + V_W2lv**2*g_W2mv_W2lv + V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].g[3,0] = -Q_W2lv/S_base + V_W2lv**2*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].g[4,0] = -P_W3lv/S_base + V_W3lv**2*g_W3mv_W3lv + V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].g[5,0] = -Q_W3lv/S_base + V_W3lv**2*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].g[6,0] = -P_STlv/S_base + V_STlv**2*g_STmv_STlv + V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].g[7,0] = -Q_STlv/S_base + V_STlv**2*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].g[8,0] = -P_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv**2*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].g[9,0] = -Q_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv**2*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].g[10,0] = -P_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv**2*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].g[11,0] = -Q_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv**2*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].g[12,0] = -P_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + V_W3mv**2*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].g[13,0] = -Q_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + V_W3mv**2*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].g[14,0] = -P_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv**2*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].g[15,0] = -Q_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv**2*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].g[16,0] = -P_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + V_STmv**2*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].g[17,0] = -Q_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + V_STmv**2*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].g[18,0] = -P_POI/S_base + V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI**2*(g_POI_GRID + g_POI_POImv) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].g[19,0] = -Q_POI/S_base + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI**2*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].g[20,0] = -P_GRID/S_base + V_GRID**2*g_POI_GRID + V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) - S_n_GRID*p_g_GRID/S_base
-        struct[0].g[21,0] = -Q_GRID/S_base + V_GRID**2*(-b_POI_GRID - bs_POI_GRID/2) + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) - S_n_GRID*q_g_GRID/S_base
-        struct[0].g[22,0] = K_p_GRID*(-i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID + xi_p_GRID/T_p_GRID) - omega_GRID + 1
-        struct[0].g[23,0] = -R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID) + X_v_GRID*i_q_GRID
-        struct[0].g[24,0] = -R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID) - X_v_GRID*i_d_GRID + e_qv_GRID
-        struct[0].g[25,0] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID) - p_g_GRID
-        struct[0].g[26,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID) - q_g_GRID
-        struct[0].g[27,0] = K_sec_GRID*p_agc + p_c_GRID - p_m_GRID - (omega_GRID - omega_ref_GRID)/Droop_GRID
-        struct[0].g[29,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_W1lv
-        struct[0].h[1,0] = V_W2lv
-        struct[0].h[2,0] = V_W3lv
-        struct[0].h[3,0] = V_STlv
-        struct[0].h[4,0] = V_W1mv
-        struct[0].h[5,0] = V_W2mv
-        struct[0].h[6,0] = V_W3mv
-        struct[0].h[7,0] = V_POImv
-        struct[0].h[8,0] = V_STmv
-        struct[0].h[9,0] = V_POI
-        struct[0].h[10,0] = V_GRID
-        struct[0].h[11,0] = i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) + i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID))
-    
-
-    if mode == 10:
-
-        struct[0].Fx_ini[0,0] = -K_delta_GRID
-        struct[0].Fx_ini[1,0] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fx_ini[2,2] = -1/T_v_GRID
-
-    if mode == 11:
-
-        struct[0].Fy_ini[0,22] = Omega_b_GRID 
-        struct[0].Fy_ini[0,28] = -Omega_b_GRID 
-        struct[0].Fy_ini[1,20] = -i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,21] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,23] = -2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,24] = -2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,27] = 1 
-        struct[0].Fy_ini[2,26] = -K_q_GRID/T_v_GRID 
-        struct[0].Fy_ini[3,28] = -1 
-
-        struct[0].Gx_ini[22,0] = K_p_GRID*(-V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gx_ini[22,1] = K_p_GRID/T_p_GRID
-        struct[0].Gx_ini[23,0] = -V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gx_ini[24,0] = V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gx_ini[24,2] = 1
-        struct[0].Gx_ini[25,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gx_ini[26,0] = -V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gx_ini[29,3] = K_i_agc
-
-        struct[0].Gy_ini[0,0] = 2*V_W1lv*g_W1mv_W1lv + V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[0,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[0,8] = V_W1lv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[0,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,0] = 2*V_W1lv*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[2,2] = 2*V_W2lv*g_W2mv_W2lv + V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[2,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[2,10] = V_W2lv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[2,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,2] = 2*V_W2lv*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,10] = V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[4,4] = 2*V_W3lv*g_W3mv_W3lv + V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[4,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[4,12] = V_W3lv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[4,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,4] = 2*V_W3lv*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,12] = V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[6,6] = 2*V_STlv*g_STmv_STlv + V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[6,7] = V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[6,16] = V_STlv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[6,17] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,6] = 2*V_STlv*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,16] = V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,17] = V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[8,0] = V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[8,1] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[8,8] = V_W1lv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[8,9] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[8,10] = V_W1mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[8,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,0] = V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[9,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[9,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[10,2] = V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[10,3] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[10,8] = V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[10,9] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[10,10] = V_W1mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[10,11] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[10,12] = V_W2mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[10,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,2] = V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[11,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[11,8] = V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[11,9] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[11,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,12] = V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[12,4] = V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[12,5] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[12,10] = V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[12,11] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[12,12] = V_POImv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].Gy_ini[12,13] = V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[12,14] = V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[12,15] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[13,4] = V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[13,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[13,10] = V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[13,11] = V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[13,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].Gy_ini[13,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[13,14] = V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[13,15] = V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,12] = V_POImv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,13] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,14] = V_POI*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + 2*V_POImv*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,15] = V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,16] = V_POImv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[14,17] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[14,18] = V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[14,19] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[15,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + 2*V_POImv*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[15,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[15,18] = V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[15,19] = V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[16,6] = V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[16,7] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[16,14] = V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[16,15] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[16,16] = V_POImv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + 2*V_STmv*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].Gy_ini[16,17] = V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[17,6] = V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[17,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[17,14] = V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[17,15] = V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[17,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + 2*V_STmv*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].Gy_ini[17,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[18,14] = V_POI*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,15] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,18] = V_GRID*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + 2*V_POI*(g_POI_GRID + g_POI_POImv) + V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,19] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,20] = V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[18,21] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[19,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + 2*V_POI*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,20] = V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[19,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,18] = V_GRID*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,19] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,20] = 2*V_GRID*g_POI_GRID + V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,21] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,25] = -S_n_GRID/S_base
-        struct[0].Gy_ini[21,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,20] = 2*V_GRID*(-b_POI_GRID - bs_POI_GRID/2) + V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,26] = -S_n_GRID/S_base
-        struct[0].Gy_ini[22,20] = K_p_GRID*(-i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,21] = K_p_GRID*(V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,23] = K_p_GRID*(-2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,24] = K_p_GRID*(-2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,27] = K_p_GRID
-        struct[0].Gy_ini[23,20] = -sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[23,21] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[23,23] = -R_v_GRID
-        struct[0].Gy_ini[23,24] = X_v_GRID
-        struct[0].Gy_ini[24,20] = -cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[24,21] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[24,23] = -X_v_GRID
-        struct[0].Gy_ini[24,24] = -R_v_GRID
-        struct[0].Gy_ini[25,20] = i_d_GRID*sin(delta_GRID - theta_GRID) + i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,21] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,23] = V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,24] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,20] = i_d_GRID*cos(delta_GRID - theta_GRID) - i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,21] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,23] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,24] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[27,22] = -1/Droop_GRID
-        struct[0].Gy_ini[27,29] = K_sec_GRID
-        struct[0].Gy_ini[29,28] = -K_p_agc
-
-
-
-@numba.njit(cache=True)
-def run(t,struct,mode):
-
-    # Parameters:
-    S_base = struct[0].S_base
-    g_W1mv_W2mv = struct[0].g_W1mv_W2mv
-    b_W1mv_W2mv = struct[0].b_W1mv_W2mv
-    bs_W1mv_W2mv = struct[0].bs_W1mv_W2mv
-    g_W2mv_W3mv = struct[0].g_W2mv_W3mv
-    b_W2mv_W3mv = struct[0].b_W2mv_W3mv
-    bs_W2mv_W3mv = struct[0].bs_W2mv_W3mv
-    g_W3mv_POImv = struct[0].g_W3mv_POImv
-    b_W3mv_POImv = struct[0].b_W3mv_POImv
-    bs_W3mv_POImv = struct[0].bs_W3mv_POImv
-    g_STmv_POImv = struct[0].g_STmv_POImv
-    b_STmv_POImv = struct[0].b_STmv_POImv
-    bs_STmv_POImv = struct[0].bs_STmv_POImv
-    g_POI_GRID = struct[0].g_POI_GRID
-    b_POI_GRID = struct[0].b_POI_GRID
-    bs_POI_GRID = struct[0].bs_POI_GRID
-    g_POI_POImv = struct[0].g_POI_POImv
-    b_POI_POImv = struct[0].b_POI_POImv
-    bs_POI_POImv = struct[0].bs_POI_POImv
-    g_W1mv_W1lv = struct[0].g_W1mv_W1lv
-    b_W1mv_W1lv = struct[0].b_W1mv_W1lv
-    bs_W1mv_W1lv = struct[0].bs_W1mv_W1lv
-    g_W2mv_W2lv = struct[0].g_W2mv_W2lv
-    b_W2mv_W2lv = struct[0].b_W2mv_W2lv
-    bs_W2mv_W2lv = struct[0].bs_W2mv_W2lv
-    g_W3mv_W3lv = struct[0].g_W3mv_W3lv
-    b_W3mv_W3lv = struct[0].b_W3mv_W3lv
-    bs_W3mv_W3lv = struct[0].bs_W3mv_W3lv
-    g_STmv_STlv = struct[0].g_STmv_STlv
-    b_STmv_STlv = struct[0].b_STmv_STlv
-    bs_STmv_STlv = struct[0].bs_STmv_STlv
-    U_W1lv_n = struct[0].U_W1lv_n
-    U_W2lv_n = struct[0].U_W2lv_n
-    U_W3lv_n = struct[0].U_W3lv_n
-    U_STlv_n = struct[0].U_STlv_n
-    U_W1mv_n = struct[0].U_W1mv_n
-    U_W2mv_n = struct[0].U_W2mv_n
-    U_W3mv_n = struct[0].U_W3mv_n
-    U_POImv_n = struct[0].U_POImv_n
-    U_STmv_n = struct[0].U_STmv_n
-    U_POI_n = struct[0].U_POI_n
-    U_GRID_n = struct[0].U_GRID_n
-    S_n_GRID = struct[0].S_n_GRID
-    Omega_b_GRID = struct[0].Omega_b_GRID
-    K_p_GRID = struct[0].K_p_GRID
-    T_p_GRID = struct[0].T_p_GRID
-    K_q_GRID = struct[0].K_q_GRID
-    T_v_GRID = struct[0].T_v_GRID
-    X_v_GRID = struct[0].X_v_GRID
-    R_v_GRID = struct[0].R_v_GRID
-    K_delta_GRID = struct[0].K_delta_GRID
-    K_sec_GRID = struct[0].K_sec_GRID
-    Droop_GRID = struct[0].Droop_GRID
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_W1lv = struct[0].P_W1lv
-    Q_W1lv = struct[0].Q_W1lv
-    P_W2lv = struct[0].P_W2lv
-    Q_W2lv = struct[0].Q_W2lv
-    P_W3lv = struct[0].P_W3lv
-    Q_W3lv = struct[0].Q_W3lv
-    P_STlv = struct[0].P_STlv
-    Q_STlv = struct[0].Q_STlv
-    P_W1mv = struct[0].P_W1mv
-    Q_W1mv = struct[0].Q_W1mv
-    P_W2mv = struct[0].P_W2mv
-    Q_W2mv = struct[0].Q_W2mv
-    P_W3mv = struct[0].P_W3mv
-    Q_W3mv = struct[0].Q_W3mv
-    P_POImv = struct[0].P_POImv
-    Q_POImv = struct[0].Q_POImv
-    P_STmv = struct[0].P_STmv
-    Q_STmv = struct[0].Q_STmv
-    P_POI = struct[0].P_POI
-    Q_POI = struct[0].Q_POI
-    P_GRID = struct[0].P_GRID
-    Q_GRID = struct[0].Q_GRID
-    v_ref_GRID = struct[0].v_ref_GRID
-    p_m_GRID = struct[0].p_m_GRID
-    p_c_GRID = struct[0].p_c_GRID
-    omega_ref_GRID = struct[0].omega_ref_GRID
-    q_ref_GRID = struct[0].q_ref_GRID
-    
-    # Dynamical states:
-    delta_GRID = struct[0].x[0,0]
-    xi_p_GRID = struct[0].x[1,0]
-    e_qv_GRID = struct[0].x[2,0]
-    xi_freq = struct[0].x[3,0]
-    
-    # Algebraic states:
-    V_W1lv = struct[0].y_run[0,0]
-    theta_W1lv = struct[0].y_run[1,0]
-    V_W2lv = struct[0].y_run[2,0]
-    theta_W2lv = struct[0].y_run[3,0]
-    V_W3lv = struct[0].y_run[4,0]
-    theta_W3lv = struct[0].y_run[5,0]
-    V_STlv = struct[0].y_run[6,0]
-    theta_STlv = struct[0].y_run[7,0]
-    V_W1mv = struct[0].y_run[8,0]
-    theta_W1mv = struct[0].y_run[9,0]
-    V_W2mv = struct[0].y_run[10,0]
-    theta_W2mv = struct[0].y_run[11,0]
-    V_W3mv = struct[0].y_run[12,0]
-    theta_W3mv = struct[0].y_run[13,0]
-    V_POImv = struct[0].y_run[14,0]
-    theta_POImv = struct[0].y_run[15,0]
-    V_STmv = struct[0].y_run[16,0]
-    theta_STmv = struct[0].y_run[17,0]
-    V_POI = struct[0].y_run[18,0]
-    theta_POI = struct[0].y_run[19,0]
-    V_GRID = struct[0].y_run[20,0]
-    theta_GRID = struct[0].y_run[21,0]
-    omega_GRID = struct[0].y_run[22,0]
-    i_d_GRID = struct[0].y_run[23,0]
-    i_q_GRID = struct[0].y_run[24,0]
-    p_g_GRID = struct[0].y_run[25,0]
-    q_g_GRID = struct[0].y_run[26,0]
-    p_m_GRID = struct[0].y_run[27,0]
-    omega_coi = struct[0].y_run[28,0]
-    p_agc = struct[0].y_run[29,0]
-    
-    struct[0].u_run[0,0] = P_W1lv
-    struct[0].u_run[1,0] = Q_W1lv
-    struct[0].u_run[2,0] = P_W2lv
-    struct[0].u_run[3,0] = Q_W2lv
-    struct[0].u_run[4,0] = P_W3lv
-    struct[0].u_run[5,0] = Q_W3lv
-    struct[0].u_run[6,0] = P_STlv
-    struct[0].u_run[7,0] = Q_STlv
-    struct[0].u_run[8,0] = P_W1mv
-    struct[0].u_run[9,0] = Q_W1mv
-    struct[0].u_run[10,0] = P_W2mv
-    struct[0].u_run[11,0] = Q_W2mv
-    struct[0].u_run[12,0] = P_W3mv
-    struct[0].u_run[13,0] = Q_W3mv
-    struct[0].u_run[14,0] = P_POImv
-    struct[0].u_run[15,0] = Q_POImv
-    struct[0].u_run[16,0] = P_STmv
-    struct[0].u_run[17,0] = Q_STmv
-    struct[0].u_run[18,0] = P_POI
-    struct[0].u_run[19,0] = Q_POI
-    struct[0].u_run[20,0] = P_GRID
-    struct[0].u_run[21,0] = Q_GRID
-    struct[0].u_run[22,0] = v_ref_GRID
-    struct[0].u_run[23,0] = p_m_GRID
-    struct[0].u_run[24,0] = p_c_GRID
-    struct[0].u_run[25,0] = omega_ref_GRID
-    struct[0].u_run[26,0] = q_ref_GRID
-    # Differential equations:
-    if mode == 2:
-
-
-        struct[0].f[0,0] = -K_delta_GRID*delta_GRID + Omega_b_GRID*(omega_GRID - omega_coi)
-        struct[0].f[1,0] = -i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID
-        struct[0].f[2,0] = (K_q_GRID*(-q_g_GRID + q_ref_GRID) - e_qv_GRID + v_ref_GRID)/T_v_GRID
-        struct[0].f[3,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-        struct[0].g[:,:] = np.ascontiguousarray(struct[0].Gy) @ np.ascontiguousarray(struct[0].y_run) + np.ascontiguousarray(struct[0].Gu) @ np.ascontiguousarray(struct[0].u_run)
-
-        struct[0].g[0,0] = -P_W1lv/S_base + V_W1lv**2*g_W1mv_W1lv + V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].g[1,0] = -Q_W1lv/S_base + V_W1lv**2*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].g[2,0] = -P_W2lv/S_base + V_W2lv**2*g_W2mv_W2lv + V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].g[3,0] = -Q_W2lv/S_base + V_W2lv**2*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].g[4,0] = -P_W3lv/S_base + V_W3lv**2*g_W3mv_W3lv + V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].g[5,0] = -Q_W3lv/S_base + V_W3lv**2*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].g[6,0] = -P_STlv/S_base + V_STlv**2*g_STmv_STlv + V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].g[7,0] = -Q_STlv/S_base + V_STlv**2*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].g[8,0] = -P_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv**2*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].g[9,0] = -Q_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv**2*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].g[10,0] = -P_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv**2*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].g[11,0] = -Q_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv**2*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].g[12,0] = -P_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + V_W3mv**2*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].g[13,0] = -Q_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + V_W3mv**2*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].g[14,0] = -P_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv**2*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].g[15,0] = -Q_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv**2*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].g[16,0] = -P_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + V_STmv**2*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].g[17,0] = -Q_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + V_STmv**2*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].g[18,0] = -P_POI/S_base + V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI**2*(g_POI_GRID + g_POI_POImv) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].g[19,0] = -Q_POI/S_base + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI**2*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].g[20,0] = -P_GRID/S_base + V_GRID**2*g_POI_GRID + V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) - S_n_GRID*p_g_GRID/S_base
-        struct[0].g[21,0] = -Q_GRID/S_base + V_GRID**2*(-b_POI_GRID - bs_POI_GRID/2) + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) - S_n_GRID*q_g_GRID/S_base
-        struct[0].g[22,0] = K_p_GRID*(-i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID + xi_p_GRID/T_p_GRID) - omega_GRID + 1
-        struct[0].g[23,0] = -R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID) + X_v_GRID*i_q_GRID
-        struct[0].g[24,0] = -R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID) - X_v_GRID*i_d_GRID + e_qv_GRID
-        struct[0].g[25,0] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID) - p_g_GRID
-        struct[0].g[26,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID) - q_g_GRID
-        struct[0].g[27,0] = K_sec_GRID*p_agc + p_c_GRID - p_m_GRID - (omega_GRID - omega_ref_GRID)/Droop_GRID
-        struct[0].g[29,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_W1lv
-        struct[0].h[1,0] = V_W2lv
-        struct[0].h[2,0] = V_W3lv
-        struct[0].h[3,0] = V_STlv
-        struct[0].h[4,0] = V_W1mv
-        struct[0].h[5,0] = V_W2mv
-        struct[0].h[6,0] = V_W3mv
-        struct[0].h[7,0] = V_POImv
-        struct[0].h[8,0] = V_STmv
-        struct[0].h[9,0] = V_POI
-        struct[0].h[10,0] = V_GRID
-        struct[0].h[11,0] = i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) + i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID))
-    
-
-    if mode == 10:
-
-        struct[0].Fx[0,0] = -K_delta_GRID
-        struct[0].Fx[1,0] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fx[2,2] = -1/T_v_GRID
-
-    if mode == 11:
-
-        struct[0].Fy[0,22] = Omega_b_GRID
-        struct[0].Fy[0,28] = -Omega_b_GRID
-        struct[0].Fy[1,20] = -i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Fy[1,21] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fy[1,23] = -2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fy[1,24] = -2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Fy[1,27] = 1
-        struct[0].Fy[2,26] = -K_q_GRID/T_v_GRID
-        struct[0].Fy[3,28] = -1
-
-        struct[0].Gx[22,0] = K_p_GRID*(-V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gx[22,1] = K_p_GRID/T_p_GRID
-        struct[0].Gx[23,0] = -V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gx[24,0] = V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gx[24,2] = 1
-        struct[0].Gx[25,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gx[26,0] = -V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gx[29,3] = K_i_agc
-
-        struct[0].Gy[0,0] = 2*V_W1lv*g_W1mv_W1lv + V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[0,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[0,8] = V_W1lv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[0,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,0] = 2*V_W1lv*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[2,2] = 2*V_W2lv*g_W2mv_W2lv + V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[2,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[2,10] = V_W2lv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[2,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,2] = 2*V_W2lv*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,10] = V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[4,4] = 2*V_W3lv*g_W3mv_W3lv + V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[4,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[4,12] = V_W3lv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[4,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,4] = 2*V_W3lv*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,12] = V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[6,6] = 2*V_STlv*g_STmv_STlv + V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[6,7] = V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[6,16] = V_STlv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[6,17] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[7,6] = 2*V_STlv*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[7,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[7,16] = V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[7,17] = V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[8,0] = V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[8,1] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[8,8] = V_W1lv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[8,9] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[8,10] = V_W1mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[8,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,0] = V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[9,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[9,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[10,2] = V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[10,3] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[10,8] = V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[10,9] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[10,10] = V_W1mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[10,11] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[10,12] = V_W2mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[10,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,2] = V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[11,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[11,8] = V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[11,9] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[11,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,12] = V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[12,4] = V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[12,5] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[12,10] = V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[12,11] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[12,12] = V_POImv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].Gy[12,13] = V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[12,14] = V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[12,15] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[13,4] = V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[13,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[13,10] = V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[13,11] = V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[13,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].Gy[13,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[13,14] = V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[13,15] = V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,12] = V_POImv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,13] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,14] = V_POI*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + 2*V_POImv*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,15] = V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,16] = V_POImv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[14,17] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[14,18] = V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[14,19] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[15,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + 2*V_POImv*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[15,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[15,18] = V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[15,19] = V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[16,6] = V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[16,7] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[16,14] = V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[16,15] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[16,16] = V_POImv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + 2*V_STmv*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].Gy[16,17] = V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[17,6] = V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[17,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[17,14] = V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[17,15] = V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[17,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + 2*V_STmv*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].Gy[17,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[18,14] = V_POI*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[18,15] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[18,18] = V_GRID*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + 2*V_POI*(g_POI_GRID + g_POI_POImv) + V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[18,19] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[18,20] = V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[18,21] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[19,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[19,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[19,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + 2*V_POI*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[19,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[19,20] = V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[19,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[20,18] = V_GRID*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[20,19] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[20,20] = 2*V_GRID*g_POI_GRID + V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[20,21] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[20,25] = -S_n_GRID/S_base
-        struct[0].Gy[21,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[21,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[21,20] = 2*V_GRID*(-b_POI_GRID - bs_POI_GRID/2) + V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[21,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[21,26] = -S_n_GRID/S_base
-        struct[0].Gy[22,20] = K_p_GRID*(-i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy[22,21] = K_p_GRID*(V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy[22,23] = K_p_GRID*(-2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy[22,24] = K_p_GRID*(-2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy[22,27] = K_p_GRID
-        struct[0].Gy[23,20] = -sin(delta_GRID - theta_GRID)
-        struct[0].Gy[23,21] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[23,23] = -R_v_GRID
-        struct[0].Gy[23,24] = X_v_GRID
-        struct[0].Gy[24,20] = -cos(delta_GRID - theta_GRID)
-        struct[0].Gy[24,21] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[24,23] = -X_v_GRID
-        struct[0].Gy[24,24] = -R_v_GRID
-        struct[0].Gy[25,20] = i_d_GRID*sin(delta_GRID - theta_GRID) + i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[25,21] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[25,23] = V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[25,24] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[26,20] = i_d_GRID*cos(delta_GRID - theta_GRID) - i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[26,21] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[26,23] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[26,24] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[27,22] = -1/Droop_GRID
-        struct[0].Gy[27,29] = K_sec_GRID
-        struct[0].Gy[29,28] = -K_p_agc
-
-    if mode > 12:
-
-        struct[0].Fu[1,23] = 1
-        struct[0].Fu[2,22] = 1/T_v_GRID
-        struct[0].Fu[2,26] = K_q_GRID/T_v_GRID
-
-        struct[0].Gu[0,0] = -1/S_base
-        struct[0].Gu[1,1] = -1/S_base
-        struct[0].Gu[2,2] = -1/S_base
-        struct[0].Gu[3,3] = -1/S_base
-        struct[0].Gu[4,4] = -1/S_base
-        struct[0].Gu[5,5] = -1/S_base
-        struct[0].Gu[6,6] = -1/S_base
-        struct[0].Gu[7,7] = -1/S_base
-        struct[0].Gu[8,8] = -1/S_base
-        struct[0].Gu[9,9] = -1/S_base
-        struct[0].Gu[10,10] = -1/S_base
-        struct[0].Gu[11,11] = -1/S_base
-        struct[0].Gu[12,12] = -1/S_base
-        struct[0].Gu[13,13] = -1/S_base
-        struct[0].Gu[14,14] = -1/S_base
-        struct[0].Gu[15,15] = -1/S_base
-        struct[0].Gu[16,16] = -1/S_base
-        struct[0].Gu[17,17] = -1/S_base
-        struct[0].Gu[18,18] = -1/S_base
-        struct[0].Gu[19,19] = -1/S_base
-        struct[0].Gu[20,20] = -1/S_base
-        struct[0].Gu[21,21] = -1/S_base
-        struct[0].Gu[22,23] = K_p_GRID
-        struct[0].Gu[27,25] = 1/Droop_GRID
-
-        struct[0].Hx[11,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-
-        struct[0].Hy[0,0] = 1
-        struct[0].Hy[1,2] = 1
-        struct[0].Hy[2,4] = 1
-        struct[0].Hy[3,6] = 1
-        struct[0].Hy[4,8] = 1
-        struct[0].Hy[5,10] = 1
-        struct[0].Hy[6,12] = 1
-        struct[0].Hy[7,14] = 1
-        struct[0].Hy[8,16] = 1
-        struct[0].Hy[9,18] = 1
-        struct[0].Hy[10,20] = 1
-        struct[0].Hy[11,20] = i_d_GRID*sin(delta_GRID - theta_GRID) + i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Hy[11,21] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Hy[11,23] = 2*R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Hy[11,24] = 2*R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)
-
-
-
-
-def ini_nn(struct,mode):
-
-    # Parameters:
-    S_base = struct[0].S_base
-    g_W1mv_W2mv = struct[0].g_W1mv_W2mv
-    b_W1mv_W2mv = struct[0].b_W1mv_W2mv
-    bs_W1mv_W2mv = struct[0].bs_W1mv_W2mv
-    g_W2mv_W3mv = struct[0].g_W2mv_W3mv
-    b_W2mv_W3mv = struct[0].b_W2mv_W3mv
-    bs_W2mv_W3mv = struct[0].bs_W2mv_W3mv
-    g_W3mv_POImv = struct[0].g_W3mv_POImv
-    b_W3mv_POImv = struct[0].b_W3mv_POImv
-    bs_W3mv_POImv = struct[0].bs_W3mv_POImv
-    g_STmv_POImv = struct[0].g_STmv_POImv
-    b_STmv_POImv = struct[0].b_STmv_POImv
-    bs_STmv_POImv = struct[0].bs_STmv_POImv
-    g_POI_GRID = struct[0].g_POI_GRID
-    b_POI_GRID = struct[0].b_POI_GRID
-    bs_POI_GRID = struct[0].bs_POI_GRID
-    g_POI_POImv = struct[0].g_POI_POImv
-    b_POI_POImv = struct[0].b_POI_POImv
-    bs_POI_POImv = struct[0].bs_POI_POImv
-    g_W1mv_W1lv = struct[0].g_W1mv_W1lv
-    b_W1mv_W1lv = struct[0].b_W1mv_W1lv
-    bs_W1mv_W1lv = struct[0].bs_W1mv_W1lv
-    g_W2mv_W2lv = struct[0].g_W2mv_W2lv
-    b_W2mv_W2lv = struct[0].b_W2mv_W2lv
-    bs_W2mv_W2lv = struct[0].bs_W2mv_W2lv
-    g_W3mv_W3lv = struct[0].g_W3mv_W3lv
-    b_W3mv_W3lv = struct[0].b_W3mv_W3lv
-    bs_W3mv_W3lv = struct[0].bs_W3mv_W3lv
-    g_STmv_STlv = struct[0].g_STmv_STlv
-    b_STmv_STlv = struct[0].b_STmv_STlv
-    bs_STmv_STlv = struct[0].bs_STmv_STlv
-    U_W1lv_n = struct[0].U_W1lv_n
-    U_W2lv_n = struct[0].U_W2lv_n
-    U_W3lv_n = struct[0].U_W3lv_n
-    U_STlv_n = struct[0].U_STlv_n
-    U_W1mv_n = struct[0].U_W1mv_n
-    U_W2mv_n = struct[0].U_W2mv_n
-    U_W3mv_n = struct[0].U_W3mv_n
-    U_POImv_n = struct[0].U_POImv_n
-    U_STmv_n = struct[0].U_STmv_n
-    U_POI_n = struct[0].U_POI_n
-    U_GRID_n = struct[0].U_GRID_n
-    S_n_GRID = struct[0].S_n_GRID
-    Omega_b_GRID = struct[0].Omega_b_GRID
-    K_p_GRID = struct[0].K_p_GRID
-    T_p_GRID = struct[0].T_p_GRID
-    K_q_GRID = struct[0].K_q_GRID
-    T_v_GRID = struct[0].T_v_GRID
-    X_v_GRID = struct[0].X_v_GRID
-    R_v_GRID = struct[0].R_v_GRID
-    K_delta_GRID = struct[0].K_delta_GRID
-    K_sec_GRID = struct[0].K_sec_GRID
-    Droop_GRID = struct[0].Droop_GRID
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_W1lv = struct[0].P_W1lv
-    Q_W1lv = struct[0].Q_W1lv
-    P_W2lv = struct[0].P_W2lv
-    Q_W2lv = struct[0].Q_W2lv
-    P_W3lv = struct[0].P_W3lv
-    Q_W3lv = struct[0].Q_W3lv
-    P_STlv = struct[0].P_STlv
-    Q_STlv = struct[0].Q_STlv
-    P_W1mv = struct[0].P_W1mv
-    Q_W1mv = struct[0].Q_W1mv
-    P_W2mv = struct[0].P_W2mv
-    Q_W2mv = struct[0].Q_W2mv
-    P_W3mv = struct[0].P_W3mv
-    Q_W3mv = struct[0].Q_W3mv
-    P_POImv = struct[0].P_POImv
-    Q_POImv = struct[0].Q_POImv
-    P_STmv = struct[0].P_STmv
-    Q_STmv = struct[0].Q_STmv
-    P_POI = struct[0].P_POI
-    Q_POI = struct[0].Q_POI
-    P_GRID = struct[0].P_GRID
-    Q_GRID = struct[0].Q_GRID
-    v_ref_GRID = struct[0].v_ref_GRID
-    p_m_GRID = struct[0].p_m_GRID
-    p_c_GRID = struct[0].p_c_GRID
-    omega_ref_GRID = struct[0].omega_ref_GRID
-    q_ref_GRID = struct[0].q_ref_GRID
-    
-    # Dynamical states:
-    delta_GRID = struct[0].x[0,0]
-    xi_p_GRID = struct[0].x[1,0]
-    e_qv_GRID = struct[0].x[2,0]
-    xi_freq = struct[0].x[3,0]
-    
-    # Algebraic states:
-    V_W1lv = struct[0].y_ini[0,0]
-    theta_W1lv = struct[0].y_ini[1,0]
-    V_W2lv = struct[0].y_ini[2,0]
-    theta_W2lv = struct[0].y_ini[3,0]
-    V_W3lv = struct[0].y_ini[4,0]
-    theta_W3lv = struct[0].y_ini[5,0]
-    V_STlv = struct[0].y_ini[6,0]
-    theta_STlv = struct[0].y_ini[7,0]
-    V_W1mv = struct[0].y_ini[8,0]
-    theta_W1mv = struct[0].y_ini[9,0]
-    V_W2mv = struct[0].y_ini[10,0]
-    theta_W2mv = struct[0].y_ini[11,0]
-    V_W3mv = struct[0].y_ini[12,0]
-    theta_W3mv = struct[0].y_ini[13,0]
-    V_POImv = struct[0].y_ini[14,0]
-    theta_POImv = struct[0].y_ini[15,0]
-    V_STmv = struct[0].y_ini[16,0]
-    theta_STmv = struct[0].y_ini[17,0]
-    V_POI = struct[0].y_ini[18,0]
-    theta_POI = struct[0].y_ini[19,0]
-    V_GRID = struct[0].y_ini[20,0]
-    theta_GRID = struct[0].y_ini[21,0]
-    omega_GRID = struct[0].y_ini[22,0]
-    i_d_GRID = struct[0].y_ini[23,0]
-    i_q_GRID = struct[0].y_ini[24,0]
-    p_g_GRID = struct[0].y_ini[25,0]
-    q_g_GRID = struct[0].y_ini[26,0]
-    p_m_GRID = struct[0].y_ini[27,0]
-    omega_coi = struct[0].y_ini[28,0]
-    p_agc = struct[0].y_ini[29,0]
-    
-    # Differential equations:
-    if mode == 2:
-
-
-        struct[0].f[0,0] = -K_delta_GRID*delta_GRID + Omega_b_GRID*(omega_GRID - omega_coi)
-        struct[0].f[1,0] = -i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID
-        struct[0].f[2,0] = (K_q_GRID*(-q_g_GRID + q_ref_GRID) - e_qv_GRID + v_ref_GRID)/T_v_GRID
-        struct[0].f[3,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-
-        struct[0].g[0,0] = -P_W1lv/S_base + V_W1lv**2*g_W1mv_W1lv + V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].g[1,0] = -Q_W1lv/S_base + V_W1lv**2*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].g[2,0] = -P_W2lv/S_base + V_W2lv**2*g_W2mv_W2lv + V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].g[3,0] = -Q_W2lv/S_base + V_W2lv**2*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].g[4,0] = -P_W3lv/S_base + V_W3lv**2*g_W3mv_W3lv + V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].g[5,0] = -Q_W3lv/S_base + V_W3lv**2*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].g[6,0] = -P_STlv/S_base + V_STlv**2*g_STmv_STlv + V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].g[7,0] = -Q_STlv/S_base + V_STlv**2*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].g[8,0] = -P_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv**2*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].g[9,0] = -Q_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv**2*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].g[10,0] = -P_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv**2*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].g[11,0] = -Q_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv**2*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].g[12,0] = -P_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + V_W3mv**2*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].g[13,0] = -Q_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + V_W3mv**2*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].g[14,0] = -P_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv**2*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].g[15,0] = -Q_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv**2*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].g[16,0] = -P_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + V_STmv**2*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].g[17,0] = -Q_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + V_STmv**2*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].g[18,0] = -P_POI/S_base + V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI**2*(g_POI_GRID + g_POI_POImv) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].g[19,0] = -Q_POI/S_base + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI**2*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].g[20,0] = -P_GRID/S_base + V_GRID**2*g_POI_GRID + V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) - S_n_GRID*p_g_GRID/S_base
-        struct[0].g[21,0] = -Q_GRID/S_base + V_GRID**2*(-b_POI_GRID - bs_POI_GRID/2) + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) - S_n_GRID*q_g_GRID/S_base
-        struct[0].g[22,0] = K_p_GRID*(-i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID + xi_p_GRID/T_p_GRID) - omega_GRID + 1
-        struct[0].g[23,0] = -R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID) + X_v_GRID*i_q_GRID
-        struct[0].g[24,0] = -R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID) - X_v_GRID*i_d_GRID + e_qv_GRID
-        struct[0].g[25,0] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID) - p_g_GRID
-        struct[0].g[26,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID) - q_g_GRID
-        struct[0].g[27,0] = K_sec_GRID*p_agc + p_c_GRID - p_m_GRID - (omega_GRID - omega_ref_GRID)/Droop_GRID
-        struct[0].g[28,0] = omega_GRID - omega_coi
-        struct[0].g[29,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_W1lv
-        struct[0].h[1,0] = V_W2lv
-        struct[0].h[2,0] = V_W3lv
-        struct[0].h[3,0] = V_STlv
-        struct[0].h[4,0] = V_W1mv
-        struct[0].h[5,0] = V_W2mv
-        struct[0].h[6,0] = V_W3mv
-        struct[0].h[7,0] = V_POImv
-        struct[0].h[8,0] = V_STmv
-        struct[0].h[9,0] = V_POI
-        struct[0].h[10,0] = V_GRID
-        struct[0].h[11,0] = i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) + i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID))
-    
-
-    if mode == 10:
-
-        struct[0].Fx_ini[0,0] = -K_delta_GRID
-        struct[0].Fx_ini[1,0] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fx_ini[2,2] = -1/T_v_GRID
-
-    if mode == 11:
-
-        struct[0].Fy_ini[0,22] = Omega_b_GRID 
-        struct[0].Fy_ini[0,28] = -Omega_b_GRID 
-        struct[0].Fy_ini[1,20] = -i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,21] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,23] = -2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,24] = -2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID) 
-        struct[0].Fy_ini[1,27] = 1 
-        struct[0].Fy_ini[2,26] = -K_q_GRID/T_v_GRID 
-        struct[0].Fy_ini[3,28] = -1 
-
-        struct[0].Gy_ini[0,0] = 2*V_W1lv*g_W1mv_W1lv + V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[0,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[0,8] = V_W1lv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[0,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,0] = 2*V_W1lv*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[1,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[2,2] = 2*V_W2lv*g_W2mv_W2lv + V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[2,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[2,10] = V_W2lv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[2,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,2] = 2*V_W2lv*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,10] = V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[3,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[4,4] = 2*V_W3lv*g_W3mv_W3lv + V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[4,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[4,12] = V_W3lv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[4,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,4] = 2*V_W3lv*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,12] = V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[5,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[6,6] = 2*V_STlv*g_STmv_STlv + V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[6,7] = V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[6,16] = V_STlv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[6,17] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,6] = 2*V_STlv*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,16] = V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[7,17] = V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[8,0] = V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[8,1] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[8,8] = V_W1lv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[8,9] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[8,10] = V_W1mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[8,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,0] = V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[9,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy_ini[9,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[9,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[10,2] = V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[10,3] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[10,8] = V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[10,9] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[10,10] = V_W1mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[10,11] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[10,12] = V_W2mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[10,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,2] = V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[11,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy_ini[11,8] = V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[11,9] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy_ini[11,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,12] = V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[11,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[12,4] = V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[12,5] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[12,10] = V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[12,11] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[12,12] = V_POImv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].Gy_ini[12,13] = V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[12,14] = V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[12,15] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[13,4] = V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[13,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[13,10] = V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[13,11] = V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy_ini[13,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].Gy_ini[13,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy_ini[13,14] = V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[13,15] = V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,12] = V_POImv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,13] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,14] = V_POI*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + 2*V_POImv*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,15] = V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[14,16] = V_POImv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[14,17] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[14,18] = V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[14,19] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[15,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + 2*V_POImv*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy_ini[15,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[15,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[15,18] = V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[15,19] = V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[16,6] = V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[16,7] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[16,14] = V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[16,15] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[16,16] = V_POImv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + 2*V_STmv*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].Gy_ini[16,17] = V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[17,6] = V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[17,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[17,14] = V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[17,15] = V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy_ini[17,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + 2*V_STmv*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].Gy_ini[17,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy_ini[18,14] = V_POI*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,15] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,18] = V_GRID*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + 2*V_POI*(g_POI_GRID + g_POI_POImv) + V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,19] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[18,20] = V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[18,21] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[19,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + 2*V_POI*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy_ini[19,20] = V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[19,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,18] = V_GRID*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,19] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,20] = 2*V_GRID*g_POI_GRID + V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,21] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[20,25] = -S_n_GRID/S_base
-        struct[0].Gy_ini[21,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,20] = 2*V_GRID*(-b_POI_GRID - bs_POI_GRID/2) + V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy_ini[21,26] = -S_n_GRID/S_base
-        struct[0].Gy_ini[22,20] = K_p_GRID*(-i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,21] = K_p_GRID*(V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,22] = -1
-        struct[0].Gy_ini[22,23] = K_p_GRID*(-2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,24] = K_p_GRID*(-2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy_ini[22,27] = K_p_GRID
-        struct[0].Gy_ini[23,20] = -sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[23,21] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[23,23] = -R_v_GRID
-        struct[0].Gy_ini[23,24] = X_v_GRID
-        struct[0].Gy_ini[24,20] = -cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[24,21] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[24,23] = -X_v_GRID
-        struct[0].Gy_ini[24,24] = -R_v_GRID
-        struct[0].Gy_ini[25,20] = i_d_GRID*sin(delta_GRID - theta_GRID) + i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,21] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,23] = V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,24] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[25,25] = -1
-        struct[0].Gy_ini[26,20] = i_d_GRID*cos(delta_GRID - theta_GRID) - i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,21] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,23] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,24] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy_ini[26,26] = -1
-        struct[0].Gy_ini[27,22] = -1/Droop_GRID
-        struct[0].Gy_ini[27,27] = -1
-        struct[0].Gy_ini[27,29] = K_sec_GRID
-        struct[0].Gy_ini[28,22] = 1
-        struct[0].Gy_ini[28,28] = -1
-        struct[0].Gy_ini[29,28] = -K_p_agc
-        struct[0].Gy_ini[29,29] = -1
-
-
-
-def run_nn(t,struct,mode):
-
-    # Parameters:
-    S_base = struct[0].S_base
-    g_W1mv_W2mv = struct[0].g_W1mv_W2mv
-    b_W1mv_W2mv = struct[0].b_W1mv_W2mv
-    bs_W1mv_W2mv = struct[0].bs_W1mv_W2mv
-    g_W2mv_W3mv = struct[0].g_W2mv_W3mv
-    b_W2mv_W3mv = struct[0].b_W2mv_W3mv
-    bs_W2mv_W3mv = struct[0].bs_W2mv_W3mv
-    g_W3mv_POImv = struct[0].g_W3mv_POImv
-    b_W3mv_POImv = struct[0].b_W3mv_POImv
-    bs_W3mv_POImv = struct[0].bs_W3mv_POImv
-    g_STmv_POImv = struct[0].g_STmv_POImv
-    b_STmv_POImv = struct[0].b_STmv_POImv
-    bs_STmv_POImv = struct[0].bs_STmv_POImv
-    g_POI_GRID = struct[0].g_POI_GRID
-    b_POI_GRID = struct[0].b_POI_GRID
-    bs_POI_GRID = struct[0].bs_POI_GRID
-    g_POI_POImv = struct[0].g_POI_POImv
-    b_POI_POImv = struct[0].b_POI_POImv
-    bs_POI_POImv = struct[0].bs_POI_POImv
-    g_W1mv_W1lv = struct[0].g_W1mv_W1lv
-    b_W1mv_W1lv = struct[0].b_W1mv_W1lv
-    bs_W1mv_W1lv = struct[0].bs_W1mv_W1lv
-    g_W2mv_W2lv = struct[0].g_W2mv_W2lv
-    b_W2mv_W2lv = struct[0].b_W2mv_W2lv
-    bs_W2mv_W2lv = struct[0].bs_W2mv_W2lv
-    g_W3mv_W3lv = struct[0].g_W3mv_W3lv
-    b_W3mv_W3lv = struct[0].b_W3mv_W3lv
-    bs_W3mv_W3lv = struct[0].bs_W3mv_W3lv
-    g_STmv_STlv = struct[0].g_STmv_STlv
-    b_STmv_STlv = struct[0].b_STmv_STlv
-    bs_STmv_STlv = struct[0].bs_STmv_STlv
-    U_W1lv_n = struct[0].U_W1lv_n
-    U_W2lv_n = struct[0].U_W2lv_n
-    U_W3lv_n = struct[0].U_W3lv_n
-    U_STlv_n = struct[0].U_STlv_n
-    U_W1mv_n = struct[0].U_W1mv_n
-    U_W2mv_n = struct[0].U_W2mv_n
-    U_W3mv_n = struct[0].U_W3mv_n
-    U_POImv_n = struct[0].U_POImv_n
-    U_STmv_n = struct[0].U_STmv_n
-    U_POI_n = struct[0].U_POI_n
-    U_GRID_n = struct[0].U_GRID_n
-    S_n_GRID = struct[0].S_n_GRID
-    Omega_b_GRID = struct[0].Omega_b_GRID
-    K_p_GRID = struct[0].K_p_GRID
-    T_p_GRID = struct[0].T_p_GRID
-    K_q_GRID = struct[0].K_q_GRID
-    T_v_GRID = struct[0].T_v_GRID
-    X_v_GRID = struct[0].X_v_GRID
-    R_v_GRID = struct[0].R_v_GRID
-    K_delta_GRID = struct[0].K_delta_GRID
-    K_sec_GRID = struct[0].K_sec_GRID
-    Droop_GRID = struct[0].Droop_GRID
-    K_p_agc = struct[0].K_p_agc
-    K_i_agc = struct[0].K_i_agc
-    
-    # Inputs:
-    P_W1lv = struct[0].P_W1lv
-    Q_W1lv = struct[0].Q_W1lv
-    P_W2lv = struct[0].P_W2lv
-    Q_W2lv = struct[0].Q_W2lv
-    P_W3lv = struct[0].P_W3lv
-    Q_W3lv = struct[0].Q_W3lv
-    P_STlv = struct[0].P_STlv
-    Q_STlv = struct[0].Q_STlv
-    P_W1mv = struct[0].P_W1mv
-    Q_W1mv = struct[0].Q_W1mv
-    P_W2mv = struct[0].P_W2mv
-    Q_W2mv = struct[0].Q_W2mv
-    P_W3mv = struct[0].P_W3mv
-    Q_W3mv = struct[0].Q_W3mv
-    P_POImv = struct[0].P_POImv
-    Q_POImv = struct[0].Q_POImv
-    P_STmv = struct[0].P_STmv
-    Q_STmv = struct[0].Q_STmv
-    P_POI = struct[0].P_POI
-    Q_POI = struct[0].Q_POI
-    P_GRID = struct[0].P_GRID
-    Q_GRID = struct[0].Q_GRID
-    v_ref_GRID = struct[0].v_ref_GRID
-    p_m_GRID = struct[0].p_m_GRID
-    p_c_GRID = struct[0].p_c_GRID
-    omega_ref_GRID = struct[0].omega_ref_GRID
-    q_ref_GRID = struct[0].q_ref_GRID
-    
-    # Dynamical states:
-    delta_GRID = struct[0].x[0,0]
-    xi_p_GRID = struct[0].x[1,0]
-    e_qv_GRID = struct[0].x[2,0]
-    xi_freq = struct[0].x[3,0]
-    
-    # Algebraic states:
-    V_W1lv = struct[0].y_run[0,0]
-    theta_W1lv = struct[0].y_run[1,0]
-    V_W2lv = struct[0].y_run[2,0]
-    theta_W2lv = struct[0].y_run[3,0]
-    V_W3lv = struct[0].y_run[4,0]
-    theta_W3lv = struct[0].y_run[5,0]
-    V_STlv = struct[0].y_run[6,0]
-    theta_STlv = struct[0].y_run[7,0]
-    V_W1mv = struct[0].y_run[8,0]
-    theta_W1mv = struct[0].y_run[9,0]
-    V_W2mv = struct[0].y_run[10,0]
-    theta_W2mv = struct[0].y_run[11,0]
-    V_W3mv = struct[0].y_run[12,0]
-    theta_W3mv = struct[0].y_run[13,0]
-    V_POImv = struct[0].y_run[14,0]
-    theta_POImv = struct[0].y_run[15,0]
-    V_STmv = struct[0].y_run[16,0]
-    theta_STmv = struct[0].y_run[17,0]
-    V_POI = struct[0].y_run[18,0]
-    theta_POI = struct[0].y_run[19,0]
-    V_GRID = struct[0].y_run[20,0]
-    theta_GRID = struct[0].y_run[21,0]
-    omega_GRID = struct[0].y_run[22,0]
-    i_d_GRID = struct[0].y_run[23,0]
-    i_q_GRID = struct[0].y_run[24,0]
-    p_g_GRID = struct[0].y_run[25,0]
-    q_g_GRID = struct[0].y_run[26,0]
-    p_m_GRID = struct[0].y_run[27,0]
-    omega_coi = struct[0].y_run[28,0]
-    p_agc = struct[0].y_run[29,0]
-    
-    # Differential equations:
-    if mode == 2:
-
-
-        struct[0].f[0,0] = -K_delta_GRID*delta_GRID + Omega_b_GRID*(omega_GRID - omega_coi)
-        struct[0].f[1,0] = -i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID
-        struct[0].f[2,0] = (K_q_GRID*(-q_g_GRID + q_ref_GRID) - e_qv_GRID + v_ref_GRID)/T_v_GRID
-        struct[0].f[3,0] = 1 - omega_coi
-    
-    # Algebraic equations:
-    if mode == 3:
-
-
-        struct[0].g[0,0] = -P_W1lv/S_base + V_W1lv**2*g_W1mv_W1lv + V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].g[1,0] = -Q_W1lv/S_base + V_W1lv**2*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].g[2,0] = -P_W2lv/S_base + V_W2lv**2*g_W2mv_W2lv + V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].g[3,0] = -Q_W2lv/S_base + V_W2lv**2*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].g[4,0] = -P_W3lv/S_base + V_W3lv**2*g_W3mv_W3lv + V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].g[5,0] = -Q_W3lv/S_base + V_W3lv**2*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].g[6,0] = -P_STlv/S_base + V_STlv**2*g_STmv_STlv + V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].g[7,0] = -Q_STlv/S_base + V_STlv**2*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].g[8,0] = -P_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv**2*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].g[9,0] = -Q_W1mv/S_base + V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv**2*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].g[10,0] = -P_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv**2*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].g[11,0] = -Q_W2mv/S_base + V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv**2*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].g[12,0] = -P_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + V_W3mv**2*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].g[13,0] = -Q_W3mv/S_base + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + V_W3mv**2*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].g[14,0] = -P_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv**2*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].g[15,0] = -Q_POImv/S_base + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv**2*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].g[16,0] = -P_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + V_STmv**2*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].g[17,0] = -Q_STmv/S_base + V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + V_STmv**2*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].g[18,0] = -P_POI/S_base + V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI**2*(g_POI_GRID + g_POI_POImv) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].g[19,0] = -Q_POI/S_base + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI**2*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].g[20,0] = -P_GRID/S_base + V_GRID**2*g_POI_GRID + V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) - S_n_GRID*p_g_GRID/S_base
-        struct[0].g[21,0] = -Q_GRID/S_base + V_GRID**2*(-b_POI_GRID - bs_POI_GRID/2) + V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) - S_n_GRID*q_g_GRID/S_base
-        struct[0].g[22,0] = K_p_GRID*(-i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) - i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID)) + p_m_GRID + xi_p_GRID/T_p_GRID) - omega_GRID + 1
-        struct[0].g[23,0] = -R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID) + X_v_GRID*i_q_GRID
-        struct[0].g[24,0] = -R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID) - X_v_GRID*i_d_GRID + e_qv_GRID
-        struct[0].g[25,0] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID) - p_g_GRID
-        struct[0].g[26,0] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID) - q_g_GRID
-        struct[0].g[27,0] = K_sec_GRID*p_agc + p_c_GRID - p_m_GRID - (omega_GRID - omega_ref_GRID)/Droop_GRID
-        struct[0].g[28,0] = omega_GRID - omega_coi
-        struct[0].g[29,0] = K_i_agc*xi_freq + K_p_agc*(1 - omega_coi) - p_agc
-    
-    # Outputs:
-    if mode == 3:
-
-        struct[0].h[0,0] = V_W1lv
-        struct[0].h[1,0] = V_W2lv
-        struct[0].h[2,0] = V_W3lv
-        struct[0].h[3,0] = V_STlv
-        struct[0].h[4,0] = V_W1mv
-        struct[0].h[5,0] = V_W2mv
-        struct[0].h[6,0] = V_W3mv
-        struct[0].h[7,0] = V_POImv
-        struct[0].h[8,0] = V_STmv
-        struct[0].h[9,0] = V_POI
-        struct[0].h[10,0] = V_GRID
-        struct[0].h[11,0] = i_d_GRID*(R_v_GRID*i_d_GRID + V_GRID*sin(delta_GRID - theta_GRID)) + i_q_GRID*(R_v_GRID*i_q_GRID + V_GRID*cos(delta_GRID - theta_GRID))
-    
-
-    if mode == 10:
-
-        struct[0].Fx[0,0] = -K_delta_GRID
-        struct[0].Fx[1,0] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fx[2,2] = -1/T_v_GRID
-
-    if mode == 11:
-
-        struct[0].Fy[0,22] = Omega_b_GRID
-        struct[0].Fy[0,28] = -Omega_b_GRID
-        struct[0].Fy[1,20] = -i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Fy[1,21] = V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fy[1,23] = -2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Fy[1,24] = -2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Fy[1,27] = 1
-        struct[0].Fy[2,26] = -K_q_GRID/T_v_GRID
-        struct[0].Fy[3,28] = -1
-
-        struct[0].Gy[0,0] = 2*V_W1lv*g_W1mv_W1lv + V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[0,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[0,8] = V_W1lv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[0,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,0] = 2*V_W1lv*(-b_W1mv_W1lv - bs_W1mv_W1lv/2) + V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[1,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[2,2] = 2*V_W2lv*g_W2mv_W2lv + V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[2,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[2,10] = V_W2lv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[2,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,2] = 2*V_W2lv*(-b_W2mv_W2lv - bs_W2mv_W2lv/2) + V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,10] = V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[3,11] = V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[4,4] = 2*V_W3lv*g_W3mv_W3lv + V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[4,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[4,12] = V_W3lv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[4,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,4] = 2*V_W3lv*(-b_W3mv_W3lv - bs_W3mv_W3lv/2) + V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,12] = V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[5,13] = V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[6,6] = 2*V_STlv*g_STmv_STlv + V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[6,7] = V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[6,16] = V_STlv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[6,17] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[7,6] = 2*V_STlv*(-b_STmv_STlv - bs_STmv_STlv/2) + V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[7,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[7,16] = V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[7,17] = V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[8,0] = V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[8,1] = V_W1lv*V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[8,8] = V_W1lv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(g_W1mv_W1lv + g_W1mv_W2mv) + V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[8,9] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[8,10] = V_W1mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[8,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,0] = V_W1mv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv))
-        struct[0].Gy[9,1] = V_W1lv*V_W1mv*(-b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv))
-        struct[0].Gy[9,8] = V_W1lv*(b_W1mv_W1lv*cos(theta_W1lv - theta_W1mv) + g_W1mv_W1lv*sin(theta_W1lv - theta_W1mv)) + 2*V_W1mv*(-b_W1mv_W1lv - b_W1mv_W2mv - bs_W1mv_W1lv/2 - bs_W1mv_W2mv/2) + V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,9] = V_W1lv*V_W1mv*(b_W1mv_W1lv*sin(theta_W1lv - theta_W1mv) - g_W1mv_W1lv*cos(theta_W1lv - theta_W1mv)) + V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[9,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[10,2] = V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[10,3] = V_W2lv*V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[10,8] = V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[10,9] = V_W1mv*V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[10,10] = V_W1mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(g_W1mv_W2mv + g_W2mv_W2lv + g_W2mv_W3mv) + V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[10,11] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(-b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[10,12] = V_W2mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[10,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,2] = V_W2mv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv))
-        struct[0].Gy[11,3] = V_W2lv*V_W2mv*(-b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv))
-        struct[0].Gy[11,8] = V_W2mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv))
-        struct[0].Gy[11,9] = V_W1mv*V_W2mv*(-b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv))
-        struct[0].Gy[11,10] = V_W1mv*(b_W1mv_W2mv*cos(theta_W1mv - theta_W2mv) + g_W1mv_W2mv*sin(theta_W1mv - theta_W2mv)) + V_W2lv*(b_W2mv_W2lv*cos(theta_W2lv - theta_W2mv) + g_W2mv_W2lv*sin(theta_W2lv - theta_W2mv)) + 2*V_W2mv*(-b_W1mv_W2mv - b_W2mv_W2lv - b_W2mv_W3mv - bs_W1mv_W2mv/2 - bs_W2mv_W2lv/2 - bs_W2mv_W3mv/2) + V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,11] = V_W1mv*V_W2mv*(b_W1mv_W2mv*sin(theta_W1mv - theta_W2mv) - g_W1mv_W2mv*cos(theta_W1mv - theta_W2mv)) + V_W2lv*V_W2mv*(b_W2mv_W2lv*sin(theta_W2lv - theta_W2mv) - g_W2mv_W2lv*cos(theta_W2lv - theta_W2mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,12] = V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[11,13] = V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[12,4] = V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[12,5] = V_W3lv*V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[12,10] = V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[12,11] = V_W2mv*V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[12,12] = V_POImv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(g_W2mv_W3mv + g_W3mv_POImv + g_W3mv_W3lv)
-        struct[0].Gy[12,13] = V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(-b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(-b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[12,14] = V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[12,15] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[13,4] = V_W3mv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv))
-        struct[0].Gy[13,5] = V_W3lv*V_W3mv*(-b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[13,10] = V_W3mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv))
-        struct[0].Gy[13,11] = V_W2mv*V_W3mv*(-b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv))
-        struct[0].Gy[13,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv)) + V_W2mv*(b_W2mv_W3mv*cos(theta_W2mv - theta_W3mv) + g_W2mv_W3mv*sin(theta_W2mv - theta_W3mv)) + V_W3lv*(b_W3mv_W3lv*cos(theta_W3lv - theta_W3mv) + g_W3mv_W3lv*sin(theta_W3lv - theta_W3mv)) + 2*V_W3mv*(-b_W2mv_W3mv - b_W3mv_POImv - b_W3mv_W3lv - bs_W2mv_W3mv/2 - bs_W3mv_POImv/2 - bs_W3mv_W3lv/2)
-        struct[0].Gy[13,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv)) + V_W2mv*V_W3mv*(b_W2mv_W3mv*sin(theta_W2mv - theta_W3mv) - g_W2mv_W3mv*cos(theta_W2mv - theta_W3mv)) + V_W3lv*V_W3mv*(b_W3mv_W3lv*sin(theta_W3lv - theta_W3mv) - g_W3mv_W3lv*cos(theta_W3lv - theta_W3mv))
-        struct[0].Gy[13,14] = V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[13,15] = V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,12] = V_POImv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,13] = V_POImv*V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,14] = V_POI*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + 2*V_POImv*(g_POI_POImv + g_STmv_POImv + g_W3mv_POImv) + V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,15] = V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*cos(theta_POImv - theta_W3mv) + g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[14,16] = V_POImv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[14,17] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[14,18] = V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[14,19] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[15,12] = V_POImv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,13] = V_POImv*V_W3mv*(b_W3mv_POImv*sin(theta_POImv - theta_W3mv) + g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv)) + 2*V_POImv*(-b_POI_POImv - b_STmv_POImv - b_W3mv_POImv - bs_POI_POImv/2 - bs_STmv_POImv/2 - bs_W3mv_POImv/2) + V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_W3mv*(b_W3mv_POImv*cos(theta_POImv - theta_W3mv) - g_W3mv_POImv*sin(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv)) + V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_POImv*V_W3mv*(-b_W3mv_POImv*sin(theta_POImv - theta_W3mv) - g_W3mv_POImv*cos(theta_POImv - theta_W3mv))
-        struct[0].Gy[15,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[15,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[15,18] = V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[15,19] = V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[16,6] = V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[16,7] = V_STlv*V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[16,14] = V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[16,15] = V_POImv*V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[16,16] = V_POImv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv)) + 2*V_STmv*(g_STmv_POImv + g_STmv_STlv)
-        struct[0].Gy[16,17] = V_POImv*V_STmv*(-b_STmv_POImv*cos(theta_POImv - theta_STmv) - g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(-b_STmv_STlv*cos(theta_STlv - theta_STmv) - g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[17,6] = V_STmv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv))
-        struct[0].Gy[17,7] = V_STlv*V_STmv*(-b_STmv_STlv*sin(theta_STlv - theta_STmv) + g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[17,14] = V_STmv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv))
-        struct[0].Gy[17,15] = V_POImv*V_STmv*(-b_STmv_POImv*sin(theta_POImv - theta_STmv) + g_STmv_POImv*cos(theta_POImv - theta_STmv))
-        struct[0].Gy[17,16] = V_POImv*(b_STmv_POImv*cos(theta_POImv - theta_STmv) + g_STmv_POImv*sin(theta_POImv - theta_STmv)) + V_STlv*(b_STmv_STlv*cos(theta_STlv - theta_STmv) + g_STmv_STlv*sin(theta_STlv - theta_STmv)) + 2*V_STmv*(-b_STmv_POImv - b_STmv_STlv - bs_STmv_POImv/2 - bs_STmv_STlv/2)
-        struct[0].Gy[17,17] = V_POImv*V_STmv*(b_STmv_POImv*sin(theta_POImv - theta_STmv) - g_STmv_POImv*cos(theta_POImv - theta_STmv)) + V_STlv*V_STmv*(b_STmv_STlv*sin(theta_STlv - theta_STmv) - g_STmv_STlv*cos(theta_STlv - theta_STmv))
-        struct[0].Gy[18,14] = V_POI*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[18,15] = V_POI*V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[18,18] = V_GRID*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + 2*V_POI*(g_POI_GRID + g_POI_POImv) + V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[18,19] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*cos(theta_POI - theta_POImv) + g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[18,20] = V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[18,21] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[19,14] = V_POI*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[19,15] = V_POI*V_POImv*(b_POI_POImv*sin(theta_POI - theta_POImv) + g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[19,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI)) + 2*V_POI*(-b_POI_GRID - b_POI_POImv - bs_POI_GRID/2 - bs_POI_POImv/2) + V_POImv*(b_POI_POImv*cos(theta_POI - theta_POImv) - g_POI_POImv*sin(theta_POI - theta_POImv))
-        struct[0].Gy[19,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI)) + V_POI*V_POImv*(-b_POI_POImv*sin(theta_POI - theta_POImv) - g_POI_POImv*cos(theta_POI - theta_POImv))
-        struct[0].Gy[19,20] = V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[19,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[20,18] = V_GRID*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[20,19] = V_GRID*V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[20,20] = 2*V_GRID*g_POI_GRID + V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[20,21] = V_GRID*V_POI*(-b_POI_GRID*cos(theta_GRID - theta_POI) + g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[20,25] = -S_n_GRID/S_base
-        struct[0].Gy[21,18] = V_GRID*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[21,19] = V_GRID*V_POI*(b_POI_GRID*sin(theta_GRID - theta_POI) + g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[21,20] = 2*V_GRID*(-b_POI_GRID - bs_POI_GRID/2) + V_POI*(b_POI_GRID*cos(theta_GRID - theta_POI) - g_POI_GRID*sin(theta_GRID - theta_POI))
-        struct[0].Gy[21,21] = V_GRID*V_POI*(-b_POI_GRID*sin(theta_GRID - theta_POI) - g_POI_GRID*cos(theta_GRID - theta_POI))
-        struct[0].Gy[21,26] = -S_n_GRID/S_base
-        struct[0].Gy[22,20] = K_p_GRID*(-i_d_GRID*sin(delta_GRID - theta_GRID) - i_q_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy[22,21] = K_p_GRID*(V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) - V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy[22,22] = -1
-        struct[0].Gy[22,23] = K_p_GRID*(-2*R_v_GRID*i_d_GRID - V_GRID*sin(delta_GRID - theta_GRID))
-        struct[0].Gy[22,24] = K_p_GRID*(-2*R_v_GRID*i_q_GRID - V_GRID*cos(delta_GRID - theta_GRID))
-        struct[0].Gy[22,27] = K_p_GRID
-        struct[0].Gy[23,20] = -sin(delta_GRID - theta_GRID)
-        struct[0].Gy[23,21] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[23,23] = -R_v_GRID
-        struct[0].Gy[23,24] = X_v_GRID
-        struct[0].Gy[24,20] = -cos(delta_GRID - theta_GRID)
-        struct[0].Gy[24,21] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[24,23] = -X_v_GRID
-        struct[0].Gy[24,24] = -R_v_GRID
-        struct[0].Gy[25,20] = i_d_GRID*sin(delta_GRID - theta_GRID) + i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[25,21] = -V_GRID*i_d_GRID*cos(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[25,23] = V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[25,24] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[25,25] = -1
-        struct[0].Gy[26,20] = i_d_GRID*cos(delta_GRID - theta_GRID) - i_q_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[26,21] = V_GRID*i_d_GRID*sin(delta_GRID - theta_GRID) + V_GRID*i_q_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[26,23] = V_GRID*cos(delta_GRID - theta_GRID)
-        struct[0].Gy[26,24] = -V_GRID*sin(delta_GRID - theta_GRID)
-        struct[0].Gy[26,26] = -1
-        struct[0].Gy[27,22] = -1/Droop_GRID
-        struct[0].Gy[27,27] = -1
-        struct[0].Gy[27,29] = K_sec_GRID
-        struct[0].Gy[28,22] = 1
-        struct[0].Gy[28,28] = -1
-        struct[0].Gy[29,28] = -K_p_agc
-        struct[0].Gy[29,29] = -1
-
-        struct[0].Gu[0,0] = -1/S_base
-        struct[0].Gu[1,1] = -1/S_base
-        struct[0].Gu[2,2] = -1/S_base
-        struct[0].Gu[3,3] = -1/S_base
-        struct[0].Gu[4,4] = -1/S_base
-        struct[0].Gu[5,5] = -1/S_base
-        struct[0].Gu[6,6] = -1/S_base
-        struct[0].Gu[7,7] = -1/S_base
-        struct[0].Gu[8,8] = -1/S_base
-        struct[0].Gu[9,9] = -1/S_base
-        struct[0].Gu[10,10] = -1/S_base
-        struct[0].Gu[11,11] = -1/S_base
-        struct[0].Gu[12,12] = -1/S_base
-        struct[0].Gu[13,13] = -1/S_base
-        struct[0].Gu[14,14] = -1/S_base
-        struct[0].Gu[15,15] = -1/S_base
-        struct[0].Gu[16,16] = -1/S_base
-        struct[0].Gu[17,17] = -1/S_base
-        struct[0].Gu[18,18] = -1/S_base
-        struct[0].Gu[19,19] = -1/S_base
-        struct[0].Gu[20,20] = -1/S_base
-        struct[0].Gu[21,21] = -1/S_base
-        struct[0].Gu[22,23] = K_p_GRID
-        struct[0].Gu[27,23] = -1
-        struct[0].Gu[27,24] = 1
-        struct[0].Gu[27,25] = 1/Droop_GRID
-
-
-
-
-
-@numba.njit(cache=True)
-def Piecewise(arg):
-    out = arg[0][1]
-    N = len(arg)
-    for it in range(N-1,-1,-1):
-        if arg[it][1]: out = arg[it][0]
-    return out
-
-@numba.njit(cache=True)
-def ITE(arg):
-    out = arg[0][1]
-    N = len(arg)
-    for it in range(N-1,-1,-1):
-        if arg[it][1]: out = arg[it][0]
-    return out
-
-
-@numba.njit(cache=True)
-def Abs(x):
-    return np.abs(x)
-
-
-@numba.njit(cache=True)
-def ini_dae_jacobian_numba(struct,x):
-    N_x = struct[0].N_x
-    N_y = struct[0].N_y
-    struct[0].x[:,0] = x[0:N_x]
-    struct[0].y_ini[:,0] = x[N_x:(N_x+N_y)]
-
-    ini(struct,10)
-    ini(struct,11) 
-
-    for row,col in zip(struct[0].Fx_ini_rows,struct[0].Fx_ini_cols):
-        struct[0].Ac_ini[row,col] = struct[0].Fx_ini[row,col]
-    for row,col in zip(struct[0].Fy_ini_rows,struct[0].Fy_ini_cols):
-        struct[0].Ac_ini[row,col+N_x] = struct[0].Fy_ini[row,col]
-    for row,col in zip(struct[0].Gx_ini_rows,struct[0].Gx_ini_cols):
-        struct[0].Ac_ini[row+N_x,col] = struct[0].Gx_ini[row,col]
-    for row,col in zip(struct[0].Gy_ini_rows,struct[0].Gy_ini_cols):
-        struct[0].Ac_ini[row+N_x,col+N_x] = struct[0].Gy_ini[row,col]
-        
-
-@numba.njit(cache=True)
-def ini_dae_problem(struct,x):
-    N_x = struct[0].N_x
-    N_y = struct[0].N_y
-    struct[0].x[:,0] = x[0:N_x]
-    struct[0].y_ini[:,0] = x[N_x:(N_x+N_y)]
-
-    ini(struct,2)
-    ini(struct,3) 
-    struct[0].fg[:N_x,:] = struct[0].f[:]
-    struct[0].fg[N_x:,:] = struct[0].g[:]    
-        
-@numba.njit(cache=True)
-def ssate(struct,xy):
-    for it in range(100):
-        ini_dae_jacobian_numba(struct,xy[:,0])
-        ini_dae_problem(struct,xy[:,0])
-        xy[:] += np.linalg.solve(struct[0].Ac_ini,-struct[0].fg)
-        if np.max(np.abs(struct[0].fg[:,0]))<1e-8: break
-    N_x = struct[0].N_x
-    struct[0].x[:,0] = xy[:N_x,0]
-    struct[0].y_ini[:,0] = xy[N_x:,0]
     return xy,it
 
 
-@numba.njit(cache=True) 
-def daesolver(struct): 
-    sin = np.sin
-    cos = np.cos
-    sqrt = np.sqrt
-    i = 0 
+@numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+def c_h_eval(z,x,y,u,p,Dt):   
+    '''
+    Computes the SPARSE full initialization jacobian:
     
-    Dt = struct[i].Dt 
-
-    N_x = struct[i].N_x
-    N_y = struct[i].N_y
-    N_z = struct[i].N_z
-
-    decimation = struct[i].decimation 
-    eye = np.eye(N_x)
-    t = struct[i].t 
-    t_end = struct[i].t_end 
-    if struct[i].it == 0:
-        run(t,struct, 1) 
-        struct[i].it_store = 0  
-        struct[i]['T'][0] = t 
-        struct[i].X[0,:] = struct[i].x[:,0]  
-        struct[i].Y[0,:] = struct[i].y_run[:,0]  
-        struct[i].Z[0,:] = struct[i].h[:,0]  
-
-    solver = struct[i].solvern 
-    while t<t_end: 
-        struct[i].it += 1
-        struct[i].t += Dt
+    jac_ini = [[Fx_ini, Fy_ini],
+               [Gx_ini, Gy_ini]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_ini : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
         
-        t = struct[i].t
+    with N = N_x+N_y
+ 
+    Returns
+    -------
+    
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+    
+    z_c_ptr=ffi.from_buffer(np.ascontiguousarray(z))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
 
+    h_eval(z_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return z
 
-            
-        if solver == 5: # Teapezoidal DAE as in Milano's book
+def sp_jac_ini_vectors():
 
-            run(t,struct, 2) 
-            run(t,struct, 3) 
+    sp_jac_ini_ia = [0, 26, 32, 0, 24, 25, 27, 28, 31, 2, 30, 32, 4, 5, 12, 13, 4, 5, 12, 13, 6, 7, 14, 15, 6, 7, 14, 15, 8, 9, 16, 17, 8, 9, 16, 17, 10, 11, 20, 21, 10, 11, 20, 21, 4, 5, 12, 13, 14, 15, 4, 5, 12, 13, 14, 15, 6, 7, 12, 13, 14, 15, 16, 17, 6, 7, 12, 13, 14, 15, 16, 17, 8, 9, 14, 15, 16, 17, 18, 19, 8, 9, 14, 15, 16, 17, 18, 19, 16, 17, 18, 19, 20, 21, 22, 23, 16, 17, 18, 19, 20, 21, 22, 23, 10, 11, 18, 19, 20, 21, 10, 11, 18, 19, 20, 21, 18, 19, 22, 23, 24, 25, 18, 19, 22, 23, 24, 25, 22, 23, 24, 25, 29, 22, 23, 24, 25, 30, 0, 1, 24, 25, 26, 27, 28, 31, 0, 24, 25, 27, 28, 0, 2, 24, 25, 27, 28, 0, 24, 25, 27, 28, 29, 0, 24, 25, 27, 28, 30, 26, 31, 33, 26, 32, 3, 32, 33]
+    sp_jac_ini_ja = [0, 3, 9, 11, 12, 16, 20, 24, 28, 32, 36, 40, 44, 50, 56, 64, 72, 80, 88, 96, 104, 110, 116, 122, 128, 133, 138, 146, 151, 157, 163, 169, 172, 174, 177]
+    sp_jac_ini_nia = 34
+    sp_jac_ini_nja = 34
+    return sp_jac_ini_ia, sp_jac_ini_ja, sp_jac_ini_nia, sp_jac_ini_nja 
 
-            x = np.copy(struct[i].x[:]) 
-            y = np.copy(struct[i].y_run[:]) 
-            f = np.copy(struct[i].f[:]) 
-            g = np.copy(struct[i].g[:]) 
-            
-            for iter in range(struct[i].imax):
-                run(t,struct, 2) 
-                run(t,struct, 3) 
-                run(t,struct,10) 
-                run(t,struct,11) 
-                
-                x_i = struct[i].x[:] 
-                y_i = struct[i].y_run[:]  
-                f_i = struct[i].f[:] 
-                g_i = struct[i].g[:]                 
-                F_x_i = struct[i].Fx[:,:]
-                F_y_i = struct[i].Fy[:,:] 
-                G_x_i = struct[i].Gx[:,:] 
-                G_y_i = struct[i].Gy[:,:]                
+def sp_jac_trap_vectors():
 
-                A_c_i = np.vstack((np.hstack((eye-0.5*Dt*F_x_i, -0.5*Dt*F_y_i)),
-                                   np.hstack((G_x_i,         G_y_i))))
-                     
-                f_n_i = x_i - x - 0.5*Dt*(f_i+f) 
-                # print(t,iter,g_i)
-                Dxy_i = np.linalg.solve(-A_c_i,np.vstack((f_n_i,g_i))) 
-                
-                x_i = x_i + Dxy_i[0:N_x]
-                y_i = y_i + Dxy_i[N_x:(N_x+N_y)]
-
-                struct[i].x[:] = x_i
-                struct[i].y_run[:] = y_i
-
-        # [f_i,g_i,F_x_i,F_y_i,G_x_i,G_y_i] =  smib_transient(x_i,y_i,u);
-        
-        # A_c_i = [[eye(N_x)-0.5*Dt*F_x_i, -0.5*Dt*F_y_i],
-        #          [                G_x_i,         G_y_i]];
-             
-        # f_n_i = x_i - x - 0.5*Dt*(f_i+f);
-        
-        # Dxy_i = -A_c_i\[f_n_i.',g_i.'].';
-        
-        # x_i = x_i + Dxy_i(1:N_x);
-        # y_i = y_i + Dxy_i(N_x+1:N_x+N_y);
-                
-                xy = np.vstack((x_i,y_i))
-                max_relative = 0.0
-                for it_var in range(N_x+N_y):
-                    abs_value = np.abs(xy[it_var,0])
-                    if abs_value < 0.001:
-                        abs_value = 0.001
-                                             
-                    relative_error = np.abs(Dxy_i[it_var,0])/abs_value
-                    
-                    if relative_error > max_relative: max_relative = relative_error
-                    
-                if max_relative<struct[i].itol:
-                    
-                    break
-                
-                # if iter>struct[i].imax-2:
-                    
-                #     print('Convergence problem')
-
-            struct[i].x[:] = x_i
-            struct[i].y_run[:] = y_i
-                
-        # channels 
-        if struct[i].store == 1:
-            it_store = struct[i].it_store
-            if struct[i].it >= it_store*decimation: 
-                struct[i]['T'][it_store+1] = t 
-                struct[i].X[it_store+1,:] = struct[i].x[:,0] 
-                struct[i].Y[it_store+1,:] = struct[i].y_run[:,0]
-                struct[i].Z[it_store+1,:] = struct[i].h[:,0]
-                struct[i].iters[it_store+1,0] = iter
-                struct[i].it_store += 1 
-            
-    struct[i].t = t
-
-    return t
-
-
-
-
-
-def nonzeros():
-    Fx_ini_rows = [0, 1, 2]
-
-    Fx_ini_cols = [0, 0, 2]
-
-    Fy_ini_rows = [0, 0, 1, 1, 1, 1, 1, 2, 3]
-
-    Fy_ini_cols = [22, 28, 20, 21, 23, 24, 27, 26, 28]
-
-    Gx_ini_rows = [22, 22, 23, 24, 24, 25, 26, 29]
-
-    Gx_ini_cols = [0, 1, 0, 0, 2, 0, 0, 3]
-
-    Gy_ini_rows = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21, 21, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 24, 24, 24, 24, 25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 27, 27, 27, 28, 28, 29, 29]
-
-    Gy_ini_cols = [0, 1, 8, 9, 0, 1, 8, 9, 2, 3, 10, 11, 2, 3, 10, 11, 4, 5, 12, 13, 4, 5, 12, 13, 6, 7, 16, 17, 6, 7, 16, 17, 0, 1, 8, 9, 10, 11, 0, 1, 8, 9, 10, 11, 2, 3, 8, 9, 10, 11, 12, 13, 2, 3, 8, 9, 10, 11, 12, 13, 4, 5, 10, 11, 12, 13, 14, 15, 4, 5, 10, 11, 12, 13, 14, 15, 12, 13, 14, 15, 16, 17, 18, 19, 12, 13, 14, 15, 16, 17, 18, 19, 6, 7, 14, 15, 16, 17, 6, 7, 14, 15, 16, 17, 14, 15, 18, 19, 20, 21, 14, 15, 18, 19, 20, 21, 18, 19, 20, 21, 25, 18, 19, 20, 21, 26, 20, 21, 22, 23, 24, 27, 20, 21, 23, 24, 20, 21, 23, 24, 20, 21, 23, 24, 25, 20, 21, 23, 24, 26, 22, 27, 29, 22, 28, 28, 29]
-
-    return Fx_ini_rows,Fx_ini_cols,Fy_ini_rows,Fy_ini_cols,Gx_ini_rows,Gx_ini_cols,Gy_ini_rows,Gy_ini_cols
+    sp_jac_trap_ia = [0, 26, 32, 0, 1, 24, 25, 27, 28, 31, 2, 30, 3, 32, 4, 5, 12, 13, 4, 5, 12, 13, 6, 7, 14, 15, 6, 7, 14, 15, 8, 9, 16, 17, 8, 9, 16, 17, 10, 11, 20, 21, 10, 11, 20, 21, 4, 5, 12, 13, 14, 15, 4, 5, 12, 13, 14, 15, 6, 7, 12, 13, 14, 15, 16, 17, 6, 7, 12, 13, 14, 15, 16, 17, 8, 9, 14, 15, 16, 17, 18, 19, 8, 9, 14, 15, 16, 17, 18, 19, 16, 17, 18, 19, 20, 21, 22, 23, 16, 17, 18, 19, 20, 21, 22, 23, 10, 11, 18, 19, 20, 21, 10, 11, 18, 19, 20, 21, 18, 19, 22, 23, 24, 25, 18, 19, 22, 23, 24, 25, 22, 23, 24, 25, 29, 22, 23, 24, 25, 30, 0, 1, 24, 25, 26, 27, 28, 31, 0, 24, 25, 27, 28, 0, 2, 24, 25, 27, 28, 0, 24, 25, 27, 28, 29, 0, 24, 25, 27, 28, 30, 26, 31, 33, 26, 32, 3, 32, 33]
+    sp_jac_trap_ja = [0, 3, 10, 12, 14, 18, 22, 26, 30, 34, 38, 42, 46, 52, 58, 66, 74, 82, 90, 98, 106, 112, 118, 124, 130, 135, 140, 148, 153, 159, 165, 171, 174, 176, 179]
+    sp_jac_trap_nia = 34
+    sp_jac_trap_nja = 34
+    return sp_jac_trap_ia, sp_jac_trap_ja, sp_jac_trap_nia, sp_jac_trap_nja 

@@ -26,6 +26,14 @@ sp_jac_ini_xy_eval = jacs.lib.sp_jac_ini_xy_eval
 sp_jac_ini_up_eval = jacs.lib.sp_jac_ini_up_eval
 sp_jac_ini_num_eval = jacs.lib.sp_jac_ini_num_eval
 
+de_jac_run_xy_eval = jacs.lib.de_jac_run_xy_eval
+de_jac_run_up_eval = jacs.lib.de_jac_run_up_eval
+de_jac_run_num_eval = jacs.lib.de_jac_run_num_eval
+
+sp_jac_run_xy_eval = jacs.lib.sp_jac_run_xy_eval
+sp_jac_run_up_eval = jacs.lib.sp_jac_run_up_eval
+sp_jac_run_num_eval = jacs.lib.sp_jac_run_num_eval
+
 de_jac_trap_xy_eval= jacs.lib.de_jac_trap_xy_eval            
 de_jac_trap_up_eval= jacs.lib.de_jac_trap_up_eval        
 de_jac_trap_num_eval= jacs.lib.de_jac_trap_num_eval
@@ -103,23 +111,28 @@ class {name}_class:
         self.Z = np.zeros((self.N_store,self.N_z))
         self.iters = np.zeros(self.N_store) 
         self.u_run = np.array(self.u_run_values_list,dtype=np.float64)
-        
+ 
+        self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
+        data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
+        self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
+
+        self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
+        data = np.array(self.sp_jac_run_ia,dtype=np.float64)
+        self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
+
         self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
         data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
         self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
 
-        self.J_run_d = np.array(self.sp_jac_trap_ia)*0.0
-        self.J_run_i = np.array(self.sp_jac_trap_ia)
-        self.J_run_p = np.array(self.sp_jac_trap_ja)
+
+        self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
+        self.J_run_i = np.array(self.sp_jac_run_ia)
+        self.J_run_p = np.array(self.sp_jac_run_ja)
         
         self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
         self.J_trap_i = np.array(self.sp_jac_trap_ia)
         self.J_trap_p = np.array(self.sp_jac_trap_ja)
         
-        self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
-        data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
-        self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
-
         self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
         self.J_ini_i = np.array(self.sp_jac_ini_ia)
         self.J_ini_p = np.array(self.sp_jac_ini_ja)
@@ -139,10 +152,14 @@ class {name}_class:
         x = self.xy[:self.N_x]
         y = self.xy[self.N_x:]
         
+        # dense jacobians
         de_jac_ini_eval(self.jac_ini,x,y,self.u_ini,self.p,self.Dt)
+        de_jac_run_eval(self.jac_run,x,y,self.u_ini,self.p,self.Dt)
         de_jac_trap_eval(self.jac_trap,x,y,self.u_run,self.p,self.Dt)
-   
+        
+        # sparse jacobians   
         sp_jac_ini_eval(self.J_ini_d,x,y,self.u_ini,self.p,self.Dt)
+        sp_jac_ini_eval(self.J_run_d,x,y,self.u_ini,self.p,self.Dt)
         sp_jac_trap_eval(self.J_trap_d,x,y,self.u_run,self.p,self.Dt)
    
 
@@ -174,8 +191,9 @@ class {name}_class:
     #     jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
     #     jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
         
-        
-        
+    def jac_run_eval(self):
+        de_jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p,self.Dt)
+      
     
     def run(self,t_end,up_dict):
         for item in up_dict:
@@ -324,11 +342,11 @@ class {name}_class:
         return mvalue
     
     def set_value(self,name_,value):
-        if name_ in self.inputs_ini_list:
-            self.u_ini[self.inputs_ini_list.index(name_)] = value
-            #return
-        if name_ in self.inputs_run_list:
-            self.u_run[self.inputs_run_list.index(name_)] = value
+        if name_ in self.inputs_ini_list or name_ in self.inputs_run_list:
+            if name_ in self.inputs_ini_list:
+                self.u_ini[self.inputs_ini_list.index(name_)] = value
+            if name_ in self.inputs_run_list:
+                self.u_run[self.inputs_run_list.index(name_)] = value
             return
         elif name_ in self.params_list:
             self.p[self.params_list.index(name_)] = value
@@ -385,8 +403,7 @@ class {name}_class:
 
         self.xy_ini = self.ss_ini()
         self.ini2run()
-        #jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
-        #jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+
     
     def dict2xy0(self,xy_0_dict):
     
@@ -741,6 +758,7 @@ def spsstate(xy,u,p,
     return xy,it,iparams
 
 
+    
 @numba.njit() 
 def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
 
@@ -1092,6 +1110,51 @@ def de_jac_ini_eval(de_jac_ini,x,y,u,p,Dt):
     de_jac_ini_xy_eval( de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
     
     return de_jac_ini
+
+@numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
+def de_jac_run_eval(de_jac_run,x,y,u,p,Dt):   
+    '''
+    Computes the dense full initialization jacobian:
+    
+    jac_run = [[Fx_run, Fy_run],
+               [Gx_run, Gy_run]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_run : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+        
+    with N = N_x+N_y
+ 
+    Returns
+    -------
+    
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+    
+    de_jac_run_ptr=ffi.from_buffer(np.ascontiguousarray(de_jac_run))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    de_jac_run_num_eval(de_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_run_up_eval( de_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_run_xy_eval( de_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return de_jac_run
 
 @numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
 def de_jac_trap_eval(de_jac_trap,x,y,u,p,Dt):   

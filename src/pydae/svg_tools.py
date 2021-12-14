@@ -7,6 +7,8 @@ Created on Wed Feb  3 10:33:57 2021
 
 from xml.etree import ElementTree as ET
 import numpy as np
+import json
+import svgwrite
 
 class svg():
     
@@ -55,16 +57,17 @@ class svg():
                 #if 'style' in rect.attrib:
                 #    rect.attrib['style'].update(new_style)
                 #else:
-                 rect.attrib['style'] = new_style
+                rect.attrib['style'] = new_style
 
     def set_line_style(self,object_id,new_style):
         #style="fill:#337ab7"
         for rect in self.root.findall('.//{http://www.w3.org/2000/svg}line'):
-            if rect.attrib['id'] == object_id: 
-                #if 'style' in rect.attrib:
-                #    rect.attrib['style'].update(new_style)
-                #else:
-                 rect.attrib['style'] = new_style
+            if 'id' in rect.attrib:
+                if rect.attrib['id'] == object_id: 
+                    #if 'style' in rect.attrib:
+                    #    rect.attrib['style'].update(new_style)
+                    #else:
+                    rect.attrib['style'] = new_style
                 
     def set_color(self,type_,id_,rgb):
         if type_ == 'rect':
@@ -222,3 +225,77 @@ class animatesvg():
         self.mask = mask
         self.increment = increment
         return self.mask
+    
+    
+def grid2svg(input_json,output_svg):
+    
+    json_data = open(input_json).read().replace("'",'"')
+    data = json.loads(json_data)
+
+    dwg = svgwrite.Drawing(output_svg, profile='full', size=(640, 800))
+
+    buses = data['buses']
+    lines = data['lines']
+    trafos = data['transformers']
+
+    offset_x = 100
+    offset_y = 50
+    scale_x = 1.5
+    scale_y = 1.5
+
+    bus2posxy = {}
+    for bus in buses:
+        pos_x = (bus['pos_x']+offset_x)*scale_x
+        pos_y = (offset_y-bus['pos_y'])*scale_y
+        bus2posxy.update({bus['bus']:{'pos_x':pos_x,'pos_y':pos_y}})
+
+        dwg.add(svgwrite.shapes.Rect(insert=(pos_x-2.5, pos_y-2.5), size=(15, 15),id = bus['bus']))
+        #dwg.add(dwg.text(bus['bus'], insert=(pos_x+3, pos_y-3), fill='black'))
+        dwg.add(dwg.text(bus['bus'], insert=(pos_x+5, pos_y-5), fill='black',id = f"{bus['bus']}_tt")) #,visibility='hidden'))
+
+        #a = svgwrite.animate.Set(href=f"{bus['bus']}_tt", attributeName="visibility",
+                             #begin="hidden",
+        #                     to="visible",
+        #                     begin=f"{bus['bus']}.mouseover",
+        #                     end=f"{bus['bus']}.mouseout")
+
+        #dwg.add(a)
+
+    for line in lines:
+
+        x1 = bus2posxy[line['bus_j']]['pos_x']
+        y1 = bus2posxy[line['bus_j']]['pos_y']
+        x2 = bus2posxy[line['bus_k']]['pos_x']
+        y2 = bus2posxy[line['bus_k']]['pos_y']
+        bus_j = line['bus_j']
+        bus_k = line['bus_k']
+
+        v = 0.0
+        h = 0.0
+
+        vertical = True
+        Dv = 0.0
+        Dh = 3.0
+        if np.abs(x2 - x1) < np.abs(y2 - y1):
+            Dv = 3.0
+            Dh = 0.0
+            vertical = False
+
+        for ph in ['a','b','c','n']:
+            dwg.add(dwg.line(start=(x1+v, y1+h), end=(x2+v,y2+h), 
+                             stroke=svgwrite.rgb(10, 10, 16, '%'), id = f'l_{bus_j}_{bus_k}_{ph}',
+                             stroke_width=2))
+            v += Dv
+            h += Dh
+
+    for trafo in trafos:
+
+        x1 = bus2posxy[trafo['bus_j']]['pos_x']
+        y1 = bus2posxy[trafo['bus_j']]['pos_y']
+        x2 = bus2posxy[trafo['bus_k']]['pos_x']
+        y2 = bus2posxy[trafo['bus_k']]['pos_y']
+
+        dwg.add(dwg.line(start=(x1, y1), end=(x2,y2), stroke=svgwrite.rgb(10, 10, 16, '%')))
+
+
+    dwg.save()

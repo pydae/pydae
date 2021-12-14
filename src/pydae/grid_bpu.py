@@ -255,6 +255,9 @@ class bpu:
     
         if 'syns' in self.data:    
             self.add_syns()
+            
+        if 'pq_sat' in self.data:
+            self.add_pq_sat()
   
         if 'gformers_droop_z' in self.data:    
             gformer_droop_z_add()
@@ -529,6 +532,79 @@ class bpu:
             if 'pss' in syn_data:
                 add_pss(self.dae,syn_data)          
 
+    def add_pq_sat(self):
+        
+        for data in self.data['pq_sat']:
+            
+            bus_name = data['bus']
+            name = bus_name
+            
+            buses = self.data['buses']
+            buses_list = [bus['name'] for bus in buses]            
+            idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+
+                                         
+            # inputs
+            p_in = sym.Symbol(f"p_in_{name}", real=True)
+            Dp_r = sym.Symbol(f"Dp_r_{name}", real=True)
+            Dq_r = sym.Symbol(f"Dq_r_{name}", real=True)
+ 
+               
+            # dynamic states
+            p_out = sym.Symbol(f"p_out_{name}", real=True)
+            q_out = sym.Symbol(f"q_out_{name}", real=True)
+
+            # algebraic states
+
+
+            # parameters
+            S_n = sym.Symbol(f"S_n_{name}", real=True)
+            
+            # auxiliar
+            
+                        
+            # dynamic equations            
+
+    
+            # algebraic equations   
+            p_out_sat = sym.Piecewise((0.0,p_in + Dp_r<0.0),(p_in,p_in + Dp_r>p_in),(p_in + Dp_r,True))         
+            q_out_max = (S_n**2 - p_out_sat**2)**0.5
+            q_out_sat = sym.Piecewise((-q_out_max,Dq_r<-q_out_max),(q_out_max,Dq_r>q_out_max),(Dq_r,True))     
+            g_p_out = -p_out + p_out_sat
+            g_q_out = -q_out + q_out_sat
+
+            
+            # dae 
+
+    
+            self.dae['f'] += []
+            self.dae['x'] += []
+            self.dae['g'] += [g_p_out,g_q_out]
+            self.dae['y_ini'] += [p_out,q_out]  
+            self.dae['y_run'] += [p_out,q_out]  
+            
+            self.dae['u_ini_dict'].update({f'{p_in}':data['p_in']})
+            self.dae['u_run_dict'].update({f'{p_in}':data['p_in']})
+            self.dae['u_ini_dict'].update({f'{Dp_r}':0.0})
+            self.dae['u_run_dict'].update({f'{Dp_r}':0.0})
+            self.dae['u_ini_dict'].update({f'{Dq_r}':0.0})
+            self.dae['u_run_dict'].update({f'{Dq_r}':0.0})            
+            
+           
+            # grid power injection
+            S_base = sym.Symbol('S_base', real = True)
+            self.dae['g'][idx_bus*2]   += -p_out/S_base
+            self.dae['g'][idx_bus*2+1] += -q_out/S_base
+            
+            # outputs
+            self.dae['h_dict'].update({f"{p_in}":p_in})
+            self.dae['h_dict'].update({f"{Dp_r}":Dp_r})
+            self.dae['h_dict'].update({f"{Dq_r}":Dp_r})
+            
+            # parameters            
+            self.dae['params_dict'].update({f"{S_n}":data['S_n']})
+
+                
     def add_vsgs(self):
         
         for vsg_data in self.data['vsgs']:

@@ -562,6 +562,8 @@ def sys2num(sys, verbose=False):
     module += '\n'*2
     module += spmatrix2def(sys['sp_jac_ini_list'],'sp_jac_ini')
     module += '\n'
+    module += spmatrix2def(sys['sp_jac_run_list'],'sp_jac_run')
+    module += '\n'
     module += spmatrix2def(sys['sp_jac_trap_list'],'sp_jac_trap')
     
     with open(f'{name}.py','w') as fobj:
@@ -734,10 +736,8 @@ def str2src(fun_name,string_xy,string_up,string_num,matrix_name='out'):
 def sym2src(sys, verbose=False):
     
     t_0 = time.time()
-    
-    jac_ini=sys['jac_ini']
-    jac_trap=sys['jac_trap']
-    
+       
+    ## jac_run ################################################################
     if verbose: print(f'writting f_ini and g_ini code (time: {time.time()-t_0:0.3f} s)')
 
     defs_f_ini,source_f_ini = sym2str('f_ini',sys['f'],sys,'ini')
@@ -751,10 +751,14 @@ def sym2src(sys, verbose=False):
     if verbose: print(f'writting h_run code (time: {time.time()-t_0:0.3f} s)')   
     defs_h,source_h = sym2str('h',sys['h'],sys,'run')
     
-    
+    ## jac_ini ################################################################
     if verbose: print(f'converting jac_ini to sp_jac_ini  (time: {time.time()-t_0:0.3f} s)')
+    
+    jac_ini=sys['jac_ini']
 
     sp_jac_ini_list = _doktocsr(SparseMatrix(jac_ini))
+    sys['sp_jac_ini_list'] = sp_jac_ini_list
+
     
     data = sp_jac_ini_list[0]
     indices = sp_jac_ini_list[1]
@@ -762,34 +766,56 @@ def sym2src(sys, verbose=False):
     shape = sp_jac_ini_list[3]
     
     if verbose: print(f'running sym2rhs for sp_jac_ini (time: {time.time()-t_0:0.3f} s)')
-    #sym2rhs(data,indices,indptr,shape,sys,inirun)
-    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'ini')       
 
-
-    sp_jac_ini_list = _doktocsr(SparseMatrix(jac_ini))
-    sys['sp_jac_ini_list'] = sp_jac_ini_list
+    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'ini')   
     
-    data = sp_jac_ini_list[0]
-    indices = sp_jac_ini_list[1]
-    indptr = sp_jac_ini_list[2]
-    shape = sp_jac_ini_list[3]
-    
-    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'ini')       
-    string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')
-    
+    string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')  
     defs_de_ini,source_de_ini = str2src('de_jac_ini',string_xy,string_up,string_num,matrix_name='out')
-    #rhs2str(rhs_list,lhs_name,shape,mode='crs')
-    string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')
-    
+
     string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='crs')
     defs_sp_ini,source_sp_ini = str2src('sp_jac_ini',string_xy,string_up,string_num,matrix_name='out')
     
-    defs = defs_de_ini + defs_sp_ini
-    source = source_de_ini + source_sp_ini
-    
-    if verbose: print(f'converting jac_trap to sp_jac_trap  (time: {time.time()-t_0:0.3f} s)')   
-    sp_jac_trap_list = _doktocsr(SparseMatrix(jac_trap))
 
+    
+    ## jac_run ################################################################
+    if verbose: print(f'converting jac_run to sp_jac_run  (time: {time.time()-t_0:0.3f} s)')
+    
+    jac_run=sys['jac_run']
+
+    sp_jac_run_list = _doktocsr(SparseMatrix(jac_run))
+    
+    data = sp_jac_run_list[0]
+    indices = sp_jac_run_list[1]
+    indptr = sp_jac_run_list[2]
+    shape = sp_jac_run_list[3]
+    
+    if verbose: print(f'running sym2rhs for sp_jac_run (time: {time.time()-t_0:0.3f} s)')
+    #sym2rhs(data,indices,indptr,shape,sys,inirun)
+    #rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'run')       
+
+
+    sys['sp_jac_run_list'] = sp_jac_run_list
+    
+    data = sp_jac_run_list[0]
+    indices = sp_jac_run_list[1]
+    indptr = sp_jac_run_list[2]
+    shape = sp_jac_run_list[3]
+    
+    rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'run')   
+    
+    string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')
+    defs_de_run,source_de_run = str2src('de_jac_run',string_xy,string_up,string_num,matrix_name='out')
+    
+    string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='crs')
+    defs_sp_run,source_sp_run = str2src('sp_jac_run',string_xy,string_up,string_num,matrix_name='out')
+    
+    
+    ## jac_trap ###############################################################
+    if verbose: print(f'converting jac_trap to sp_jac_trap  (time: {time.time()-t_0:0.3f} s)')  
+    
+    jac_trap=sys['jac_trap']
+
+    sp_jac_trap_list = _doktocsr(SparseMatrix(jac_trap))
 
     sys['sp_jac_trap_list'] = sp_jac_trap_list
     data = sp_jac_trap_list[0]
@@ -801,18 +827,30 @@ def sym2src(sys, verbose=False):
 
     if verbose: print(f'wrtting  de_jac_trap code (time: {time.time()-t_0:0.3f} s)')   
     string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='dense')
-    defs_de_run,source_de_run = str2src('de_jac_trap',string_xy,string_up,string_num,matrix_name='out')
+    defs_de_trap,source_de_trap = str2src('de_jac_trap',string_xy,string_up,string_num,matrix_name='out')
 
     if verbose: print(f'writting sp_jac_trap code (time: {time.time()-t_0:0.3f} s)')      
     string_xy,string_up,string_num = rhs2str(rhs_list,'out',shape,mode='crs')
-    defs_sp_run,source_sp_run = str2src('sp_jac_trap',string_xy,string_up,string_num,matrix_name='out')
+    defs_sp_trap,source_sp_trap = str2src('sp_jac_trap',string_xy,string_up,string_num,matrix_name='out')
     
-    if verbose: print(f'writting full source (time: {time.time()-t_0:0.3f} s)')      
-    defs = defs_f_ini + defs_g_ini + defs_f_run + defs_g_run + defs_h + defs_de_ini + defs_sp_ini + defs_de_run + defs_sp_run
-    source = source_f_ini + source_g_ini + source_f_run + source_h +source_g_run+ source_de_ini + source_sp_ini + source_de_run + source_sp_run
+    ## C sources ##############################################################
+    if verbose: print(f'writting full source (time: {time.time()-t_0:0.3f} s)')   
+    
+    defs = defs_f_ini + defs_g_ini 
+    defs += defs_f_run + defs_g_run  
+    defs += defs_h  
+    defs += defs_de_ini + defs_sp_ini 
+    defs += defs_de_run + defs_sp_run 
+    defs += defs_de_trap + defs_sp_trap 
+           
+    source = source_f_ini + source_g_ini 
+    source += source_f_run + source_g_run
+    source += source_h
+    source += source_de_ini + source_sp_ini 
+    source += source_de_run + source_sp_run
+    source += source_de_trap + source_sp_trap
 
     if verbose: print(f'Code wrote in {time.time()-t_0:0.3f} s')
-
 
     return defs,source
 
@@ -825,6 +863,21 @@ def compile_module(name,defs,source):
     ffi.compile()
     print(f'Compilation time: {time.time()-t_0:0.2f} s')
 
+def compile_module_files(name):
+    
+    ffi = cffi.FFI()
+    
+    with open(f'defs_{name}_cffi.h', 'r') as f:
+        defs = f.read()
+    with open(f'source_{name}_cffi.c', 'r') as f:
+        source = f.read()
+        
+    ffi.cdef(defs, override=True)
+    ffi.set_source(module_name=f"{name}",source=source)
+    t_0 = time.time()
+    ffi.compile()
+    print(f'Compilation time: {time.time()-t_0:0.2f} s')
+    
 def build(sys,verbose=False):
     name = sys['name']
     sys = system(sys,verbose=verbose)

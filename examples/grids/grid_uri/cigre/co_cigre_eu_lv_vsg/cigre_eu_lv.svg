@@ -1,0 +1,1949 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="549.14545"
+   version="1.1"
+   width="596.72168"
+   id="svg2760"
+   sodipodi:docname="cigre_eu_lv.svg"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview2762"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="true"
+     inkscape:zoom="0.78125"
+     inkscape:cx="325.12"
+     inkscape:cy="333.44"
+     inkscape:window-width="1600"
+     inkscape:window-height="812"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2760"
+     fit-margin-top="10"
+     fit-margin-left="10"
+     fit-margin-right="10"
+     fit-margin-bottom="10"
+     lock-margins="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid8993"
+       originx="144.66797"
+       originy="-3.3544929" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2746" />
+  <text
+     fill="#000000"
+     id="I01_tt"
+     x="297.16797"
+     y="61.145508"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">I01</text>
+  <text
+     fill="#000000"
+     id="I02_tt"
+     x="297.16797"
+     y="361.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">I02</text>
+  <line
+     id="l_I01_I02_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="282.16797"
+     x2="282.16797"
+     y1="54.145508"
+     y2="354.14551" />
+  <line
+     id="l_I01_I02_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="285.16797"
+     x2="285.16797"
+     y1="54.145508"
+     y2="354.14551" />
+  <line
+     id="l_I01_I02_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="288.16797"
+     x2="288.16797"
+     y1="54.145508"
+     y2="354.14551" />
+  <line
+     id="l_I01_I02_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="291.16797"
+     x2="291.16797"
+     y1="54.145508"
+     y2="354.14551" />
+  <text
+     fill="#000000"
+     id="C01_tt"
+     x="499.16797"
+     y="61.145508"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C01</text>
+  <text
+     fill="#000000"
+     id="C02_tt"
+     x="499.16797"
+     y="106.14552"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C02</text>
+  <text
+     fill="#000000"
+     id="C03_tt"
+     x="499.16797"
+     y="151.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C03</text>
+  <text
+     fill="#000000"
+     id="C04_tt"
+     x="499.16797"
+     y="198.11816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C04</text>
+  <text
+     fill="#000000"
+     id="C05_tt"
+     x="454.79547"
+     y="243.11815"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C05</text>
+  <text
+     fill="#000000"
+     id="C06_tt"
+     x="454.63141"
+     y="287.79816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C06</text>
+  <text
+     fill="#000000"
+     id="C07_tt"
+     x="454.63141"
+     y="333.11816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C07</text>
+  <text
+     fill="#000000"
+     id="C08_tt"
+     x="499.30566"
+     y="378.11816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C08</text>
+  <text
+     fill="#000000"
+     id="C09_tt"
+     x="499.21777"
+     y="409.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C09</text>
+  <text
+     fill="#000000"
+     id="C10_tt"
+     x="432.16309"
+     y="137.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C10</text>
+  <text
+     fill="#000000"
+     id="C11_tt"
+     x="387.9043"
+     y="137.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C11</text>
+  <text
+     fill="#000000"
+     id="C12_tt"
+     x="342.19824"
+     y="137.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C12</text>
+  <text
+     fill="#000000"
+     id="C13_tt"
+     x="387.44727"
+     y="218.08664"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C13</text>
+  <text
+     fill="#000000"
+     id="C14_tt"
+     x="432.15723"
+     y="218.08664"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C14</text>
+  <text
+     fill="#000000"
+     id="C15_tt"
+     x="522.34473"
+     y="229.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C15</text>
+  <text
+     fill="#000000"
+     id="C16_tt"
+     x="567.18066"
+     y="229.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C16</text>
+  <text
+     fill="#000000"
+     id="C17_tt"
+     x="567.21582"
+     y="303.2655"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C17</text>
+  <text
+     fill="#000000"
+     id="C18_tt"
+     x="522.29492"
+     y="303.2655"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C18</text>
+  <text
+     fill="#000000"
+     id="C19_tt"
+     x="409.84796"
+     y="378.11816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C19</text>
+  <text
+     fill="#000000"
+     id="C20_tt"
+     x="543.68799"
+     y="423.11816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C20</text>
+  <line
+     id="l_C01_C02_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="54.145508"
+     y2="99.145515" />
+  <line
+     id="l_C01_C02_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="54.145508"
+     y2="99.145515" />
+  <line
+     id="l_C01_C02_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="54.145508"
+     y2="99.145515" />
+  <line
+     id="l_C01_C02_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="54.145508"
+     y2="99.145515" />
+  <line
+     id="l_C02_C03_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="99.145515"
+     y2="144.14551" />
+  <line
+     id="l_C02_C03_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="99.145515"
+     y2="144.14551" />
+  <line
+     id="l_C02_C03_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="99.145515"
+     y2="144.14551" />
+  <line
+     id="l_C02_C03_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="99.145515"
+     y2="144.14551" />
+  <line
+     id="l_C03_C04_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C03_C04_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C03_C04_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C03_C04_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C04_C05_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="189.14551"
+     y2="234.14551" />
+  <line
+     id="l_C04_C05_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="189.14551"
+     y2="234.14551" />
+  <line
+     id="l_C04_C05_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="189.14551"
+     y2="234.14551" />
+  <line
+     id="l_C04_C05_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="189.14551"
+     y2="234.14551" />
+  <line
+     id="l_C05_C06_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C05_C06_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C05_C06_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C05_C06_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C06_C07_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="279.14551"
+     y2="324.14551" />
+  <line
+     id="l_C06_C07_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="279.14551"
+     y2="324.14551" />
+  <line
+     id="l_C06_C07_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="279.14551"
+     y2="324.14551" />
+  <line
+     id="l_C06_C07_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="279.14551"
+     y2="324.14551" />
+  <line
+     id="l_C07_C08_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="324.14551"
+     y2="369.14551" />
+  <line
+     id="l_C07_C08_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="324.14551"
+     y2="369.14551" />
+  <line
+     id="l_C07_C08_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="324.14551"
+     y2="369.14551" />
+  <line
+     id="l_C07_C08_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="324.14551"
+     y2="369.14551" />
+  <line
+     id="l_C08_C09_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="482.16797"
+     y1="369.14551"
+     y2="414.14551" />
+  <line
+     id="l_C08_C09_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="485.16797"
+     x2="485.16797"
+     y1="369.14551"
+     y2="414.14551" />
+  <line
+     id="l_C08_C09_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="488.16797"
+     x2="488.16797"
+     y1="369.14551"
+     y2="414.14551" />
+  <line
+     id="l_C08_C09_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="491.16797"
+     x2="491.16797"
+     y1="369.14551"
+     y2="414.14551" />
+  <line
+     id="l_C03_C10_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="144.14551"
+     y2="144.14551" />
+  <line
+     id="l_C03_C10_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="147.14551"
+     y2="147.14551" />
+  <line
+     id="l_C03_C10_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="150.14551"
+     y2="150.14551" />
+  <line
+     id="l_C03_C10_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="153.14551"
+     y2="153.14551" />
+  <line
+     id="l_C10_C11_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="437.16797"
+     x2="392.16797"
+     y1="144.14551"
+     y2="144.14551" />
+  <line
+     id="l_C10_C11_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="437.16797"
+     x2="392.16797"
+     y1="147.14551"
+     y2="147.14551" />
+  <line
+     id="l_C10_C11_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="437.16797"
+     x2="392.16797"
+     y1="150.14551"
+     y2="150.14551" />
+  <line
+     id="l_C10_C11_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="437.16797"
+     x2="392.16797"
+     y1="153.14551"
+     y2="153.14551" />
+  <line
+     id="l_C11_C12_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="392.16797"
+     x2="347.16797"
+     y1="144.14551"
+     y2="144.14551" />
+  <line
+     id="l_C11_C12_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="392.16797"
+     x2="347.16797"
+     y1="147.14551"
+     y2="147.14551" />
+  <line
+     id="l_C11_C12_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="392.16797"
+     x2="347.16797"
+     y1="150.14551"
+     y2="150.14551" />
+  <line
+     id="l_C11_C12_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="392.16797"
+     x2="347.16797"
+     y1="153.14551"
+     y2="153.14551" />
+  <line
+     id="l_C11_C13_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="392.16797"
+     x2="392.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C11_C13_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="395.16797"
+     x2="395.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C11_C13_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="398.16797"
+     x2="398.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C11_C13_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="401.16797"
+     x2="401.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C10_C14_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="437.16797"
+     x2="437.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C10_C14_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="440.16797"
+     x2="440.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C10_C14_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="443.16797"
+     x2="443.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C10_C14_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="446.16797"
+     x2="446.16797"
+     y1="144.14551"
+     y2="189.14551" />
+  <line
+     id="l_C05_C15_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="234.14551"
+     y2="234.14551" />
+  <line
+     id="l_C05_C15_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="237.14552"
+     y2="237.14552" />
+  <line
+     id="l_C05_C15_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="240.14552"
+     y2="240.14552" />
+  <line
+     id="l_C05_C15_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="243.14552"
+     y2="243.14552" />
+  <line
+     id="l_C15_C16_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="527.16797"
+     x2="572.16797"
+     y1="234.14551"
+     y2="234.14551" />
+  <line
+     id="l_C15_C16_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="527.16797"
+     x2="572.16797"
+     y1="237.14552"
+     y2="237.14552" />
+  <line
+     id="l_C15_C16_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="527.16797"
+     x2="572.16797"
+     y1="240.14552"
+     y2="240.14552" />
+  <line
+     id="l_C15_C16_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="527.16797"
+     x2="572.16797"
+     y1="243.14552"
+     y2="243.14552" />
+  <line
+     id="l_C15_C18_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="527.16797"
+     x2="527.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C15_C18_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="530.16797"
+     x2="530.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C15_C18_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="533.16797"
+     x2="533.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C15_C18_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="536.16797"
+     x2="536.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C16_C17_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="572.16797"
+     x2="572.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C16_C17_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="575.16797"
+     x2="575.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C16_C17_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="578.16797"
+     x2="578.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C16_C17_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="581.16797"
+     x2="581.16797"
+     y1="234.14551"
+     y2="279.14551" />
+  <line
+     id="l_C08_C19_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="369.14551"
+     y2="369.14551" />
+  <line
+     id="l_C08_C19_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="372.14551"
+     y2="372.14551" />
+  <line
+     id="l_C08_C19_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="375.14551"
+     y2="375.14551" />
+  <line
+     id="l_C08_C19_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="437.16797"
+     y1="378.14551"
+     y2="378.14551" />
+  <line
+     id="l_C09_C20_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="414.14551"
+     y2="414.14551" />
+  <line
+     id="l_C09_C20_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="417.14551"
+     y2="417.14551" />
+  <line
+     id="l_C09_C20_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="420.14551"
+     y2="420.14551" />
+  <line
+     id="l_C09_C20_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="482.16797"
+     x2="527.16797"
+     y1="423.14551"
+     y2="423.14551" />
+  <text
+     fill="#000000"
+     id="R00_tt"
+     x="30.727982"
+     y="18.109375"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">MV0</text>
+  <text
+     fill="#000000"
+     id="R01_tt"
+     x="84.167969"
+     y="63.145508"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R01</text>
+  <text
+     fill="#000000"
+     id="R02_tt"
+     x="84.167969"
+     y="115.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R02</text>
+  <text
+     fill="#000000"
+     id="R03_tt"
+     x="84.167969"
+     y="154.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R03</text>
+  <text
+     fill="#000000"
+     id="R04_tt"
+     x="84.167969"
+     y="206.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R04</text>
+  <text
+     fill="#000000"
+     id="R05_tt"
+     x="84.06543"
+     y="273.12988"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R05</text>
+  <text
+     fill="#000000"
+     id="R06_tt"
+     x="83.901367"
+     y="311.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R06</text>
+  <text
+     fill="#000000"
+     id="R07_tt"
+     x="83.936523"
+     y="378.11816"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R07</text>
+  <text
+     fill="#000000"
+     id="R08_tt"
+     x="84.015625"
+     y="430.62988"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R08</text>
+  <text
+     fill="#000000"
+     id="R09_tt"
+     x="83.927734"
+     y="469.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R09</text>
+  <text
+     fill="#000000"
+     id="R10_tt"
+     x="83.883789"
+     y="535.62982"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R10</text>
+  <text
+     fill="#000000"
+     id="R11_tt"
+     x="18.018555"
+     y="154.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R11</text>
+  <text
+     fill="#000000"
+     id="R12_tt"
+     x="114.81249"
+     y="206.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R12</text>
+  <text
+     fill="#000000"
+     id="R13_tt"
+     x="167.56152"
+     y="206.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R13</text>
+  <text
+     fill="#000000"
+     id="R14_tt"
+     x="219.77148"
+     y="206.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R14</text>
+  <text
+     fill="#000000"
+     id="R15_tt"
+     x="241.66797"
+     y="273.12988"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R15</text>
+  <text
+     fill="#000000"
+     id="R16_tt"
+     x="9.7949219"
+     y="311.64551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R16</text>
+  <text
+     fill="#000000"
+     id="R17_tt"
+     x="117.16796"
+     y="469.14551"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R17</text>
+  <text
+     fill="#000000"
+     id="R18_tt"
+     x="27.167969"
+     y="521.64545"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R18</text>
+  <line
+     id="l_R01_R02_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="54.145508"
+     y2="106.64551" />
+  <line
+     id="l_R01_R02_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="54.145508"
+     y2="106.64551" />
+  <line
+     id="l_R01_R02_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="54.145508"
+     y2="106.64551" />
+  <line
+     id="l_R01_R02_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="54.145508"
+     y2="106.64551" />
+  <line
+     id="l_R02_R03_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="106.64551"
+     y2="159.14551" />
+  <line
+     id="l_R02_R03_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="106.64551"
+     y2="159.14551" />
+  <line
+     id="l_R02_R03_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="106.64551"
+     y2="159.14551" />
+  <line
+     id="l_R02_R03_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="106.64551"
+     y2="159.14551" />
+  <line
+     id="l_R03_R04_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="159.14551"
+     y2="211.64551" />
+  <line
+     id="l_R03_R04_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="159.14551"
+     y2="211.64551" />
+  <line
+     id="l_R03_R04_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="159.14551"
+     y2="211.64551" />
+  <line
+     id="l_R03_R04_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="159.14551"
+     y2="211.64551" />
+  <line
+     id="l_R04_R05_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R04_R05_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R04_R05_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R04_R05_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R05_R06_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="264.14551"
+     y2="316.64551" />
+  <line
+     id="l_R05_R06_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="264.14551"
+     y2="316.64551" />
+  <line
+     id="l_R05_R06_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="264.14551"
+     y2="316.64551" />
+  <line
+     id="l_R05_R06_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="264.14551"
+     y2="316.64551" />
+  <line
+     id="l_R06_R07_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="316.64551"
+     y2="369.14551" />
+  <line
+     id="l_R06_R07_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="316.64551"
+     y2="369.14551" />
+  <line
+     id="l_R06_R07_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="316.64551"
+     y2="369.14551" />
+  <line
+     id="l_R06_R07_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="316.64551"
+     y2="369.14551" />
+  <line
+     id="l_R07_R08_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="369.14551"
+     y2="421.64551" />
+  <line
+     id="l_R07_R08_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="369.14551"
+     y2="421.64551" />
+  <line
+     id="l_R07_R08_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="369.14551"
+     y2="421.64551" />
+  <line
+     id="l_R07_R08_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="369.14551"
+     y2="421.64551" />
+  <line
+     id="l_R08_R09_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="421.64551"
+     y2="474.14551" />
+  <line
+     id="l_R08_R09_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="421.64551"
+     y2="474.14551" />
+  <line
+     id="l_R08_R09_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="421.64551"
+     y2="474.14551" />
+  <line
+     id="l_R08_R09_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="421.64551"
+     y2="474.14551" />
+  <line
+     id="l_R09_R10_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="67.167969"
+     y1="474.14551"
+     y2="526.64545" />
+  <line
+     id="l_R09_R10_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="70.167969"
+     x2="70.167969"
+     y1="474.14551"
+     y2="526.64545" />
+  <line
+     id="l_R09_R10_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="73.167969"
+     x2="73.167969"
+     y1="474.14551"
+     y2="526.64545" />
+  <line
+     id="l_R09_R10_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="76.167969"
+     x2="76.167969"
+     y1="474.14551"
+     y2="526.64545" />
+  <line
+     id="l_R03_R11_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="159.14551"
+     y2="159.14551" />
+  <line
+     id="l_R03_R11_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="162.14551"
+     y2="162.14551" />
+  <line
+     id="l_R03_R11_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="165.14551"
+     y2="165.14551" />
+  <line
+     id="l_R03_R11_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="168.14551"
+     y2="168.14551" />
+  <line
+     id="l_R04_R12_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="119.66796"
+     y1="211.64551"
+     y2="211.64551" />
+  <line
+     id="l_R04_R12_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="119.66796"
+     y1="214.64551"
+     y2="214.64551" />
+  <line
+     id="l_R04_R12_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="119.66796"
+     y1="217.64551"
+     y2="217.64551" />
+  <line
+     id="l_R04_R12_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="119.66796"
+     y1="220.64551"
+     y2="220.64551" />
+  <line
+     id="l_R12_R13_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="119.66796"
+     x2="172.16797"
+     y1="211.64551"
+     y2="211.64551" />
+  <line
+     id="l_R12_R13_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="119.66796"
+     x2="172.16797"
+     y1="214.64551"
+     y2="214.64551" />
+  <line
+     id="l_R12_R13_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="119.66796"
+     x2="172.16797"
+     y1="217.64551"
+     y2="217.64551" />
+  <line
+     id="l_R12_R13_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="119.66796"
+     x2="172.16797"
+     y1="220.64551"
+     y2="220.64551" />
+  <line
+     id="l_R13_R14_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="172.16797"
+     x2="224.66797"
+     y1="211.64551"
+     y2="211.64551" />
+  <line
+     id="l_R13_R14_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="172.16797"
+     x2="224.66797"
+     y1="214.64551"
+     y2="214.64551" />
+  <line
+     id="l_R13_R14_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="172.16797"
+     x2="224.66797"
+     y1="217.64551"
+     y2="217.64551" />
+  <line
+     id="l_R13_R14_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="172.16797"
+     x2="224.66797"
+     y1="220.64551"
+     y2="220.64551" />
+  <line
+     id="l_R14_R15_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="224.66797"
+     x2="224.66797"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R14_R15_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="227.66797"
+     x2="227.66797"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R14_R15_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="230.66797"
+     x2="230.66797"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R14_R15_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="233.66797"
+     x2="233.66797"
+     y1="211.64551"
+     y2="264.14551" />
+  <line
+     id="l_R06_R16_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="14.667969"
+     y1="316.64551"
+     y2="316.64551" />
+  <line
+     id="l_R06_R16_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="14.667969"
+     y1="319.64551"
+     y2="319.64551" />
+  <line
+     id="l_R06_R16_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="14.667969"
+     y1="322.64551"
+     y2="322.64551" />
+  <line
+     id="l_R06_R16_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="14.667969"
+     y1="325.64551"
+     y2="325.64551" />
+  <line
+     id="l_R09_R17_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="112.16796"
+     y1="474.14551"
+     y2="474.14551" />
+  <line
+     id="l_R09_R17_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="112.16796"
+     y1="477.14551"
+     y2="477.14551" />
+  <line
+     id="l_R09_R17_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="112.16796"
+     y1="480.14551"
+     y2="480.14551" />
+  <line
+     id="l_R09_R17_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="112.16796"
+     y1="483.14551"
+     y2="483.14551" />
+  <line
+     id="l_R10_R18_a"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="526.64545"
+     y2="526.64545" />
+  <line
+     id="l_R10_R18_b"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="529.64545"
+     y2="529.64545" />
+  <line
+     id="l_R10_R18_c"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="532.64545"
+     y2="532.64545" />
+  <line
+     id="l_R10_R18_n"
+     stroke="#191928"
+     stroke-width="2"
+     x1="67.167969"
+     x2="22.167969"
+     y1="535.64545"
+     y2="535.64545" />
+  <g
+     id="g9085"
+     transform="translate(167.66797,-3.3544929)">
+    <line
+       stroke="#191928"
+       x1="-100"
+       x2="-100"
+       y1="45"
+       y2="56.235733"
+       id="line178"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-97"
+       x2="-97"
+       y1="46.510223"
+       y2="56.235733"
+       id="line178-9"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-94"
+       x2="-94"
+       y1="46.510223"
+       y2="56.235733"
+       id="line178-9-9"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-91"
+       x2="-91"
+       y1="45.000008"
+       y2="56.235733"
+       id="line178-9-3"
+       style="stroke:#000000;stroke-width:2" />
+    <circle
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       id="path6184"
+       cx="-95.5"
+       cy="39.795738"
+       r="6.8800001" />
+    <circle
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       id="path6184-7"
+       cx="-95.5"
+       cy="31.977432"
+       r="6.8800001" />
+    <g
+       id="g6550"
+       transform="translate(-260.86,-18.764265)">
+      <line
+         stroke="#191928"
+         x1="162.36"
+         x2="162.36"
+         y1="36.532356"
+         y2="44.55022"
+         id="line178-2"
+         style="stroke:#000000;stroke-width:2" />
+      <line
+         stroke="#191928"
+         x1="165.36"
+         x2="165.36"
+         y1="36.532356"
+         y2="43.861698"
+         id="line178-9-7"
+         style="stroke:#000000;stroke-width:2" />
+      <line
+         stroke="#191928"
+         x1="168.36"
+         x2="168.36"
+         y1="36.532356"
+         y2="44.55022"
+         id="line178-9-9-8"
+         style="stroke:#000000;stroke-width:2" />
+    </g>
+  </g>
+  <rect
+     height="15"
+     id="I01"
+     width="15"
+     x="279.66797"
+     y="51.645508" />
+  <rect
+     height="15"
+     id="I02"
+     width="15"
+     x="279.66797"
+     y="351.64551" />
+  <rect
+     height="15"
+     id="C01"
+     width="15"
+     x="479.66797"
+     y="51.645508" />
+  <rect
+     height="15"
+     id="C02"
+     width="15"
+     x="479.66797"
+     y="96.645515" />
+  <rect
+     height="15"
+     id="C03"
+     width="15"
+     x="479.66797"
+     y="141.64551" />
+  <rect
+     height="15"
+     id="C04"
+     width="15"
+     x="479.66797"
+     y="186.64551" />
+  <rect
+     height="15"
+     id="C05"
+     width="15"
+     x="479.66797"
+     y="231.64551" />
+  <rect
+     height="15"
+     id="C06"
+     width="15"
+     x="479.66797"
+     y="276.64551" />
+  <rect
+     height="15"
+     id="C07"
+     width="15"
+     x="479.66797"
+     y="321.64551" />
+  <rect
+     height="15"
+     id="C08"
+     width="15"
+     x="479.66797"
+     y="366.64551" />
+  <rect
+     height="15"
+     id="C09"
+     width="15"
+     x="479.66797"
+     y="411.64551" />
+  <rect
+     height="15"
+     id="C10"
+     width="15"
+     x="434.66797"
+     y="141.64551" />
+  <rect
+     height="15"
+     id="C11"
+     width="15"
+     x="389.66797"
+     y="141.64551" />
+  <rect
+     height="15"
+     id="C12"
+     width="15"
+     x="344.66797"
+     y="141.64551" />
+  <rect
+     height="15"
+     id="C13"
+     width="15"
+     x="389.66797"
+     y="186.64551" />
+  <rect
+     height="15"
+     id="C14"
+     width="15"
+     x="434.66797"
+     y="186.64551" />
+  <rect
+     height="15"
+     id="C15"
+     width="15"
+     x="524.66797"
+     y="231.64551" />
+  <rect
+     height="15"
+     id="C16"
+     width="15"
+     x="569.66797"
+     y="231.64551" />
+  <rect
+     height="15"
+     id="C17"
+     width="15"
+     x="569.66797"
+     y="276.64551" />
+  <rect
+     height="15"
+     id="C18"
+     width="15"
+     x="524.66797"
+     y="276.64551" />
+  <rect
+     height="15"
+     id="C19"
+     width="15"
+     x="434.66797"
+     y="366.64551" />
+  <rect
+     height="15"
+     id="C20"
+     width="15"
+     x="524.66797"
+     y="411.64551" />
+  <rect
+     height="5.0000005"
+     id="R00"
+     width="430"
+     x="64.667908"
+     y="11.645506"
+     style="stroke-width:1" />
+  <rect
+     height="15"
+     id="R01"
+     width="15"
+     x="64.667969"
+     y="51.645508" />
+  <rect
+     height="15"
+     id="R02"
+     width="15"
+     x="64.667969"
+     y="104.14551" />
+  <rect
+     height="15"
+     id="R03"
+     width="15"
+     x="64.667969"
+     y="156.64551" />
+  <rect
+     height="15"
+     id="R04"
+     width="15"
+     x="64.667969"
+     y="209.14551" />
+  <rect
+     height="15"
+     id="R05"
+     width="15"
+     x="64.667969"
+     y="261.64551" />
+  <rect
+     height="15"
+     id="R06"
+     width="15"
+     x="64.667969"
+     y="314.14551" />
+  <rect
+     height="15"
+     id="R07"
+     width="15"
+     x="64.667969"
+     y="366.64551" />
+  <rect
+     height="15"
+     id="R08"
+     width="15"
+     x="64.667969"
+     y="419.14551" />
+  <rect
+     height="15"
+     id="R09"
+     width="15"
+     x="64.667969"
+     y="471.64551" />
+  <rect
+     height="15"
+     id="R10"
+     width="15"
+     x="64.667969"
+     y="524.14545" />
+  <rect
+     height="15"
+     id="R11"
+     width="15"
+     x="19.667969"
+     y="156.64551" />
+  <rect
+     height="15"
+     id="R12"
+     width="15"
+     x="117.16796"
+     y="209.14551" />
+  <rect
+     height="15"
+     id="R13"
+     width="15"
+     x="169.66797"
+     y="209.14551" />
+  <rect
+     height="15"
+     id="R14"
+     width="15"
+     x="222.16797"
+     y="209.14551" />
+  <rect
+     height="15"
+     id="R15"
+     width="15"
+     x="222.16797"
+     y="261.64551" />
+  <rect
+     height="15"
+     id="R16"
+     width="15"
+     x="12.167969"
+     y="314.14551" />
+  <rect
+     height="15"
+     id="R17"
+     width="15"
+     x="109.66796"
+     y="471.64551" />
+  <rect
+     height="15"
+     id="R18"
+     width="15"
+     x="19.667969"
+     y="524.14545" />
+  <g
+     id="g9085-3"
+     transform="translate(382.66797,-3.3544929)">
+    <line
+       stroke="#191928"
+       x1="-100"
+       x2="-100"
+       y1="45"
+       y2="56.235733"
+       id="line178-28"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-97"
+       x2="-97"
+       y1="46.510223"
+       y2="56.235733"
+       id="line178-9-5"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-94"
+       x2="-94"
+       y1="46.510223"
+       y2="56.235733"
+       id="line178-9-9-7"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-91"
+       x2="-91"
+       y1="45.000008"
+       y2="56.235733"
+       id="line178-9-3-6"
+       style="stroke:#000000;stroke-width:2" />
+    <circle
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       id="path6184-2"
+       cx="-95.5"
+       cy="39.795738"
+       r="6.8800001" />
+    <circle
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       id="path6184-7-7"
+       cx="-95.5"
+       cy="31.977432"
+       r="6.8800001" />
+    <g
+       id="g6550-1"
+       transform="translate(-260.86,-18.764265)">
+      <line
+         stroke="#191928"
+         x1="162.36"
+         x2="162.36"
+         y1="36.532356"
+         y2="44.55022"
+         id="line178-2-6"
+         style="stroke:#000000;stroke-width:2" />
+      <line
+         stroke="#191928"
+         x1="165.36"
+         x2="165.36"
+         y1="36.532356"
+         y2="43.861698"
+         id="line178-9-7-9"
+         style="stroke:#000000;stroke-width:2" />
+      <line
+         stroke="#191928"
+         x1="168.36"
+         x2="168.36"
+         y1="36.532356"
+         y2="44.55022"
+         id="line178-9-9-8-6"
+         style="stroke:#000000;stroke-width:2" />
+    </g>
+  </g>
+  <g
+     id="g9085-3-2"
+     transform="translate(582.66797,-3.3544929)">
+    <line
+       stroke="#191928"
+       x1="-100"
+       x2="-100"
+       y1="45"
+       y2="56.235733"
+       id="line178-28-8"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-97"
+       x2="-97"
+       y1="46.510223"
+       y2="56.235733"
+       id="line178-9-5-8"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-94"
+       x2="-94"
+       y1="46.510223"
+       y2="56.235733"
+       id="line178-9-9-7-6"
+       style="stroke:#000000;stroke-width:2" />
+    <line
+       stroke="#191928"
+       x1="-91"
+       x2="-91"
+       y1="45.000008"
+       y2="56.235733"
+       id="line178-9-3-6-3"
+       style="stroke:#000000;stroke-width:2" />
+    <circle
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       id="path6184-2-2"
+       cx="-95.5"
+       cy="39.795738"
+       r="6.8800001" />
+    <circle
+       style="font-variation-settings:normal;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       id="path6184-7-7-1"
+       cx="-95.5"
+       cy="31.977432"
+       r="6.8800001" />
+    <g
+       id="g6550-1-9"
+       transform="translate(-260.86,-18.764265)">
+      <line
+         stroke="#191928"
+         x1="162.36"
+         x2="162.36"
+         y1="36.532356"
+         y2="44.55022"
+         id="line178-2-6-4"
+         style="stroke:#000000;stroke-width:2" />
+      <line
+         stroke="#191928"
+         x1="165.36"
+         x2="165.36"
+         y1="36.532356"
+         y2="43.861698"
+         id="line178-9-7-9-8"
+         style="stroke:#000000;stroke-width:2" />
+      <line
+         stroke="#191928"
+         x1="168.36"
+         x2="168.36"
+         y1="36.532356"
+         y2="44.55022"
+         id="line178-9-9-8-6-8"
+         style="stroke:#000000;stroke-width:2" />
+    </g>
+  </g>
+</svg>

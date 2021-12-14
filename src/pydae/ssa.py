@@ -27,7 +27,7 @@ def eval_A(system):
     return A
 
 def A_eval(system):
-    
+    system.jac_run_eval()
     N_x = system.N_x
     Fx = system.jac_run[:N_x,:N_x]
     Fy = system.jac_run[:N_x,N_x:]
