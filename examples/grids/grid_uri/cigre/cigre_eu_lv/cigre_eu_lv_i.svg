@@ -22,49 +22,49 @@
   <text fill="#000000" id="C14_tt" x="278.43005" y="197.60664" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C14</text>
   <text fill="#000000" id="C19_tt" x="278.92078" y="378.11816" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C19</text>
   <text fill="#000000" id="C20_tt" x="276.99628" y="424.92834" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">C20</text>
-  <line id="l_C01_C02_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="54.145508" y2="99.145515" style="stroke:#8b0000" />
-  <line id="l_C01_C02_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="54.145508" y2="99.145515" style="stroke:#860000" />
-  <line id="l_C01_C02_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="54.145508" y2="99.145515" style="stroke:#870000" />
+  <line id="l_C01_C02_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="54.145508" y2="99.145515" style="stroke:#f20000" />
+  <line id="l_C01_C02_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="54.145508" y2="99.145515" style="stroke:#e80000" />
+  <line id="l_C01_C02_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="54.145508" y2="99.145515" style="stroke:#ea0000" />
   <line id="l_C01_C02_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="54.145508" y2="99.145515" style="stroke:#000000" />
-  <line id="l_C02_C03_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="99.145515" y2="144.14551" style="stroke:#8b0000" />
-  <line id="l_C02_C03_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="99.145515" y2="144.14551" style="stroke:#860000" />
-  <line id="l_C02_C03_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="99.145515" y2="144.14551" style="stroke:#870000" />
+  <line id="l_C02_C03_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="99.145515" y2="144.14551" style="stroke:#f20000" />
+  <line id="l_C02_C03_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="99.145515" y2="144.14551" style="stroke:#e80000" />
+  <line id="l_C02_C03_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="99.145515" y2="144.14551" style="stroke:#ea0000" />
   <line id="l_C02_C03_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="99.145515" y2="144.14551" style="stroke:#000000" />
-  <line id="l_C03_C04_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="144.14551" y2="189.14551" style="stroke:#1b0000" />
-  <line id="l_C03_C04_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="144.14551" y2="189.14551" style="stroke:#190000" />
-  <line id="l_C03_C04_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="144.14551" y2="189.14551" style="stroke:#190000" />
+  <line id="l_C03_C04_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="144.14551" y2="189.14551" style="stroke:#4f0000" />
+  <line id="l_C03_C04_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="144.14551" y2="189.14551" style="stroke:#4b0000" />
+  <line id="l_C03_C04_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="144.14551" y2="189.14551" style="stroke:#4c0000" />
   <line id="l_C03_C04_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="144.14551" y2="189.14551" style="stroke:#000000" />
-  <line id="l_C04_C05_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="189.14551" y2="234.14551" style="stroke:#1b0000" />
-  <line id="l_C04_C05_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="189.14551" y2="234.14551" style="stroke:#190000" />
-  <line id="l_C04_C05_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="189.14551" y2="234.14551" style="stroke:#190000" />
+  <line id="l_C04_C05_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="189.14551" y2="234.14551" style="stroke:#4f0000" />
+  <line id="l_C04_C05_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="189.14551" y2="234.14551" style="stroke:#4b0000" />
+  <line id="l_C04_C05_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="189.14551" y2="234.14551" style="stroke:#4c0000" />
   <line id="l_C04_C05_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="189.14551" y2="234.14551" style="stroke:#000000" />
-  <line id="l_C05_C06_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="234.14551" y2="279.14551" style="stroke:#030000" />
-  <line id="l_C05_C06_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="234.14551" y2="279.14551" style="stroke:#030000" />
-  <line id="l_C05_C06_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="234.14551" y2="279.14551" style="stroke:#030000" />
+  <line id="l_C05_C06_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="234.14551" y2="279.14551" style="stroke:#060000" />
+  <line id="l_C05_C06_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="234.14551" y2="279.14551" style="stroke:#050000" />
+  <line id="l_C05_C06_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="234.14551" y2="279.14551" style="stroke:#050000" />
   <line id="l_C05_C06_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="234.14551" y2="279.14551" style="stroke:#000000" />
-  <line id="l_C06_C07_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="279.14551" y2="324.14551" style="stroke:#030000" />
-  <line id="l_C06_C07_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="279.14551" y2="324.14551" style="stroke:#030000" />
-  <line id="l_C06_C07_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="279.14551" y2="324.14551" style="stroke:#030000" />
+  <line id="l_C06_C07_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="279.14551" y2="324.14551" style="stroke:#060000" />
+  <line id="l_C06_C07_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="279.14551" y2="324.14551" style="stroke:#050000" />
+  <line id="l_C06_C07_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="279.14551" y2="324.14551" style="stroke:#050000" />
   <line id="l_C06_C07_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="279.14551" y2="324.14551" style="stroke:#000000" />
-  <line id="l_C07_C08_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="324.14551" y2="369.14551" style="stroke:#030000" />
-  <line id="l_C07_C08_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="324.14551" y2="369.14551" style="stroke:#030000" />
-  <line id="l_C07_C08_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="324.14551" y2="369.14551" style="stroke:#030000" />
+  <line id="l_C07_C08_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="324.14551" y2="369.14551" style="stroke:#060000" />
+  <line id="l_C07_C08_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="324.14551" y2="369.14551" style="stroke:#050000" />
+  <line id="l_C07_C08_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="324.14551" y2="369.14551" style="stroke:#050000" />
   <line id="l_C07_C08_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="324.14551" y2="369.14551" style="stroke:#000000" />
-  <line id="l_C08_C09_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="369.14551" y2="414.14551" style="stroke:#090000" />
-  <line id="l_C08_C09_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="369.14551" y2="414.14551" style="stroke:#090000" />
-  <line id="l_C08_C09_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="369.14551" y2="414.14551" style="stroke:#090000" />
+  <line id="l_C08_C09_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="351.24078" y1="369.14551" y2="414.14551" style="stroke:#000000" />
+  <line id="l_C08_C09_b" stroke="#191928" stroke-width="2" x1="354.24078" x2="354.24078" y1="369.14551" y2="414.14551" style="stroke:#000000" />
+  <line id="l_C08_C09_c" stroke="#191928" stroke-width="2" x1="357.24078" x2="357.24078" y1="369.14551" y2="414.14551" style="stroke:#000000" />
   <line id="l_C08_C09_n" stroke="#191928" stroke-width="2" x1="360.24078" x2="360.24078" y1="369.14551" y2="414.14551" style="stroke:#000000" />
-  <line id="l_C03_C10_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="144.14551" y2="144.14551" style="stroke:#ad0000" />
-  <line id="l_C03_C10_b" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="147.14551" y2="147.14551" style="stroke:#a90000" />
-  <line id="l_C03_C10_c" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="150.14551" y2="150.14551" style="stroke:#a90000" />
+  <line id="l_C03_C10_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="144.14551" y2="144.14551" style="stroke:#b20000" />
+  <line id="l_C03_C10_b" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="147.14551" y2="147.14551" style="stroke:#ac0000" />
+  <line id="l_C03_C10_c" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="150.14551" y2="150.14551" style="stroke:#ad0000" />
   <line id="l_C03_C10_n" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="153.14551" y2="153.14551" style="stroke:#000000" />
-  <line id="l_C10_C14_a" stroke="#191928" stroke-width="2" x1="306.24078" x2="306.24078" y1="144.14551" y2="189.14551" style="stroke:#2a0000" />
-  <line id="l_C10_C14_b" stroke="#191928" stroke-width="2" x1="309.24078" x2="309.24078" y1="144.14551" y2="189.14551" style="stroke:#290000" />
+  <line id="l_C10_C14_a" stroke="#191928" stroke-width="2" x1="306.24078" x2="306.24078" y1="144.14551" y2="189.14551" style="stroke:#2c0000" />
+  <line id="l_C10_C14_b" stroke="#191928" stroke-width="2" x1="309.24078" x2="309.24078" y1="144.14551" y2="189.14551" style="stroke:#2a0000" />
   <line id="l_C10_C14_c" stroke="#191928" stroke-width="2" x1="312.24078" x2="312.24078" y1="144.14551" y2="189.14551" style="stroke:#2a0000" />
   <line id="l_C10_C14_n" stroke="#191928" stroke-width="2" x1="315.24078" x2="315.24078" y1="144.14551" y2="189.14551" style="stroke:#000000" />
-  <line id="l_C08_C19_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="369.14551" y2="369.14551" style="stroke:#110000" />
-  <line id="l_C08_C19_b" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="372.14551" y2="372.14551" style="stroke:#100000" />
-  <line id="l_C08_C19_c" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="375.14551" y2="375.14551" style="stroke:#100000" />
+  <line id="l_C08_C19_a" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="369.14551" y2="369.14551" style="stroke:#120000" />
+  <line id="l_C08_C19_b" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="372.14551" y2="372.14551" style="stroke:#110000" />
+  <line id="l_C08_C19_c" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="375.14551" y2="375.14551" style="stroke:#110000" />
   <line id="l_C08_C19_n" stroke="#191928" stroke-width="2" x1="351.24078" x2="306.24078" y1="378.14551" y2="378.14551" style="stroke:#000000" />
   <text fill="#000000" id="R00_tt" x="5.8007812" y="18.109375" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">MV0</text>
   <text fill="#000000" id="R01_tt" x="63.240768" y="63.145508" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '">R01</text>
@@ -137,49 +137,49 @@
   </g>
   <rect height="15" id="I01" width="15" x="202.74077" y="51.645508" style="fill:#000036" />
   <rect height="15" id="I02" width="15" x="202.74077" y="351.64551" style="fill:#0000d1" />
-  <rect height="15" id="C01" width="15" x="348.74078" y="51.645508" style="fill:#000037" />
-  <rect height="15" id="C02" width="15" x="348.74078" y="96.645515" style="fill:#00004c" />
-  <rect height="15" id="C03" width="15" x="348.74078" y="141.64551" style="fill:#000061" />
-  <rect height="15" id="C04" width="15" x="348.74078" y="186.64551" style="fill:#00006a" />
+  <rect height="15" id="C01" width="15" x="348.74078" y="51.645508" style="fill:#000046" />
+  <rect height="15" id="C02" width="15" x="348.74078" y="96.645515" style="fill:#000062" />
+  <rect height="15" id="C03" width="15" x="348.74078" y="141.64551" style="fill:#00007c" />
+  <rect height="15" id="C04" width="15" x="348.74078" y="186.64551" style="fill:#00008b" />
   <g id="g1112" transform="matrix(-1,0,0,1,843.40874,-7.125e-7)">
     <text fill="#000000" id="C15_tt" x="-541.99121" y="227.14551" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" transform="scale(-1,1)">C15</text>
     <text fill="#000000" id="C16_tt" x="-587.15527" y="227.14551" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" transform="scale(-1,1)">C16</text>
     <text fill="#000000" id="C17_tt" x="-587.12012" y="303.2655" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" transform="scale(-1,1)">C17</text>
     <text fill="#000000" id="C18_tt" x="-542.04102" y="303.2655" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" transform="scale(-1,1)">C18</text>
     <line id="l_C05_C15_a" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="234.14551" y2="234.14551" style="stroke:#ff0000" />
-    <line id="l_C05_C15_b" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="237.14552" y2="237.14552" style="stroke:#fe0000" />
+    <line id="l_C05_C15_b" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="237.14552" y2="237.14552" style="stroke:#ff0000" />
     <line id="l_C05_C15_c" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="240.14552" y2="240.14552" style="stroke:#ff0000" />
     <line id="l_C05_C15_n" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="243.14552" y2="243.14552" style="stroke:#000000" />
-    <line id="l_C15_C16_a" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="234.14551" y2="234.14551" style="stroke:#760000" />
-    <line id="l_C15_C16_b" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="237.14552" y2="237.14552" style="stroke:#720000" />
-    <line id="l_C15_C16_c" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="240.14552" y2="240.14552" style="stroke:#720000" />
+    <line id="l_C15_C16_a" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="234.14551" y2="234.14551" style="stroke:#7d0000" />
+    <line id="l_C15_C16_b" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="237.14552" y2="237.14552" style="stroke:#760000" />
+    <line id="l_C15_C16_c" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="240.14552" y2="240.14552" style="stroke:#770000" />
     <line id="l_C15_C16_n" stroke="#191928" stroke-width="2" x1="527.16797" x2="572.16797" y1="243.14552" y2="243.14552" style="stroke:#000000" />
     <line id="l_C15_C18_a" stroke="#191928" stroke-width="2" x1="527.16797" x2="527.16797" y1="234.14551" y2="279.14551" style="stroke:#020000" />
     <line id="l_C15_C18_b" stroke="#191928" stroke-width="2" x1="530.16797" x2="530.16797" y1="234.14551" y2="279.14551" style="stroke:#020000" />
     <line id="l_C15_C18_c" stroke="#191928" stroke-width="2" x1="533.16797" x2="533.16797" y1="234.14551" y2="279.14551" style="stroke:#020000" />
     <line id="l_C15_C18_n" stroke="#191928" stroke-width="2" x1="536.16797" x2="536.16797" y1="234.14551" y2="279.14551" style="stroke:#000000" />
-    <line id="l_C16_C17_a" stroke="#191928" stroke-width="2" x1="572.16797" x2="572.16797" y1="234.14551" y2="279.14551" style="stroke:#c90000" />
-    <line id="l_C16_C17_b" stroke="#191928" stroke-width="2" x1="575.16797" x2="575.16797" y1="234.14551" y2="279.14551" style="stroke:#c10000" />
-    <line id="l_C16_C17_c" stroke="#191928" stroke-width="2" x1="578.16797" x2="578.16797" y1="234.14551" y2="279.14551" style="stroke:#c20000" />
+    <line id="l_C16_C17_a" stroke="#191928" stroke-width="2" x1="572.16797" x2="572.16797" y1="234.14551" y2="279.14551" style="stroke:#d40000" />
+    <line id="l_C16_C17_b" stroke="#191928" stroke-width="2" x1="575.16797" x2="575.16797" y1="234.14551" y2="279.14551" style="stroke:#c90000" />
+    <line id="l_C16_C17_c" stroke="#191928" stroke-width="2" x1="578.16797" x2="578.16797" y1="234.14551" y2="279.14551" style="stroke:#cb0000" />
     <line id="l_C16_C17_n" stroke="#191928" stroke-width="2" x1="581.16797" x2="581.16797" y1="234.14551" y2="279.14551" style="stroke:#000000" />
-    <rect height="15" id="C15" width="15" x="524.66797" y="231.64551" style="fill:#000098" />
-    <rect height="15" id="C16" width="15" x="569.66797" y="231.64551" style="fill:#0000ad" />
-    <rect height="15" id="C17" width="15" x="569.66797" y="276.64551" style="fill:#0000cb" />
-    <rect height="15" id="C18" width="15" x="524.66797" y="276.64551" style="fill:#00009b" />
+    <rect height="15" id="C15" width="15" x="524.66797" y="231.64551" style="fill:#0000be" />
+    <rect height="15" id="C16" width="15" x="569.66797" y="231.64551" style="fill:#0000d3" />
+    <rect height="15" id="C17" width="15" x="569.66797" y="276.64551" style="fill:#0000f2" />
+    <rect height="15" id="C18" width="15" x="524.66797" y="276.64551" style="fill:#0000c2" />
   </g>
-  <rect height="15" id="C05" width="15" x="348.74078" y="231.64551" style="fill:#000073" />
-  <rect height="15" id="C06" width="15" x="348.74078" y="276.64551" style="fill:#000072" />
-  <rect height="15" id="C07" width="15" x="348.74078" y="321.64551" style="fill:#000070" />
-  <rect height="15" id="C08" width="15" x="348.74078" y="366.64551" style="fill:#00006e" />
-  <rect height="15" id="C09" width="15" x="348.74078" y="411.64551" style="fill:#00006a" />
-  <rect height="15" id="C10" width="15" x="303.74078" y="141.64551" style="fill:#00007b" />
+  <rect height="15" id="C05" width="15" x="348.74078" y="231.64551" style="fill:#00009a" />
+  <rect height="15" id="C06" width="15" x="348.74078" y="276.64551" style="fill:#00009e" />
+  <rect height="15" id="C07" width="15" x="348.74078" y="321.64551" style="fill:#0000a2" />
+  <rect height="15" id="C08" width="15" x="348.74078" y="366.64551" style="fill:#0000a6" />
+  <rect height="15" id="C09" width="15" x="348.74078" y="411.64551" style="fill:#0000a8" />
+  <rect height="15" id="C10" width="15" x="303.74078" y="141.64551" style="fill:#000096" />
   <g id="g2324" transform="translate(-131.9272)">
-    <line id="l_C10_C11_a" stroke="#191928" stroke-width="2" x1="447.16797" x2="447.16797" y1="141.64551" y2="96.645508" style="stroke:#420000" />
-    <line id="l_C10_C11_b" stroke="#191928" stroke-width="2" x1="444.16797" x2="444.16797" y1="141.64551" y2="96.645508" style="stroke:#400000" />
-    <line id="l_C10_C11_c" stroke="#191928" stroke-width="2" x1="441.16797" x2="441.16797" y1="141.64551" y2="96.645508" style="stroke:#400000" />
+    <line id="l_C10_C11_a" stroke="#191928" stroke-width="2" x1="447.16797" x2="447.16797" y1="141.64551" y2="96.645508" style="stroke:#440000" />
+    <line id="l_C10_C11_b" stroke="#191928" stroke-width="2" x1="444.16797" x2="444.16797" y1="141.64551" y2="96.645508" style="stroke:#410000" />
+    <line id="l_C10_C11_c" stroke="#191928" stroke-width="2" x1="441.16797" x2="441.16797" y1="141.64551" y2="96.645508" style="stroke:#420000" />
     <line id="l_C10_C11_n" stroke="#191928" stroke-width="2" x1="438.16797" x2="438.16797" y1="141.64551" y2="96.645508" style="stroke:#000000" />
   </g>
-  <rect height="15" id="C11" width="15" x="94.145508" y="-318.74078" transform="rotate(90)" style="fill:#00008b" />
+  <rect height="15" id="C11" width="15" x="94.145508" y="-318.74078" transform="rotate(90)" style="fill:#0000a6" />
   <g id="g2341" transform="rotate(90,377.20437,81.68191)">
     <text fill="#000000" id="C11_tt" x="-179.31653" y="417.22061" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" transform="rotate(-90)">C11</text>
     <text fill="#000000" id="C12_tt" x="-180.70409" y="357.04572" style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, '" transform="rotate(-90)">C12</text>
@@ -187,26 +187,26 @@
     <g id="g2300">
       <line id="l_C11_C12_a" stroke="#191928" stroke-width="2" x1="392.16797" x2="347.16797" y1="144.14551" y2="144.14551" style="stroke:#1c0000" />
       <line id="l_C11_C12_b" stroke="#191928" stroke-width="2" x1="392.16797" x2="347.16797" y1="147.14551" y2="147.14551" style="stroke:#1b0000" />
-      <line id="l_C11_C12_c" stroke="#191928" stroke-width="2" x1="392.16797" x2="347.16797" y1="150.14551" y2="150.14551" style="stroke:#1b0000" />
+      <line id="l_C11_C12_c" stroke="#191928" stroke-width="2" x1="392.16797" x2="347.16797" y1="150.14551" y2="150.14551" style="stroke:#1c0000" />
       <line id="l_C11_C12_n" stroke="#191928" stroke-width="2" x1="392.16797" x2="347.16797" y1="153.14551" y2="153.14551" style="stroke:#000000" />
     </g>
     <g id="g2306">
       <line id="l_C11_C13_a" stroke="#191928" stroke-width="2" x1="392.16797" x2="392.16797" y1="144.14551" y2="189.14551" style="stroke:#1c0000" />
       <line id="l_C11_C13_b" stroke="#191928" stroke-width="2" x1="395.16797" x2="395.16797" y1="144.14551" y2="189.14551" style="stroke:#1b0000" />
-      <line id="l_C11_C13_c" stroke="#191928" stroke-width="2" x1="398.16797" x2="398.16797" y1="144.14551" y2="189.14551" style="stroke:#1b0000" />
+      <line id="l_C11_C13_c" stroke="#191928" stroke-width="2" x1="398.16797" x2="398.16797" y1="144.14551" y2="189.14551" style="stroke:#1c0000" />
       <line id="l_C11_C13_n" stroke="#191928" stroke-width="2" x1="401.16797" x2="401.16797" y1="144.14551" y2="189.14551" style="stroke:#000000" />
     </g>
-    <rect height="15" id="C12" width="15" x="344.66797" y="141.64551" style="fill:#000096" />
-    <rect height="15" id="C13" width="15" x="389.66797" y="186.64551" style="fill:#000096" />
+    <rect height="15" id="C12" width="15" x="344.66797" y="141.64551" style="fill:#0000b1" />
+    <rect height="15" id="C13" width="15" x="389.66797" y="186.64551" style="fill:#0000b1" />
   </g>
-  <rect height="15" id="C14" width="15" x="303.74078" y="186.64551" style="fill:#000089" />
-  <rect height="15" id="C19" width="15" x="303.74078" y="366.64551" style="fill:#000078" />
+  <rect height="15" id="C14" width="15" x="303.74078" y="186.64551" style="fill:#0000a4" />
+  <rect height="15" id="C19" width="15" x="303.74078" y="366.64551" style="fill:#0000af" />
   <g id="g1119" transform="matrix(-1,0,0,1,843.40874,-7.1250003e-7)">
-    <line id="l_C09_C20_a" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="414.14551" y2="414.14551" style="stroke:#3e0000" />
-    <line id="l_C09_C20_b" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="417.14551" y2="417.14551" style="stroke:#3d0000" />
-    <line id="l_C09_C20_c" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="420.14551" y2="420.14551" style="stroke:#3d0000" />
+    <line id="l_C09_C20_a" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="414.14551" y2="414.14551" style="stroke:#040000" />
+    <line id="l_C09_C20_b" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="417.14551" y2="417.14551" style="stroke:#040000" />
+    <line id="l_C09_C20_c" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="420.14551" y2="420.14551" style="stroke:#040000" />
     <line id="l_C09_C20_n" stroke="#191928" stroke-width="2" x1="482.16797" x2="527.16797" y1="423.14551" y2="423.14551" style="stroke:#000000" />
-    <rect height="15" id="C20" width="15" x="524.66797" y="411.64551" style="fill:#000058" />
+    <rect height="15" id="C20" width="15" x="524.66797" y="411.64551" style="fill:#0000ac" />
   </g>
   <rect height="5.0000005" id="R00" width="350" x="37.740768" y="11.645506" style="stroke-width:1" />
   <rect height="15" id="R01" width="15" x="43.740768" y="51.645508" style="fill:#000030" />
