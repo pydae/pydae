@@ -9,8 +9,9 @@ import pytest
 import numpy as np
 import sympy as sym
 import pydae.build_cffi as db
-
-
+ 
+ 
+    
 def test_pendulum_builder():
     params_dict = {'L':5.21,'G':9.81,'M':10.0,'K_d':1e-6}
 
@@ -55,6 +56,21 @@ def test_pendulum_builder():
     
     sys = db.build(sys)
 
+
+def test_pendulum_ini():
+    test_pendulum_builder()
+    from pendulum import pendulum_class
+    
+    pend = pendulum_class()
+    M = 30.0
+    L = 5.21
+    pend.ini({'f_x':0,'M':M,'L':L,'theta':np.deg2rad(-5)},-5)
+
+    f_x = pend.get_value('f_x')
+    assert np.abs(f_x-25.75)<0.1
+
+
 if __name__ == "__main__":
     
-    test_pendulum_builder()
+   # test_pendulum_builder()
+    test_pendulum_ini()

@@ -68,8 +68,8 @@ class pendulum_class:
         self.N_y = 2 
         self.N_z = 4 
         self.N_store = 10000 
-        self.params_list = ['L', 'G', 'M', 'K_d'] 
-        self.params_values_list  = [5.21, 9.81, 10.0, 1e-06] 
+        self.params_list = ['L', 'G', 'M', 'K_d', 'K_dummy'] 
+        self.params_values_list  = [5.21, 9.81, 10.0, 1e-06, 0.0001] 
         self.inputs_ini_list = ['theta'] 
         self.inputs_ini_values_list  = [0.08726646259971647] 
         self.inputs_run_list = ['f_x'] 
@@ -99,9 +99,9 @@ class pendulum_class:
         self.xy = np.zeros((self.N_x+self.N_y,))
         self.z = np.zeros((self.N_z,))
         
-        self.jac_ini = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
-        self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
-        self.jac_trap = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+        # numerical elements of jacobians computing:
+        x = self.xy[:self.N_x]
+        y = self.xy[self.N_x:]
         
         self.yini2urun = list(set(self.u_run_list).intersection(set(self.y_ini_list)))
         self.uini2yrun = list(set(self.y_run_list).intersection(set(self.u_ini_list)))
@@ -112,30 +112,40 @@ class pendulum_class:
         self.iters = np.zeros(self.N_store) 
         self.u_run = np.array(self.u_run_values_list,dtype=np.float64)
  
+        ## jac_ini
+        self.jac_ini = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
         data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
         self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
-
-        self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
-        data = np.array(self.sp_jac_run_ia,dtype=np.float64)
-        self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
-
-        self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
-        data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
-        self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
-
-
-        self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
-        self.J_run_i = np.array(self.sp_jac_run_ia)
-        self.J_run_p = np.array(self.sp_jac_run_ja)
-        
-        self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
-        self.J_trap_i = np.array(self.sp_jac_trap_ia)
-        self.J_trap_p = np.array(self.sp_jac_trap_ja)
-        
         self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
         self.J_ini_i = np.array(self.sp_jac_ini_ia)
         self.J_ini_p = np.array(self.sp_jac_ini_ja)
+        de_jac_ini_eval(self.jac_ini,x,y,self.u_ini,self.p,self.Dt)
+        sp_jac_ini_eval(self.J_ini_d,x,y,self.u_ini,self.p,self.Dt)        
+
+        ## jac_run
+        self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+        self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
+        data = np.array(self.sp_jac_run_ia,dtype=np.float64)
+        self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
+        self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
+        self.J_run_i = np.array(self.sp_jac_run_ia)
+        self.J_run_p = np.array(self.sp_jac_run_ja)
+        de_jac_run_eval(self.jac_run,x,y,self.u_run,self.p,self.Dt)
+        sp_jac_run_eval(self.J_run_d,x,y,self.u_run,self.p,self.Dt)
+        
+        ## jac_trap
+        self.jac_trap = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+        self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
+        data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
+        self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
+        self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
+        self.J_trap_i = np.array(self.sp_jac_trap_ia)
+        self.J_trap_p = np.array(self.sp_jac_trap_ja)
+        de_jac_trap_eval(self.jac_trap,x,y,self.u_run,self.p,self.Dt)
+        sp_jac_trap_eval(self.J_trap_d,x,y,self.u_run,self.p,self.Dt)
+   
+
         
 
         
@@ -148,20 +158,9 @@ class pendulum_class:
         self.fill_factor_ini,self.drop_tol_ini,self.drop_rule_ini = 10,0.001,'column'       
         self.fill_factor_run,self.drop_tol_run,self.drop_rule_run = 10,0.001,'column' 
         
-        # numerical elements of jacobians computing:
-        x = self.xy[:self.N_x]
-        y = self.xy[self.N_x:]
+ 
         
-        # dense jacobians
-        de_jac_ini_eval(self.jac_ini,x,y,self.u_ini,self.p,self.Dt)
-        de_jac_run_eval(self.jac_run,x,y,self.u_ini,self.p,self.Dt)
-        de_jac_trap_eval(self.jac_trap,x,y,self.u_run,self.p,self.Dt)
-        
-        # sparse jacobians   
-        sp_jac_ini_eval(self.J_ini_d,x,y,self.u_ini,self.p,self.Dt)
-        sp_jac_ini_eval(self.J_run_d,x,y,self.u_ini,self.p,self.Dt)
-        sp_jac_trap_eval(self.J_trap_d,x,y,self.u_run,self.p,self.Dt)
-   
+
 
 
         
@@ -342,11 +341,11 @@ class pendulum_class:
         return mvalue
     
     def set_value(self,name_,value):
-        if name_ in self.inputs_ini_list:
-            self.u_ini[self.inputs_ini_list.index(name_)] = value
-            return
-        elif name_ in self.inputs_run_list:
-            self.u_run[self.inputs_run_list.index(name_)] = value
+        if name_ in self.inputs_ini_list or name_ in self.inputs_run_list:
+            if name_ in self.inputs_ini_list:
+                self.u_ini[self.inputs_ini_list.index(name_)] = value
+            if name_ in self.inputs_run_list:
+                self.u_run[self.inputs_run_list.index(name_)] = value
             return
         elif name_ in self.params_list:
             self.p[self.params_list.index(name_)] = value
@@ -375,6 +374,26 @@ class pendulum_class:
             print(f'{item:5s} = {self.get_value(item):5.2f}')
             
     def ini(self,up_dict,xy_0={}):
+        '''
+        Find the steady state of the initialization problem:
+            
+               0 = f(x,y,u,p) 
+               0 = g(x,y,u,p) 
+
+        Parameters
+        ----------
+        up_dict : dict
+            dictionary with all the parameters p and inputs u new values.
+        xy_0: if scalar, all the x and y values initial guess are set to the scalar.
+              if dict, the initial guesses are applied for the x and y that are in the dictionary
+              if string, the initial guess considers a json file with the x and y names and their initial values
+
+        Returns
+        -------
+        mvalue : TYPE
+            list of value of each variable.
+
+        '''
         
         self.it = 0
         self.it_store = 0
@@ -400,9 +419,28 @@ class pendulum_class:
         if type(xy_0) == float or type(xy_0) == int:
             self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
 
+        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,
+                           self.jac_ini,
+                           self.N_x,self.N_y,
+                           max_it=self.max_it,tol=self.itol)
+        
+        if it < self.max_it:
+            
+            self.xy_ini = xy_ini
+            self.N_iters = it
 
-        self.xy_ini = self.ss_ini()
-        self.ini2run()
+            self.ini2run()
+            
+            self.ini_convergence = True
+            
+        if it >= self.max_it:
+            print(f'Maximum number of iterations (max_it = {self.max_it}) reached without convergence.')
+            self.ini_convergence = False
+            
+        return self.ini_convergence
+            
+        
+
 
     
     def dict2xy0(self,xy_0_dict):
@@ -478,9 +516,10 @@ class pendulum_class:
 
     def eval_preconditioner_ini(self):
     
-        sp_jac_trap_eval(self.sp_jac_ini.data,self.x,self.y_run,self.u_run,self.p,self.Dt)
+        sp_jac_ini_eval(self.sp_jac_ini.data,self.x,self.y_run,self.u_run,self.p,self.Dt)
     
-        P_slu = spilu(self.sp_jac_ini,
+        csc_sp_jac_ini = sspa.csc_matrix(self.sp_jac_ini)
+        P_slu = spilu(csc_sp_jac_ini,
                   fill_factor=self.fill_factor_ini,
                   drop_tol=self.drop_tol_ini,
                   drop_rule = self.drop_rule_ini)
@@ -495,24 +534,28 @@ class pendulum_class:
         self.perm_c = perm_c
             
     
-    def eval_preconditioner_run(self):
+    def eval_preconditioner_trap(self):
     
-        sp_jac_trap_eval(self.J_run_d,self.x,self.y_run,self.u_run,self.p,self.Dt)
+        sp_jac_trap_eval(self.J_trap_d,self.x,self.y_run,self.u_run,self.p,self.Dt)
     
-        self.sp_jac_trap.data = self.J_run_d 
-        P_slu_run = spilu(self.sp_jac_trap,
+        self.sp_jac_trap.data = self.J_trap_d 
+        
+        csc_sp_jac_trap = sspa.csc_matrix(self.sp_jac_trap)
+
+
+        P_slu_trap = spilu(csc_sp_jac_trap,
                           fill_factor=self.fill_factor_run,
                           drop_tol=self.drop_tol_run,
                           drop_rule = self.drop_rule_run)
     
-        self.P_slu_run = P_slu_run
-        P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu_run)   
-        self.P_run_d = P_d
-        self.P_run_i = P_i
-        self.P_run_p = P_p
+        self.P_slu_trap = P_slu_trap
+        P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu_trap)   
+        self.P_trap_d = P_d
+        self.P_trap_i = P_i
+        self.P_trap_p = P_p
     
-        self.perm_run_r = perm_r
-        self.perm_run_c = perm_c
+        self.perm_trap_r = perm_r
+        self.perm_trap_c = perm_c
         
     def sprun(self,t_end,up_dict):
         
@@ -529,8 +572,8 @@ class pendulum_class:
     
         t,it,it_store,xy = spdaesolver(t,t_end,it,it_store,xy,u,p,
                                   self.jac_trap,
-                                  self.J_run_d,self.J_run_i,self.J_run_p,
-                                  self.P_run_d,self.P_run_i,self.P_run_p,self.perm_run_r,self.perm_run_c,
+                                  self.J_trap_d,self.J_trap_i,self.J_trap_p,
+                                  self.P_trap_d,self.P_trap_i,self.P_trap_p,self.perm_trap_r,self.perm_trap_c,
                                   self.Time,
                                   self.X,
                                   self.Y,
@@ -871,8 +914,7 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,jac_trap,
     f = fg[:N_x]
     g = fg[N_x:]
     h = np.zeros((N_z),dtype=np.float64)
-    Dxy_i_0 = np.zeros(N_x+N_y,dtype=np.float64)
-    
+    Dxy_i_0 = np.zeros(N_x+N_y,dtype=np.float64) 
     f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
     g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
     h_ptr=ffi.from_buffer(np.ascontiguousarray(h))
@@ -884,8 +926,8 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,jac_trap,
     J_d_ptr=ffi.from_buffer(np.ascontiguousarray(J_d))
     
     sp_jac_trap_num_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
-    sp_jac_trap_up_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
-    sp_jac_trap_xy_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    sp_jac_trap_up_eval( J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    sp_jac_trap_xy_eval( J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
     
     if it == 0:
         f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
@@ -1008,7 +1050,8 @@ def slu2pydae(P_slu):
     
     '''
     N = P_slu.shape[0]
-    P_slu_full = P_slu.L.A - sspa.eye(N,format='csr') + P_slu.U.A
+    #P_slu_full = P_slu.L.A - sspa.eye(N,format='csr') + P_slu.U.A
+    P_slu_full = P_slu.L - sspa.eye(N,format='csc') + P_slu.U
     perm_r = P_slu.perm_r
     perm_c = P_slu.perm_c
     P_csr = sspa.csr_matrix(P_slu_full)
@@ -1199,6 +1242,50 @@ def de_jac_trap_eval(de_jac_trap,x,y,u,p,Dt):
     
     return de_jac_trap
 
+
+@numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+def sp_jac_run_eval(sp_jac_run,x,y,u,p,Dt):   
+    '''
+    Computes the sparse full trapezoidal jacobian:
+    
+    jac_trap = [[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],
+                [             Gx_run,         Gy_run]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    sp_jac_trap : (Nnz,) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (run problem).
+    u : (N_u,) array_like
+        Vector with inputs (run problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+        
+    with Nnz the number of non-zeros elements in the jacobian.
+ 
+    Returns
+    -------
+    
+    sp_jac_trap : (Nnz,) array_like
+                  Updated matrix.    
+    
+    '''        
+    sp_jac_run_ptr=ffi.from_buffer(np.ascontiguousarray(sp_jac_run))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    sp_jac_run_num_eval(sp_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    sp_jac_run_up_eval( sp_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    sp_jac_run_xy_eval( sp_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return sp_jac_run
 
 @numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_jac_trap_eval(sp_jac_trap,x,y,u,p,Dt):   

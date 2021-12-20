@@ -375,6 +375,26 @@ class pendulum_class:
             print(f'{item:5s} = {self.get_value(item):5.2f}')
             
     def ini(self,up_dict,xy_0={}):
+        '''
+        Find the steady state of the initialization problem:
+            
+               0 = f(x,y,u,p) 
+               0 = g(x,y,u,p) 
+
+        Parameters
+        ----------
+        up_dict : dict
+            dictionary with all the parameters p and inputs u new values.
+        xy_0: if scalar, all the x and y values initial guess are set to the scalar.
+              if dict, the initial guesses are applied for the x and y that are in the dictionary
+              if string, the initial guess considers a json file with the x and y names and their initial values
+
+        Returns
+        -------
+        mvalue : TYPE
+            list of value of each variable.
+
+        '''
         
         self.it = 0
         self.it_store = 0
@@ -400,9 +420,28 @@ class pendulum_class:
         if type(xy_0) == float or type(xy_0) == int:
             self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
 
+        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,
+                           self.jac_ini,
+                           self.N_x,self.N_y,
+                           max_it=self.max_it,tol=self.itol)
+        
+        if it < self.max_it:
+            
+            self.xy_ini = xy_ini
+            self.N_iters = it
 
-        self.xy_ini = self.ss_ini()
-        self.ini2run()
+            self.ini2run()
+            
+            self.ini_convergence = True
+            
+        if it >= self.max_it:
+            print(f'Maximum number of iterations (max_it = {self.max_it}) reached without convergence.')
+            self.ini_convergence = False
+            
+        return self.ini_convergence
+            
+        
+
 
     
     def dict2xy0(self,xy_0_dict):
