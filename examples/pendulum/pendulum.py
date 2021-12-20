@@ -121,7 +121,9 @@ class pendulum_class:
         self.J_ini_i = np.array(self.sp_jac_ini_ia)
         self.J_ini_p = np.array(self.sp_jac_ini_ja)
         de_jac_ini_eval(self.jac_ini,x,y,self.u_ini,self.p,self.Dt)
-        sp_jac_ini_eval(self.J_ini_d,x,y,self.u_ini,self.p,self.Dt)        
+        sp_jac_ini_eval(self.J_ini_d,x,y,self.u_ini,self.p,self.Dt) 
+        self.fill_factor_ini,self.drop_tol_ini,self.drop_rule_ini = 100,1e-10,'basic'       
+
 
         ## jac_run
         self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
@@ -144,19 +146,18 @@ class pendulum_class:
         self.J_trap_p = np.array(self.sp_jac_trap_ja)
         de_jac_trap_eval(self.jac_trap,x,y,self.u_run,self.p,self.Dt)
         sp_jac_trap_eval(self.J_trap_d,x,y,self.u_run,self.p,self.Dt)
+        self.fill_factor_trap,self.drop_tol_trap,self.drop_rule_trap = 100,1e-10,'basic' 
    
 
         
 
         
         self.max_it,self.itol,self.store = 50,1e-8,1 
-        self.lmax_it,self.ltol,self.ldamp=50,1e-8,1.1
+        self.lmax_it,self.ltol,self.ldamp=50,1e-8,1.0
         self.mode = 0 
 
-        self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.1
+        self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.0
 
-        self.fill_factor_ini,self.drop_tol_ini,self.drop_rule_ini = 10,0.001,'column'       
-        self.fill_factor_run,self.drop_tol_run,self.drop_rule_run = 10,0.001,'column' 
         
  
         
@@ -217,7 +218,7 @@ class pendulum_class:
                                   self.N_y,
                                   self.N_z,
                                   self.decimation,
-                                  max_it=50,itol=1e-8,store=1)
+                                  max_it=self.max_it,itol=self.itol,store=self.store)
         
         self.t = t
         self.it = it
@@ -544,9 +545,9 @@ class pendulum_class:
 
 
         P_slu_trap = spilu(csc_sp_jac_trap,
-                          fill_factor=self.fill_factor_run,
-                          drop_tol=self.drop_tol_run,
-                          drop_rule = self.drop_rule_run)
+                          fill_factor=self.fill_factor_trap,
+                          drop_tol=self.drop_tol_trap,
+                          drop_rule = self.drop_rule_trap)
     
         self.P_slu_trap = P_slu_trap
         P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu_trap)   
