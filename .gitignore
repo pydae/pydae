@@ -32,3 +32,5 @@ for_dev.rst
 pydgrid.egg-info
 
 generate
+
+Release/
