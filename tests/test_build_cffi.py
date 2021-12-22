@@ -58,19 +58,22 @@ def test_pendulum_builder():
 
 
 def test_pendulum_ini():
-    test_pendulum_builder()
-    from pendulum import pendulum_class
     
-    pend = pendulum_class()
+    import pendulum
+    
+    pend = pendulum.pendulum_class()
     M = 30.0
     L = 5.21
     pend.ini({'f_x':0,'M':M,'L':L,'theta':np.deg2rad(-5)},-5)
 
     f_x = pend.get_value('f_x')
-    assert np.abs(f_x-25.75)<0.1
+    
+    del pendulum 
+    print(f_x)
+    assert np.abs(f_x-(-25.7479))<0.01
 
 
 if __name__ == "__main__":
     
-   # test_pendulum_builder()
+    #test_pendulum_builder()
     test_pendulum_ini()
