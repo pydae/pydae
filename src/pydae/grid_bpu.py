@@ -599,7 +599,7 @@ class bpu:
             # outputs
             self.dae['h_dict'].update({f"{p_in}":p_in})
             self.dae['h_dict'].update({f"{Dp_r}":Dp_r})
-            self.dae['h_dict'].update({f"{Dq_r}":Dp_r})
+            self.dae['h_dict'].update({f"{Dq_r}":Dq_r})
             
             # parameters            
             self.dae['params_dict'].update({f"{S_n}":data['S_n']})
