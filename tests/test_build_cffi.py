@@ -65,12 +65,27 @@ def test_pendulum_ini():
     M = 30.0
     L = 5.21
     pend.ini({'f_x':0,'M':M,'L':L,'theta':np.deg2rad(-5)},-5)
+    
+    expected_results ={'pos_x' : -0.4541,
+                        'pos_y' : -5.19,
+                        'v_x' :     0.0,
+                        'v_y' :     0.0,
+                        'lam' : 28.35,
+                        'g_1' : -3.553e-15,
+                        'PE' : -1527.46911,
+                        'KE' :     0,
+                        'theta' : -0.08727,
+                        'f_x'  :-25.7479}
 
-    f_x = pend.get_value('f_x')
+    
+    
+    for item in expected_results:
+        item_computed_value = pend.get_value(item)
+        assert np.abs(item_computed_value-expected_results[item])<0.01
+        
     
     del pendulum 
-    print(f_x)
-    assert np.abs(f_x-(-25.7479))<0.01
+
 
 
 if __name__ == "__main__":

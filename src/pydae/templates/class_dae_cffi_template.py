@@ -116,7 +116,10 @@ class {name}_class:
         self.jac_ini = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
         data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
-        self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
+        #self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
+        self.sp_jac_ini = sspa.load_npz('{name}_sp_jac_ini_num.npz')
+        self.jac_ini = self.sp_jac_ini.toarray()
+
         self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
         self.J_ini_i = np.array(self.sp_jac_ini_ia)
         self.J_ini_p = np.array(self.sp_jac_ini_ja)
@@ -129,7 +132,10 @@ class {name}_class:
         self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
         data = np.array(self.sp_jac_run_ia,dtype=np.float64)
-        self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
+        #self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
+        self.sp_jac_run = sspa.load_npz('{name}_sp_jac_run_num.npz')
+        self.jac_run = self.sp_jac_run.toarray()
+
         self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
         self.J_run_i = np.array(self.sp_jac_run_ia)
         self.J_run_p = np.array(self.sp_jac_run_ja)
@@ -140,7 +146,10 @@ class {name}_class:
         self.jac_trap = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
         data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
-        self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
+        #self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
+        self.sp_jac_trap = sspa.load_npz('{name}_sp_jac_trap_num.npz')
+        self.jac_trap = self.sp_jac_trap.toarray()
+        
         self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
         self.J_trap_i = np.array(self.sp_jac_trap_ia)
         self.J_trap_p = np.array(self.sp_jac_trap_ja)
@@ -356,23 +365,23 @@ class {name}_class:
  
     def report_x(self,value_format='5.2f'):
         for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):{value_format}}')
 
     def report_y(self,value_format='5.2f'):
         for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):{value_format}}')
             
     def report_u(self,value_format='5.2f'):
         for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} ={self.get_value(item):{value_format}}')
 
     def report_z(self,value_format='5.2f'):
         for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):{value_format}}')
 
     def report_params(self,value_format='5.2f'):
         for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} ={self.get_value(item):{value_format}}')
             
     def ini(self,up_dict,xy_0={}):
         '''

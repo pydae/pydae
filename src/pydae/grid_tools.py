@@ -1119,4 +1119,68 @@ def set_powers(grid_obj,bus_name,s_cplx,mode='urisi_3ph'):
         q = s_cplx.imag
         for ph in ['a','b','c']:
             grid_obj.set_value(f'p_{bus_name}_{ph}',p/3)
-            grid_obj.set_value(f'q_{bus_name}_{ph}',q/3)        
+            grid_obj.set_value(f'q_{bus_name}_{ph}',q/3)  
+            
+def update_loads(grid,data_input):
+    
+    if type(data_input) == dict:
+        data = data_input
+        
+    if type(data_input) == str:
+        data_input = open(data_input).read().replace("'",'"')
+        data = json.loads(data_input)
+        
+    if 'loads' in data:
+        for load in data['loads']:
+            
+            if load['type'] == "1P+N":
+                bus = load['bus']
+                kVA = load['kVA']
+                pf = load['pf']
+                p = kVA*1000*pf
+                q = np.sqrt((kVA*1000)**2 - p**2)*np.sign(pf)
+
+                grid.set_value(f'p_load_{bus}_1',p)
+                grid.set_value(f'q_load_{bus}_1',q)
+
+def report_v(grid,data_input,model='urisi'):
+    '''
+    
+
+    Parameters
+    ----------
+    grid : pydae object
+        Pydae object modelling a grid.
+    data_input : if dict, a dictionary with the grid parameters
+                 if string, the path to the .json file containing grid parameters
+
+    model : string, optional
+        Type of implemented model. The default is 'urisi'.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    
+    if type(data_input) == dict:
+        data = data_input
+        
+    if type(data_input) == str:
+        data_input = open(data_input).read().replace("'",'"')
+        data = json.loads(data_input)
+        
+    for bus in data['buses']:
+        if f"v_{bus['bus']}_n_r" in grid.y_ini_list:
+            v_n_r,v_n_i = grid.get_mvalue([f"v_{bus['bus']}_n_r",f"v_{bus['bus']}_n_i"])
+            v_n = v_n_r + 1j*v_n_i
+        else:
+            v_n = 0.0
+        for ph in ['a','b','c']:
+            v_r,v_i =  grid.get_mvalue([f"v_{bus['bus']}_{ph}_r",f"v_{bus['bus']}_{ph}_i"])
+            v = v_r + 1j*v_i
+            v_m = np.abs(v-v_n)
+        
+            print(f"V_{bus['bus']}_{ph}n: {v_m:8.1f} V")
+        print(f"  V_{bus['bus']}_ng: {np.abs(v_n):8.1f} V")

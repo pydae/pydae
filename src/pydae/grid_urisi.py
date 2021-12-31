@@ -22,6 +22,8 @@ def unb_ri_si(data):
                 ac3ph3wvdcq(pydgrid_obj,vsc)
             if vsc['type'] == 'ac3ph3wpq':
                 ac3ph3wpq(pydgrid_obj,vsc)
+            if vsc['type'] == 'ac3ph4wpq':
+                ac3ph4wpq(pydgrid_obj,vsc)
             if vsc['type'] == 'ac1ph2wpq':
                 ac1ph2wpq(pydgrid_obj,vsc)
             
@@ -29,6 +31,25 @@ def unb_ri_si(data):
     
     
 def urisi2dae(grid):
+    '''
+    Every voltage bus and current bus injection is generted as sympy symbol
+    
+    - The voltages are named as v_{bus_name}_{n2a[phase]}_r for real 
+      v_{bus_name}_{n2a[phase]}_i for imanginary parts 
+    - The currents are named as i_{bus_name}_{n2a[phase]}_r for real 
+      i_{bus_name}_{n2a[phase]}_i for imanginary parts 
+      
+    
+    Loads can be of different types, but finally a current injection is used to include
+    them in the whole network. These load currents are named as:
+    i_load_{bus_name}_{n2a[phase]}_r and i_load_{bus_name}_{n2a[phase]}_i
+    
+    VSC can be of different types, but finally a current injection is used to include
+    them in the whole network. These CIG currents are named as:
+    i_vsc_{bus_name}_{n2a[phase]}_r and i_vsc_{bus_name}_{n2a[phase]}_i
+    
+    '''
+    
     
     buses_name_list = [item['bus'] for item in grid.buses]
     nodes_list = grid.nodes
@@ -347,8 +368,8 @@ def urisi2dae(grid):
 
             s_1 = v_12*sym.conjugate(i_1)
 
-            p_1,p_2 = sym.symbols(f'p_{bus_name}_1,p_{bus_name}_2', real=True)
-            q_1,q_2 = sym.symbols(f'q_{bus_name}_1,q_{bus_name}_2', real=True)
+            p_1,p_2 = sym.symbols(f'p_load_{bus_name}_1,p_load_{bus_name}_2', real=True)
+            q_1,q_2 = sym.symbols(f'q_load_{bus_name}_1,q_load_{bus_name}_2', real=True)
 
             g_list += [-p_1 + sym.re(s_1)]
             g_list += [-q_1 + sym.im(s_1)]
@@ -391,15 +412,15 @@ def urisi2dae(grid):
             
             
             
-            u_dict.pop(f'i_{bus_name}_{n2a[phase_1]}_r')
-            u_dict.pop(f'i_{bus_name}_{n2a[phase_1]}_i')
-            u_dict.pop(f'i_{bus_name}_{n2a[phase_2]}_r')
-            u_dict.pop(f'i_{bus_name}_{n2a[phase_2]}_i')            
+            #u_dict.pop(f'i_{bus_name}_{n2a[phase_1]}_r')
+            #u_dict.pop(f'i_{bus_name}_{n2a[phase_1]}_i')
+            #u_dict.pop(f'i_{bus_name}_{n2a[phase_2]}_r')
+            #u_dict.pop(f'i_{bus_name}_{n2a[phase_2]}_i')            
             
             p_value = grid.buses[buses_list.index(bus_name)][f'p_{n2a[phase_1]}']
             q_value = grid.buses[buses_list.index(bus_name)][f'q_{n2a[phase_1]}']
-            u_dict.update({f'p_{bus_name}_{phase_1}':p_value})
-            u_dict.update({f'q_{bus_name}_{phase_1}':q_value})
+            u_dict.update({f'p_load_{bus_name}_{phase_1}':p_value})
+            u_dict.update({f'q_load_{bus_name}_{phase_1}':q_value})
                 
         if load['type'] == '3P+N':
             bus_name = load['bus']
@@ -432,8 +453,8 @@ def urisi2dae(grid):
             s_c = v_cn*sym.conjugate(i_c)
 
             s = s_a + s_b + s_c
-            p_a,p_b,p_c = sym.symbols(f'p_{bus_name}_a,p_{bus_name}_b,p_{bus_name}_c', real=True)
-            q_a,q_b,q_c = sym.symbols(f'q_{bus_name}_a,q_{bus_name}_b,q_{bus_name}_c', real=True)
+            p_a,p_b,p_c = sym.symbols(f'p_load_{bus_name}_a,p_load_{bus_name}_b,p_load_{bus_name}_c', real=True)
+            q_a,q_b,q_c = sym.symbols(f'q_load_{bus_name}_a,q_load_{bus_name}_b,q_load_{bus_name}_c', real=True)
             g_list += [-p_a + sym.re(s_a)]
             g_list += [-p_b + sym.re(s_b)]
             g_list += [-p_c + sym.re(s_c)]
@@ -445,8 +466,8 @@ def urisi2dae(grid):
             g_list += [sym.im(i_a+i_b+i_c+i_n)]
 
 
-            i_abc_list  = [i_a_r,i_a_i,i_b_r,i_b_i,i_c_r,i_c_i]
-            for itg in [1,2,3]:
+            i_abc_list  = [i_a_r,i_a_i,i_b_r,i_b_i,i_c_r,i_c_i,i_n_r,i_n_i]
+            for itg in [1,2,3,4]:
                  bus_idx = grid.nodes.index(f'{bus_name}.{itg}')
                  g_idx = bus_idx - grid.N_nodes_v
                  g_list[2*g_idx+0] += i_abc_list[2*(itg-1)  ]
@@ -457,12 +478,12 @@ def urisi2dae(grid):
                 y_list += [i_real,i_imag]
                 i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n[phase]}')][0]
                 y_0_list += [i_cplx.real,i_cplx.imag]
-                u_dict.pop(f'i_{bus_name}_{phase}_r')
-                u_dict.pop(f'i_{bus_name}_{phase}_i')
+                #u_dict.pop(f'i_{bus_name}_{phase}_r')
+                #u_dict.pop(f'i_{bus_name}_{phase}_i')
                 p_value = grid.buses[buses_list.index(bus_name)][f'p_{phase}']
                 q_value = grid.buses[buses_list.index(bus_name)][f'q_{phase}']
-                u_dict.update({f'p_{bus_name}_{phase}':p_value})
-                u_dict.update({f'q_{bus_name}_{phase}':q_value})
+                u_dict.update({f'p_load_{bus_name}_{phase}':p_value})
+                u_dict.update({f'q_load_{bus_name}_{phase}':q_value})
 
                 xy_0_dict.update({f'{i_real}':i_cplx.real,f'{i_imag}':i_cplx.imag})
             
@@ -690,7 +711,7 @@ def ac3ph3wvdcq(grid,vsc_data):
     y_vsc = []
     
     ### AC-side
-    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_{bus_ac_name},q_{bus_ac_name},p_{bus_dc_name},p_loss_{bus_ac_name}',real=True)
+    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
 
     #### AC voltages:
     v_a_r,v_a_i = sym.symbols(f'v_{bus_ac_name}_a_r,v_{bus_ac_name}_a_i',real=True)
@@ -742,19 +763,24 @@ def ac3ph3wvdcq(grid,vsc_data):
 
     p_vsc_loss = p_simple
     
-    i_l_a_r,i_l_n_r = sym.symbols(f'i_l_{bus_dc_name}_{to_bus_dc_name}_a_r,i_l_{bus_dc_name}_{to_bus_dc_name}_n_r')   
-    v_dc_a_r,v_dc_n_r  = sym.symbols(f'v_{bus_dc_name}_a_r,v_{bus_dc_name}_n_r')
-    
+    # DC line current for computing DC power
+    i_l_a_r,i_l_n_r = sym.symbols(f'i_l_{bus_dc_name}_{to_bus_dc_name}_a_r,i_l_{bus_dc_name}_{to_bus_dc_name}_n_r', real = True)   
+    v_dc_a_r,v_dc_n_r  = sym.symbols(f'v_{bus_dc_name}_a_r,v_{bus_dc_name}_n_r', real = True) 
+    v_dc_ref  = sym.Symbol(f'v_dc_{bus_dc_name}', real = True) 
+   
     eq_p_loss = p_loss - p_vsc_loss
     eq_p_ac = p_ac + p_dc + sym.Piecewise((-p_loss, p_dc < 0), (p_loss, p_dc > 0),(p_loss, True))    
     eq_p_dc = -p_dc + i_l_a_r * v_dc_a_r + i_l_n_r * v_dc_n_r    
+    eq_v_dc_a_r = -v_dc_a_r + v_dc_ref + v_dc_n_r
+    
        
-    grid.dae['g'] +=  [eq_p_ac,eq_p_dc, eq_p_loss]
-    grid.dae['y'] +=  [   p_ac,   p_dc,    p_loss]  
-    grid.dae['u'].update({f'v_dc_{bus_dc_name}':0.0,f'q_{bus_ac_name}':0.0}) 
+    grid.dae['g'] +=  [eq_p_ac,eq_p_dc, eq_p_loss, eq_v_dc_a_r]
+    grid.dae['y'] +=  [   p_ac,   p_dc,    p_loss,    v_dc_a_r]  
+    grid.dae['u'].update({f'v_dc_{bus_dc_name}':800.0,f'q_vsc_{bus_ac_name}':0.0}) 
+    grid.dae['u'].pop(str(v_dc_a_r))
     grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
 
-    #grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
+    grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
 
 def ac3ph3wpq(grid,vsc_data):
     '''
@@ -787,7 +813,7 @@ def ac3ph3wpq(grid,vsc_data):
     ## Body:
         
     ### AC-side
-    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_{bus_ac_name},q_{bus_ac_name},p_{bus_dc_name},p_loss_{bus_ac_name}',real=True)
+    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
     coef_a,coef_b,coef_c = sym.symbols(f'coef_a_{bus_ac_name},coef_b_{bus_ac_name},coef_c_{bus_ac_name}',real=True)
     
     v_a = v_a_r + 1j*v_a_i
@@ -841,11 +867,11 @@ def ac3ph3wpq(grid,vsc_data):
 
     grid.dae['g'] +=  [eq_i_dc_a_r,eq_i_dc_n_r,eq_p_dc,eq_p_loss]
     grid.dae['y'] +=  [   i_dc_a_r,   i_dc_n_r,   p_dc,   p_loss]  
-    grid.dae['u'].update({f'p_{bus_ac_name}':0.0,f'q_{bus_ac_name}':0.0}) 
+    grid.dae['u'].update({f'p_vsc_{bus_ac_name}':0.0,f'q_vsc_{bus_ac_name}':0.0}) 
     grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
     
-    grid.dae['u'].pop(f'i_{bus_dc_name}_a_r')
-    grid.dae['u'].pop(f'i_{bus_dc_name}_n_r')
+    #grid.dae['u'].pop(f'i_{bus_dc_name}_a_r')
+    #grid.dae['u'].pop(f'i_{bus_dc_name}_n_r')
     grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
     grid.dae['params'].update({f'coef_a_{bus_ac_name}':1/3,f'coef_b_{bus_ac_name}':1/3,f'coef_c_{bus_ac_name}':1/3})
 
@@ -860,6 +886,124 @@ def ac3ph3wpq(grid,vsc_data):
     grid.dae['g'][2*g_idx+0] += i_dc_n_r
     grid.dae['g'][2*g_idx+1] += 0.0  
     
+
+def ac3ph4wpq(grid,vsc_data):
+    '''
+    Converter type p_ac,q_ac 3 phase 4 wire
+    
+    '''
+    
+    ## Model data
+    bus_ac_name = vsc_data['bus_ac']
+    bus_dc_name = vsc_data['bus_dc']  
+    a_value  = vsc_data['a']   
+    b_value  = vsc_data['b']   
+    c_value  = vsc_data['c']   
+    
+    ## Voltages:
+    v_a_r,v_a_i = sym.symbols(f'v_{bus_ac_name}_a_r,v_{bus_ac_name}_a_i',real=True)
+    v_b_r,v_b_i = sym.symbols(f'v_{bus_ac_name}_b_r,v_{bus_ac_name}_b_i',real=True)
+    v_c_r,v_c_i = sym.symbols(f'v_{bus_ac_name}_c_r,v_{bus_ac_name}_c_i',real=True)
+    v_n_r,v_n_i = sym.symbols(f'v_{bus_ac_name}_n_r,v_{bus_ac_name}_n_i',real=True)
+    v_dc_a_r,v_dc_n_r = sym.symbols(f'v_{bus_dc_name}_a_r,v_{bus_dc_name}_n_r',real=True)
+
+    ## Currents:
+    i_a_r,i_a_i = sym.symbols(f'i_vsc_{bus_ac_name}_a_r,i_vsc_{bus_ac_name}_a_i',real=True)
+    i_b_r,i_b_i = sym.symbols(f'i_vsc_{bus_ac_name}_b_r,i_vsc_{bus_ac_name}_b_i',real=True)
+    i_c_r,i_c_i = sym.symbols(f'i_vsc_{bus_ac_name}_c_r,i_vsc_{bus_ac_name}_c_i',real=True) 
+    i_n_r,i_n_i = sym.symbols(f'i_vsc_{bus_ac_name}_n_r,i_vsc_{bus_ac_name}_n_i',real=True) 
+
+    i_dc_a_r,i_dc_n_r = sym.symbols(f'i_vsc_{bus_dc_name}_a_r,i_vsc_{bus_dc_name}_n_r',real=True)
+
+
+    
+    ## Body:
+        
+    ### AC-side
+    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
+    coef_a,coef_b,coef_c = sym.symbols(f'coef_a_{bus_ac_name},coef_b_{bus_ac_name},coef_c_{bus_ac_name}',real=True)
+    
+    v_a = v_a_r + 1j*v_a_i
+    v_b = v_b_r + 1j*v_b_i
+    v_c = v_c_r + 1j*v_c_i
+    v_n = v_n_r + 1j*v_n_i
+
+    i_a = i_a_r + 1j*i_a_i
+    i_b = i_b_r + 1j*i_b_i
+    i_c = i_c_r + 1j*i_c_i
+    i_n = i_n_r + 1j*i_n_i
+
+    s_a = (v_a - v_n) * sym.conjugate(i_a)
+    s_b = (v_b - v_n) * sym.conjugate(i_b)
+    s_c = (v_c - v_n) * sym.conjugate(i_c)
+
+    eq_i_a_r =  sym.re(s_a) - p_ac*coef_a
+    eq_i_b_r =  sym.re(s_b) - p_ac*coef_b
+    eq_i_c_r =  sym.re(s_c) - p_ac*coef_c
+    eq_i_a_i =  sym.im(s_a) - q_ac*coef_a
+    eq_i_b_i =  sym.im(s_b) - q_ac*coef_b
+    eq_i_c_i =  sym.im(s_c) - q_ac*coef_c
+    eq_i_n_r =  sym.re(i_a+i_b+i_c+i_n)
+    eq_i_n_i =  sym.im(i_a+i_b+i_c+i_n)
+
+    i_abc_list  = [i_a_r,i_a_i,i_b_r,i_b_i,i_c_r,i_c_i,i_n_r,i_n_i]
+    for itg in [1,2,3,4]:
+        bus_idx = grid.nodes.index(f'{bus_ac_name}.{itg}')
+        g_idx = bus_idx - grid.N_nodes_v
+        grid.dae['g'][2*g_idx+0] += i_abc_list[2*(itg-1)  ]
+        grid.dae['g'][2*g_idx+1] += i_abc_list[2*(itg-1)+1]
+
+    ### DC side
+    a,b,c = sym.symbols(f'a_{bus_ac_name},b_{bus_ac_name},c_{bus_ac_name}',real=True)
+    i_rms_a = sym.sqrt(i_a_r**2+i_a_i**2+0.1) 
+    i_rms_b = sym.sqrt(i_b_r**2+i_b_i**2+0.1) 
+    i_rms_c = sym.sqrt(i_c_r**2+i_c_i**2+0.1) 
+    i_rms_n = sym.sqrt(i_n_r**2+i_n_i**2+0.1) 
+
+    p_loss_a = a + b*i_rms_a + c*i_rms_a*i_rms_a
+    p_loss_b = a + b*i_rms_b + c*i_rms_b*i_rms_b
+    p_loss_c = a + b*i_rms_c + c*i_rms_c*i_rms_c
+    p_loss_n = a + b*i_rms_n + c*i_rms_n*i_rms_n
+
+    p_vsc_loss = (p_loss_a + p_loss_b + p_loss_c + p_loss_n)/3
+
+    eq_p_loss = p_loss - p_vsc_loss
+    eq_i_dc_a_r = i_dc_a_r + p_dc/(v_dc_a_r-v_dc_n_r+1e-8)
+    eq_i_dc_n_r = i_dc_n_r + p_dc/(v_dc_n_r-v_dc_a_r+1e-8)
+    eq_p_dc = p_dc - p_ac - sym.Piecewise((-p_loss, p_ac > 0), (p_loss, p_ac < 0),(p_loss, True))
+
+
+    ## DAE system update
+    grid.dae['g'] += [eq_i_a_r,eq_i_a_i,
+                      eq_i_b_r,eq_i_b_i,
+                      eq_i_c_r,eq_i_c_i,
+                      eq_i_n_r,eq_i_n_i]
+    
+    grid.dae['y'] += [   i_a_r,   i_a_i,
+                         i_b_r,   i_b_i,
+                         i_c_r,   i_c_i,
+                         i_n_r,   i_n_i]
+
+    grid.dae['g'] +=  [eq_i_dc_a_r,eq_i_dc_n_r,eq_p_dc,eq_p_loss]
+    grid.dae['y'] +=  [   i_dc_a_r,   i_dc_n_r,   p_dc,   p_loss]  
+    grid.dae['u'].update({f'p_vsc_{bus_ac_name}':0.0,f'q_vsc_{bus_ac_name}':0.0}) 
+    grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
+    
+    #grid.dae['u'].pop(f'i_{bus_dc_name}_a_r')
+    #grid.dae['u'].pop(f'i_{bus_dc_name}_n_r')
+    grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
+    grid.dae['params'].update({f'coef_a_{bus_ac_name}':1/3,f'coef_b_{bus_ac_name}':1/3,f'coef_c_{bus_ac_name}':1/3})
+
+    ## Add current injections to grid equations:
+    bus_idx = grid.nodes.index(f'{bus_dc_name}.{1}')
+    g_idx = bus_idx - grid.N_nodes_v
+    grid.dae['g'][2*g_idx+0] += i_dc_a_r
+    grid.dae['g'][2*g_idx+1] += 0.0   
+
+    bus_idx = grid.nodes.index(f'{bus_dc_name}.{4}')
+    g_idx = bus_idx - grid.N_nodes_v
+    grid.dae['g'][2*g_idx+0] += i_dc_n_r
+    grid.dae['g'][2*g_idx+1] += 0.0 
     
 def ac1ph2wpq(grid,vsc_data):
     '''

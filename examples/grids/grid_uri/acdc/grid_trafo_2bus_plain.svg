@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="395.06097"
+   height="137.65192"
+   version="1.1"
+   id="svg1307"
+   sodipodi:docname="grid_trafo_2bus_plain.svg"
+   inkscape:export-filename="C:\Users\jmmau\workspace\pydae\examples\grids\grid_uri\acdc\grid_trafo_2bus_plain.png"
+   inkscape:export-xdpi="200"
+   inkscape:export-ydpi="200"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1404"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="2.9058805"
+     inkscape:cx="314.70668"
+     inkscape:cy="67.621501"
+     inkscape:window-width="1600"
+     inkscape:window-height="812"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1261"
+     lock-margins="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <defs
+     id="defs1311">
+    <rect
+       x="279.83698"
+       y="52.074009"
+       width="40.39386"
+       height="16.060209"
+       id="rect5545" />
+  </defs>
+  <g
+     fill="#000000"
+     id="g1261"
+     transform="translate(19.529556,20.843477)">
+    <rect
+       style="fill:none;stroke:none;stroke-width:0.999999;stroke-dasharray:3, 3;stop-color:#000000"
+       id="rect16238"
+       width="395.06097"
+       height="137.65192"
+       x="-19.529556"
+       y="-20.843477"
+       rx="1.14829"
+       ry="2.0705299" />
+    <text
+       id="AC1_tt"
+       x="4.5570312"
+       y="13.50625">AC1</text>
+    <text
+       id="AC2_tt"
+       x="49.308006"
+       y="13.50625">AC2</text>
+    <text
+       id="AC3_tt"
+       x="139.36954"
+       y="13.50625">AC3</text>
+    <text
+       id="AC4_tt"
+       x="229.2084"
+       y="13.50625">AC4</text>
+    <text
+       id="DC2_tt"
+       x="48.276756"
+       y="80.207008">DC2</text>
+    <text
+       id="DC4_tt"
+       x="228.17715"
+       y="81.161491">DC4</text>
+    <text
+       xml:space="preserve"
+       transform="translate(-15.4,-18.090439)"
+       id="text5543"
+       style="font-size:16px;line-height:1.25;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect5545)" />
+    <text
+       xml:space="preserve"
+       style="font-size:13.3333px;line-height:1.25;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';letter-spacing:0px;word-spacing:0px"
+       x="255.43353"
+       y="45.055382"
+       id="text8037"><tspan
+         sodipodi:role="line"
+         id="tspan8035"
+         x="255.43353"
+         y="45.055382"
+         style="font-size:13.3333px">P<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan10965">loss</tspan>=</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13.3333px;line-height:1.25;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';letter-spacing:0px;word-spacing:0px"
+       x="284.43127"
+       y="45.055382"
+       id="text8037-2"><tspan
+         sodipodi:role="line"
+         id="tspan8035-4"
+         x="284.43127"
+         y="45.055382"
+         style="font-size:13.3333px" /></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13.3333px;line-height:1.25;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';letter-spacing:0px;word-spacing:0px"
+       x="287.4342"
+       y="45.573574"
+       id="PLOSS"><tspan
+         sodipodi:role="line"
+         id="tspan18428"
+         x="287.4342"
+         y="45.573574"
+         style="font-size:13.3333px" /></text>
+  </g>
+  <g
+     transform="rotate(90,255.10304,-26.408482)"
+     stroke-width="2"
+     id="g1243">
+    <rect
+       x="323.04001"
+       y="136.36"
+       width="43.056"
+       height="22.902"
+       rx="5.6568999"
+       ry="5.6568999"
+       fill="#5cb85c"
+       stop-color="#000000"
+       style="-inkscape-stroke:none"
+       id="rect1237" />
+    <rect
+       x="349.69"
+       y="136.86"
+       width="19.256001"
+       height="22.902"
+       rx="5.6568999"
+       ry="5.6568999"
+       fill="#337ab7"
+       stop-color="#000000"
+       style="-inkscape-stroke:none"
+       id="rect1239" />
+    <rect
+       x="319.69"
+       y="136.36"
+       width="19.256001"
+       height="22.902"
+       rx="5.6568999"
+       ry="5.6568999"
+       fill="#d9534f"
+       stop-color="#000000"
+       style="-inkscape-stroke:none"
+       id="rect1241" />
+  </g>
+  <g
+     transform="rotate(90,344.51304,64.182517)"
+     stroke-width="2"
+     id="g1251">
+    <rect
+       x="323.04001"
+       y="136.36"
+       width="43.056"
+       height="22.902"
+       rx="5.6568999"
+       ry="5.6568999"
+       fill="#5cb85c"
+       stop-color="#000000"
+       style="-inkscape-stroke:none"
+       id="rect1245" />
+    <rect
+       x="349.69"
+       y="136.86"
+       width="19.256001"
+       height="22.902"
+       rx="5.6568999"
+       ry="5.6568999"
+       fill="#337ab7"
+       stop-color="#000000"
+       style="-inkscape-stroke:none"
+       id="rect1247" />
+    <rect
+       x="319.69"
+       y="136.36"
+       width="19.256001"
+       height="22.902"
+       rx="5.6568999"
+       ry="5.6568999"
+       fill="#d9534f"
+       stop-color="#000000"
+       style="-inkscape-stroke:none"
+       id="rect1249" />
+  </g>
+  <rect
+     x="24.129555"
+     y="41.230476"
+     width="15"
+     height="15"
+     id="rect1253" />
+  <g
+     stroke="#191928"
+     stroke-width="2"
+     id="g1273"
+     transform="translate(19.529556,20.843477)">
+    <line
+       id="l_AC2_AC3_a"
+       x1="56.099998"
+       x2="146.10001"
+       y1="22.886999"
+       y2="22.886999" />
+    <line
+       id="l_AC2_AC3_b"
+       x1="56.099998"
+       x2="146.10001"
+       y1="25.886999"
+       y2="25.886999" />
+    <line
+       id="l_AC2_AC3_c"
+       x1="56.099998"
+       x2="146.10001"
+       y1="28.886999"
+       y2="28.886999" />
+    <line
+       id="l_AC2_AC3_n"
+       x1="56.099998"
+       x2="146.10001"
+       y1="31.886999"
+       y2="31.886999" />
+    <line
+       id="l_AC3_AC4_a"
+       x1="146.10001"
+       x2="236.10001"
+       y1="22.886999"
+       y2="22.886999" />
+    <line
+       id="l_AC3_AC4_b"
+       x1="146.10001"
+       x2="236.10001"
+       y1="25.886999"
+       y2="25.886999" />
+    <line
+       id="l_AC3_AC4_c"
+       x1="146.10001"
+       x2="236.10001"
+       y1="28.886999"
+       y2="28.886999" />
+    <line
+       id="l_AC3_AC4_n"
+       x1="146.10001"
+       x2="236.10001"
+       y1="31.886999"
+       y2="31.886999" />
+    <line
+       id="l_DC2_DC4_a"
+       x1="56.099998"
+       x2="236.10001"
+       y1="52.887001"
+       y2="52.887001" />
+    <line
+       id="l_DC2_DC4_n"
+       x1="56.099998"
+       x2="236.10001"
+       y1="61.887001"
+       y2="61.887001" />
+  </g>
+  <rect
+     x="73.129555"
+     y="41.230476"
+     width="15"
+     height="15"
+     id="rect1275" />
+  <rect
+     x="163.12956"
+     y="41.230476"
+     width="15"
+     height="15"
+     id="rect1277" />
+  <rect
+     x="73.129555"
+     y="71.230476"
+     width="15"
+     height="15"
+     id="rect1279" />
+  <rect
+     x="253.12955"
+     y="41.230476"
+     width="15"
+     height="15"
+     id="rect1281" />
+  <rect
+     x="253.12955"
+     y="71.230476"
+     width="15"
+     height="15"
+     id="rect1283" />
+  <g
+     transform="rotate(-90,35.353517,78.476961)"
+     stroke="#000000"
+     stroke-width="2"
+     id="g1305">
+    <line
+       x1="61.099998"
+       x2="61.099998"
+       y1="107.52"
+       y2="118.75"
+       id="line1285" />
+    <line
+       x1="64.099998"
+       x2="64.099998"
+       y1="109.03"
+       y2="118.75"
+       id="line1287" />
+    <line
+       x1="67.099998"
+       x2="67.099998"
+       y1="109.03"
+       y2="118.75"
+       id="line1289" />
+    <line
+       x1="70.099998"
+       x2="70.099998"
+       y1="107.52"
+       y2="118.75"
+       id="line1291" />
+    <circle
+       cx="65.599998"
+       cy="102.31"
+       r="6.8800001"
+       fill="none"
+       stop-color="#000000"
+       style="font-variation-settings:normal;-inkscape-stroke:none"
+       id="circle1293" />
+    <circle
+       cx="65.599998"
+       cy="94.496002"
+       r="6.8800001"
+       fill="none"
+       stop-color="#000000"
+       style="font-variation-settings:normal;-inkscape-stroke:none"
+       id="circle1295" />
+    <g
+       transform="translate(-99.76,43.754)"
+       id="g1303">
+      <line
+         x1="162.36"
+         x2="162.36"
+         y1="36.532001"
+         y2="44.549999"
+         id="line1297" />
+      <line
+         x1="165.36"
+         x2="165.36"
+         y1="36.532001"
+         y2="43.862"
+         id="line1299" />
+      <line
+         x1="168.36"
+         x2="168.36"
+         y1="36.532001"
+         y2="44.549999"
+         id="line1301" />
+    </g>
+  </g>
+</svg>

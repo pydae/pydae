@@ -356,23 +356,23 @@ class pendulum_class:
  
     def report_x(self,value_format='5.2f'):
         for item in self.x_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):{value_format}}')
 
     def report_y(self,value_format='5.2f'):
         for item in self.y_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):{value_format}}')
             
     def report_u(self,value_format='5.2f'):
         for item in self.inputs_run_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} ={self.get_value(item):{value_format}}')
 
     def report_z(self,value_format='5.2f'):
         for item in self.outputs_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} = {self.get_value(item):{value_format}}')
 
     def report_params(self,value_format='5.2f'):
         for item in self.params_list:
-            print(f'{item:5s} = {self.get_value(item):5.2f}')
+            print(f'{item:5s} ={self.get_value(item):{value_format}}')
             
     def ini(self,up_dict,xy_0={}):
         '''

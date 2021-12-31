@@ -27,6 +27,9 @@ class svg():
         self.begin = ''
         self.anim_id = ''
         self.anim_i = 0
+        
+        self.V_min_pu = 0.95
+        self.V_max_pu = 1.05
 
     def set_size(self,width,height):
         self.root.attrib['width']  = f'{width}px'
@@ -39,9 +42,10 @@ class svg():
         
     def set_text(self,text_id,string):
         for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
-            if text.attrib['id'] == text_id: text_obj = text
-        for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
-            tspan.text = string
+            if text.attrib['id'] == text_id: 
+                text.text = string
+        #for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
+        #    tspan.text = string
  
     def set_title(self,text_id,string):
         for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
@@ -52,6 +56,7 @@ class svg():
     def set_rect_style(self,object_id,new_style):
         #style="fill:#337ab7"
         for rect in self.root.findall('.//{http://www.w3.org/2000/svg}rect'):
+            
             if rect.attrib['id'] == object_id: 
                 #print(rect.attrib['style'])
                 #if 'style' in rect.attrib:
@@ -75,8 +80,74 @@ class svg():
             
         if type_ == 'line':
             self.set_line_style(id_,f"stroke:#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}")
+            
+    def tostring(self):
+        self.svg_str = ET.tostring(self.root).decode()
+        return self.svg_str
+    
+    def set_grid(self,grid,grid_data):
+        self.grid=grid
         
+        if type(grid_data) == dict:
+            data = grid_data
+
+        if type(grid_data) == str:
+            data_input = open(grid_data).read().replace("'",'"')
+            data = json.loads(data_input)
+            
+        self.grid_data = data
         
+    def set_lines_currents(self):
+        
+        for line in self.grid_data['lines']:
+            #if not 'monitor'in line or not 'vsc_line' in line: continue
+            if 'monitor' in line:
+                if not line['monitor']: continue
+            if 'vsc_line' in line:
+                if not line['vsc_line']: continue
+                    
+            bus_j = line['bus_j']
+            bus_k = line['bus_k']
+
+            for ph in ['a','b','c','n']:
+
+                I_max = self.grid_data["line_codes"][line['code']]['I_max']
+                i_r = self.grid.get_value(f'i_l_{bus_j}_{bus_k}_{ph}_r') 
+                i_i = self.grid.get_value(f'i_l_{bus_j}_{bus_k}_{ph}_i') 
+                i = i_r + 1j*i_i
+                i_abs = np.abs(i)
+                #print(f'l_{bus_j}_{bus_k}_{ph} = {i_abs:8.1f} A')
+                if i_abs < 1e-3: continue
+                i_sat = np.clip((i_abs/I_max)**2*255,0,255)
+                self.set_color('line',f'l_{bus_j}_{bus_k}_{ph}',(int(i_sat),0,0))
+
+    def set_buses_voltages(self):
+
+        for bus in self.grid_data['buses']:
+            v_r = self.grid.get_value(f'v_{bus["bus"]}_a_r') 
+            v_i = self.grid.get_value(f'v_{bus["bus"]}_a_i') 
+            v = v_r + 1j*v_i
+            v_abs = np.abs(v)
+            V_med_pu= 0.5*(self.V_max_pu + self.V_min_pu)
+            if 'acdc' in bus:
+                if bus['acdc'] == 'DC':
+                    V_nom = bus['U_kV']*1000
+                if bus['acdc'] == 'AC':
+                    V_nom = bus['U_kV']/np.sqrt(3)*1000   
+            else:
+                V_nom = bus['U_kV']/np.sqrt(3)*1000   
+                
+            V_pu = v_abs/V_nom
+            
+            
+            # when V_pu = V_med_pu color = 0, when V_pu = V_max_pu color = 255 (red)
+            # when V_pu = V_med_pu color = 0, when V_pu = V_min_pu color = 255 (blue)
+            if V_pu < V_med_pu:
+                blue = np.clip(255*((V_pu - V_med_pu)/(self.V_min_pu - V_med_pu))**2,0,255)
+                self.set_color('rect',f'{bus["bus"]}',(0,0,int(blue)))  
+            if V_pu > V_med_pu:
+                red  = np.clip(255*((V_pu - V_med_pu)/(self.V_max_pu - V_med_pu))**2,0,255)
+                self.set_color('rect',f'{bus["bus"]}',(int(red),0,0)) 
             
 class animatesvg():
     
@@ -228,9 +299,34 @@ class animatesvg():
     
     
 def grid2svg(input_json,output_svg):
+    '''
     
-    json_data = open(input_json).read().replace("'",'"')
-    data = json.loads(json_data)
+
+    Parameters
+    ----------
+    input_json : if string name of the file containing the grid data.
+                 if dict, a dictionary with the grid data.
+    
+    output_svg : string
+        path for the output SVG file.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+
+    if type(input_json) == dict:
+        data = input_json
+        
+    if type(input_json) == str:
+        json_data = open(input_json).read().replace("'",'"')
+        data = json.loads(json_data)
+                
+                
+                
+    
 
     dwg = svgwrite.Drawing(output_svg, profile='full', size=(640, 800))
 
@@ -299,3 +395,70 @@ def grid2svg(input_json,output_svg):
 
 
     dwg.save()
+    
+    
+def results2svg(grid,data_input,svg_input,svg_output):
+    
+    
+    if type(data_input) == dict:
+        data = data_input
+        
+    if type(data_input) == str:
+        data_input = open(data_input).read().replace("'",'"')
+        data = json.loads(data_input)
+
+    svg_new = svg(svg_input)
+
+    buses = data['buses']
+    lines = data['lines']
+
+    trafos = data['transformers']
+
+    for line in lines:
+        #if not 'monitor'in line or not 'vsc_line' in line: continue
+        if 'monitor' in line:
+            if not line['monitor']: continue
+        if 'vsc_line' in line:
+            if not line['vsc_line']: continue
+        bus_j = line['bus_j']
+        bus_k = line['bus_k']
+
+        for ph in ['a','b','c','n']:
+
+            I_max = data["line_codes"][line['code']]['I_max']
+            i_r = grid.get_value(f'i_l_{bus_j}_{bus_k}_{ph}_r') 
+            i_i = grid.get_value(f'i_l_{bus_j}_{bus_k}_{ph}_i') 
+            i = i_r + 1j*i_i
+            i_abs = np.abs(i)
+            #print(f'l_{bus_j}_{bus_k}_{ph} = {i_abs:8.1f} A')
+            if i_abs < 1e-3: continue
+            i_sat = np.clip(i_abs**2/I_max**2*255,0,255)
+            svg_new.set_color('line',f'l_{bus_j}_{bus_k}_{ph}',(int(i_sat),0,0))
+
+    for bus in buses:
+        #if not 'monitor'in line or not 'vsc_line' in line: continue
+
+        
+        U_nom  = bus['U_kV']
+        v_r = grid.get_value(f'v_{bus["bus"]}_a_r') 
+        v_i = grid.get_value(f'v_{bus["bus"]}_a_i') 
+        v = v_r + 1j*v_i
+        v_abs = np.abs(v)
+        #print(f'l_{bus_j}_{bus_k}_{ph} = {i_abs:8.1f} A')
+        if 'acdc' in bus:
+            if bus['acdc'] == 'DC':
+                red  = np.clip(((v_abs/(1e3*U_nom))**2-1)*255,0,255)
+                blue = np.clip(3*(1-(v_abs/(1e3*U_nom))**2)*255,0,255)
+                svg_new.set_color('rect',f'{bus["bus"]}',(int(red),0,int(blue)))  
+            if bus['acdc'] == 'AC':
+                red  = np.clip(((np.sqrt(3)*v_abs/(1e3*U_nom))**2-1)*255,0,255)
+                blue = np.clip(3*(1-(np.sqrt(3)*v_abs/(1e3*U_nom))**2)*255,0,255)
+                svg_new.set_color('rect',f'{bus["bus"]}',(int(red),0,int(blue)))  
+        else:
+            red  = np.clip(((np.sqrt(3)*v_abs/(1e3*U_nom))**2-1)*255,0,255)
+            blue = np.clip(3*(1-(np.sqrt(3)*v_abs/(1e3*U_nom))**2)*255,0,255)
+            svg_new.set_color('rect',f'{bus["bus"]}',(int(red),0,int(blue)))
+
+    svg_new.save(svg_output)
+    
+    return svg_new

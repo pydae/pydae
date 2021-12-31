@@ -1212,6 +1212,7 @@ class bpu:
         v_u_ref = sym.Symbol(f"v_u_ref_{name}", real=True) 
         omega_ref = sym.Symbol(f"omega_ref_{name}", real=True) 
         ramp_p_gin = sym.Symbol(f"ramp_p_gin_{name}", real=True) 
+        p_ref = sym.Symbol(f"p_ref_{name}", real=True)  
                       
         # dynamic states
         delta = sym.Symbol(f"delta_{name}", real=True)
@@ -1234,6 +1235,7 @@ class bpu:
         p_m = sym.Symbol(f"p_m_{name}", real=True)
         p_t = sym.Symbol(f"p_t_{name}", real=True)
         p_u = sym.Symbol(f"p_u_{name}", real=True)
+        p_u_ref = sym.Symbol(f"p_u_ref_{name}", real=True)
         v_u = sym.Symbol(f"v_u_{name}", real=True)
         k_u = sym.Symbol(f"k_u_{name}", real=True)
         p_gou = sym.Symbol(f"p_gou_{name}", real=True)
@@ -1252,6 +1254,7 @@ class bpu:
         X_v = sym.Symbol(f"X_v_{name}", real=True)
         R_v = sym.Symbol(f"R_v_{name}", real=True)
         R_s = sym.Symbol(f"R_s_{name}", real=True)
+        R_p = sym.Symbol(f"R_p_{name}", real=True)
         C_u = sym.Symbol(f"C_u_{name}", real=True)
         K_u_0 = sym.Symbol(f"K_u_0_{name}", real=True)
         K_u_max = sym.Symbol(f"K_u_max_{name}", real=True)
@@ -1274,7 +1277,7 @@ class bpu:
         K_speed = sym.Symbol(f"K_speed_{name}", real=True)
        
         params_list = ['S_n','Omega_b','K_p','T_p','K_q','T_q',
-                       'X_v','R_v','R_s','C_u','K_u_0',
+                       'X_v','R_v','R_s','C_u','K_u_0','R_p',
                        'K_u_max','V_u_min','V_u_max','R_uc','K_h','R_lim',
                        'V_u_lt','V_u_ht','Droop','DB','T_cur'
                       ]
@@ -1299,6 +1302,7 @@ class bpu:
         v_Dh =  V*sin(theta) 
         v_dl = v_Dh*cos(theta_pll) - v_Qh*sin(theta_pll)
         omega_f = K_speed*omega_pll + (1-K_speed)*omega 
+        p_u = i_u*v_u
         #p_fpfr = K_fpfr*(p_f - ((p_g_ref + p_f)*k_cur-p_ghr))
 
         # dynamic equations            
@@ -1319,11 +1323,11 @@ class bpu:
         g_e_qv = -e_qv   + K_q*(epsilon_q + xi_q/T_q)
         g_i_d  = -R_v*i_d + X_v*i_q - v_d + e_dv 
         g_i_q  = -R_v*i_q - X_v*i_d - v_q + e_qv
-        g_p_s  = i_d*v_d + i_q*v_q - p_s  
+        g_p_s  = i_d*v_d + i_q*v_q - (v_d**2 + v_q**2)/R_p- p_s  
         g_q_s  = i_d*v_q - i_q*v_d - q_s 
-        g_p_m  = -p_m + p_ghr + p_u - p_l + p_fpfr
+        g_p_m  = -p_m + p_ghr + p_u_ref - p_l + p_fpfr + p_ref
         g_p_t  = -p_t + i_d*(v_d + R_s*i_d) + i_q*(v_q + R_s*i_q)
-        g_p_u  = -p_u - k_u*(v_u_ref**2 - v_u**2)/V_u_max**2
+        g_p_u_ref  = -p_u_ref - k_u*(v_u_ref**2 - v_u**2)/V_u_max**2
         g_v_u  = -v_u + e_u + R_uc*i_u   
         g_k_u  = -k_u + sym.Piecewise((K_u_max,v_u<V_u_min),
                                       ((K_u_max-K_u_0)*(v_u-V_u_lt)/(V_u_min-V_u_lt)+K_u_0,v_u<V_u_lt),
@@ -1345,8 +1349,8 @@ class bpu:
         # dae 
         f_vsg = [ddelta,dxi_p,dxi_q,de_u,dp_ghr,dk_cur,dinc_p_gin,dtheta_pll,dxi_pll]
         x_vsg = [ delta, xi_p, xi_q, e_u, p_ghr, k_cur, inc_p_gin, theta_pll, xi_pll]
-        g_vsg = [g_omega,g_e_qv,g_i_d,g_i_q,g_p_s,g_q_s,g_p_m,g_p_t,g_p_u,g_v_u,g_k_u,g_k_cur_sat,g_p_gou,g_p_f,g_r_lim,g_omega_pll]
-        y_vsg = [  omega,  e_qv,  i_d,  i_q,  p_s,  q_s,  p_m,  p_t,  p_u,  v_u,  k_u,  k_cur_sat,  p_gou,  p_f,  r_lim,  omega_pll]
+        g_vsg = [g_omega,g_e_qv,g_i_d,g_i_q,g_p_s,g_q_s,g_p_m,g_p_t,g_p_u_ref,g_v_u,g_k_u,g_k_cur_sat,g_p_gou,g_p_f,g_r_lim,g_omega_pll]
+        y_vsg = [  omega,  e_qv,  i_d,  i_q,  p_s,  q_s,  p_m,  p_t,  p_u_ref,  v_u,  k_u,  k_cur_sat,  p_gou,  p_f,  r_lim,  omega_pll]
         
         # T_p = K_p*2*H
         H = T_p/(2*K_p)
@@ -1383,6 +1387,10 @@ class bpu:
 
         self.dae['u_ini_dict'].update({f'{str(ramp_p_gin)}':0.0})
         self.dae['u_run_dict'].update({f'{str(ramp_p_gin)}':0.0})
+
+        self.dae['u_ini_dict'].update({f'{str(p_ref)}':0.0})
+        self.dae['u_run_dict'].update({f'{str(p_ref)}':0.0})
+        
         
         # initial guess (experimental)
         self.dae['xy_0_dict'].update({str(omega):1.0})
@@ -1401,6 +1409,7 @@ class bpu:
         self.dae['h_dict'].update({f"soc_{name}":soc})
         self.dae['h_dict'].update({f"p_fpfr_{name}":p_fpfr})
         self.dae['h_dict'].update({f"p_f_sat_{name}":p_f_sat})
+        self.dae['h_dict'].update({f"p_u_{name}":p_u})
         
         for item in params_list:       
             self.dae['params_dict'].update({f"{item}_{name}":vsg_data[item]})
