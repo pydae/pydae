@@ -30,6 +30,8 @@ class svg():
         
         self.V_min_pu = 0.95
         self.V_max_pu = 1.05
+        
+        self.post_data = {}
 
     def set_size(self,width,height):
         self.root.attrib['width']  = f'{width}px'
@@ -122,6 +124,17 @@ class svg():
                 self.set_color('line',f'l_{bus_j}_{bus_k}_{ph}',(int(i_sat),0,0))
 
     def set_buses_voltages(self):
+        
+        v_ac_min = 20e6
+        min_dc_voltage = 20e6
+        min_n_ac_voltage = 20e6
+        min_n_dc_voltage = 20e6    
+        
+        v_ac_max = 0
+        max_dc_voltage = 0
+        max_n_ac_voltage = 0
+        max_n_dc_voltage = 0  
+
 
         for bus in self.grid_data['buses']:
             v_r = self.grid.get_value(f'v_{bus["bus"]}_a_r') 
@@ -129,16 +142,19 @@ class svg():
             v = v_r + 1j*v_i
             v_abs = np.abs(v)
             V_med_pu= 0.5*(self.V_max_pu + self.V_min_pu)
+            acdc = 'ac'
             if 'acdc' in bus:
                 if bus['acdc'] == 'DC':
                     V_nom = bus['U_kV']*1000
+                    acdc = 'dc'
                 if bus['acdc'] == 'AC':
-                    V_nom = bus['U_kV']/np.sqrt(3)*1000   
+                    V_nom = bus['U_kV']/np.sqrt(3)*1000  
+                    acdc = 'ac'
             else:
-                V_nom = bus['U_kV']/np.sqrt(3)*1000   
+                V_nom = bus['U_kV']/np.sqrt(3)*1000 
+                acdc = 'ac'
                 
             V_pu = v_abs/V_nom
-            
             
             # when V_pu = V_med_pu color = 0, when V_pu = V_max_pu color = 255 (red)
             # when V_pu = V_med_pu color = 0, when V_pu = V_min_pu color = 255 (blue)
@@ -148,6 +164,15 @@ class svg():
             if V_pu > V_med_pu:
                 red  = np.clip(255*((V_pu - V_med_pu)/(self.V_max_pu - V_med_pu))**2,0,255)
                 self.set_color('rect',f'{bus["bus"]}',(int(red),0,0)) 
+            
+            if acdc == 'ac':
+                if V_pu < v_ac_min:
+                    self.post_data.update({'v_ac_min':{'bus':bus['bus'],'value':V_pu}})
+                    v_ac_min = V_pu
+                if V_pu > v_ac_max:
+                    self.post_data.update({'v_ac_max':{'bus':bus['bus'],'value':V_pu}})
+                    v_ac_max = V_pu                
+                
             
 class animatesvg():
     

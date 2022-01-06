@@ -1184,3 +1184,61 @@ def report_v(grid,data_input,model='urisi'):
         
             print(f"V_{bus['bus']}_{ph}n: {v_m:8.1f} V")
         print(f"  V_{bus['bus']}_ng: {np.abs(v_n):8.1f} V")
+        
+        
+def report_trafos(grid,data_input,model='urisi'):
+    '''
+    
+
+    Parameters
+    ----------
+    grid : pydae object
+        Pydae object modelling a grid.
+    data_input : if dict, a dictionary with the grid parameters
+                 if string, the path to the .json file containing grid parameters
+
+    model : string, optional
+        Type of implemented model. The default is 'urisi'.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    
+    if type(data_input) == dict:
+        data = data_input
+        
+    if type(data_input) == str:
+        data_input = open(data_input).read().replace("'",'"')
+        data = json.loads(data_input)
+        
+    for trafo in data['transformers']:
+        
+        bus_j_name = trafo['bus_j']
+        bus_k_name = trafo['bus_k']
+        
+        for ph in ['a','b','c']:
+            i_r,i_i = grid.get_mvalue([f"i_t_{bus_j_name}_{bus_k_name}_1_{ph}_r",
+                                       f"i_t_{bus_j_name}_{bus_k_name}_1_{ph}_i"])
+            i_1 = i_r + 1j*i_i
+            i_m = np.abs(i_1)
+            phi = np.arctan2(i_i,i_r)
+            print(f"I_1_{ph}: {i_m:8.1f} |{np.rad2deg(phi):6.1f}º A")
+            
+        for ph in ['a','b','c']:
+            i_r,i_i = grid.get_mvalue([f"i_t_{bus_j_name}_{bus_k_name}_2_{ph}_r",
+                                       f"i_t_{bus_j_name}_{bus_k_name}_2_{ph}_i"])
+            i_1 = i_r + 1j*i_i
+            i_m = np.abs(i_1)
+            phi = np.arctan2(i_i,i_r)
+            print(f"I_2_{ph}: {i_m:8.1f} |{np.rad2deg(phi):6.1f}º A")
+            
+        if f"i_t_{bus_j_name}_{bus_k_name}_2_n_r" in grid.outputs_list:
+            i_r,i_i = grid.get_mvalue([f"i_t_{bus_j_name}_{bus_k_name}_2_n_r",
+                                       f"i_t_{bus_j_name}_{bus_k_name}_2_n_i"])
+            i_1 = i_r + 1j*i_i
+            i_m = np.abs(i_1)
+            phi = np.arctan2(i_i,i_r)            
+            print(f"I_2_n: {i_m:8.1f} |{np.rad2deg(phi):6.1f}º A")

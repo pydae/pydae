@@ -20,6 +20,8 @@ def unb_ri_si(data):
         for vsc in pydgrid_obj.data['vscs']:
             if vsc['type'] == 'ac3ph3wvdcq':
                 ac3ph3wvdcq(pydgrid_obj,vsc)
+            if vsc['type'] == 'ac3ph4wvdcq':
+                ac3ph4wvdcq(pydgrid_obj,vsc)
             if vsc['type'] == 'ac3ph3wpq':
                 ac3ph3wpq(pydgrid_obj,vsc)
             if vsc['type'] == 'ac3ph4wpq':
@@ -111,7 +113,7 @@ def urisi2dae(grid):
         i_list_str += [str(i_real),str(i_imag)]
 
         v_num_list += [V_node[inode].real[0],V_node[inode].imag[0]]
-        i_num_list += [I_node[inode].real[0],I_node[inode].imag[0]]
+        i_num_list += [0*I_node[inode].real[0],0*I_node[inode].imag[0]] # currents set to 0 because loads will inject currents
 
         V_node_sym_list += [v_real+sym.I*v_imag]
         I_node_sym_list += [i_real+sym.I*i_imag]
@@ -185,10 +187,14 @@ def urisi2dae(grid):
     else:
         V_results = sym.Matrix([[V_known_sym],[V_unknown_sym]])
     I_lines = Y_primitive @ A_matrix.T @ V_results
+    
     it_single_line = 0
     
     for trafo in grid.transformers:
-        
+
+        bus_j_name = trafo['bus_j']
+        bus_k_name = trafo['bus_k']
+
         if 'conductors_j' in trafo: 
             cond_1 = trafo['conductors_j']
         else:
@@ -197,52 +203,77 @@ def urisi2dae(grid):
             cond_2 = trafo['conductors_k']
         else:
             cond_2 = trafo['conductors_2']  
-        
-        I_1a = (I_lines[it_single_line,0])
-        I_1b = (I_lines[it_single_line+1,0])
-        I_1c = (I_lines[it_single_line+2,0])
-        I_1n = (I_lines[it_single_line+3,0])
-        
-        I_2a = (I_lines[it_single_line+cond_1+0,0])
-        I_2b = (I_lines[it_single_line+cond_1+1,0])
-        I_2c = (I_lines[it_single_line+cond_1+2,0])
-
-        if cond_1>3: I_1n = (I_lines[it_single_line+cond_1+3,0])
-        if cond_2>3: I_2n = (I_lines[it_single_line+cond_2+3,0])
-
-        #I_n = (I_lines[it_single_line+3,0])
-        if cond_1 <=3:
-            I_1n = I_1a+I_1b+I_1c
-        if cond_2 <=3:
-            I_2n = I_2a+I_2b+I_2c
-            
-        
-        
+                   
         if 'monitor' in trafo:
             if trafo['monitor']:
-                           
-                bus_j_name = trafo['bus_j']
-                bus_k_name = trafo['bus_k']
-                i_t_a_r = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_a_r")
-                i_t_a_i = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_a_i")
-                i_t_b_r = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_b_r")
-                i_t_b_i = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_b_i")
-                i_t_c_r = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_c_r")
-                i_t_c_i = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_c_i")
-                g_list += [-i_t_a_r + sym.re(I_lines[it_single_line+0,0])]
-                g_list += [-i_t_a_i + sym.im(I_lines[it_single_line+0,0])]
-                g_list += [-i_t_b_r + sym.re(I_lines[it_single_line+1,0])]
-                g_list += [-i_t_b_i + sym.im(I_lines[it_single_line+1,0])]
-                g_list += [-i_t_c_r + sym.re(I_lines[it_single_line+2,0])]
-                g_list += [-i_t_c_i + sym.im(I_lines[it_single_line+2,0])]
-                y_list += [i_t_a_r]
-                y_list += [i_t_a_i]
-                y_list += [i_t_b_r]
-                y_list += [i_t_b_i]
-                y_list += [i_t_c_r]
-                y_list += [i_t_c_i] 
+                
+                I_1a = (I_lines[it_single_line+0,0])
+                I_1b = (I_lines[it_single_line+1,0])
+                I_1c = (I_lines[it_single_line+2,0])
+                
+                I_2a = (I_lines[it_single_line+cond_1+0,0])
+                I_2b = (I_lines[it_single_line+cond_1+1,0])
+                I_2c = (I_lines[it_single_line+cond_1+2,0])
+        
+                # if cond_1>3: I_1n = (I_lines[it_single_line+cond_1+3,0])
+                # if cond_2>3: I_2n = (I_lines[it_single_line+cond_2+3,0])
+        
+                # #I_n = (I_lines[it_single_line+3,0])
+                # if cond_1 <=3:
+                #     I_1n = I_1a+I_1b+I_1c
+                # if cond_2 <=3:
+                #     I_2n = I_2a+I_2b+I_2c
+                    
+                    
+                h_dict.update({f"i_t_{bus_j_name}_{bus_k_name}_1_a_r":sym.re(I_1a),
+                               f"i_t_{bus_j_name}_{bus_k_name}_1_a_i":sym.im(I_1a),
+                               f"i_t_{bus_j_name}_{bus_k_name}_1_b_r":sym.re(I_1b),
+                               f"i_t_{bus_j_name}_{bus_k_name}_1_b_i":sym.im(I_1b),
+                               f"i_t_{bus_j_name}_{bus_k_name}_1_c_r":sym.re(I_1c),
+                               f"i_t_{bus_j_name}_{bus_k_name}_1_c_i":sym.im(I_1c)})
+                
+                if cond_1>3: 
+                    I_1n = (I_lines[it_single_line+cond_1,0])
+                    h_dict.update({f"i_t_{bus_j_name}_{bus_k_name}_1_n_r":sym.re(I_1n),
+                                   f"i_t_{bus_j_name}_{bus_k_name}_1_n_i":sym.im(I_1n)})
+                    
+                h_dict.update({f"i_t_{bus_j_name}_{bus_k_name}_2_a_r":sym.re(I_2a),
+                               f"i_t_{bus_j_name}_{bus_k_name}_2_a_i":sym.im(I_2a),
+                               f"i_t_{bus_j_name}_{bus_k_name}_2_b_r":sym.re(I_2b),
+                               f"i_t_{bus_j_name}_{bus_k_name}_2_b_i":sym.im(I_2b),
+                               f"i_t_{bus_j_name}_{bus_k_name}_2_c_r":sym.re(I_2c),
+                               f"i_t_{bus_j_name}_{bus_k_name}_2_c_i":sym.im(I_2c)})
+    
+                if cond_2>3: 
+                    I_2n = (I_lines[it_single_line+cond_1+cond_2-1,0])
+                    h_dict.update({f"i_t_{bus_j_name}_{bus_k_name}_2_n_r":sym.re(I_2n),
+                                   f"i_t_{bus_j_name}_{bus_k_name}_2_n_i":sym.im(I_2n)})  
                 
         it_single_line += cond_1 + cond_2
+        
+        
+
+                           
+
+                # i_t_a_r = f"i_t_{bus_j_name}_{bus_k_name}_a_r"
+                # i_t_a_i = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_a_i")
+                # i_t_b_r = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_b_r")
+                # i_t_b_i = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_b_i")
+                # i_t_c_r = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_c_r")
+                # i_t_c_i = sym.Symbol(f"i_t_{bus_j_name}_{bus_k_name}_c_i")
+                # h_dic += [-i_t_a_r + sym.re(I_lines[it_single_line+0,0])]
+                # g_list += [-i_t_a_i + sym.im(I_lines[it_single_line+0,0])]
+                # g_list += [-i_t_b_r + sym.re(I_lines[it_single_line+1,0])]
+                # g_list += [-i_t_b_i + sym.im(I_lines[it_single_line+1,0])]
+                # g_list += [-i_t_c_r + sym.re(I_lines[it_single_line+2,0])]
+                # g_list += [-i_t_c_i + sym.im(I_lines[it_single_line+2,0])]
+                # y_list += [i_t_a_r]
+                # y_list += [i_t_a_i]
+                # y_list += [i_t_b_r]
+                # y_list += [i_t_b_i]
+                # y_list += [i_t_c_r]
+                # y_list += [i_t_c_i] 
+                
         
     for line in lines:
         N_conductors = len(line['bus_j_nodes'])
@@ -455,12 +486,12 @@ def urisi2dae(grid):
             s = s_a + s_b + s_c
             p_a,p_b,p_c = sym.symbols(f'p_load_{bus_name}_a,p_load_{bus_name}_b,p_load_{bus_name}_c', real=True)
             q_a,q_b,q_c = sym.symbols(f'q_load_{bus_name}_a,q_load_{bus_name}_b,q_load_{bus_name}_c', real=True)
-            g_list += [-p_a + sym.re(s_a)]
-            g_list += [-p_b + sym.re(s_b)]
-            g_list += [-p_c + sym.re(s_c)]
-            g_list += [-q_a + sym.im(s_a)]
-            g_list += [-q_b + sym.im(s_b)]
-            g_list += [-q_c + sym.im(s_c)]
+            g_list += [p_a + sym.re(s_a)]
+            g_list += [p_b + sym.re(s_b)]
+            g_list += [p_c + sym.re(s_c)]
+            g_list += [q_a + sym.im(s_a)]
+            g_list += [q_b + sym.im(s_b)]
+            g_list += [q_c + sym.im(s_c)]
 
             g_list += [sym.re(i_a+i_b+i_c+i_n)]
             g_list += [sym.im(i_a+i_b+i_c+i_n)]
@@ -757,7 +788,7 @@ def ac3ph3wvdcq(grid,vsc_data):
         grid.dae['g'][2*g_idx+0] += i_abc_list[2*(itg-1)  ]
         grid.dae['g'][2*g_idx+1] += i_abc_list[2*(itg-1)+1]
     
-    a,b,c = sym.symbols(f'a_{bus_ac_name},b_{bus_ac_name},c_{bus_ac_name}',real=True)
+    a,b,c,K_dc = sym.symbols(f'a_{bus_ac_name},b_{bus_ac_name},c_{bus_ac_name},K_dc_{bus_dc_name}',real=True)
     i_rms = sym.sqrt(i_a_r**2+i_a_i**2+0.1) 
     p_simple = a + b*i_rms + c*i_rms*i_rms
 
@@ -771,7 +802,7 @@ def ac3ph3wvdcq(grid,vsc_data):
     eq_p_loss = p_loss - p_vsc_loss
     eq_p_ac = p_ac + p_dc + sym.Piecewise((-p_loss, p_dc < 0), (p_loss, p_dc > 0),(p_loss, True))    
     eq_p_dc = -p_dc + i_l_a_r * v_dc_a_r + i_l_n_r * v_dc_n_r    
-    eq_v_dc_a_r = -v_dc_a_r + v_dc_ref + v_dc_n_r
+    eq_v_dc_a_r = -v_dc_a_r + v_dc_ref + v_dc_n_r - K_dc * p_dc
     
        
     grid.dae['g'] +=  [eq_p_ac,eq_p_dc, eq_p_loss, eq_v_dc_a_r]
@@ -779,9 +810,148 @@ def ac3ph3wvdcq(grid,vsc_data):
     grid.dae['u'].update({f'v_dc_{bus_dc_name}':800.0,f'q_vsc_{bus_ac_name}':0.0}) 
     grid.dae['u'].pop(str(v_dc_a_r))
     grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
+    grid.dae['params'].update({f'K_dc_{bus_dc_name}':1e-6})
 
     grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
 
+def ac3ph4wvdcq(grid,vsc_data):
+    '''
+    Converter type v_dc,q_ac 3 phase 4 wire
+    
+    '''
+    
+    bus_ac_name = vsc_data['bus_ac']
+    bus_dc_name = vsc_data['bus_dc']  
+    to_bus_dc_name = vsc_data['to_bus_dc']  
+    
+    a_value  = vsc_data['a']   
+    b_value  = vsc_data['b']   
+    c_value  = vsc_data['c']   
+    
+   
+    ### AC-side
+    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
+    p_a_d,p_b_d,p_c_d,p_n_d = sym.symbols(f'p_a_d_{bus_ac_name},p_b_d_{bus_ac_name},p_c_d_{bus_ac_name},p_n_d_{bus_ac_name}',real=True)
+    C_a,C_b,C_c = sym.symbols(f'C_a_{bus_ac_name},C_b_{bus_ac_name},C_c_{bus_ac_name}',real=True)
+   
+    #### AC voltages:
+    v_a_r,v_a_i = sym.symbols(f'v_{bus_ac_name}_a_r,v_{bus_ac_name}_a_i',real=True)
+    v_b_r,v_b_i = sym.symbols(f'v_{bus_ac_name}_b_r,v_{bus_ac_name}_b_i',real=True)
+    v_c_r,v_c_i = sym.symbols(f'v_{bus_ac_name}_c_r,v_{bus_ac_name}_c_i',real=True)
+    v_n_r,v_n_i = sym.symbols(f'v_{bus_ac_name}_n_r,v_{bus_ac_name}_n_i',real=True)
+    
+    #### AC currents:
+    i_a_r,i_a_i = sym.symbols(f'i_vsc_{bus_ac_name}_a_r,i_vsc_{bus_ac_name}_a_i',real=True)
+    i_b_r,i_b_i = sym.symbols(f'i_vsc_{bus_ac_name}_b_r,i_vsc_{bus_ac_name}_b_i',real=True)
+    i_c_r,i_c_i = sym.symbols(f'i_vsc_{bus_ac_name}_c_r,i_vsc_{bus_ac_name}_c_i',real=True)
+    i_n_r,i_n_i = sym.symbols(f'i_vsc_{bus_ac_name}_n_r,i_vsc_{bus_ac_name}_n_i',real=True)
+    
+    # DC line current for computing DC power
+    i_l_a_r,i_l_n_r = sym.symbols(f'i_l_{bus_dc_name}_{to_bus_dc_name}_a_r,i_l_{bus_dc_name}_{to_bus_dc_name}_n_r', real = True)   
+    v_dc_a_r,v_dc_n_r  = sym.symbols(f'v_{bus_dc_name}_a_r,v_{bus_dc_name}_n_r', real = True) 
+    v_dc_ref  = sym.Symbol(f'v_dc_{bus_dc_name}', real = True) 
+
+    a,b,c,K_dc = sym.symbols(f'a_{bus_ac_name},b_{bus_ac_name},c_{bus_ac_name},K_dc_{bus_dc_name}',real=True)
+    
+    i_a_rms = sym.sqrt(i_a_r**2+i_a_i**2 + 0.01) 
+    i_b_rms = sym.sqrt(i_b_r**2+i_b_i**2+ 0.01) 
+    i_c_rms = sym.sqrt(i_c_r**2+i_c_i**2+ 0.01) 
+    i_n_rms = sym.sqrt(i_n_r**2+i_n_i**2+ 0.01) 
+
+
+    p_loss_a_ = a + b*i_a_rms + c*i_a_rms*i_a_rms
+    p_loss_b_ = a + b*i_b_rms + c*i_b_rms*i_b_rms
+    p_loss_c_ = a + b*i_c_rms + c*i_c_rms*i_c_rms
+    p_loss_n_ = a + b*i_n_rms + c*i_n_rms*i_n_rms
+      
+    
+
+    v_a = v_a_r + 1j*v_a_i
+    v_b = v_b_r + 1j*v_b_i
+    v_c = v_c_r + 1j*v_c_i
+    v_n = v_n_r + 1j*v_n_i
+
+    i_a = i_a_r + 1j*i_a_i
+    i_b = i_b_r + 1j*i_b_i
+    i_c = i_c_r + 1j*i_c_i
+    i_n = i_n_r + 1j*i_n_i
+
+
+    s_a = (v_a - v_n) * sym.conjugate(i_a)
+    s_b = (v_b - v_n) * sym.conjugate(i_b)
+    s_c = (v_c - v_n) * sym.conjugate(i_c)
+    s_n = (v_n)* sym.conjugate(i_n)
+    
+    
+    eq_p_a_d =  C_a*p_dc - p_a_d 
+    eq_p_b_d =  C_b*p_dc - p_b_d
+    eq_p_c_d =  C_c*p_dc - p_c_d
+    eq_p_n_d =  sym.re(s_n) - p_n_d
+    
+    p_loss_a = sym.Piecewise((-p_loss_a_, p_a_d < 0), (p_loss_a_, p_a_d > 0),(p_loss_a_, True))
+    p_loss_b = sym.Piecewise((-p_loss_b_, p_b_d < 0), (p_loss_b_, p_b_d > 0),(p_loss_b_, True))
+    p_loss_c = sym.Piecewise((-p_loss_c_, p_c_d < 0), (p_loss_c_, p_c_d > 0),(p_loss_c_, True))
+    p_loss_n = sym.Piecewise((-p_loss_n_, p_n_d < 0), (p_loss_n_, p_n_d > 0),(p_loss_n_, True))
+
+    eq_i_a_r =  sym.re(s_a) - p_a_d + p_loss_a_ + p_loss_n_
+    eq_i_b_r =  sym.re(s_b) - p_b_d + p_loss_b_
+    eq_i_c_r =  sym.re(s_c) - p_c_d + p_loss_c_
+    eq_i_a_i =  sym.im(s_a) - C_a*q_ac
+    eq_i_b_i =  sym.im(s_b) - C_b*q_ac
+    eq_i_c_i =  sym.im(s_c) - C_c*q_ac
+    
+    eq_i_n_r = -i_n_r + i_a_r + i_b_r + i_c_r
+    eq_i_n_i = -i_n_i + i_a_i + i_b_i + i_c_i
+   
+    eq_p_dc = p_dc + i_l_a_r * v_dc_a_r + i_l_n_r * v_dc_n_r    
+    eq_v_dc_a_r = -v_dc_a_r + v_dc_ref + v_dc_n_r - K_dc * p_dc
+
+
+    grid.dae['g'] += [eq_p_a_d,
+                      eq_p_b_d,
+                      eq_p_c_d,
+                      eq_p_n_d,
+                      eq_i_a_r,eq_i_a_i,
+                      eq_i_b_r,eq_i_b_i,
+                      eq_i_c_r,eq_i_c_i,
+                      eq_i_n_r,eq_i_n_i,
+                      eq_p_dc,
+                      eq_v_dc_a_r
+                      ]
+    
+    grid.dae['y'] += [p_a_d,
+                      p_b_d,
+                      p_c_d,
+                      p_n_d,
+                      i_a_r,   i_a_i,
+                      i_b_r,   i_b_i,
+                      i_c_r,   i_c_i,
+                      i_n_r,   i_n_i,
+                      p_dc,
+                      v_dc_a_r]
+    
+    i_abc_list  = [i_a_r,i_a_i,i_b_r,i_b_i,i_c_r,i_c_i]
+    for itg in [1,2,3]:
+        bus_idx = grid.nodes.index(f'{bus_ac_name}.{itg}')
+        g_idx = bus_idx - grid.N_nodes_v
+        grid.dae['g'][2*g_idx+0] += i_abc_list[2*(itg-1)  ]
+        grid.dae['g'][2*g_idx+1] += i_abc_list[2*(itg-1)+1]
+    
+
+    
+      
+    grid.dae['u'].update({f'v_dc_{bus_dc_name}':800.0,f'q_vsc_{bus_ac_name}':0.0}) 
+    grid.dae['u'].pop(str(v_dc_a_r))
+    grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
+    grid.dae['params'].update({f'C_a_{bus_ac_name}':1/3,f'C_b_{bus_ac_name}':1/3,f'C_c_{bus_ac_name}':1/3})
+    grid.dae['params'].update({f'K_dc_{bus_dc_name}':1e-6})
+
+    grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
+    
+    grid.dae['h_dict'].update({f'p_ac_{bus_ac_name}':sym.re(s_a)+sym.re(s_b)+sym.re(s_c)+sym.re(s_n)})
+    grid.dae['h_dict'].update({f'p_loss_{bus_ac_name}':(p_loss_a_+p_loss_b_+p_loss_c_+p_loss_n_)})
+    
+    
 def ac3ph3wpq(grid,vsc_data):
     '''
     Converter type p_ac,q_ac 3 phase 3 wire
@@ -955,22 +1125,22 @@ def ac3ph4wpq(grid,vsc_data):
 
     ### DC side
     a,b,c = sym.symbols(f'a_{bus_ac_name},b_{bus_ac_name},c_{bus_ac_name}',real=True)
-    i_rms_a = sym.sqrt(i_a_r**2+i_a_i**2+0.1) 
-    i_rms_b = sym.sqrt(i_b_r**2+i_b_i**2+0.1) 
-    i_rms_c = sym.sqrt(i_c_r**2+i_c_i**2+0.1) 
-    i_rms_n = sym.sqrt(i_n_r**2+i_n_i**2+0.1) 
+    i_rms_a = sym.sqrt(i_a_r**2+i_a_i**2+1e-6) 
+    i_rms_b = sym.sqrt(i_b_r**2+i_b_i**2+1e-6) 
+    i_rms_c = sym.sqrt(i_c_r**2+i_c_i**2+1e-6) 
+    i_rms_n = sym.sqrt(i_n_r**2+i_n_i**2+1e-6) 
 
     p_loss_a = a + b*i_rms_a + c*i_rms_a*i_rms_a
     p_loss_b = a + b*i_rms_b + c*i_rms_b*i_rms_b
     p_loss_c = a + b*i_rms_c + c*i_rms_c*i_rms_c
     p_loss_n = a + b*i_rms_n + c*i_rms_n*i_rms_n
 
-    p_vsc_loss = (p_loss_a + p_loss_b + p_loss_c + p_loss_n)/3
+    p_vsc_loss = p_loss_a + p_loss_b + p_loss_c + p_loss_n
 
     eq_p_loss = p_loss - p_vsc_loss
     eq_i_dc_a_r = i_dc_a_r + p_dc/(v_dc_a_r-v_dc_n_r+1e-8)
     eq_i_dc_n_r = i_dc_n_r + p_dc/(v_dc_n_r-v_dc_a_r+1e-8)
-    eq_p_dc = p_dc - p_ac - sym.Piecewise((-p_loss, p_ac > 0), (p_loss, p_ac < 0),(p_loss, True))
+    eq_p_dc = -p_dc + p_ac + p_loss #- sym.Piecewise((p_loss, p_ac > 0), (-p_loss, p_ac < 0),(p_loss, True))
 
 
     ## DAE system update
