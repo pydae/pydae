@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="25.408714mm"
+   height="22.038641mm"
+   viewBox="0 0 25.408715 22.038641"
+   version="1.1"
+   id="svg3508"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="pendulum_2.svg">
+  <defs
+     id="defs3502" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8"
+     inkscape:cx="70.592028"
+     inkscape:cy="-12.897372"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     inkscape:window-width="1600"
+     inkscape:window-height="834"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:snap-page="true" />
+  <metadata
+     id="metadata3505">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-60.623019,-68.996169)">
+    <path
+       style="fill:none;stroke:#999999;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:0.2, 0.4;stroke-dashoffset:0;stop-color:#000000"
+       id="path2834-3"
+       sodipodi:type="arc"
+       sodipodi:cx="73.326637"
+       sodipodi:cy="31.537762"
+       sodipodi:rx="51.933857"
+       sodipodi:ry="51.933857"
+       sodipodi:start="0"
+       sodipodi:end="3.1415927"
+       sodipodi:open="true"
+       sodipodi:arc-type="arc"
+       d="M 125.26049,31.537762 A 51.933857,51.933857 0 0 1 99.293565,76.513802 51.933857,51.933857 0 0 1 47.359707,76.5138 51.933857,51.933857 0 0 1 21.39278,31.537762" />
+    <path
+       style="fill:none;stroke:#999999;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 73.327379,31.537556 -2e-6,56.885424"
+       id="path846-1-6" />
+    <path
+       style="fill:none;stroke:#999999;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 73.327379,31.537556 4.95789,56.668956"
+       id="path846-1" />
+    <path
+       style="fill:none;stroke:#999999;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 73.327379,31.537546 9.878053,56.021206"
+       id="path846-1-9" />
+    <path
+       style="fill:none;stroke:#999999;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 73.327379,31.537546 -4.95789,56.668966"
+       id="path846-1-9-6" />
+    <path
+       style="fill:none;stroke:#999999;stroke-width:0.2;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 73.327379,31.537556 -9.87806,56.021206"
+       id="path846-1-9-6-9" />
+    <g
+       id="pendulum_1">
+      <path
+         style="fill:none;stroke:#337ab7;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 73.327379,31.537546 V 83.537545"
+         id="path2832" />
+      <path
+         style="fill:none;stroke:#d9534f;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 73.327379,83.537545 c 0,2.431353 0,2.431353 0,2.431353"
+         id="path2844" />
+      <circle
+         style="fill:#d9534f;stroke:none;stroke-width:1;stop-color:#000000"
+         id="path2867"
+         cx="73.327377"
+         cy="83.537544"
+         r="1.1417937" />
+    </g>
+    <ellipse
+       style="fill:#000000;stroke:#d9534f;stroke-width:0.132292;stop-color:#000000"
+       id="path2830"
+       cx="73.327377"
+       cy="61.547005"
+       rx="0.063782267"
+       ry="0.041074689" />
+    <rect
+       style="fill:none;stroke:none;stroke-width:2.00001;stop-color:#000000"
+       id="rect2838"
+       width="27.957115"
+       height="27.86783"
+       x="59.348824"
+       y="61.547005" />
+    <ellipse
+       style="fill:#000000;stroke:none;stroke-width:1;stop-color:#000000"
+       id="path2874"
+       cx="73.327377"
+       cy="31.537544"
+       rx="1.9367676e-06"
+       ry="1.0102539e-06" />
+    <g
+       id="pendulum_2">
+      <path
+         style="fill:none;stroke:#337ab7;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="M 73.327379,31.537546 V 83.537545"
+         id="path2832-8" />
+      <path
+         style="fill:none;stroke:#5cb85c;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 73.327379,83.537545 c 0,2.431353 0,2.431353 0,2.431353"
+         id="path2844-7" />
+      <circle
+         style="fill:#5cb85c;stroke:none;stroke-width:1;stop-color:#000000"
+         id="path2867-8"
+         cx="73.327377"
+         cy="83.537544"
+         r="1.1501459" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-size:1.41111px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#555555;stroke-width:0.264583"
+       x="61.39119"
+       y="89.07457"
+       id="text4190"><tspan
+         sodipodi:role="line"
+         id="tspan4188"
+         x="61.39119"
+         y="89.07457"
+         style="font-size:1.41111px;fill:#555555;stroke-width:0.264583">-10º</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:1.41111px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#555555;stroke-width:0.264583"
+       x="66.893906"
+       y="89.754593"
+       id="text4190-3"><tspan
+         sodipodi:role="line"
+         id="tspan4188-9"
+         x="66.893906"
+         y="89.754593"
+         style="font-size:1.41111px;fill:#555555;stroke-width:0.264583">-5º</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:1.41111px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#555555;stroke-width:0.264583"
+       x="77.760826"
+       y="89.754593"
+       id="text4190-3-1"><tspan
+         sodipodi:role="line"
+         x="77.760826"
+         y="89.754593"
+         style="font-size:1.41111px;fill:#555555;stroke-width:0.264583"
+         id="tspan4240">5º</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:1.41111px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#555555;stroke-width:0.264583"
+       x="82.638489"
+       y="89.07457"
+       id="text4190-3-4"><tspan
+         sodipodi:role="line"
+         id="tspan4188-9-2"
+         x="82.638489"
+         y="89.07457"
+         style="font-size:1.41111px;fill:#555555;stroke-width:0.264583">10º</tspan></text>
+    <g
+       id="play"
+       transform="translate(-0.09958323,-0.10033387)">
+      <rect
+         style="fill:#5e4485;stroke:none;stroke-width:0.293939;stop-color:#000000"
+         id="rect872"
+         width="2.1166668"
+         height="1.5875055"
+         x="60.987602"
+         y="70.154503" />
+      <path
+         style="fill:#eeeeee;stroke:none;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         d="m 62.442811,70.948255 -0.79375,-0.529166 v 1.058333 z"
+         id="path868"
+         sodipodi:nodetypes="cccc" />
+    </g>
+    <circle
+       style="fill:#f0ad4e;stroke-width:0.0253538;stop-color:#000000"
+       id="path1467"
+       cx="62.343231"
+       cy="70.847931"
+       r="0.0049999999" />
+  </g>
+</svg>

@@ -1174,16 +1174,42 @@ def report_v(grid,data_input,model='urisi'):
     for bus in data['buses']:
         if f"v_{bus['bus']}_n_r" in grid.y_ini_list:
             v_n_r,v_n_i = grid.get_mvalue([f"v_{bus['bus']}_n_r",f"v_{bus['bus']}_n_i"])
-            v_n = v_n_r + 1j*v_n_i
+            v_n_g = v_n_r + 1j*v_n_i
         else:
-            v_n = 0.0
-        for ph in ['a','b','c']:
-            v_r,v_i =  grid.get_mvalue([f"v_{bus['bus']}_{ph}_r",f"v_{bus['bus']}_{ph}_i"])
-            v = v_r + 1j*v_i
-            v_m = np.abs(v-v_n)
+            v_n_g = 0.0
+        #for ph in ['a','b','c']:
         
-            print(f"V_{bus['bus']}_{ph}n: {v_m:8.1f} V")
-        print(f"  V_{bus['bus']}_ng: {np.abs(v_n):8.1f} V")
+        ph = 'a'
+        v_a_r,v_a_i =  grid.get_mvalue([f"v_{bus['bus']}_{ph}_r",f"v_{bus['bus']}_{ph}_i"])
+        v_a_g = v_a_r + 1j*v_a_i
+        v_a_n = v_a_g - v_n_g
+        v_a_m = np.abs(v_a_n)
+        v_a_a = np.rad2deg(np.angle(v_a_n))
+
+        ph = 'b'
+        v_b_r,v_b_i =  grid.get_mvalue([f"v_{bus['bus']}_{ph}_r",f"v_{bus['bus']}_{ph}_i"])
+        v_b_g = v_b_r + 1j*v_b_i
+        v_b_n = v_b_g - v_n_g
+        v_b_m = np.abs(v_b_n)
+        v_b_a = np.rad2deg(np.angle(v_b_n))
+
+        ph = 'c'
+        v_c_r,v_c_i =  grid.get_mvalue([f"v_{bus['bus']}_{ph}_r",f"v_{bus['bus']}_{ph}_i"])
+        v_c_g = v_c_r + 1j*v_c_i
+        v_c_n = v_c_g - v_n_g
+        v_c_m = np.abs(v_c_n)
+        v_c_a = np.rad2deg(np.angle(v_c_n))
+ 
+        alpha = alpha = np.exp(2.0/3*np.pi*1j)
+        v_0 =  1/3*(v_a_g+v_b_g+v_c_g)
+        v_1 = 1.0/3.0*(v_a_g + v_b_g*alpha + v_c_g*alpha**2)
+        v_2 = 1.0/3.0*(v_a_g + v_b_g*alpha**2 + v_c_g*alpha)
+        
+        print(f"v_{bus['bus']}_{'a'}n: {v_a_m:7.1f}| {v_a_a:6.1f}º V,    v_{bus['bus']}_{'a'}g: {np.abs(v_a_g):7.1f}| {np.angle(v_a_g,deg=True):6.1f}º V,    v_1 = {np.abs(v_1):7.1f} V")
+        print(f"v_{bus['bus']}_{'b'}n: {v_b_m:7.1f}| {v_b_a:6.1f}º V,    V_{bus['bus']}_{'b'}g: {np.abs(v_b_g):7.1f}| {np.angle(v_b_g,deg=True):6.1f}º V,    v_2 = {np.abs(v_2):7.1f} V")
+        print(f"v_{bus['bus']}_{'c'}n: {v_c_m:7.1f}| {v_c_a:6.1f}º V,    V_{bus['bus']}_{'c'}g: {np.abs(v_c_g):7.1f}| {np.angle(v_c_g,deg=True):6.1f}º V,    v_0 = {np.abs(v_0):7.1f} V")                   
+            
+        print(f"  V_{bus['bus']}_ng: {np.abs(v_n_g):8.1f}| {np.angle(v_n_g,deg=True):8.1f}º V")
         
         
 def report_trafos(grid,data_input,model='urisi'):
@@ -1242,3 +1268,34 @@ def report_trafos(grid,data_input,model='urisi'):
             i_m = np.abs(i_1)
             phi = np.arctan2(i_i,i_r)            
             print(f"I_2_n: {i_m:8.1f} |{np.rad2deg(phi):6.1f}º A")
+
+
+def load_shape(grid,data_input,model='urisi'):
+    '''
+    
+
+    Parameters
+    ----------
+    grid : pydae object
+        Pydae object modelling a grid.
+    data_input : if dict, a dictionary with the grid parameters
+                 if string, the path to the .json file containing grid parameters
+
+    model : string, optional
+        Type of implemented model. The default is 'urisi'.
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    
+    if type(data_input) == dict:
+        data = data_input
+        
+    if type(data_input) == str:
+        data_input = open(data_input).read().replace("'",'"')
+        data = json.loads(data_input)
+        
+    

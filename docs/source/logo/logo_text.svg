@@ -2,24 +2,24 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   xmlns:ns1="http://www.iki.fi/pav/software/textext/"
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="45.130547mm"
-   height="18.986757mm"
-   viewBox="0 0 45.130546 18.986758"
+   width="47.840603mm"
+   height="28.986757mm"
+   viewBox="0 0 47.840602 28.986758"
    version="1.1"
    id="svg8"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   inkscape:version="1.1.1 (3bf5ae0d25, 2021-09-20)"
    sodipodi:docname="logo_text.svg"
    inkscape:export-filename="C:\Users\jmmau\workspace\pydae\docs\source\logo\logo.png"
    inkscape:export-xdpi="300"
-   inkscape:export-ydpi="300">
+   inkscape:export-ydpi="300"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:ns1="http://www.iki.fi/pav/software/textext/">
   <defs
      id="defs2" />
   <sodipodi:namedview
@@ -30,20 +30,21 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="3.959798"
-     inkscape:cx="80.556546"
-     inkscape:cy="9.7733541"
+     inkscape:cx="81.317279"
+     inkscape:cy="40.279832"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="3200"
-     inkscape:window-height="1668"
-     inkscape:window-x="-16"
-     inkscape:window-y="-16"
+     inkscape:window-width="1600"
+     inkscape:window-height="812"
+     inkscape:window-x="2125"
+     inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0" />
+     fit-margin-top="5"
+     fit-margin-left="2"
+     fit-margin-right="1"
+     fit-margin-bottom="5"
+     inkscape:pagecheckerboard="0" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -52,7 +53,6 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -60,38 +60,42 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-71.729866,-38.83054)">
+     transform="translate(-69.731337,-33.83054)">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:10.58333302px;line-height:1.25;font-family:'Latin Modern Sans';-inkscape-font-specification:'Latin Modern Sans';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="104.51041"
-       y="49.047619"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.5734px;line-height:1.25;font-family:'Latin Modern Sans';-inkscape-font-specification:'Latin Modern Sans';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="103.73572"
+       y="49.126514"
        id="text817"><tspan
          sodipodi:role="line"
          id="tspan815"
-         x="104.51041"
-         y="49.047619"
-         style="stroke-width:0.26458332">py<tspan
-   style="fill:#337ab7"
+         x="103.73572"
+         y="49.126514"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial;stroke-width:0.264583">py<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial;fill:#337ab7;stroke-width:0.264583"
    id="tspan819">dae</tspan></tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.91596317px;line-height:1.25;font-family:'Latin Modern Sans';-inkscape-font-specification:'Latin Modern Sans';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="104.68843"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.91596px;line-height:1.25;font-family:'Latin Modern Sans';-inkscape-font-specification:'Latin Modern Sans';text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="99.668159"
        y="53.15575"
        id="text817-3"><tspan
          sodipodi:role="line"
          id="tspan815-8"
-         x="104.68843"
+         x="99.668159"
          y="53.15575"
-         style="font-size:1.63865447px;stroke-width:0.26458332">Analysis of DAE systems in python</tspan></text>
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.63865px;font-family:Arial;-inkscape-font-specification:Arial;stroke-width:0.264583"><tspan
+   style="fill:#5cb85c"
+   id="tspan1728">D</tspan><tspan
+   style="fill:#d9534f"
+   id="tspan2786">A</tspan>E systems in python</tspan></text>
     <path
        style="fill:none;stroke:#5cb85c;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 79.488203,40.233702 -5.178349,7.14946"
        id="path6356"
        inkscape:connector-curvature="0" />
     <path
-       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#555555;stroke-width:0.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10.43299961;stroke-dasharray:0.25000001, 0.25000001;stroke-dashoffset:0;stroke-opacity:1;marker:none"
+       style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#555555;stroke-width:0.25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10.433;stroke-dasharray:0.25, 0.25;stroke-dashoffset:0;stroke-opacity:1;marker:none"
        id="path6366"
        sodipodi:type="arc"
        sodipodi:cx="79.488205"
@@ -101,9 +105,10 @@
        sodipodi:start="0.60397502"
        sodipodi:end="2.6486188"
        sodipodi:open="true"
-       d="m 86.63422,45.16437 a 8.6819935,8.6819935 0 0 1 -7.627623,3.737959 8.6819935,8.6819935 0 0 1 -7.166615,-4.559892" />
+       d="m 86.63422,45.16437 a 8.6819935,8.6819935 0 0 1 -7.627623,3.737959 8.6819935,8.6819935 0 0 1 -7.166615,-4.559892"
+       sodipodi:arc-type="arc" />
     <path
-       style="fill:#f0ad4e;stroke:#f0ad4e;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       style="fill:#f0ad4e;stroke:#f0ad4e;stroke-width:0.264583px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="m 80.31278,39.867538 -0.890665,1.142183 -0.890664,-1.142183 z"
        id="path6358"
        inkscape:connector-curvature="0"
@@ -119,13 +124,13 @@
        ns1:texconverter="pdflatex"
        ns1:version="0.9.1"
        transform="matrix(0.24143222,0,0,0.24143222,5.7607194,16.402979)"
-       style="stroke-width:0.38660541">
+       style="stroke-width:0.386605">
       <g
          id="surface1"
-         style="stroke-width:0.38660541">
+         style="stroke-width:0.386605">
         <g
            id="g1086"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1084"
              transform="translate(282.233,154.092)"
@@ -135,7 +140,7 @@
         </g>
         <g
            id="g1090"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1088"
              transform="translate(280.80237,154.092)"
@@ -145,7 +150,7 @@
         </g>
         <g
            id="g1094"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1092"
              transform="translate(289.615,154.092)"
@@ -155,7 +160,7 @@
         </g>
         <g
            id="g1098"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1096"
              transform="translate(300.131,154.092)"
@@ -165,7 +170,7 @@
         </g>
         <g
            id="g1102"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1100"
              transform="translate(304.718,154.092)"
@@ -175,7 +180,7 @@
         </g>
         <g
            id="g1106"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1104"
              transform="translate(308.592,154.092)"
@@ -185,7 +190,7 @@
         </g>
         <g
            id="g1110"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1108"
              transform="translate(314.639,154.092)"
@@ -195,7 +200,7 @@
         </g>
         <g
            id="g1114"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1112"
              transform="translate(319.066,154.092)"
@@ -205,7 +210,7 @@
         </g>
         <g
            id="g1118"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1116"
              transform="translate(325.272,154.092)"
@@ -215,7 +220,7 @@
         </g>
         <g
            id="g1122"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1120"
              transform="translate(281.119,169.036)"
@@ -225,7 +230,7 @@
         </g>
         <g
            id="g1126"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1124"
              transform="translate(289.615,169.036)"
@@ -235,7 +240,7 @@
         </g>
         <g
            id="g1130"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1128"
              transform="translate(300.131,169.036)"
@@ -245,7 +250,7 @@
         </g>
         <g
            id="g1134"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1132"
              transform="translate(306.018,169.036)"
@@ -255,7 +260,7 @@
         </g>
         <g
            id="g1138"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1136"
              transform="translate(309.893,169.036)"
@@ -265,7 +270,7 @@
         </g>
         <g
            id="g1142"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1140"
              transform="translate(315.939,169.036)"
@@ -275,7 +280,7 @@
         </g>
         <g
            id="g1146"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1144"
              transform="translate(320.367,169.036)"
@@ -285,7 +290,7 @@
         </g>
         <g
            id="g1150"
-           style="fill:#000000;fill-opacity:1;stroke-width:0.38660541">
+           style="fill:#000000;fill-opacity:1;stroke-width:0.386605">
           <path
              id="path1148"
              transform="translate(326.573,169.036)"
@@ -296,14 +301,14 @@
       </g>
     </g>
     <rect
-       style="opacity:1;vector-effect:none;fill:#d9534f;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.03527778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10.43299961;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none"
+       style="opacity:1;vector-effect:none;fill:#d9534f;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.0352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10.433;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none"
        id="rect6352"
        width="9.822156"
        height="1.403165"
        x="74.577126"
        y="38.83054" />
     <circle
-       style="opacity:1;vector-effect:none;fill:#337ab7;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.03527778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10.43299961;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none"
+       style="opacity:1;vector-effect:none;fill:#337ab7;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.0352778;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10.433;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none"
        id="path6354"
        cx="74.309853"
        cy="47.383163"

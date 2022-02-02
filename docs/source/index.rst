@@ -1,9 +1,11 @@
 pydae - DAE equations in Python
 ===============================
 
-.. image:: _static/logo_text.png
+.. image:: logo/logo_text.svg
    :width: 675px
    :align: center
+
+
 
 **pydae** is an open source (MIT) collection of Python functions useful
 for analysis and simulation of Diferential Algebraic Equations (DAE) systems.
@@ -34,5 +36,9 @@ Contents
 
     about
     getting_started
-    user_guide   
+    user_guide 
+    ss.ipynb 
     ssa
+    examples/pendulum_dae.ipynb
+    examples/pendulum_sim.ipynb
+    grid_urisi/index

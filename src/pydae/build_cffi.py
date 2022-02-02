@@ -195,6 +195,8 @@ def system(sys, verbose=False):
 
     if verbose: print(f'computing jacobians Fu_run,Gu_run  (time: {time.time()-t_0:0.3f} s)')
     Fu_run = f.jacobian(u_run)
+ 
+
     
     #Gu_run = g.jacobian(u_run):
     Gu_run = sym_jac(g,u_run)
@@ -690,7 +692,7 @@ def sym2rhs2(data,indices,indptr,shape,sys,inirun):
         for k in range(indptr[irow],indptr[irow+1]):
             icol = indices[k]
             data_k = data[k]
-            if not data[irow] == 0:
+            if not data_k == 0:
                 string_sym = sym.ccode(sym.N(data_k)) + ';\n#'
                 string_full_sym += string_sym
     
@@ -901,7 +903,55 @@ def sym2src(sys, verbose=False, jac_num=False):
     else:
         defs_sp_trap,source_sp_trap = str2src('sp_jac_trap',string_xy,string_up,'\n',matrix_name='out')
         
-    
+
+    ## Fu_run and Gu_run ###############################################################
+    defs_de_uz   = ''
+    source_de_uz = ''
+    defs_sp_uz   = ''
+    source_sp_uz = ''
+
+    if not 'uz_jacs' in sys:
+        sys['uz_jacs'] = False
+
+    if sys['uz_jacs']:
+        for item in ['Fu_run','Gu_run','Hx_run','Hy_run','Hu_run']:
+            if verbose: print(f'converting {item} to sparse (time: {time.time()-t_0:0.3f} s)')  
+            sp_jac_list = _doktocsr(SparseMatrix(sys[item]))  
+            data = sp_jac_list[0]
+            indices = sp_jac_list[1]
+            indptr = sp_jac_list[2]
+            shape = sp_jac_list[3]
+        
+            sp_jac_num_matrix = csr_matrix((np.zeros(len(data)),indices,indptr),shape=shape)
+        
+        
+            if verbose: print(f'running sym2rhs for {item} (time: {time.time()-t_0:0.3f} s)')
+            rhs_list = sym2rhs2(data,indices,indptr,shape,sys,'run')       
+
+            if verbose: print(f'writting  {item} code (time: {time.time()-t_0:0.3f} s)')   
+            string_xy,string_up,string_num = rhs2str(rhs_list,'out',sp_jac_num_matrix.data,shape,mode='dense')
+        
+            if jac_num:
+                defs_de_jac,source_de_jac = str2src(f'de_{item}',string_xy,string_up,string_num,matrix_name='out')
+            else:
+                defs_de_jac,source_de_jac = str2src(f'de_{item}',string_xy,string_up,'\n',matrix_name='out')
+                
+
+            if verbose: print(f'writting {item} code (time: {time.time()-t_0:0.3f} s)')      
+            string_xy,string_up,string_num = rhs2str(rhs_list,'out',sp_jac_num_matrix.data,shape,mode='crs')
+            if jac_num:
+                defs_sp_jac,source_sp_jac = str2src(f'sp_{item}',string_xy,string_up,string_num,matrix_name='out')
+            else:
+                defs_sp_jac,source_sp_jac = str2src(f'sp_{item}',string_xy,string_up,'\n',matrix_name='out')
+
+            defs_de_uz   += defs_de_jac
+            source_de_uz += source_de_jac
+            defs_sp_uz   += defs_sp_jac
+            source_sp_uz += source_sp_jac
+
+            save_npz(f"{sys['name']}_{item}_num.npz",sp_jac_num_matrix, compressed=True)
+
+
     ## C sources ##############################################################
     if verbose: print(f'writting full source (time: {time.time()-t_0:0.3f} s)')   
     
@@ -911,6 +961,7 @@ def sym2src(sys, verbose=False, jac_num=False):
     defs += defs_de_ini + defs_sp_ini 
     defs += defs_de_run + defs_sp_run 
     defs += defs_de_trap + defs_sp_trap 
+    defs += defs_de_uz + defs_sp_uz
            
     source = source_f_ini + source_g_ini 
     source += source_f_run + source_g_run
@@ -918,6 +969,7 @@ def sym2src(sys, verbose=False, jac_num=False):
     source += source_de_ini + source_sp_ini 
     source += source_de_run + source_sp_run
     source += source_de_trap + source_sp_trap
+    source += source_de_uz + source_sp_uz
 
     save_npz( f"{sys['name']}_sp_jac_ini_num.npz", sp_jac_ini_num_matrix, compressed=True)
     save_npz( f"{sys['name']}_sp_jac_run_num.npz", sp_jac_run_num_matrix, compressed=True)
