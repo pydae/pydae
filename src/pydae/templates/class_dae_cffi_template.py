@@ -42,17 +42,8 @@ sp_jac_trap_xy_eval= jacs.lib.sp_jac_trap_xy_eval
 sp_jac_trap_up_eval= jacs.lib.sp_jac_trap_up_eval        
 sp_jac_trap_num_eval= jacs.lib.sp_jac_trap_num_eval
 
-sp_Fu_run_up_eval = jacs.lib.sp_Fu_run_up_eval
-sp_Gu_run_up_eval = jacs.lib.sp_Gu_run_up_eval
-sp_Hx_run_up_eval = jacs.lib.sp_Hx_run_up_eval
-sp_Hy_run_up_eval = jacs.lib.sp_Hy_run_up_eval
-sp_Hu_run_up_eval = jacs.lib.sp_Hu_run_up_eval
+{u2z_jacobians}
 
-sp_Fu_run_xy_eval = jacs.lib.sp_Fu_run_xy_eval
-sp_Gu_run_xy_eval = jacs.lib.sp_Gu_run_xy_eval
-sp_Hx_run_xy_eval = jacs.lib.sp_Hx_run_xy_eval
-sp_Hy_run_xy_eval = jacs.lib.sp_Hy_run_xy_eval
-sp_Hu_run_xy_eval = jacs.lib.sp_Hu_run_xy_eval
 
 import json
 
