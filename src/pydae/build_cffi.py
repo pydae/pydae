@@ -105,6 +105,7 @@ class builder():
         self.name = self.sys['name']
         self.save_sources = False
         self.string_u2z = ''
+        self.u2z = '\#'
 
 
     def check_system(self):
@@ -595,6 +596,8 @@ class builder():
 
         class_template = class_template.replace('{name}',str(name))
         class_template = class_template.replace('{u2z_jacobians}',self.string_u2z)
+        class_template = class_template.replace('{u2z_comment}',self.u2z_comment)
+
         class_template = class_template.replace('{N_x}',str(N_x)).replace('{N_y}',str(N_y)).replace('{N_z}',str(N_z))
         class_template = class_template.replace('{x_list}', str([str(item) for item in sys['x']]))
         class_template = class_template.replace('{y_run_list}', str([str(item) for item in sys['y_run']]))
@@ -931,8 +934,10 @@ class builder():
         if not 'uz_jacs' in sys:
             self.uz_jacs = False
             self.string_u2z = '\n'
+            self.u2z_comment = '#'
         else:
             self.uz_jacs = sys['uz_jacs'] 
+            self.u2z_comment = ''
 
 
         if self.uz_jacs:

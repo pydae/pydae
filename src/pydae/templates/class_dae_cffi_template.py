@@ -70,7 +70,7 @@ class {name}_class:
         self.N_x = {N_x}
         self.N_y = {N_y} 
         self.N_z = {N_z} 
-        self.N_store = 10000 
+        self.N_store = 100000 
         self.params_list = {params_list} 
         self.params_values_list  = {params_values_list} 
         self.inputs_ini_list = {inputs_ini_list} 
@@ -165,16 +165,16 @@ class {name}_class:
 
         
         self.max_it,self.itol,self.store = 50,1e-8,1 
-        self.lmax_it,self.ltol,self.ldamp=50,1e-8,1.0
+        self.lmax_it,self.ltol,self.ldamp= 50,1e-8,1.0
         self.mode = 0 
 
         self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.0
 
-        self.sp_Fu_run = sspa.load_npz('{name}_Fu_run_num.npz')
-        self.sp_Gu_run = sspa.load_npz('{name}_Gu_run_num.npz')
-        self.sp_Hx_run = sspa.load_npz('{name}_Hx_run_num.npz')
-        self.sp_Hy_run = sspa.load_npz('{name}_Hy_run_num.npz')
-        self.sp_Hu_run = sspa.load_npz('{name}_Hu_run_num.npz')        
+        {u2z_comment}self.sp_Fu_run = sspa.load_npz('{name}_Fu_run_num.npz')
+        {u2z_comment}self.sp_Gu_run = sspa.load_npz('{name}_Gu_run_num.npz')
+        {u2z_comment}self.sp_Hx_run = sspa.load_npz('{name}_Hx_run_num.npz')
+        {u2z_comment}self.sp_Hy_run = sspa.load_npz('{name}_Hy_run_num.npz')
+        {u2z_comment}self.sp_Hu_run = sspa.load_npz('{name}_Hu_run_num.npz')        
  
         
 
@@ -1510,7 +1510,7 @@ def c_h_eval(z,x,y,u,p,Dt):
     
     return z
 
-@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+{u2z_comment}@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_Fu_run_eval(jac,x,y,u,p,Dt):   
     '''
     Computes the dense full initialization jacobian:
@@ -1554,7 +1554,7 @@ def sp_Fu_run_eval(jac,x,y,u,p,Dt):
     
     #return jac
 
-@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+{u2z_comment}@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_Gu_run_eval(jac,x,y,u,p,Dt):   
     '''
     Computes the dense full initialization jacobian:
@@ -1598,7 +1598,7 @@ def sp_Gu_run_eval(jac,x,y,u,p,Dt):
     
     #return jac
 
-@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+{u2z_comment}@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_H_jacs_run_eval(H_x,H_y,H_u,x,y,u,p,Dt):   
     '''
     Computes the dense full initialization jacobian:
