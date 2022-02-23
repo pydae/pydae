@@ -1143,7 +1143,7 @@ def update_loads(grid,data_input):
                 grid.set_value(f'p_load_{bus}_1',p)
                 grid.set_value(f'q_load_{bus}_1',q)
 
-def report_v(grid,data_input,model='urisi'):
+def report_v(grid,data_input,show=True,model='urisi'):
     '''
     
 
@@ -1154,12 +1154,15 @@ def report_v(grid,data_input,model='urisi'):
     data_input : if dict, a dictionary with the grid parameters
                  if string, the path to the .json file containing grid parameters
 
+    show : string, optional
+        If report is print or not.
+        
     model : string, optional
         Type of implemented model. The default is 'urisi'.
 
     Returns
     -------
-    None.
+    dict with the results.
 
     '''
     
@@ -1170,6 +1173,8 @@ def report_v(grid,data_input,model='urisi'):
     if type(data_input) == str:
         data_input = open(data_input).read().replace("'",'"')
         data = json.loads(data_input)
+        
+    buses_dict = {}
         
     for bus in data['buses']:
         if f"v_{bus['bus']}_n_r" in grid.y_ini_list:
@@ -1205,12 +1210,27 @@ def report_v(grid,data_input,model='urisi'):
         v_1 = 1.0/3.0*(v_a_g + v_b_g*alpha + v_c_g*alpha**2)
         v_2 = 1.0/3.0*(v_a_g + v_b_g*alpha**2 + v_c_g*alpha)
         
-        print(f"v_{bus['bus']}_{'a'}n: {v_a_m:7.1f}| {v_a_a:6.1f}º V,    v_{bus['bus']}_{'a'}g: {np.abs(v_a_g):7.1f}| {np.angle(v_a_g,deg=True):6.1f}º V,    v_1 = {np.abs(v_1):7.1f} V")
-        print(f"v_{bus['bus']}_{'b'}n: {v_b_m:7.1f}| {v_b_a:6.1f}º V,    V_{bus['bus']}_{'b'}g: {np.abs(v_b_g):7.1f}| {np.angle(v_b_g,deg=True):6.1f}º V,    v_2 = {np.abs(v_2):7.1f} V")
-        print(f"v_{bus['bus']}_{'c'}n: {v_c_m:7.1f}| {v_c_a:6.1f}º V,    V_{bus['bus']}_{'c'}g: {np.abs(v_c_g):7.1f}| {np.angle(v_c_g,deg=True):6.1f}º V,    v_0 = {np.abs(v_0):7.1f} V")                   
-            
-        print(f"  V_{bus['bus']}_ng: {np.abs(v_n_g):8.1f}| {np.angle(v_n_g,deg=True):8.1f}º V")
+        # compute unbalanced as in Kersting 1ers edition pg. 266
+        v_m_array = [v_a_m,v_b_m,v_c_m]
+        v_m_min = np.min(v_m_array)
+        v_m_max = np.max(v_m_array)
+        max_dev = v_m_max - v_m_min
+        v_avg = np.sum(v_m_array)/3
+        unbalance = max_dev/v_avg
         
+        bus[f"v_{bus['bus']}_{'a'}n"] = v_a_m
+        
+        if show:
+            print(f"v_{bus['bus']}_{'a'}n: {v_a_m:7.1f}| {v_a_a:6.1f}º V,    v_{bus['bus']}_{'a'}g: {np.abs(v_a_g):7.1f}| {np.angle(v_a_g,deg=True):6.1f}º V,    v_1 = {np.abs(v_1):7.1f} V, unb = {unbalance*100:3.2f}%")
+            print(f"v_{bus['bus']}_{'b'}n: {v_b_m:7.1f}| {v_b_a:6.1f}º V,    V_{bus['bus']}_{'b'}g: {np.abs(v_b_g):7.1f}| {np.angle(v_b_g,deg=True):6.1f}º V,    v_2 = {np.abs(v_2):7.1f} V")
+            print(f"v_{bus['bus']}_{'c'}n: {v_c_m:7.1f}| {v_c_a:6.1f}º V,    V_{bus['bus']}_{'c'}g: {np.abs(v_c_g):7.1f}| {np.angle(v_c_g,deg=True):6.1f}º V,    v_0 = {np.abs(v_0):7.1f} V")                   
+            
+            print(f"  V_{bus['bus']}_ng: {np.abs(v_n_g):8.1f}| {np.angle(v_n_g,deg=True):8.1f}º V")
+        
+        buses_dict[bus['bus']] = {f"v_{bus['bus']}_{'a'}n":v_b_m,f"v_{bus['bus']}_{'b'}n":v_b_m,f"v_{bus['bus']}_{'c'}n":v_c_m}
+        buses_dict[bus['bus']].update({f'v_unb':unbalance,'v_ng':np.abs(v_n_g)})
+
+    return buses_dict        
         
 def report_trafos(grid,data_input,model='urisi'):
     '''
@@ -1298,4 +1318,27 @@ def load_shape(grid,data_input,model='urisi'):
         data_input = open(data_input).read().replace("'",'"')
         data = json.loads(data_input)
         
+def read_shapes(data_input):
+    '''
     
+
+    Parameters
+    ----------
+    data_input : if string, the path to the .json file containing grid parameters
+
+    Returns
+    -------
+    dict with the shapes.
+
+    '''
+    
+    data_input = open(data_input).read().replace("'",'"')
+    data = json.loads(data_input)
+    shapes = {}
+    for item in data['shapes']:
+        values = np.array(data['shapes'][item])
+        shapes.update({item:{'t':values[:,0],'val':values[:,1]}})
+        
+    
+    
+    return shapes
