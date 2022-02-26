@@ -17,9 +17,12 @@ def unb_ri_si(data):
     pydgrid_obj = grid()
     pydgrid_obj.read(data)  # Load data
     pydgrid_obj.pf()  # solve power flow
+
+    pydgrid_obj.omega_coi_h_i = 0
+    pydgrid_obj.hs_total =0
     
     pydgrid_obj.dae = urisi2dae(pydgrid_obj)
-    
+    pydgrid_obj.omega_coi_required = False
     if 'vscs' in pydgrid_obj.data:
         for vsc in pydgrid_obj.data['vscs']:
             if vsc['type'] == 'ac3ph3wvdcq':
@@ -34,6 +37,35 @@ def unb_ri_si(data):
                 ac1ph2wpq(pydgrid_obj,vsc)
             if vsc['type'] == 'ac3ph4wvdcq2':
                 ac3ph4wvdcq2(pydgrid_obj,vsc)
+            if vsc['type'] == 'ac3ph4wgf': # AC 3 phase 4 wire open loop grid former
+                ac3ph4wgf(pydgrid_obj,vsc)
+                pydgrid_obj.omega_coi_required = True
+
+    if pydgrid_obj.omega_coi_required:
+
+        f_list = pydgrid_obj.dae['f']
+        x_list = pydgrid_obj.dae['x']
+        g_list = pydgrid_obj.dae['g'] 
+        y_list = pydgrid_obj.dae['y'] 
+        u_dict = pydgrid_obj.dae['u']
+        h_dict = pydgrid_obj.dae['h_dict']
+        params_dict = pydgrid_obj.dae['params']
+
+        omega_coi = sym.Symbol('omega_coi',real=True)
+        xi_freq = sym.Symbol('xi_freq',real=True) 
+        K_agc = sym.Symbol('K_agc',real=True)
+
+        g_list += [omega_coi - pydgrid_obj.omega_coi_h_i/pydgrid_obj.hs_total  ]
+        y_list += [omega_coi]
+
+
+        dxi_freq = K_agc*(1 - omega_coi)
+
+        f_list += [dxi_freq]
+        x_list += [ xi_freq]
+
+
+        params_dict.update({f'K_agc':0.001}) 
 
     return pydgrid_obj
     
@@ -466,7 +498,10 @@ def urisi2dae(grid):
             u_dict.update({f'p_load_{bus_name}_{phase_1}':p_value})
             u_dict.update({f'q_load_{bus_name}_{phase_1}':q_value})
                 
-        if load['type'] == '3P+N':
+        if not "model" in load:
+            load["model"] = 'PQ'
+
+        if load['type'] == '3P+N' and  load["model"] == 'PQ':
             bus_name = load['bus']
             v_a = V_node_sym_list[nodes_list.index(f'{bus_name}.1')]
             v_b = V_node_sym_list[nodes_list.index(f'{bus_name}.2')]
@@ -499,6 +534,7 @@ def urisi2dae(grid):
 
             p_a,p_b,p_c = sym.symbols(f'p_load_{bus_name}_a,p_load_{bus_name}_b,p_load_{bus_name}_c', real=True)
             q_a,q_b,q_c = sym.symbols(f'q_load_{bus_name}_a,q_load_{bus_name}_b,q_load_{bus_name}_c', real=True)
+
             g_list += [p_a + sym.re(s_a)]
             g_list += [p_b + sym.re(s_b)]
             g_list += [p_c + sym.re(s_c)]
@@ -538,7 +574,88 @@ def urisi2dae(grid):
             i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n["n"]}')][0]
             y_0_list += [i_cplx.real,i_cplx.imag]
             xy_0_dict.update({f'{i_real}':i_cplx.real,f'{i_imag}':i_cplx.imag})
+
+        if load['type'] == '3P+N' and  load["model"] == 'ZIP':
+            bus_name = load['bus']
+            v_a = V_node_sym_list[nodes_list.index(f'{bus_name}.1')]
+            v_b = V_node_sym_list[nodes_list.index(f'{bus_name}.2')]
+            v_c = V_node_sym_list[nodes_list.index(f'{bus_name}.3')]
+            v_n = V_node_sym_list[nodes_list.index(f'{bus_name}.4')]
+
+            # i_a = I_node_sym_list[nodes_list.index(f'{bus_name}.1')]
+            # i_b = I_node_sym_list[nodes_list.index(f'{bus_name}.2')]
+            # i_c = I_node_sym_list[nodes_list.index(f'{bus_name}.3')]
+            # i_n = I_node_sym_list[nodes_list.index(f'{bus_name}.4')]
+
+            i_a_r,i_a_i = sym.symbols(f'i_load_{bus_name}_a_r,i_load_{bus_name}_a_i', real=True)
+            i_b_r,i_b_i = sym.symbols(f'i_load_{bus_name}_b_r,i_load_{bus_name}_b_i', real=True)
+            i_c_r,i_c_i = sym.symbols(f'i_load_{bus_name}_c_r,i_load_{bus_name}_c_i', real=True)
+            i_n_r,i_n_i = sym.symbols(f'i_load_{bus_name}_n_r,i_load_{bus_name}_n_i', real=True)
             
+            i_a = i_a_r + sym.I*i_a_i
+            i_b = i_b_r + sym.I*i_b_i
+            i_c = i_c_r + sym.I*i_c_i
+            i_n = i_n_r + sym.I*i_n_i
+            
+            v_an = v_a - v_n
+            v_bn = v_b - v_n
+            v_cn = v_c - v_n
+
+            s_a = v_an*sym.conjugate(i_a)
+            s_b = v_bn*sym.conjugate(i_b)
+            s_c = v_cn*sym.conjugate(i_c)
+            #s = s_a + s_b + s_c
+
+            p_a,p_b,p_c = sym.symbols(f'p_load_{bus_name}_a,p_load_{bus_name}_b,p_load_{bus_name}_c', real=True)
+            q_a,q_b,q_c = sym.symbols(f'q_load_{bus_name}_a,q_load_{bus_name}_b,q_load_{bus_name}_c', real=True)
+            g_a,g_b,g_c = sym.symbols(f'g_load_{bus_name}_a,g_load_{bus_name}_b,g_load_{bus_name}_c', real=True)
+            b_a,b_b,b_c = sym.symbols(f'b_load_{bus_name}_a,b_load_{bus_name}_b,b_load_{bus_name}_c', real=True)
+
+            s_z_a = -sym.conjugate((g_a + 1j*b_a)*v_an)*v_an
+            s_z_b = -sym.conjugate((g_b + 1j*b_b)*v_bn)*v_bn
+            s_z_c = -sym.conjugate((g_c + 1j*b_c)*v_cn)*v_cn
+            
+            g_list += [p_a + sym.re(s_z_a) + sym.re(s_a)]
+            g_list += [p_b + sym.re(s_z_b) + sym.re(s_b)]
+            g_list += [p_c + sym.re(s_z_c) + sym.re(s_c)]
+            g_list += [q_a + sym.im(s_z_a) + sym.im(s_a)]
+            g_list += [q_b + sym.im(s_z_b) + sym.im(s_b)]
+            g_list += [q_c + sym.im(s_z_c) + sym.im(s_c)]
+
+            g_list += [sym.re(i_a+i_b+i_c+i_n)]
+            g_list += [sym.im(i_a+i_b+i_c+i_n)]
+
+
+            i_abc_list  = [i_a_r,i_a_i,i_b_r,i_b_i,i_c_r,i_c_i,i_n_r,i_n_i]
+            for itg in [1,2,3,4]:
+                 bus_idx = grid.nodes.index(f'{bus_name}.{itg}')
+                 g_idx = bus_idx - grid.N_nodes_v
+                 signo = 1.0
+                 if itg == 4: signo = 1.0
+                 g_list[2*g_idx+0] += signo*i_abc_list[2*(itg-1)  ]
+                 g_list[2*g_idx+1] += signo*i_abc_list[2*(itg-1)+1]           
+
+            for phase in ['a','b','c']:
+                i_real,i_imag = sym.symbols(f'i_load_{bus_name}_{phase}_r,i_load_{bus_name}_{phase}_i', real=True)
+                y_list += [i_real,i_imag]
+                i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n[phase]}')][0]
+                y_0_list += [i_cplx.real,i_cplx.imag]
+                #u_dict.pop(f'i_{bus_name}_{phase}_r')
+                #u_dict.pop(f'i_{bus_name}_{phase}_i')
+                p_value = -grid.buses[buses_list.index(bus_name)][f'p_{phase}']
+                q_value = -grid.buses[buses_list.index(bus_name)][f'q_{phase}']
+                u_dict.update({f'p_load_{bus_name}_{phase}':p_value})
+                u_dict.update({f'q_load_{bus_name}_{phase}':q_value})
+                u_dict.update({f'g_load_{bus_name}_{phase}':0.0})
+                u_dict.update({f'b_load_{bus_name}_{phase}':0.0})
+
+                xy_0_dict.update({f'{i_real}':i_cplx.real,f'{i_imag}':i_cplx.imag})
+            
+            i_real,i_imag = sym.symbols(f'i_load_{bus_name}_n_r,i_load_{bus_name}_n_i', real=True)
+            y_list += [i_real,i_imag]    
+            i_cplx = I_node[grid.nodes.index(f'{bus_name}.{a2n["n"]}')][0]
+            y_0_list += [i_cplx.real,i_cplx.imag]
+            xy_0_dict.update({f'{i_real}':i_cplx.real,f'{i_imag}':i_cplx.imag})            
             
     if hasattr(grid,'grid_feeders'):
         gfeeders = grid.grid_feeders
@@ -1436,6 +1553,207 @@ def ac1ph2wpq(grid,vsc_data):
     g_idx = bus_idx - grid.N_nodes_v
     grid.dae['g'][2*g_idx+0] += i_dc_n_r
     grid.dae['g'][2*g_idx+1] += 0.0   
+
+def ac3ph4wgf(grid,vsc_data):
+    '''
+    VSC with 3 phase and 4 wire working in open loop as a grid former.
+
+    
+    '''
+
+    params_dict  = grid.dae['params']
+    f_list = grid.dae['f']
+    x_list = grid.dae['x']
+    g_list = grid.dae['g'] 
+    y_list = grid.dae['y'] 
+    u_dict = grid.dae['u']
+    h_dict = grid.dae['h_dict']
+
+
+    alpha = np.exp(2.0/3*np.pi*1j)
+    A_0a =  np.array([[1, 1, 1],
+                    [1, alpha**2, alpha],
+                    [1, alpha, alpha**2]])
+
+    A_a0 = 1/3* np.array([[1, 1, 1],
+                        [1, alpha, alpha**2],
+                        [1, alpha**2, alpha]])
+
+    omega_coi_i = 0
+    HS_coi = 0
+
+    omega_coi = sym.Symbol('omega_coi',real=True)
+    xi_freq = sym.Symbol('xi_freq',real=True)
+    K_agc = sym.Symbol('K_agc',real=True)
+
+    #vscs = [
+    #    {'bus':'B1','S_n':100e3,'R':0.01,'X':0.1,'R_n':0.01,'X_n':0.1,'R_ng':0.01,'X_ng':3.0,'K_f':0.1,'T_f':1.0,'K_sec':0.5,'K_delta':0.001},
+    #    ]
+
+    #for vsc in vsc_data:
+        
+    name = vsc_data['bus']
+
+    # inputs
+    e_am_m,e_bm_m,e_cm_m,e_om_m = sym.symbols(f'e_{name}_am_m,e_{name}_bm_m,e_{name}_cm_m,e_{name}_om_m', real=True)
+    omega_ref,p_ref = sym.symbols(f'omega_{name}_ref,p_{name}_ref', real=True)
+    
+    # parameters
+    S_n,H,K_f,T_f,K_sec,K_delta  = sym.symbols(f'S_n_{name},H_{name},K_f_{name},T_f_{name},K_sec_{name},K_delta_{name}', real=True)
+    R_s,R_sn,R_ng = sym.symbols(f'R_{name}_s,R_{name}_sn,R_{name}_ng', real=True)
+    X_s,X_sn,X_ng = sym.symbols(f'X_{name}_s,X_{name}_sn,X_{name}_ng', real=True)
+    
+    # dynamical states
+    phi = sym.Symbol(f'phi_{name}', real=True)
+    omega = sym.Symbol(f'omega_{name}', real=True)
+    
+    # algebraic states
+    #e_an_i,e_bn_i,e_cn_i,e_ng_i = sym.symbols(f'e_{name}_an_i,e_{name}_bn_i,e_{name}_cn_i,e_{name}_ng_i', real=True)
+    v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_ng_r = sym.symbols(f'v_{name}_a_r,v_{name}_b_r,v_{name}_c_r,v_{name}_n_r,v_{name}_n_r', real=True)
+    v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_ng_i = sym.symbols(f'v_{name}_a_i,v_{name}_b_i,v_{name}_c_i,v_{name}_n_i,v_{name}_n_i', real=True)
+    i_sa_r,i_sb_r,i_sc_r,i_sn_r,i_ng_r = sym.symbols(f'i_vsc_{name}_a_r,i_vsc_{name}_b_r,i_vsc_{name}_c_r,i_vsc_{name}_n_r,i_vsc_{name}_ng_r', real=True)
+    i_sa_i,i_sb_i,i_sc_i,i_sn_i,i_ng_i = sym.symbols(f'i_vsc_{name}_a_i,i_vsc_{name}_b_i,i_vsc_{name}_c_i,i_vsc_{name}_n_i,i_vsc_{name}_ng_i', real=True)
+    v_mn_r,v_mn_i = sym.symbols(f'v_{name}_mn_r,v_{name}_mn_i', real=True)
+
+    omega = sym.Symbol(f'omega_{name}', real=True)
+    
+    e_om_r,e_om_i = sym.symbols(f'e_{name}_om_r,e_{name}_om_i', real=True)
+    
+    Z_sa = R_s + 1j*X_s
+    Z_sb = R_s + 1j*X_s
+    Z_sc = R_s + 1j*X_s
+    Z_sn = R_sn + 1j*X_sn
+    Z_ng = R_ng + 1j*X_ng
+
+    i_sa = i_sa_r + 1j*i_sa_i
+    i_sb = i_sb_r + 1j*i_sb_i
+    i_sc = i_sc_r + 1j*i_sc_i
+    i_sn = i_sn_r + 1j*i_sn_i
+    i_ng = i_ng_r + 1j*i_ng_i
+
+    v_sa = v_sa_r + 1j*v_sa_i
+    v_sb = v_sb_r + 1j*v_sb_i
+    v_sc = v_sc_r + 1j*v_sc_i
+    v_sn = v_sn_r + 1j*v_sn_i
+    v_ng = v_ng_r + 1j*v_ng_i
+    v_mn = v_mn_r + 1j*v_mn_i
+    
+    e_am_r = e_am_m*sym.cos(phi) 
+    e_am_i = e_am_m*sym.sin(phi) 
+    e_bm_r = e_bm_m*sym.cos(phi-2/3*np.pi) 
+    e_bm_i = e_bm_m*sym.sin(phi-2/3*np.pi) 
+    e_cm_r = e_cm_m*sym.cos(phi-4/3*np.pi) 
+    e_cm_i = e_cm_m*sym.sin(phi-4/3*np.pi) 
+    
+    e_am_cplx = e_am_r + 1j*e_am_i
+    e_bm_cplx = e_bm_r + 1j*e_bm_i
+    e_cm_cplx = e_cm_r + 1j*e_cm_i
+    e_om_cplx = e_om_r + 1j*e_om_i
+
+    v_san = v_sa - v_sn
+    v_sbn = v_sb - v_sn
+    v_scn = v_sc - v_sn
+
+    eq_i_sa_cplx = e_am_cplx - i_sa*Z_sa - v_san - v_mn
+    eq_i_sb_cplx = e_bm_cplx - i_sb*Z_sb - v_sbn - v_mn
+    eq_i_sc_cplx = e_cm_cplx - i_sc*Z_sc - v_scn - v_mn
+    eq_v_nm_cplx = 0*e_om_cplx - i_sn*Z_sn - v_mn
+    eq_i_sn_cplx = i_sa + i_sb + i_sc + i_sn
+    #eq_i_sn_cplx = e_ng_cplx - i_sn*Z_sn - v_ng
+    #eq_i_ng_cplx = i_ng + i_sa + i_sb + i_sc + i_sn
+    #eq_e_ng_cplx  = -e_ng_cplx  + i_ng*Z_ng
+
+    g_list += [sym.re(eq_i_sa_cplx)] 
+    g_list += [sym.re(eq_i_sb_cplx)] 
+    g_list += [sym.re(eq_i_sc_cplx)] 
+    g_list += [sym.re(eq_v_nm_cplx)] 
+    g_list += [sym.re(eq_i_sn_cplx)] 
+    
+    #g_list += [sym.re(eq_i_ng_cplx)] 
+    #g_list += [sym.re(eq_e_ng_cplx)] 
+    g_list += [sym.im(eq_i_sa_cplx)] 
+    g_list += [sym.im(eq_i_sb_cplx)] 
+    g_list += [sym.im(eq_i_sc_cplx)] 
+    g_list += [sym.im(eq_v_nm_cplx)] 
+    g_list += [sym.im(eq_i_sn_cplx)] 
+    #g_list += [sym.im(eq_i_ng_cplx)] 
+    #g_list += [sym.im(eq_e_ng_cplx)]
+
+    y_list += [i_sa_r,i_sb_r,i_sc_r,v_mn_r,i_sn_r]
+    y_list += [i_sa_i,i_sb_i,i_sc_i,v_mn_i,i_sn_i]
+
+    y_ini_str = [str(item) for item in y_list]
+
+    for ph in ['a','b','c','n']:
+        i_s_r = sym.Symbol(f'i_vsc_{name}_{ph}_r', real=True)
+        i_s_i = sym.Symbol(f'i_vsc_{name}_{ph}_i', real=True)  
+        g_list[y_ini_str.index(f'v_{name}_{ph}_r')] += i_s_r
+        g_list[y_ini_str.index(f'v_{name}_{ph}_i')] += i_s_i
+        i_s = i_s_r + 1j*i_s_i
+        i_s_m = np.abs(i_s)
+        h_dict.update({f'i_vsc_{name}_{ph}_m':i_s_m})
+
+        
+    V_1 = 400/np.sqrt(3)
+    #    V_1 = 400/np.sqrt(3)*np.exp(1j*np.deg2rad(0))
+    # A_1toabc = np.array([1, alpha**2, alpha])
+    #V_abc = V_1 * A_1toabc 
+    #e_an_r,e_bn_r,e_cn_r = V_abc.real
+    #e_an_i,e_bn_i,e_cn_i = V_abc.imag
+
+    u_dict.update({f'e_{name}_am_m':V_1,f'e_{name}_bm_m':V_1,f'e_{name}_cm_m':V_1,f'e_{name}_om_m':0.0})
+    u_dict.update({f'phi_{name}':0.0})
+    u_dict.update({f'p_{name}_ref':0.0})
+    u_dict.update({f'omega_{name}_ref':1.0})
+
+    #for ph in ['a','b','c','n']:
+    #    u_dict.pop(f'i_{name}_{ph}_r')
+    #    u_dict.pop(f'i_{name}_{ph}_i')
+
+    params_dict.update({f'X_{name}_s':vsc_data['X'],f'R_{name}_s':vsc_data['R']})
+    params_dict.update({f'X_{name}_sn':vsc_data['X_n'],f'R_{name}_sn':vsc_data['R_n']})
+    params_dict.update({f'X_{name}_ng':vsc_data['X_ng'],f'R_{name}_ng':vsc_data['R_ng']})
+    
+    params_dict.update({f'S_n_{name}':vsc_data['S_n']})
+
+    params_dict.update({f'K_f_{name}':vsc_data['K_f']})
+    params_dict.update({f'T_f_{name}':vsc_data['T_f']})
+    params_dict.update({f'K_sec_{name}':vsc_data['K_sec']})
+    params_dict.update({f'K_delta_{name}':vsc_data['K_delta']})
+    
+    
+    v_sabc = sym.Matrix([[v_sa],[v_sb],[v_sc]])
+    i_sabc = sym.Matrix([[i_sa],[i_sb],[i_sc]])
+    
+    v_szpn = A_a0*v_sabc
+    i_szpn = A_a0*i_sabc
+    
+    s_pos = 3*v_szpn[1]*sym.conjugate(i_szpn[1])
+    s_neg = 3*v_szpn[2]*sym.conjugate(i_szpn[2])
+    s_zer = 3*v_szpn[0]*sym.conjugate(i_szpn[0])
+    
+    p_pos = sym.re(s_pos)
+    
+    dphi   = 2*np.pi*50*(omega - omega_coi) - K_delta*phi
+    domega = 1/T_f*(omega_ref + K_f*(p_ref + K_sec*xi_freq - p_pos)/S_n - omega)
+    
+    f_list += [dphi,domega]
+    x_list += [ phi, omega]
+    
+    h_dict.update({f'p_{name}_pos':sym.re(s_pos),f'p_{name}_neg':sym.re(s_neg),f'p_{name}_zer':sym.re(s_zer)})
+    h_dict.update({str(e_am_m):e_am_m,str(e_bm_m):e_bm_m,str(e_cm_m):e_cm_m})
+    h_dict.update({str(p_ref):p_ref,str(omega_ref):omega_ref})
+    HS_coi  = S_n
+    omega_coi_i = S_n*omega
+
+    grid.omega_coi_h_i += omega_coi_i
+    grid.hs_total += HS_coi
+
+
+
+   
+
+
 
 if __name__ == "__main__":
 
