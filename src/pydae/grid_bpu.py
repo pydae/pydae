@@ -1009,12 +1009,12 @@ class bpu:
             self.dae['u_ini_dict'].update({f'{str(v_ref)}':1.0})
             self.dae['u_run_dict'].update({f'{str(v_ref)}':1.0})
 
-        if 'p_m' in vsg_data:
-            self.dae['u_ini_dict'].update({f'{str(p_m)}':vsg_data['p_m']})
-            self.dae['u_run_dict'].update({f'{str(p_m)}':vsg_data['p_m']})
-        else:
-            self.dae['u_ini_dict'].update({f'{str(p_m)}':1.0})
-            self.dae['u_run_dict'].update({f'{str(p_m)}':1.0})
+        #if 'p_m' in vsg_data:
+        #    self.dae['u_ini_dict'].update({f'{str(p_m)}':vsg_data['p_m']})
+        #    self.dae['u_run_dict'].update({f'{str(p_m)}':vsg_data['p_m']})
+        #else:
+        #    self.dae['u_ini_dict'].update({f'{str(p_m)}':1.0})
+        #    self.dae['u_run_dict'].update({f'{str(p_m)}':1.0})
             
         self.dae['u_ini_dict'].update({f'{str(p_c)}':vsg_data['p_c']})
         self.dae['u_run_dict'].update({f'{str(p_c)}':vsg_data['p_c']})
