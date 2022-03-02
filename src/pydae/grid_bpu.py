@@ -935,6 +935,7 @@ class bpu:
         delta = sym.Symbol(f"delta_{name}", real=True)
         e_qv = sym.Symbol(f"e_qv_{name}", real=True)
         xi_p = sym.Symbol(f"xi_p_{name}", real=True)
+        p_ef = sym.Symbol(f"p_ef_{name}", real=True)
 
         # algebraic states
         omega = sym.Symbol(f"omega_{name}", real=True)
@@ -957,6 +958,7 @@ class bpu:
         K_delta = sym.Symbol(f"K_delta_{name}", real=True)
         Droop = sym.Symbol(f"Droop_{name}", real=True) 
         K_sec = sym.Symbol(f"K_sec_{name}", real=True) 
+        T_e  = sym.Symbol(f"T_e_{name}", real=True)  
         params_list = ['S_n','Omega_b','K_p','T_p','K_q','T_v','X_v','R_v','K_delta','K_sec','Droop','K_sec']
         
         # auxiliar
@@ -966,7 +968,7 @@ class bpu:
         omega_s = omega_coi
         e_dv = 0
         p_r = K_sec*p_agc
-        epsilon_p = p_m - p_e
+        epsilon_p = p_m - p_ef
         epsilon_q = q_ref - q_g
         
                             
@@ -975,6 +977,7 @@ class bpu:
         ddelta = Omega_b*(omega - omega_s) - K_delta*delta
         dxi_p = epsilon_p
         de_qv = 1/T_v*(v_ref + K_q*epsilon_q - e_qv)
+        dp_ef = 1/T_e*(p_e - p_ef)
 
         # algebraic equations   
         g_omega = -omega + K_p*(epsilon_p + xi_p/T_p) + 1
@@ -985,8 +988,8 @@ class bpu:
         g_p_m  = -p_m + p_c + p_r - 1/Droop*(omega - omega_ref)
         
         # dae 
-        f_vsg = [ddelta,dxi_p,de_qv]
-        x_vsg = [ delta, xi_p, e_qv]
+        f_vsg = [ddelta,dxi_p,de_qv,dp_ef]
+        x_vsg = [ delta, xi_p, e_qv, p_ef]
         g_vsg = [g_omega,g_i_d,g_i_q,g_p_g,g_q_g,g_p_m]
         y_vsg = [  omega,  i_d,  i_q,  p_g,  q_g,  p_m]
         
@@ -1036,10 +1039,18 @@ class bpu:
         # outputs
         self.dae['h_dict'].update({f"p_e_{name}":p_e})
         
+        # 
         for item in params_list:       
             self.dae['params_dict'].update({f"{item}_{name}":vsg_data[item]})
-            
-            
+
+        if 'T_e' in vsg_data:
+            self.dae['params_dict'].update({f'{str(T_e)}':vsg_data['T_e']})
+        else:
+            self.dae['params_dict'].update({f'{str(T_e)}':0.1})
+
+
+        self.dae['params_dict'].update({f"{item}_{name}":vsg_data[item]})
+
     def add_uvsg(self,vsg_data):
         sin = sym.sin
         cos = sym.cos
