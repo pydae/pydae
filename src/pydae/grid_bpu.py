@@ -47,17 +47,27 @@ class bpu:
             data = data_input
             
         self.data = data
-    
+
+        if not 'lines' in self.data:
+            self.data['lines'] = []
+        if not 'shunts' in self.data:
+            self.data['shunts'] = []
+        if not 'transformers' in self.data:
+            self.data['transformers'] = []
+
         self.sys = data['sys']
         self.buses = data['buses']
         self.lines = data['lines']
+        self.shunts = data['shunts']
+        self.transformers = data['transformers']
+
         self.x_grid = []
         self.f_grid = []
     
         self.params_grid = {'S_base':self.sys['S_base']}
         self.S_base = sym.Symbol("S_base", real=True) 
         self.N_bus = len(self.buses)
-        self.N_branch = len(self.lines)
+        self.N_branch = 3*len(self.lines) + len(self.shunts) + 3*len(self.transformers)
  
         self.dae = {'f':[],'g':[],'x':[],'y_ini':[],'y_run':[],
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
@@ -79,9 +89,9 @@ class bpu:
         
         xy_0_dict_grid = {}
         
-        A = sym.zeros(3*N_branch,N_bus)
-        G_primitive = sym.zeros(3*N_branch,3*N_branch)
-        B_primitive = sym.zeros(3*N_branch,3*N_branch)
+        A = sym.zeros(N_branch,N_bus)
+        G_primitive = sym.zeros(N_branch,N_branch)
+        B_primitive = sym.zeros(N_branch,N_branch)
         buses_list = [bus['name'] for bus in self.buses]
         it = 0
         for line in self.lines:
@@ -92,19 +102,19 @@ class bpu:
             idx_j = buses_list.index(bus_j)
             idx_k = buses_list.index(bus_k)    
     
-            A[3*it,idx_j] = 1
-            A[3*it,idx_k] =-1   
-            A[3*it+1,idx_j] = 1
-            A[3*it+2,idx_k] = 1   
+            A[it,idx_j] = 1
+            A[it,idx_k] =-1   
+            A[it+1,idx_j] = 1
+            A[it+2,idx_k] = 1   
             
             line_name = f"{bus_j}_{bus_k}"
             g_jk = sym.Symbol(f"g_{line_name}", real=True) 
             b_jk = sym.Symbol(f"b_{line_name}", real=True) 
             bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
-            G_primitive[3*it,3*it] = g_jk
-            B_primitive[3*it,3*it] = b_jk
-            B_primitive[3*it+1,3*it+1] = bs_jk/2
-            B_primitive[3*it+2,3*it+2] = bs_jk/2
+            G_primitive[it,it] = g_jk
+            B_primitive[it,it] = b_jk
+            B_primitive[it+1,it+1] = bs_jk/2
+            B_primitive[it+2,it+2] = bs_jk/2
             
             if 'X_pu' in line:
                 if 'S_mva' in line: S_line = 1e6*line['S_mva']
@@ -153,8 +163,96 @@ class bpu:
                 bs = Bs 
                 self.params_grid[f'bs_{line_name}'] = bs
                 
-            it += 1
+            it += 3
+
+        for trafo in self.transformers:
     
+            bus_j = trafo['bus_j']
+            bus_k = trafo['bus_k']
+    
+            idx_j = buses_list.index(bus_j)
+            idx_k = buses_list.index(bus_k)    
+    
+            A[it,idx_j] = 1
+            A[it,idx_k] =-1   
+            A[it+1,idx_j] = 1
+            A[it+2,idx_k] = 1   
+            
+            trafo_name = f"{bus_j}_{bus_k}"
+            g_jk = sym.Symbol(f"g_cc_{trafo_name}", real=True) 
+            b_jk = sym.Symbol(f"b_cc_{trafo_name}", real=True) 
+            tap = sym.Symbol(f"tap_{trafo_name}", real=True) 
+
+            Y_cc = g_jk + sym.I*b_jk
+            shunt_j = Y_cc * (1-tap)/tap**2
+            shunt_k = Y_cc * (tap-1)/tap
+
+            G_primitive[it,it] = g_jk/tap
+            B_primitive[it,it] = b_jk/tap
+            G_primitive[it+1,it+1] = sym.re(shunt_j)
+            B_primitive[it+1,it+1] = sym.im(shunt_j)
+            G_primitive[it+2,it+2] = sym.re(shunt_k)
+            B_primitive[it+2,it+2] = sym.im(shunt_k)
+
+            if 'X_pu' in trafo:
+                if 'S_mva' in trafo: S_trafo = 1e6*trafo['S_mva']
+                R = trafo['R_pu']*sys['S_base']/S_trafo  # in pu of the system base
+                X = trafo['X_pu']*sys['S_base']/S_trafo  # in pu of the system base
+                G =  R/(R**2+X**2)
+                B = -X/(R**2+X**2)
+                self.params_grid.update({f"g_cc_{trafo_name}":G})
+                self.params_grid.update({f'b_cc_{trafo_name}':B})
+                self.params_grid.update({f'tap_{trafo_name}':1.0})
+    
+            if 'X' in trafo:
+                bus_idx = buses_list.index(trafo['bus_j'])
+                U_base = self.buses[bus_idx]['U_kV']*1000
+                Z_base = U_base**2/sys['S_base']
+                R = trafo['R']/Z_base  # in pu of the system base
+                X = trafo['X']/Z_base  # in pu of the system base
+                G =  R/(R**2+X**2)
+                B = -X/(R**2+X**2)
+                self.params_grid.update({f"g_cc_{trafo_name}":G})
+                self.params_grid.update({f'b_cc_{trafo_name}':B})
+                self.params_grid.update({f'tap_{trafo_name}':1.0})
+      
+            it += 3
+
+
+        for shunt in self.shunts:
+    
+            bus_j = shunt['bus']   
+            idx_j = buses_list.index(bus_j)
+    
+            A[it,idx_j] = 1
+             
+            shunt_name = f"{bus_j}_{bus_k}"
+            g_j = sym.Symbol(f"sg_{shunt_name}", real=True) 
+            b_j = sym.Symbol(f"sb_{shunt_name}", real=True) 
+            G_primitive[it,it] = g_j
+            B_primitive[it,it] = b_j
+
+            
+            if 'X_pu' in shunt:
+                if 'S_mva' in shunt: S_line = 1e6*shunt['S_mva']
+                R = shunt['R_pu']*sys['S_base']/S_line  # in pu of the system base
+                X = shunt['X_pu']*sys['S_base']/S_line  # in pu of the system base
+                G =  R/(R**2+X**2)
+                B = -X/(R**2+X**2)
+                self.params_grid.update({f"sg_{shunt_name}":G})
+                self.params_grid.update({f'sb_{shunt_name}':B})
+    
+            if 'X' in shunt:
+                U_base = self.buses[idx_j]['U_kV']*1000
+                Z_base = U_base**2/sys['S_base']
+                R = shunt['R']/Z_base  # in pu of the system base
+                X = shunt['X']/Z_base  # in pu of the system base
+                G =  R/(R**2+X**2)
+                B = -X/(R**2+X**2)
+                self.params_grid.update({f"sg_{shunt_name}":G})
+                self.params_grid.update({f'sb_{shunt_name}':B})
+                
+            it += 1    
     
         G = A.T * G_primitive * A
         B = A.T * B_primitive * A    
@@ -936,6 +1034,7 @@ class bpu:
         e_qv = sym.Symbol(f"e_qv_{name}", real=True)
         xi_p = sym.Symbol(f"xi_p_{name}", real=True)
         p_ef = sym.Symbol(f"p_ef_{name}", real=True)
+        p_cf = sym.Symbol(f"p_cf_{name}", real=True)
 
         # algebraic states
         omega = sym.Symbol(f"omega_{name}", real=True)
@@ -959,6 +1058,8 @@ class bpu:
         Droop = sym.Symbol(f"Droop_{name}", real=True) 
         K_sec = sym.Symbol(f"K_sec_{name}", real=True) 
         T_e  = sym.Symbol(f"T_e_{name}", real=True)  
+        T_c  = sym.Symbol(f"T_c_{name}", real=True)  
+
         params_list = ['S_n','Omega_b','K_p','T_p','K_q','T_v','X_v','R_v','K_delta','K_sec','Droop','K_sec']
         
         # auxiliar
@@ -978,6 +1079,7 @@ class bpu:
         dxi_p = epsilon_p
         de_qv = 1/T_v*(v_ref + K_q*epsilon_q - e_qv)
         dp_ef = 1/T_e*(p_e - p_ef)
+        dp_cf = 1/T_c*(p_c - p_cf)
 
         # algebraic equations   
         g_omega = -omega + K_p*(epsilon_p + xi_p/T_p) + 1
@@ -985,11 +1087,11 @@ class bpu:
         g_i_q  = -R_v*i_q - X_v*i_d - v_q + e_qv
         g_p_g  = i_d*v_d + i_q*v_q - p_g  
         g_q_g  = i_d*v_q - i_q*v_d - q_g 
-        g_p_m  = -p_m + p_c + p_r - 1/Droop*(omega - omega_ref)
+        g_p_m  = -p_m + p_cf + p_r - 1/Droop*(omega - omega_ref)
         
         # dae 
-        f_vsg = [ddelta,dxi_p,de_qv,dp_ef]
-        x_vsg = [ delta, xi_p, e_qv, p_ef]
+        f_vsg = [ddelta,dxi_p,de_qv,dp_ef,dp_cf]
+        x_vsg = [ delta, xi_p, e_qv, p_ef, p_cf]
         g_vsg = [g_omega,g_i_d,g_i_q,g_p_g,g_q_g,g_p_m]
         y_vsg = [  omega,  i_d,  i_q,  p_g,  q_g,  p_m]
         
@@ -1047,6 +1149,13 @@ class bpu:
             self.dae['params_dict'].update({f'{str(T_e)}':vsg_data['T_e']})
         else:
             self.dae['params_dict'].update({f'{str(T_e)}':0.1})
+
+        if 'T_c' in vsg_data:
+            self.dae['params_dict'].update({f'{str(T_c)}':vsg_data['T_c']})
+        else:
+            self.dae['params_dict'].update({f'{str(T_c)}':0.1})
+
+            
 
 
         self.dae['params_dict'].update({f"{item}_{name}":vsg_data[item]})
