@@ -67,7 +67,7 @@ class bpu:
         self.params_grid = {'S_base':self.sys['S_base']}
         self.S_base = sym.Symbol("S_base", real=True) 
         self.N_bus = len(self.buses)
-        self.N_branch = 3*len(self.lines) + len(self.shunts) + 3*len(self.transformers)
+        self.N_branch = 3*len(self.lines) + len(self.shunts) + 2*len(self.transformers)
  
         self.dae = {'f':[],'g':[],'x':[],'y_ini':[],'y_run':[],
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
@@ -88,6 +88,8 @@ class bpu:
         S_base = sym.Symbol('S_base', real=True)
         
         xy_0_dict_grid = {}
+        u_grid = {}
+        h_grid = {}
         
         A = sym.zeros(N_branch,N_bus)
         G_primitive = sym.zeros(N_branch,N_branch)
@@ -115,6 +117,7 @@ class bpu:
             B_primitive[it,it] = b_jk
             B_primitive[it+1,it+1] = bs_jk/2
             B_primitive[it+2,it+2] = bs_jk/2
+
             
             if 'X_pu' in line:
                 if 'S_mva' in line: S_line = 1e6*line['S_mva']
@@ -174,25 +177,26 @@ class bpu:
             idx_k = buses_list.index(bus_k)    
     
             A[it,idx_j] = 1
-            A[it,idx_k] =-1   
-            A[it+1,idx_j] = 1
-            A[it+2,idx_k] = 1   
+            A[it+1,idx_k] = 1  
             
             trafo_name = f"{bus_j}_{bus_k}"
             g_jk = sym.Symbol(f"g_cc_{trafo_name}", real=True) 
             b_jk = sym.Symbol(f"b_cc_{trafo_name}", real=True) 
             tap = sym.Symbol(f"tap_{trafo_name}", real=True) 
+            ang = sym.Symbol(f"ang_{trafo_name}", real=True) 
+            a_s = tap*sym.cos(ang)
+            b_s = tap*sym.sin(ang)
 
             Y_cc = g_jk + sym.I*b_jk
-            shunt_j = Y_cc * (1-tap)/tap**2
-            shunt_k = Y_cc * (tap-1)/tap
 
-            G_primitive[it,it] = g_jk/tap
-            B_primitive[it,it] = b_jk/tap
-            G_primitive[it+1,it+1] = sym.re(shunt_j)
-            B_primitive[it+1,it+1] = sym.im(shunt_j)
-            G_primitive[it+2,it+2] = sym.re(shunt_k)
-            B_primitive[it+2,it+2] = sym.im(shunt_k)
+            
+            Y_primitive =sym.Matrix([[ Y_cc/(a_s**2+b_s**2),-Y_cc/(a_s-sym.I*b_s)],
+                                     [-Y_cc/(a_s+sym.I*b_s),                 Y_cc]])
+
+
+            G_primitive[it:it+2,it:it+2] = sym.re(Y_primitive)
+            B_primitive[it:it+2,it:it+2] = sym.im(Y_primitive)
+
 
             if 'X_pu' in trafo:
                 if 'S_mva' in trafo: S_trafo = 1e6*trafo['S_mva']
@@ -203,6 +207,8 @@ class bpu:
                 self.params_grid.update({f"g_cc_{trafo_name}":G})
                 self.params_grid.update({f'b_cc_{trafo_name}':B})
                 self.params_grid.update({f'tap_{trafo_name}':1.0})
+                self.params_grid.update({f'ang_{trafo_name}':0.0})
+
     
             if 'X' in trafo:
                 bus_idx = buses_list.index(trafo['bus_j'])
@@ -215,8 +221,9 @@ class bpu:
                 self.params_grid.update({f"g_cc_{trafo_name}":G})
                 self.params_grid.update({f'b_cc_{trafo_name}':B})
                 self.params_grid.update({f'tap_{trafo_name}':1.0})
-      
-            it += 3
+                self.params_grid.update({f'ang_{trafo_name}':0.0})
+     
+            it += 2
 
 
         for shunt in self.shunts:
@@ -227,8 +234,8 @@ class bpu:
             A[it,idx_j] = 1
              
             shunt_name = f"{bus_j}_{bus_k}"
-            g_j = sym.Symbol(f"sg_{shunt_name}", real=True) 
-            b_j = sym.Symbol(f"sb_{shunt_name}", real=True) 
+            g_j = sym.Symbol(f"g_shunt_{shunt_name}", real=True) 
+            b_j = sym.Symbol(f"b_shunt_{shunt_name}", real=True) 
             G_primitive[it,it] = g_j
             B_primitive[it,it] = b_j
 
@@ -239,8 +246,8 @@ class bpu:
                 X = shunt['X_pu']*sys['S_base']/S_line  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
-                self.params_grid.update({f"sg_{shunt_name}":G})
-                self.params_grid.update({f'sb_{shunt_name}':B})
+                self.params_grid.update({f"g_shunt_{shunt_name}":G})
+                self.params_grid.update({f'b_shunt_{shunt_name}':B})
     
             if 'X' in shunt:
                 U_base = self.buses[idx_j]['U_kV']*1000
@@ -249,8 +256,8 @@ class bpu:
                 X = shunt['X']/Z_base  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
-                self.params_grid.update({f"sg_{shunt_name}":G})
-                self.params_grid.update({f'sb_{shunt_name}':B})
+                self.params_grid.update({f"g_shunt_{shunt_name}":G})
+                self.params_grid.update({f'b_shunt_{shunt_name}':B})
                 
             it += 1    
     
@@ -261,8 +268,7 @@ class bpu:
         cos = sym.cos
         y_grid = []
         g = sym.zeros(2*N_bus,1)
-        u_grid = {}
-        h_grid = {}
+
         for j in range(N_bus):
             bus_j_name = buses_list[j]
             P_j = sym.Symbol(f"P_{bus_j_name}", real=True)
@@ -318,6 +324,37 @@ class bpu:
                 y_grid += [I_jk_i]
                 it += 1
         
+
+
+
+        for line in self.lines:
+    
+            bus_j = line['bus_j']
+            bus_k = line['bus_k']
+
+            line_name = f"{bus_j}_{bus_k}"
+    
+            idx_j = buses_list.index(bus_j)
+            idx_k = buses_list.index(bus_k)  
+
+            V_j = sym.Symbol(f"V_{bus_j}", real=True) 
+            V_k = sym.Symbol(f"V_{bus_k}", real=True) 
+            theta_j = sym.Symbol(f"theta_{bus_j}", real=True) 
+            theta_k = sym.Symbol(f"theta_{bus_k}", real=True)
+
+            b_ij_p = 0.0
+            if f'bs_{line_name}' in self.params_grid:
+                b_ij_p = self.params_grid[f'bs_{line_name}']
+
+            G_jk = G[idx_j,idx_k] 
+            B_jk = B[idx_j,idx_k] 
+            theta_jk = theta_j - theta_k
+            P_line = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
+            Q_line = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
+
+            h_grid.update({f"p_line_{line_name}":P_line})
+            h_grid.update({f"q_line_{line_name}":Q_line})       
+
         self.dae['f'] += []
         self.dae['g'] += g_grid
         self.dae['x'] += []
@@ -330,8 +367,8 @@ class bpu:
         self.dae['xy_0_dict'].update(xy_0_dict_grid)
         
         self.A_incidence = A
+        self.G_primitive = G_primitive
         self.B_primitive = B_primitive
-        
  
     def contruct_generators(self):
         
