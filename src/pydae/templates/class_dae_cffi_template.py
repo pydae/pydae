@@ -55,7 +55,7 @@ sign = np.sign
 exp = np.exp
 
 
-class {name}_class: 
+class model: 
 
     def __init__(self): 
 
@@ -120,7 +120,7 @@ class {name}_class:
         self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
         data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
         #self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
-        self.sp_jac_ini = sspa.load_npz('{name}_sp_jac_ini_num.npz')
+        self.sp_jac_ini = sspa.load_npz('./__pycache__/{name}_sp_jac_ini_num.npz')
         self.jac_ini = self.sp_jac_ini.toarray()
 
         #self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
@@ -136,7 +136,7 @@ class {name}_class:
         self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
         data = np.array(self.sp_jac_run_ia,dtype=np.float64)
         #self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
-        self.sp_jac_run = sspa.load_npz('{name}_sp_jac_run_num.npz')
+        self.sp_jac_run = sspa.load_npz('./__pycache__/{name}_sp_jac_run_num.npz')
         self.jac_run = self.sp_jac_run.toarray()
 
         self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
@@ -150,7 +150,7 @@ class {name}_class:
         self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
         data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
         #self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
-        self.sp_jac_trap = sspa.load_npz('{name}_sp_jac_trap_num.npz')
+        self.sp_jac_trap = sspa.load_npz('./__pycache__/{name}_sp_jac_trap_num.npz')
         self.jac_trap = self.sp_jac_trap.toarray()
         
         #self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
@@ -170,11 +170,11 @@ class {name}_class:
 
         self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.0
 
-        {u2z_comment}self.sp_Fu_run = sspa.load_npz('{name}_Fu_run_num.npz')
-        {u2z_comment}self.sp_Gu_run = sspa.load_npz('{name}_Gu_run_num.npz')
-        {u2z_comment}self.sp_Hx_run = sspa.load_npz('{name}_Hx_run_num.npz')
-        {u2z_comment}self.sp_Hy_run = sspa.load_npz('{name}_Hy_run_num.npz')
-        {u2z_comment}self.sp_Hu_run = sspa.load_npz('{name}_Hu_run_num.npz')        
+        {u2z_comment}self.sp_Fu_run = sspa.load_npz('./__pycache__/{name}_Fu_run_num.npz')
+        {u2z_comment}self.sp_Gu_run = sspa.load_npz('./__pycache__/{name}_Gu_run_num.npz')
+        {u2z_comment}self.sp_Hx_run = sspa.load_npz('./__pycache__/{name}_Hx_run_num.npz')
+        {u2z_comment}self.sp_Hy_run = sspa.load_npz('./__pycache__/{name}_Hy_run_num.npz')
+        {u2z_comment}self.sp_Hu_run = sspa.load_npz('./__pycache__/{name}_Hu_run_num.npz')        
  
         
 

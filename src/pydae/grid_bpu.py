@@ -233,7 +233,7 @@ class bpu:
     
             A[it,idx_j] = 1
              
-            shunt_name = f"{bus_j}_{bus_k}"
+            shunt_name = f"{bus_j}"
             g_j = sym.Symbol(f"g_shunt_{shunt_name}", real=True) 
             b_j = sym.Symbol(f"b_shunt_{shunt_name}", real=True) 
             G_primitive[it,it] = g_j

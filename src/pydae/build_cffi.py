@@ -16,6 +16,8 @@ from sympy.matrices.sparsetools import _doktocsr
 from sympy import SparseMatrix
 from sympy.codegen.ast import Assignment
 from scipy.sparse import csr_matrix,save_npz
+import os
+
 
 import cffi
 
@@ -106,6 +108,10 @@ class builder():
         self.save_sources = False
         self.string_u2z = ''
         self.u2z = '\#'
+
+        if not os.path.exists('__pycache__'):
+            os.makedirs('__pycache__')
+
 
 
     def check_system(self):
@@ -987,7 +993,7 @@ class builder():
                 defs_sp_uz   += defs_sp_jac
                 source_sp_uz += source_sp_jac
 
-                save_npz(f"{sys['name']}_{item}_num.npz",sp_jac_num_matrix, compressed=True)
+                save_npz(f"./__pycache__/{sys['name']}_{item}_num.npz",sp_jac_num_matrix, compressed=True)
 
 
         ## C sources ##############################################################
@@ -1009,9 +1015,9 @@ class builder():
         source += source_de_trap + source_sp_trap
         source += source_de_uz + source_sp_uz
 
-        save_npz( f"{sys['name']}_sp_jac_ini_num.npz", sp_jac_ini_num_matrix, compressed=True)
-        save_npz( f"{sys['name']}_sp_jac_run_num.npz", sp_jac_run_num_matrix, compressed=True)
-        save_npz(f"{sys['name']}_sp_jac_trap_num.npz",sp_jac_trap_num_matrix, compressed=True)
+        save_npz( f"./__pycache__/{sys['name']}_sp_jac_ini_num.npz", sp_jac_ini_num_matrix, compressed=True)
+        save_npz( f"./__pycache__/{sys['name']}_sp_jac_run_num.npz", sp_jac_run_num_matrix, compressed=True)
+        save_npz( f"./__pycache__/{sys['name']}_sp_jac_trap_num.npz",sp_jac_trap_num_matrix, compressed=True)
 
         if self.verbose: print(f'Code wrote in {time.time()-t_0:0.3f} s')
 
@@ -1031,16 +1037,16 @@ class builder():
         ffi.set_source(module_name=module_name,source=source)
         t_0 = time.time()
         ffi.compile()
-        print(f'Compilation time: {time.time()-t_0:0.2f} s')
+        if self.verbose: print(f'Compilation time: {time.time()-t_0:0.2f} s')
 
     def compile_module_files(self):
         
         ffi = cffi.FFI()
         name = self.name
 
-        with open(f'defs_{name}_cffi.h', 'r') as f:
+        with open(f'./__pycache__/defs_{name}_cffi.h', 'r') as f:
             defs = f.read()
-        with open(f'source_{name}_cffi.c', 'r') as f:
+        with open(f'./__pycache__/source_{name}_cffi.c', 'r') as f:
             source = f.read()
             
         ffi.cdef(defs, override=True)
@@ -1057,9 +1063,9 @@ class builder():
         self.jacobians()
         defs,source = self.sym2src()
         if self.save_sources:
-            with open(f'defs_{name}_cffi.h', 'w') as f:
+            with open(f'./__pycache__/defs_{name}_cffi.h', 'w') as f:
                 f.write(defs)
-            with open(f'source_{name}_cffi.c', 'w') as f:
+            with open(f'./__pycache__/source_{name}_cffi.c', 'w') as f:
                 f.write(source)
         self.compile_module()
         self.sys2num()
