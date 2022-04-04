@@ -240,6 +240,7 @@ class model:
         self.it = it
         self.it_store = it_store
         self.xy = xy
+        self.z = self.Z[self.it_store,:]
  
     def runsp(self,t_end,up_dict):
         for item in up_dict:
@@ -608,6 +609,8 @@ class model:
         self.it = it
         self.it_store = it_store
         self.xy = xy
+        self.z = self.Z[self.it_store,:]
+
             
     def spini(self,up_dict,xy_0={}):
     

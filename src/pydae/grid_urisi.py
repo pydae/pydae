@@ -967,6 +967,8 @@ def ac3ph4wvdcq(grid,vsc_data):
     
    
     ### AC-side
+    q_a,q_b,q_c = sym.symbols(f'q_vsc_a_{bus_name}_a,q_vsc_b_{bus_name}_b,q_vsc_c_{bus_name}_c')
+
     p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
     p_a_d,p_b_d,p_c_d,p_n_d = sym.symbols(f'p_a_d_{bus_ac_name},p_b_d_{bus_ac_name},p_c_d_{bus_ac_name},p_n_d_{bus_ac_name}',real=True)
     C_a,C_b,C_c = sym.symbols(f'C_a_{bus_ac_name},C_b_{bus_ac_name},C_c_{bus_ac_name}',real=True)
@@ -1033,9 +1035,9 @@ def ac3ph4wvdcq(grid,vsc_data):
     eq_i_a_r =  sym.re(s_a) - p_a_d + p_loss_a_ + p_loss_n_
     eq_i_b_r =  sym.re(s_b) - p_b_d + p_loss_b_
     eq_i_c_r =  sym.re(s_c) - p_c_d + p_loss_c_
-    eq_i_a_i =  sym.im(s_a) - C_a*q_ac
-    eq_i_b_i =  sym.im(s_b) - C_b*q_ac
-    eq_i_c_i =  sym.im(s_c) - C_c*q_ac
+    eq_i_a_i =  sym.im(s_a) - q_c
+    eq_i_b_i =  sym.im(s_b) - q_b
+    eq_i_c_i =  sym.im(s_c) - q_c
     
     eq_i_n_r = -i_n_r + i_a_r + i_b_r + i_c_r
     eq_i_n_i = -i_n_i + i_a_i + i_b_i + i_c_i
@@ -1081,7 +1083,7 @@ def ac3ph4wvdcq(grid,vsc_data):
 
     
       
-    grid.dae['u'].update({f'v_dc_{bus_dc_name}':800.0,f'q_vsc_{bus_ac_name}':0.0}) 
+    grid.dae['u'].update({f'v_dc_{bus_dc_name}':800.0,f'{str(q_a)}':0.0,f'{str(q_b)}':0.0,f'{str(q_c)}':0.0}) 
     grid.dae['u'].pop(str(v_dc_a_r))
     grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
     grid.dae['params'].update({f'C_a_{bus_ac_name}':1/3,f'C_b_{bus_ac_name}':1/3,f'C_c_{bus_ac_name}':1/3})
@@ -1108,6 +1110,8 @@ def ac3ph4wvdcq2(grid,vsc_data):
     
    
     ### AC-side
+    q_a,q_b,q_c = sym.symbols(f'q_vsc_a_{bus_ac_name},q_vsc_b_{bus_ac_name},q_vsc_c_{bus_ac_name}',real=True)
+
     p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
     p_a_d,p_b_d,p_c_d,p_n_d = sym.symbols(f'p_a_d_{bus_ac_name},p_b_d_{bus_ac_name},p_c_d_{bus_ac_name},p_n_d_{bus_ac_name}',real=True)
     C_a,C_b,C_c = sym.symbols(f'C_a_{bus_ac_name},C_b_{bus_ac_name},C_c_{bus_ac_name}',real=True)
@@ -1165,9 +1169,9 @@ def ac3ph4wvdcq2(grid,vsc_data):
     eq_i_a_r =  sym.re(s_a) - p_a_d + p_loss_a_ + p_loss_n_
     eq_i_b_r =  sym.re(s_b) - p_b_d + p_loss_b_
     eq_i_c_r =  sym.re(s_c) - p_c_d + p_loss_c_
-    eq_i_a_i =  sym.im(s_a) - C_a*q_ac
-    eq_i_b_i =  sym.im(s_b) - C_b*q_ac
-    eq_i_c_i =  sym.im(s_c) - C_c*q_ac
+    eq_i_a_i =  sym.im(s_a) - q_a
+    eq_i_b_i =  sym.im(s_b) - q_b
+    eq_i_c_i =  sym.im(s_c) - q_c
     
     eq_i_n_r = i_n_r + i_a_r + i_b_r + i_c_r
     eq_i_n_i = i_n_i + i_a_i + i_b_i + i_c_i
@@ -1219,7 +1223,9 @@ def ac3ph4wvdcq2(grid,vsc_data):
 
     
       
-    grid.dae['u'].update({f'v_dc_{bus_dc_name}_ref':800.0,f'q_vsc_{bus_ac_name}':0.0}) 
+    grid.dae['u'].update({f'v_dc_{bus_dc_name}_ref':800.0}) 
+    grid.dae['u'].update({f'{str(q_a)}':0.0,f'{str(q_b)}':0.0,f'{str(q_c)}':0.0}) 
+
     #grid.dae['u'].pop(str(v_dc_a_r))
     grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
     grid.dae['params'].update({f'C_a_{bus_ac_name}':1/3,f'C_b_{bus_ac_name}':1/3,f'C_c_{bus_ac_name}':1/3})
@@ -1369,8 +1375,11 @@ def ac3ph4wpq(grid,vsc_data):
     ## Body:
         
     ### AC-side
-    p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
-    coef_a,coef_b,coef_c = sym.symbols(f'coef_a_{bus_ac_name},coef_b_{bus_ac_name},coef_c_{bus_ac_name}',real=True)
+    p_ac_a,p_ac_b,p_ac_c = sym.symbols(f'p_vsc_a_{bus_ac_name},p_vsc_b_{bus_ac_name},p_vsc_c_{bus_ac_name}',real=True)
+    q_ac_a,q_ac_b,q_ac_c = sym.symbols(f'q_vsc_a_{bus_ac_name},q_vsc_b_{bus_ac_name},q_vsc_c_{bus_ac_name}',real=True)
+
+    p_dc,p_loss = sym.symbols(f'p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
+    #coef_a,coef_b,coef_c = sym.symbols(f'coef_a_{bus_ac_name},coef_b_{bus_ac_name},coef_c_{bus_ac_name}',real=True)
     
     v_a = v_a_r + 1j*v_a_i
     v_b = v_b_r + 1j*v_b_i
@@ -1386,12 +1395,12 @@ def ac3ph4wpq(grid,vsc_data):
     s_b = (v_b - v_n) * sym.conjugate(i_b)
     s_c = (v_c - v_n) * sym.conjugate(i_c)
 
-    eq_i_a_r =  sym.re(s_a) - p_ac*coef_a
-    eq_i_b_r =  sym.re(s_b) - p_ac*coef_b
-    eq_i_c_r =  sym.re(s_c) - p_ac*coef_c
-    eq_i_a_i =  sym.im(s_a) - q_ac*coef_a
-    eq_i_b_i =  sym.im(s_b) - q_ac*coef_b
-    eq_i_c_i =  sym.im(s_c) - q_ac*coef_c
+    eq_i_a_r =  sym.re(s_a) - p_ac_a
+    eq_i_b_r =  sym.re(s_b) - p_ac_b
+    eq_i_c_r =  sym.re(s_c) - p_ac_c
+    eq_i_a_i =  sym.im(s_a) - q_ac_a
+    eq_i_b_i =  sym.im(s_b) - q_ac_b
+    eq_i_c_i =  sym.im(s_c) - q_ac_c
     eq_i_n_r =  sym.re(i_a+i_b+i_c+i_n)
     eq_i_n_i =  sym.im(i_a+i_b+i_c+i_n)
 
@@ -1415,6 +1424,7 @@ def ac3ph4wpq(grid,vsc_data):
     p_loss_n = a + b*i_rms_n + c*i_rms_n*i_rms_n
 
     p_vsc_loss = p_loss_a + p_loss_b + p_loss_c + p_loss_n
+    p_ac = p_ac_a + p_ac_b + p_ac_c
 
     eq_p_loss = p_loss - p_vsc_loss
     eq_i_dc_a_r = i_dc_a_r + p_dc/(v_dc_a_r-v_dc_n_r+1e-8)
@@ -1435,13 +1445,14 @@ def ac3ph4wpq(grid,vsc_data):
 
     grid.dae['g'] +=  [eq_i_dc_a_r,eq_i_dc_n_r,eq_p_dc,eq_p_loss]
     grid.dae['y'] +=  [   i_dc_a_r,   i_dc_n_r,   p_dc,   p_loss]  
-    grid.dae['u'].update({f'p_vsc_{bus_ac_name}':0.0,f'q_vsc_{bus_ac_name}':0.0}) 
-    grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':10.0})
+    #grid.dae['u'].update({f'p_vsc_{bus_ac_name}':0.0,f'q_vsc_{bus_ac_name}':0.0}) 
+    grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':0.01})
     
     #grid.dae['u'].pop(f'i_{bus_dc_name}_a_r')
     #grid.dae['u'].pop(f'i_{bus_dc_name}_n_r')
     grid.dae['params'].update({f'a_{bus_ac_name}':a_value,f'b_{bus_ac_name}':b_value,f'c_{bus_ac_name}':c_value})
-    grid.dae['params'].update({f'coef_a_{bus_ac_name}':1/3,f'coef_b_{bus_ac_name}':1/3,f'coef_c_{bus_ac_name}':1/3})
+    grid.dae['u'].update({f'{str(p_ac_a)}':0.0,f'{str(p_ac_b)}':0.0,f'{str(p_ac_c)}':0.0})
+    grid.dae['u'].update({f'{str(q_ac_a)}':0.0,f'{str(q_ac_b)}':0.0,f'{str(q_ac_c)}':0.0})
 
     ## Add current injections to grid equations:
     bus_idx = grid.nodes.index(f'{bus_dc_name}.{1}')

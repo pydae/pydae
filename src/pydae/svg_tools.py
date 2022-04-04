@@ -310,6 +310,9 @@ class svg():
             vscs_list = []
             
         for vsc in vscs_list:
+
+            if not 'bus_ac' in vsc: continue
+
             bus_ac = vsc['bus_ac']
             bus_dc = vsc['bus_dc']
             vsc_id = f'vsc_{bus_ac}_{bus_dc}'
