@@ -221,8 +221,9 @@ class model:
         it_store = self.it_store
         xy = self.xy
         u = self.u_run
+        z = self.z
         
-        t,it,it_store,xy = daesolver(t,t_end,it,it_store,xy,u,p,
+        t,it,it_store,xy = daesolver(t,t_end,it,it_store,xy,u,p,z,
                                   self.jac_trap,
                                   self.Time,
                                   self.X,
@@ -240,7 +241,7 @@ class model:
         self.it = it
         self.it_store = it_store
         self.xy = xy
-        self.z = self.Z[self.it_store,:]
+        self.z = z
  
     def runsp(self,t_end,up_dict):
         for item in up_dict:
@@ -586,9 +587,10 @@ class model:
         it_store = self.it_store
         xy = self.xy
         u = self.u_run
+        z = self.z
         self.iparams_run = np.zeros(10,dtype=np.float64)
     
-        t,it,it_store,xy = spdaesolver(t,t_end,it,it_store,xy,u,p,
+        t,it,it_store,xy = spdaesolver(t,t_end,it,it_store,xy,u,p,z,
                                   self.sp_jac_trap.data,self.sp_jac_trap.indices,self.sp_jac_trap.indptr,
                                   self.P_trap_d,self.P_trap_i,self.P_trap_p,self.perm_trap_r,self.perm_trap_c,
                                   self.Time,
@@ -609,7 +611,7 @@ class model:
         self.it = it
         self.it_store = it_store
         self.xy = xy
-        self.z = self.Z[self.it_store,:]
+        self.z = z
 
             
     def spini(self,up_dict,xy_0={}):
@@ -866,7 +868,7 @@ def spsstate(xy,u,p,
 
     
 @numba.njit() 
-def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+def daesolver(t,t_end,it,it_store,xy,u,p,z,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
 
 
     fg = np.zeros((N_x+N_y,1),dtype=np.float64)
@@ -876,11 +878,11 @@ def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,d
     fg = np.zeros((N_x+N_y,),dtype=np.float64)
     f = fg[:N_x]
     g = fg[N_x:]
-    h = np.zeros((N_z),dtype=np.float64)
+    #h = np.zeros((N_z),dtype=np.float64)
     
     f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
     g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
-    h_ptr=ffi.from_buffer(np.ascontiguousarray(h))
+    z_ptr=ffi.from_buffer(np.ascontiguousarray(z))
     x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
     y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
     u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
@@ -895,12 +897,12 @@ def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,d
     if it == 0:
         f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
         g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
-        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
         it_store = 0  
         T[0] = t 
         X[0,:] = x  
         Y[0,:] = y  
-        Z[0,:] = h  
+        Z[0,:] = z  
 
     while t<t_end: 
         it += 1
@@ -944,7 +946,7 @@ def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,d
             if max_relative<itol:
                 break
                 
-        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
         xy[:N_x] = x
         xy[N_x:] = y
         
@@ -954,14 +956,14 @@ def daesolver(t,t_end,it,it_store,xy,u,p,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,d
                 T[it_store+1] = t 
                 X[it_store+1,:] = x 
                 Y[it_store+1,:] = y
-                Z[it_store+1,:] = h
+                Z[it_store+1,:] = z
                 iters[it_store+1] = iti
                 it_store += 1 
 
     return t,it,it_store,xy
     
 @numba.njit() 
-def spdaesolver(t,t_end,it,it_store,xy,u,p,
+def spdaesolver(t,t_end,it,it_store,xy,u,p,z,
                 J_d,J_i,J_p,
                 P_d,P_i,P_p,perm_r,perm_c,
                 T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,
@@ -975,11 +977,11 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,
     fg = np.zeros((N_x+N_y,),dtype=np.float64)
     f = fg[:N_x]
     g = fg[N_x:]
-    h = np.zeros((N_z),dtype=np.float64)
+    z = np.zeros((N_z),dtype=np.float64)
     Dxy_i_0 = np.zeros(N_x+N_y,dtype=np.float64) 
     f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
     g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
-    h_ptr=ffi.from_buffer(np.ascontiguousarray(h))
+    z_ptr=ffi.from_buffer(np.ascontiguousarray(z))
     x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
     y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
     u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
@@ -999,7 +1001,7 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,
         T[0] = t 
         X[0,:] = x  
         Y[0,:] = y  
-        Z[0,:] = h  
+        Z[0,:] = z 
 
     while t<t_end: 
         it += 1
@@ -1045,7 +1047,7 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,
             if max_relative<itol:
                 break
                 
-        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
         xy[:N_x] = x
         xy[N_x:] = y
         
@@ -1055,7 +1057,7 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,
                 T[it_store+1] = t 
                 X[it_store+1,:] = x 
                 Y[it_store+1,:] = y
-                Z[it_store+1,:] = h
+                Z[it_store+1,:] = z
                 iters[it_store+1] = iti
                 it_store += 1 
 

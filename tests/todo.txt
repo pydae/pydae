@@ -1,0 +1,1 @@
+test x,y,z update after run in both dense and sparse soluyions
