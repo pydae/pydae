@@ -615,7 +615,16 @@ class builder():
         class_template = class_template.replace('{inputs_ini_values_list}', str([(sys['u_ini_dict'][item]) for item in sys['u_ini_dict']]))
         class_template = class_template.replace('{inputs_run_values_list}', str([(sys['u_run_dict'][item]) for item in sys['u_run_dict']]))
         class_template = class_template.replace('{outputs_list}', str([str(item) for item in sys['h_dict']]))
-        
+
+        print(sys['enviroment'])
+        if 'enviroment' in sys:
+            class_template = class_template.replace('{enviroment_name}',str(sys['enviroment']))
+            class_template = class_template.replace('{dae_file_mode}',"'enviroment'")
+        else:
+            class_template = class_template.replace('{enviroment_name}','no_enviroment')
+            class_template = class_template.replace('{dae_file_mode}',"'local'")
+            
+            
         module = class_template
         
         module += '\n'*2
@@ -625,10 +634,14 @@ class builder():
         module += '\n'
         module += self.spmatrix2def(sys['sp_jac_trap_list'],'sp_jac_trap')
         
+        
+
+           
         with open(f'{name}.py','w') as fobj:
             fobj.write(module)
     
-        if self.verbose: print(f'sys2num (time: {time.time()-t_0:0.3f})')      
+        if self.verbose: print(f'sys2num (time: {time.time()-t_0:0.3f})')                 
+            
 
 
 

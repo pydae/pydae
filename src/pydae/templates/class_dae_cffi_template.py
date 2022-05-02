@@ -6,10 +6,17 @@ from scipy.sparse.linalg import spsolve,spilu,splu
 from numba import cuda
 import cffi
 import numba.core.typing.cffi_utils as cffi_support
+from io import BytesIO
+import pkgutil
+
+dae_file_mode = {dae_file_mode}
 
 ffi = cffi.FFI()
 
-import {name}_cffi as jacs
+if dae_file_mode == 'local':
+    import {name}_cffi as jacs
+if dae_file_mode == 'enviroment':
+    import {enviroment_name}.envs.{name}_cffi as jacs
 
 cffi_support.register_module(jacs)
 f_ini_eval = jacs.lib.f_ini_eval
@@ -58,7 +65,8 @@ exp = np.exp
 class model: 
 
     def __init__(self): 
-
+        
+        self.dae_file_mode = {dae_file_mode}
         self.t_end = 10.000000 
         self.Dt = 0.0010000 
         self.decimation = 10.000000 
@@ -120,7 +128,14 @@ class model:
         self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
         data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
         #self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
-        self.sp_jac_ini = sspa.load_npz('./__pycache__/{name}_sp_jac_ini_num.npz')
+           
+        if self.dae_file_mode == 'enviroment':
+            fobj = BytesIO(pkgutil.get_data(__name__, '__pycache__/{name}_sp_jac_ini_num.npz'))
+            self.sp_jac_ini = sspa.load_npz(fobj)
+        else:
+            self.sp_jac_ini = sspa.load_npz('./__pycache__/{name}_sp_jac_ini_num.npz')
+            
+            
         self.jac_ini = self.sp_jac_ini.toarray()
 
         #self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
@@ -135,10 +150,14 @@ class model:
         self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
         data = np.array(self.sp_jac_run_ia,dtype=np.float64)
-        #self.sp_jac_run = sspa.csr_matrix((data, self.sp_jac_run_ia, self.sp_jac_run_ja), shape=(self.sp_jac_run_nia,self.sp_jac_run_nja))
-        self.sp_jac_run = sspa.load_npz('./__pycache__/{name}_sp_jac_run_num.npz')
-        self.jac_run = self.sp_jac_run.toarray()
 
+        if self.dae_file_mode == 'enviroment':
+            fobj = BytesIO(pkgutil.get_data(__name__, '__pycache__/{name}_sp_jac_run_num.npz'))
+            self.sp_jac_run = sspa.load_npz(fobj)
+        else:
+            self.sp_jac_run = sspa.load_npz('./__pycache__/{name}_sp_jac_run_num.npz')
+        self.jac_run = self.sp_jac_run.toarray()            
+           
         self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
         self.J_run_i = np.array(self.sp_jac_run_ia)
         self.J_run_p = np.array(self.sp_jac_run_ja)
@@ -150,7 +169,16 @@ class model:
         self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
         data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
         #self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
-        self.sp_jac_trap = sspa.load_npz('./__pycache__/{name}_sp_jac_trap_num.npz')
+       
+    
+
+        if self.dae_file_mode == 'enviroment':
+            fobj = BytesIO(pkgutil.get_data(__name__, '__pycache__/{name}_sp_jac_trap_num.npz'))
+            self.sp_jac_trap = sspa.load_npz(fobj)
+        else:
+            self.sp_jac_trap = sspa.load_npz('./__pycache__/{name}_sp_jac_trap_num.npz')
+            
+
         self.jac_trap = self.sp_jac_trap.toarray()
         
         #self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
@@ -709,11 +737,120 @@ class model:
 
         #((sspa.linalg.spsolve(s.sp_jac_ini,-Hxy_run)) @ FGu_run + sp_Hu_run )@s.u_ini
 
-        self.jac_u2z = Hxy_run @ sspa.linalg.spsolve(self.sp_jac_run,-FGu_run) + self.sp_Hu_run        
+        self.jac_u2z = Hxy_run @ sspa.linalg.spsolve(self.sp_jac_run,-FGu_run) + self.sp_Hu_run  
+        
+        
+    def step(self,t_end,up_dict):
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
 
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        z = self.z
+
+        t,it,xy = daestep(t,t_end,it,
+                          xy,u,p,z,
+                          self.jac_trap,
+                          self.iters,
+                          self.Dt,
+                          self.N_x,
+                          self.N_y,
+                          self.N_z,
+                          max_it=self.max_it,itol=self.itol,store=self.store)
+
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+        self.z = z
            
             
 
+
+@numba.njit() 
+def daestep(t,t_end,it,xy,u,p,z,jac_trap,iters,Dt,N_x,N_y,N_z,max_it=50,itol=1e-8,store=1): 
+
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    #h = np.zeros((N_z),dtype=np.float64)
+    
+    f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    z_ptr=ffi.from_buffer(np.ascontiguousarray(z))
+    x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    jac_trap_ptr=ffi.from_buffer(np.ascontiguousarray(jac_trap))
+    
+    #de_jac_trap_num_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
+    de_jac_trap_up_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    
+    if it == 0:
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        it_store = 0  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+
+            x += Dxy_i[:N_x]
+            y += Dxy_i[N_x:] 
+            
+            #print(Dxy_i)
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+    return t,it,xy
 
 
 def daesolver_sp(t,t_end,it,it_store,xy,u,p,sp_jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
