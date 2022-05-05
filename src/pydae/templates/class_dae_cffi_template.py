@@ -16,7 +16,7 @@ ffi = cffi.FFI()
 if dae_file_mode == 'local':
     import {name}_cffi as jacs
 if dae_file_mode == 'enviroment':
-    import {enviroment_name}.envs.{name}_cffi as jacs
+    import envus.{enviroment_name}.{name}_cffi as jacs
 
 cffi_support.register_module(jacs)
 f_ini_eval = jacs.lib.f_ini_eval
