@@ -616,7 +616,6 @@ class builder():
         class_template = class_template.replace('{inputs_run_values_list}', str([(sys['u_run_dict'][item]) for item in sys['u_run_dict']]))
         class_template = class_template.replace('{outputs_list}', str([str(item) for item in sys['h_dict']]))
 
-        print(sys['enviroment'])
         if 'enviroment' in sys:
             class_template = class_template.replace('{enviroment_name}',str(sys['enviroment']))
             class_template = class_template.replace('{dae_file_mode}',"'enviroment'")

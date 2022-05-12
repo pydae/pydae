@@ -2459,7 +2459,7 @@ def ac3ph4wgfpidq(grid,vsc_data):
 
     dphi   = 2*np.pi*50*(omega - omega_coi) - K_delta*phi
     dxi_p = epsilon_p
-    dp_ef = 1/T_e*(p_pos/S_n - p_ef)
+    dp_ef = 1/T_e*(p_pos/S_n - p_ef)  # simulink: p_s_fil, T_e_f
     dp_cf = 1/T_c*(p_c - p_cf)
     domega_f = 1/T_w*(omega - omega_f)
     
