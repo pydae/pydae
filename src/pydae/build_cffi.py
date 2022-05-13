@@ -619,6 +619,9 @@ class builder():
         if 'enviroment' in sys:
             class_template = class_template.replace('{enviroment_name}',str(sys['enviroment']))
             class_template = class_template.replace('{dae_file_mode}',"'enviroment'")
+        elif 'colab' in sys:
+            class_template = class_template.replace('{enviroment_name}',str(sys['colab']))
+            class_template = class_template.replace('{dae_file_mode}',"'colab'")            
         else:
             class_template = class_template.replace('{enviroment_name}','no_enviroment')
             class_template = class_template.replace('{dae_file_mode}',"'local'")
@@ -1005,7 +1008,7 @@ class builder():
                 defs_sp_uz   += defs_sp_jac
                 source_sp_uz += source_sp_jac
 
-                save_npz(f"./__pycache__/{sys['name']}_{item}_num.npz",sp_jac_num_matrix, compressed=True)
+                save_npz(f"./{sys['name']}_{item}_num.npz",sp_jac_num_matrix, compressed=True)
 
 
         ## C sources ##############################################################
@@ -1027,9 +1030,9 @@ class builder():
         source += source_de_trap + source_sp_trap
         source += source_de_uz + source_sp_uz
 
-        save_npz( f"./__pycache__/{sys['name']}_sp_jac_ini_num.npz", sp_jac_ini_num_matrix, compressed=True)
-        save_npz( f"./__pycache__/{sys['name']}_sp_jac_run_num.npz", sp_jac_run_num_matrix, compressed=True)
-        save_npz( f"./__pycache__/{sys['name']}_sp_jac_trap_num.npz",sp_jac_trap_num_matrix, compressed=True)
+        save_npz( f"./{sys['name']}_sp_jac_ini_num.npz", sp_jac_ini_num_matrix, compressed=True)
+        save_npz( f"./{sys['name']}_sp_jac_run_num.npz", sp_jac_run_num_matrix, compressed=True)
+        save_npz( f"./{sys['name']}_sp_jac_trap_num.npz",sp_jac_trap_num_matrix, compressed=True)
 
         if self.verbose: print(f'Code wrote in {time.time()-t_0:0.3f} s')
 
