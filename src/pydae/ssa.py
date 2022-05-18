@@ -560,6 +560,66 @@ def acker(A,B,poles):
     K = K[-1][:]                # Extract the last row            # Extract the last row
     
     return K    
+
+def right2df(system):
+    
+    eig,V = np.linalg.eig(system.A)
+    W = np.linalg.inv(V)
+    N_x = W.shape[0]
+
+    modules = np.abs(V)
+    degs = np.rad2deg(np.angle(V))
+    W_row = []
+    W_list =[]
+    N_x = W.shape[0]
+    for irow in range(N_x):
+        W_row = []
+        for icol in range(N_x):
+            W_row += [f'{modules[icol,irow]:0.2f}∠{degs[icol,irow]:5.1f}']
+        W_list += [W_row]
+
+    modes = [f'Mode {it+1}' for it in range(N_x)]
+
+    df_report = pd.DataFrame(data=W_list,index=modes, columns=system.x_list)
+    df = pd.DataFrame(data=modules*np.exp(1j*np.angle(W)),index=modes, columns=system.x_list)
+    
+    system.shape_modules = modules
+    system.shape_degs = degs
+    system.modes_id = modes
+    system.df = df
+    
+    return df_report
+
+def left2df(system):
+    
+    eig,V = np.linalg.eig(system.A)
+    W = np.linalg.inv(V)
+    N_x = W.shape[0]
+
+    modules = np.abs(W)
+    degs = np.rad2deg(np.angle(W))
+    W_row = []
+    W_list =[]
+    N_x = W.shape[0]
+    for irow in range(N_x):
+        W_row = []
+        for icol in range(N_x):
+            W_row += [f'{modules[irow,icol]:0.2f}∠{degs[irow,icol]:5.1f}']
+        W_list += [W_row]
+
+    modes = [f'Mode {it+1}' for it in range(N_x)]
+
+    df_report = pd.DataFrame(data=W_list,index=modes, columns=system.x_list)
+    df = pd.DataFrame(data=modules*np.exp(1j*np.angle(W)),index=modes, columns=system.x_list)
+    
+    system.shape_modules = modules
+    system.shape_degs = degs
+    system.modes_id = modes
+    system.df = df
+    
+    return df_report
+
+
     
 if __name__ == "__main__":
     
