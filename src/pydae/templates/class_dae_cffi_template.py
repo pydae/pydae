@@ -524,7 +524,7 @@ class model:
                 self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
 
     def load_params(self,data_input):
-
+    
         if type(data_input) == str:
             json_file = data_input
             self.json_file = json_file
@@ -532,18 +532,10 @@ class model:
             data = json.loads(self.json_data)
         elif type(data_input) == dict:
             data = data_input
-
+    
         self.data = data
         for item in self.data:
-            self.struct[0][item] = self.data[item]
-            if item in self.params_list:
-                self.params_values_list[self.params_list.index(item)] = self.data[item]
-            elif item in self.inputs_ini_list:
-                self.inputs_ini_values_list[self.inputs_ini_list.index(item)] = self.data[item]
-            elif item in self.inputs_run_list:
-                self.inputs_run_values_list[self.inputs_run_list.index(item)] = self.data[item]
-            else: 
-                print(f'parameter or input {item} not found')
+            self.set_value(item, self.data[item])
 
     def save_params(self,file_name = 'parameters.json'):
         params_dict = {}
@@ -771,7 +763,26 @@ class model:
         self.z = z
            
             
-
+    def save_run(self,file_name):
+        np.savez(file_name,Time=self.Time,
+             X=self.X,Y=self.Y,Z=self.Z,
+             x_list = self.x_list,
+             y_ini_list = self.y_ini_list,
+             y_run_list = self.y_run_list,
+             u_ini_list=self.u_ini_list,
+             u_run_list=self.u_run_list,  
+             z_list=self.outputs_list, 
+            )
+        
+    def load_run(self,file_name):
+        data = np.load(f'{file_name}.npz')
+        self.Time = data['Time']
+        self.X = data['X']
+        self.Y = data['Y']
+        self.Z = data['Z']
+        self.x_list = list(data['x_list'] )
+        self.y_run_list = list(data['y_run_list'] )
+        self.outputs_list = list(data['z_list'] )
 
 @numba.njit() 
 def daestep(t,t_end,it,xy,u,p,z,jac_trap,iters,Dt,N_x,N_y,N_z,max_it=50,itol=1e-8,store=1): 
