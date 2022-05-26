@@ -620,7 +620,60 @@ def left2df(system):
     return df_report
 
 
+def pi_design(a,b,zeta,omega):
+    '''
+    G = 1/(a*s + b)    
+    PI = (K_p + K_i/s) = (K_p*s + K_i)/s -> tf([K_p,K_i],[1,0])
+    K_i = K_p/T_p
+    T_p = K_p/K_i
     
+    Example:
+    
+    L = 4e-3
+    R = 0.1
+
+    K_p,K_i = pi_design(L,R,1.0,2*np.pi*10)
+
+    G_planta = ctrl.tf([1], [L,R])
+    G_pi = ctrl.tf([K_p,K_i],[1,0])
+
+    H = G_planta*G_pi/(1 + G_planta*G_pi)
+    ctrl.bode_plot(H);
+    
+    '''
+    
+    K_p = 2*zeta*omega*a-b
+    K_i = a*omega**2
+    
+    return K_p,K_i
+
+def lead_design(angle,omega, verbose=False):
+    '''
+    Desing lead lag compensator: G = (T_1*s + 1)/(T_2*s + 1)
+    
+    alpha = (1+np.sin(angle))/(1-np.sin(angle))
+    
+    T_2 = 1/(omega*np.sqrt(alpha))
+    T_1 = alpha*T_2
+    
+
+    G_ll = ctrl.tf([T_1,1],[T_2,1])
+
+    ctrl.bode_plot(G_ll);
+    
+    '''
+    
+    alpha = (1+np.sin(angle))/(1-np.sin(angle))
+    T_2 = 1/(omega*np.sqrt(alpha))
+    T_1 = alpha*T_2
+    
+    if verbose:
+        G_omega = (T_1*1j*omega+1)/(T_2*1j*omega+1)
+        print(f'Gain at omega: {np.abs(G_omega)}')
+    
+    return T_1,T_2
+    
+     
 if __name__ == "__main__":
     
     class sys_class():
