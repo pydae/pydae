@@ -205,6 +205,9 @@ class model:
         {u2z_comment}self.sp_Hx_run = sspa.load_npz('./{name}_Hx_run_num.npz')
         {u2z_comment}self.sp_Hy_run = sspa.load_npz('./{name}_Hy_run_num.npz')
         {u2z_comment}self.sp_Hu_run = sspa.load_npz('./{name}_Hu_run_num.npz')        
+        
+        self.ss_solver = 2
+        self.lsolver = 2
  
         
 
@@ -627,7 +630,8 @@ class model:
                                   self.decimation,
                                   self.iparams_run,
                                   max_it=self.max_it,itol=self.max_it,store=self.store,
-                                  lmax_it=self.lmax_it,ltol=self.ltol,ldamp=self.ldamp,mode=self.mode)
+                                  lmax_it=self.lmax_it,ltol=self.ltol,ldamp=self.ldamp,mode=self.mode,
+                                  lsolver = self.lsolver)
     
         self.t = t
         self.it = it
@@ -687,7 +691,7 @@ class model:
                  max_it=self.max_it,tol=self.itol,
                  lmax_it=self.lmax_it_ini,
                  ltol=self.ltol_ini,
-                 ldamp=self.ldamp)
+                 ldamp=self.ldamp,solver=self.ss_solver)
 
  
         self.xy_ini = xy_ini
@@ -958,6 +962,60 @@ def sprichardson(A_d,A_i,A_p,b,P_d,P_i,P_p,perm_r,perm_c,x,iparams,damp=1.0,max_
     iparams[0] = it
     return x
     
+@numba.njit()
+def spconjgradm(A_d,A_i,A_p,b,P_d,P_i,P_p,perm_r,perm_c,x,iparams,max_it=100,tol=1e-3, damp=None):
+    """
+    A function to solve [A]{x} = {b} linear equation system with the 
+    preconditioned conjugate gradient method.
+    More at: http://en.wikipedia.org/wiki/Conjugate_gradient_method
+    ========== Parameters ==========
+    A_d,A_i,A_p : sparse matrix 
+        components in CRS form A_d = A_crs.data, A_i = A_crs.indices, A_p = A_crs.indptr.
+    b : vector
+        The right hand side (RHS) vector of the system.
+    x : vector
+        The starting guess for the solution.
+    P_d,P_i,P_p,perm_r,perm_c: preconditioner LU matrix
+        components in scipy.spilu form P_d,P_i,P_p,perm_r,perm_c = slu2pydae(M)
+        with M = scipy.sparse.linalg.spilu(A_csc) 
+
+    """  
+    N   = len(b)
+    Ax  = np.zeros(N)
+    Ap  = np.zeros(N)
+    App = np.zeros(N)
+    pAp = np.zeros(N)
+    z   = np.zeros(N)
+    
+    spMvmul(N,A_d,A_i,A_p,x,Ax)
+    r = -(Ax - b)
+    z = splu_solve(P_d,P_i,P_p,perm_r,perm_c,r) #z = M.solve(r)
+    p = z
+    zsold = 0.0
+    for it in range(N):  # zsold = np.dot(np.transpose(z), z)
+        zsold += z[it]*z[it]
+    for i in range(max_it):
+        spMvmul(N,A_d,A_i,A_p,p,App)  # #App = np.dot(A, p)
+        Ap = splu_solve(P_d,P_i,P_p,perm_r,perm_c,App) #Ap = M.solve(App)
+        pAp = 0.0
+        for it in range(N):
+            pAp += p[it]*Ap[it]
+
+        alpha = zsold / pAp
+        x = x + alpha*p
+        z = z - alpha*Ap
+        zz = 0.0
+        for it in range(N):  # z.T@z
+            zz += z[it]*z[it]
+        zsnew = zz
+        if np.sqrt(zsnew) < tol:
+            break
+            
+        p = z + (zsnew/zsold)*p
+        zsold = zsnew
+    iparams[0] = i
+
+    return x
 
 
 @numba.njit()
@@ -966,7 +1024,7 @@ def spsstate(xy,u,p,
              P_d,P_i,P_p,perm_r,perm_c,
              N_x,N_y,
              max_it=50,tol=1e-8,
-             lmax_it=20,ltol=1e-8,ldamp=1.0):
+             lmax_it=20,ltol=1e-8,ldamp=1.0, solver=2):
     
    
     x = xy[:N_x]
@@ -1006,9 +1064,15 @@ def spsstate(xy,u,p,
         
         fg[:N_x] = f
         fg[N_x:] = g
+        
+        if solver==1:
                
-        Dxy = sprichardson(J_d,J_i,J_p,-fg,P_d,P_i,P_p,perm_r,perm_c,Dxy,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+            Dxy = sprichardson(J_d,J_i,J_p,-fg,P_d,P_i,P_p,perm_r,perm_c,Dxy,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
    
+        if solver==2:
+            
+            Dxy = spconjgradm(J_d,J_i,J_p,-fg,P_d,P_i,P_p,perm_r,perm_c,Dxy,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+            
         xy += Dxy
         #if np.max(np.abs(fg))<tol: break
         if np.linalg.norm(fg,np.inf)<tol: break
@@ -1119,7 +1183,7 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,z,
                 T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,
                 iparams,
                 max_it=50,itol=1e-8,store=1,
-                lmax_it=20,ltol=1e-4,ldamp=1.0,mode=0):
+                lmax_it=20,ltol=1e-4,ldamp=1.0,mode=0,lsolver=2):
 
     fg_i = np.zeros((N_x+N_y),dtype=np.float64)
     x = xy[:N_x]
@@ -1146,7 +1210,7 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,z,
     if it == 0:
         f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
         g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
-        h_eval(h_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
         it_store = 0  
         T[0] = t 
         X[0,:] = x  
@@ -1176,8 +1240,12 @@ def spdaesolver(t,t_end,it,it_store,xy,u,p,z,
             fg_i[N_x:] = g
             
             #Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
-            Dxy_i = sprichardson(J_d,J_i,J_p,-fg_i,P_d,P_i,P_p,perm_r,perm_c,
-                                 Dxy_i_0,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+            if lsolver == 1:
+                Dxy_i = sprichardson(J_d,J_i,J_p,-fg_i,P_d,P_i,P_p,perm_r,perm_c,
+                                     Dxy_i_0,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+            if lsolver == 2:
+                Dxy_i = spconjgradm(J_d,J_i,J_p,-fg_i,P_d,P_i,P_p,perm_r,perm_c,
+                                     Dxy_i_0,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)                
 
             x += Dxy_i[:N_x]
             y += Dxy_i[N_x:] 
