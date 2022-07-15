@@ -2037,6 +2037,8 @@ def ac3ph4wgfpi2(grid,vsc_data):
     
     h_dict.update({f'p_{name}_pos':sym.re(s_pos),f'p_{name}_neg':sym.re(s_neg),f'p_{name}_zer':sym.re(s_zer)})
     h_dict.update({str(e_ao_m):e_ao_m,str(e_bo_m):e_bo_m,str(e_co_m):e_co_m})
+    h_dict.update({str(v_ra):v_ra,str(v_rb):v_rb,str(v_rc):v_rc})
+
     h_dict.update({str(p_c):p_c,str(omega_ref):omega_ref})
     HS_coi  = S_n
     omega_coi_i = S_n*omega
