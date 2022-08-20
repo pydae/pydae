@@ -568,214 +568,727 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
 
 void f_ini_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = x[2];
-out[1] = x[3];
-out[2] = (-p[3]*x[2] + y[1] - 2*y[0]*x[0])/p[2];
-out[3] = (-p[1]*p[2] - p[3]*x[3] - 2*y[0]*x[1])/p[2];
+out[0] = -p[17]*x[0] + p[7]*(x[1] - y[13]);
+out[1] = (1.0/2.0)*(-p[15]*(x[1] - y[13]) - y[4]*(p[16]*y[4] + y[0]*sin(x[0] - y[1])) - y[5]*(p[16]*y[5] + y[0]*cos(x[0] - y[1])) + u[5])/p[8];
+out[2] = (-x[2] - y[4]*(-p[13] + p[11]) + u[4])/p[9];
+out[3] = (-x[3] + y[5]*(-p[14] + p[12]))/p[10];
+out[4] = 6.2831853071795862*p[20]*(y[8] - y[13]) - p[23]*x[4];
+out[5] = -x[5]*p[24] + u[6];
+out[6] = -p[27]*x[6] - y[13] + 1;
 
 }
 void g_ini_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = -pow(p[0], 2) - 9.9999999999999995e-7*y[0] + pow(x[0], 2) + pow(x[1], 2);
-out[1] = -u[0] + atan2(x[0], -x[1]);
+out[0] = -u[0]/p[0] + pow(y[0], 2)*p[1] + y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) - p[6]*y[6]/p[0];
+out[1] = -u[1]/p[0] + pow(y[0], 2)*(-p[2] - 1.0/2.0*p[3]) + y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3])) - p[6]*y[7]/p[0];
+out[2] = -u[2]/p[0] + y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + pow(y[2], 2)*p[1] - p[19]*y[11]/p[0];
+out[3] = -u[3]/p[0] + y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + pow(y[2], 2)*(-p[2] - 1.0/2.0*p[3]) - p[19]*y[12]/p[0];
+out[4] = p[16]*y[5] + y[0]*cos(x[0] - y[1]) + p[13]*y[4] - x[2];
+out[5] = p[16]*y[4] + y[0]*sin(x[0] - y[1]) - p[14]*y[5] - x[3];
+out[6] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]) - y[6];
+out[7] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]) - y[7];
+out[8] = x[5] - y[8] + u[8];
+out[9] = -p[22]*y[9] - y[2]*sin(x[4] + u[9] - y[3]) + p[21]*y[10];
+out[10] = -p[22]*y[10] - y[2]*cos(x[4] + u[9] - y[3]) - p[21]*y[9] + u[7];
+out[11] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]) - y[11];
+out[12] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]) - y[12];
+out[13] = -y[13] + (p[8]*p[6]*x[1] + 1000000.0*p[19]*y[8])/(p[8]*p[6] + 1000000.0*p[19]);
+out[14] = p[26]*x[6] + p[25]*(1 - y[13]) - y[14];
 
 }
 void f_run_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = x[2];
-out[1] = x[3];
-out[2] = (-p[3]*x[2] + u[0] - 2*y[0]*x[0])/p[2];
-out[3] = (-p[1]*p[2] - p[3]*x[3] - 2*y[0]*x[1])/p[2];
+out[0] = -p[17]*x[0] + p[7]*(x[1] - y[13]);
+out[1] = (1.0/2.0)*(-p[15]*(x[1] - y[13]) - y[4]*(p[16]*y[4] + y[0]*sin(x[0] - y[1])) - y[5]*(p[16]*y[5] + y[0]*cos(x[0] - y[1])) + u[5])/p[8];
+out[2] = (-x[2] - y[4]*(-p[13] + p[11]) + u[4])/p[9];
+out[3] = (-x[3] + y[5]*(-p[14] + p[12]))/p[10];
+out[4] = 6.2831853071795862*p[20]*(y[8] - y[13]) - p[23]*x[4];
+out[5] = -x[5]*p[24] + u[6];
+out[6] = -p[27]*x[6] - y[13] + 1;
 
 }
 void g_run_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = -pow(p[0], 2) - 9.9999999999999995e-7*y[0] + pow(x[0], 2) + pow(x[1], 2);
-out[1] = -y[1] + atan2(x[0], -x[1]);
+out[0] = -u[0]/p[0] + pow(y[0], 2)*p[1] + y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) - p[6]*y[6]/p[0];
+out[1] = -u[1]/p[0] + pow(y[0], 2)*(-p[2] - 1.0/2.0*p[3]) + y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3])) - p[6]*y[7]/p[0];
+out[2] = -u[2]/p[0] + y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + pow(y[2], 2)*p[1] - p[19]*y[11]/p[0];
+out[3] = -u[3]/p[0] + y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + pow(y[2], 2)*(-p[2] - 1.0/2.0*p[3]) - p[19]*y[12]/p[0];
+out[4] = p[16]*y[5] + y[0]*cos(x[0] - y[1]) + p[13]*y[4] - x[2];
+out[5] = p[16]*y[4] + y[0]*sin(x[0] - y[1]) - p[14]*y[5] - x[3];
+out[6] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]) - y[6];
+out[7] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]) - y[7];
+out[8] = x[5] - y[8] + u[8];
+out[9] = -p[22]*y[9] - y[2]*sin(x[4] + u[9] - y[3]) + p[21]*y[10];
+out[10] = -p[22]*y[10] - y[2]*cos(x[4] + u[9] - y[3]) - p[21]*y[9] + u[7];
+out[11] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]) - y[11];
+out[12] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]) - y[12];
+out[13] = -y[13] + (p[8]*p[6]*x[1] + 1000000.0*p[19]*y[8])/(p[8]*p[6] + 1000000.0*p[19]);
+out[14] = p[26]*x[6] + p[25]*(1 - y[13]) - y[14];
 
 }
 void h_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = p[1]*p[2]*(p[0] + x[1]);
-out[1] = 0.5*p[2]*(pow(x[2], 2) + pow(x[3], 2));
-out[2] = u[0];
+out[0] = y[0];
+out[1] = y[2];
+out[2] = pow(y[0], 2)*p[1] + y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[3] = -pow(y[0], 2)*p[2] + y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[4] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + pow(y[2], 2)*p[1];
+out[5] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) - pow(y[2], 2)*p[2];
+out[6] = y[4]*(p[16]*y[4] + y[0]*sin(x[0] - y[1])) + y[5]*(p[16]*y[5] + y[0]*cos(x[0] - y[1]));
+out[7] = u[6];
 
 }
 void de_jac_ini_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[12] = -2.0*y[0]/p[2];
-out[16] = -2.0*x[0]/p[2];
-out[19] = -2.0*y[0]/p[2];
-out[22] = -2.0*x[1]/p[2];
-out[24] = 2.0*x[0];
-out[25] = 2.0*x[1];
-out[30] = -x[1]/(pow(x[0], 2) + pow(x[1], 2));
-out[31] = x[0]/(pow(x[0], 2) + pow(x[1], 2));
+out[22] = 0.5*(-y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[29] = 0.5*(-y[4]*sin(x[0] - y[1]) - y[5]*cos(x[0] - y[1]))/p[8];
+out[30] = 0.5*(y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[33] = 0.5*(-2.0*p[16]*y[4] - y[0]*sin(x[0] - y[1]))/p[8];
+out[34] = 0.5*(-2.0*p[16]*y[5] - y[0]*cos(x[0] - y[1]))/p[8];
+out[161] = 2.0*y[0]*p[1] + y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[162] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[163] = y[0]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[164] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[183] = 2.0*y[0]*(-p[2] - 0.5*p[3]) + y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[184] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[185] = y[0]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[186] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[205] = y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[206] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[207] = y[0]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + 2.0*y[2]*p[1];
+out[208] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[227] = y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[228] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[229] = y[0]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + 2.0*y[2]*(-p[2] - 0.5*p[3]);
+out[230] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[242] = -y[0]*sin(x[0] - y[1]);
+out[249] = cos(x[0] - y[1]);
+out[250] = y[0]*sin(x[0] - y[1]);
+out[264] = y[0]*cos(x[0] - y[1]);
+out[271] = sin(x[0] - y[1]);
+out[272] = -y[0]*cos(x[0] - y[1]);
+out[286] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]);
+out[293] = y[4]*sin(x[0] - y[1]) + y[5]*cos(x[0] - y[1]);
+out[294] = -y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]);
+out[297] = y[0]*sin(x[0] - y[1]);
+out[298] = y[0]*cos(x[0] - y[1]);
+out[308] = -y[0]*y[4]*sin(x[0] - y[1]) - y[0]*y[5]*cos(x[0] - y[1]);
+out[315] = y[4]*cos(x[0] - y[1]) - y[5]*sin(x[0] - y[1]);
+out[316] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]);
+out[319] = y[0]*cos(x[0] - y[1]);
+out[320] = -y[0]*sin(x[0] - y[1]);
+out[356] = -y[2]*cos(x[4] + u[9] - y[3]);
+out[361] = -sin(x[4] + u[9] - y[3]);
+out[362] = y[2]*cos(x[4] + u[9] - y[3]);
+out[378] = y[2]*sin(x[4] + u[9] - y[3]);
+out[383] = -cos(x[4] + u[9] - y[3]);
+out[384] = -y[2]*sin(x[4] + u[9] - y[3]);
+out[400] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[405] = y[9]*sin(x[4] + u[9] - y[3]) + y[10]*cos(x[4] + u[9] - y[3]);
+out[406] = -y[2]*y[9]*cos(x[4] + u[9] - y[3]) + y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[412] = y[2]*sin(x[4] + u[9] - y[3]);
+out[413] = y[2]*cos(x[4] + u[9] - y[3]);
+out[422] = -y[2]*y[9]*sin(x[4] + u[9] - y[3]) - y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[427] = y[9]*cos(x[4] + u[9] - y[3]) - y[10]*sin(x[4] + u[9] - y[3]);
+out[428] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[434] = y[2]*cos(x[4] + u[9] - y[3]);
+out[435] = -y[2]*sin(x[4] + u[9] - y[3]);
 
 }
 
 void de_jac_ini_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[14] = -p[3]/p[2];
-out[17] = 1.0/p[2];
-out[21] = -p[3]/p[2];
+out[0] = -p[17];
+out[1] = p[7];
+out[20] = -p[7];
+out[23] = -0.5*p[15]/p[8];
+out[42] = 0.5*p[15]/p[8];
+out[46] = -1/p[9];
+out[55] = (p[13] - p[11])/p[9];
+out[69] = -1/p[10];
+out[78] = (-p[14] + p[12])/p[10];
+out[92] = -p[23];
+out[103] = 6.2831853071795862*p[20];
+out[108] = -6.2831853071795862*p[20];
+out[115] = -p[24];
+out[138] = -p[27];
+out[167] = -p[6]/p[0];
+out[190] = -p[6]/p[0];
+out[216] = -p[19]/p[0];
+out[239] = -p[19]/p[0];
+out[253] = p[13];
+out[254] = p[16];
+out[275] = p[16];
+out[276] = -p[14];
+out[368] = -p[22];
+out[369] = p[21];
+out[390] = -p[21];
+out[391] = -p[22];
+out[441] = p[8]*p[6]/(p[8]*p[6] + 1000000.0*p[19]);
+out[455] = 1000000.0*p[19]/(p[8]*p[6] + 1000000.0*p[19]);
+out[468] = p[26];
+out[482] = -p[25];
 
 }
 
 void de_jac_ini_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[2] = 1.0;
-out[9] = 1.0;
-out[28] = -9.9999999999999995e-7;
+out[152] = -1.0;
+out[244] = -1.0;
+out[267] = -1.0;
+out[299] = -1.0;
+out[322] = -1.0;
+out[335] = 1.0;
+out[345] = -1.0;
+out[414] = -1.0;
+out[437] = -1.0;
+out[460] = -1.0;
+out[483] = -1.0;
 
 }
 
 void sp_jac_ini_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[2] = -2.0*y[0]/p[2];
-out[4] = -2.0*x[0]/p[2];
-out[6] = -2.0*y[0]/p[2];
-out[8] = -2.0*x[1]/p[2];
-out[9] = 2.0*x[0];
-out[10] = 2.0*x[1];
-out[12] = -x[1]/(pow(x[0], 2) + pow(x[1], 2));
-out[13] = x[0]/(pow(x[0], 2) + pow(x[1], 2));
+out[3] = 0.5*(-y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[5] = 0.5*(-y[4]*sin(x[0] - y[1]) - y[5]*cos(x[0] - y[1]))/p[8];
+out[6] = 0.5*(y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[7] = 0.5*(-2.0*p[16]*y[4] - y[0]*sin(x[0] - y[1]))/p[8];
+out[8] = 0.5*(-2.0*p[16]*y[5] - y[0]*cos(x[0] - y[1]))/p[8];
+out[20] = 2.0*y[0]*p[1] + y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[21] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[22] = y[0]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[23] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[25] = 2.0*y[0]*(-p[2] - 0.5*p[3]) + y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[26] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[27] = y[0]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[28] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[30] = y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[31] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[32] = y[0]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + 2.0*y[2]*p[1];
+out[33] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[35] = y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[36] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[37] = y[0]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + 2.0*y[2]*(-p[2] - 0.5*p[3]);
+out[38] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[40] = -y[0]*sin(x[0] - y[1]);
+out[42] = cos(x[0] - y[1]);
+out[43] = y[0]*sin(x[0] - y[1]);
+out[46] = y[0]*cos(x[0] - y[1]);
+out[48] = sin(x[0] - y[1]);
+out[49] = -y[0]*cos(x[0] - y[1]);
+out[52] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]);
+out[53] = y[4]*sin(x[0] - y[1]) + y[5]*cos(x[0] - y[1]);
+out[54] = -y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]);
+out[55] = y[0]*sin(x[0] - y[1]);
+out[56] = y[0]*cos(x[0] - y[1]);
+out[58] = -y[0]*y[4]*sin(x[0] - y[1]) - y[0]*y[5]*cos(x[0] - y[1]);
+out[59] = y[4]*cos(x[0] - y[1]) - y[5]*sin(x[0] - y[1]);
+out[60] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]);
+out[61] = y[0]*cos(x[0] - y[1]);
+out[62] = -y[0]*sin(x[0] - y[1]);
+out[66] = -y[2]*cos(x[4] + u[9] - y[3]);
+out[67] = -sin(x[4] + u[9] - y[3]);
+out[68] = y[2]*cos(x[4] + u[9] - y[3]);
+out[71] = y[2]*sin(x[4] + u[9] - y[3]);
+out[72] = -cos(x[4] + u[9] - y[3]);
+out[73] = -y[2]*sin(x[4] + u[9] - y[3]);
+out[76] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[77] = y[9]*sin(x[4] + u[9] - y[3]) + y[10]*cos(x[4] + u[9] - y[3]);
+out[78] = -y[2]*y[9]*cos(x[4] + u[9] - y[3]) + y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[79] = y[2]*sin(x[4] + u[9] - y[3]);
+out[80] = y[2]*cos(x[4] + u[9] - y[3]);
+out[82] = -y[2]*y[9]*sin(x[4] + u[9] - y[3]) - y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[83] = y[9]*cos(x[4] + u[9] - y[3]) - y[10]*sin(x[4] + u[9] - y[3]);
+out[84] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[85] = y[2]*cos(x[4] + u[9] - y[3]);
+out[86] = -y[2]*sin(x[4] + u[9] - y[3]);
 
 }
 
 void sp_jac_ini_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[3] = -p[3]/p[2];
-out[5] = 1.0/p[2];
-out[7] = -p[3]/p[2];
+out[0] = -p[17];
+out[1] = p[7];
+out[2] = -p[7];
+out[4] = -0.5*p[15]/p[8];
+out[9] = 0.5*p[15]/p[8];
+out[10] = -1/p[9];
+out[11] = (p[13] - p[11])/p[9];
+out[12] = -1/p[10];
+out[13] = (-p[14] + p[12])/p[10];
+out[14] = -p[23];
+out[15] = 6.2831853071795862*p[20];
+out[16] = -6.2831853071795862*p[20];
+out[17] = -p[24];
+out[18] = -p[27];
+out[24] = -p[6]/p[0];
+out[29] = -p[6]/p[0];
+out[34] = -p[19]/p[0];
+out[39] = -p[19]/p[0];
+out[44] = p[13];
+out[45] = p[16];
+out[50] = p[16];
+out[51] = -p[14];
+out[69] = -p[22];
+out[70] = p[21];
+out[74] = -p[21];
+out[75] = -p[22];
+out[88] = p[8]*p[6]/(p[8]*p[6] + 1000000.0*p[19]);
+out[89] = 1000000.0*p[19]/(p[8]*p[6] + 1000000.0*p[19]);
+out[91] = p[26];
+out[92] = -p[25];
 
 }
 
 void sp_jac_ini_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = 1.0;
-out[1] = 1.0;
-out[11] = -9.9999999999999995e-7;
+out[19] = -1.0;
+out[41] = -1.0;
+out[47] = -1.0;
+out[57] = -1.0;
+out[63] = -1.0;
+out[64] = 1.0;
+out[65] = -1.0;
+out[81] = -1.0;
+out[87] = -1.0;
+out[90] = -1.0;
+out[93] = -1.0;
 
 }
 
 void de_jac_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[12] = -2.0*y[0]/p[2];
-out[16] = -2.0*x[0]/p[2];
-out[19] = -2.0*y[0]/p[2];
-out[22] = -2.0*x[1]/p[2];
-out[24] = 2.0*x[0];
-out[25] = 2.0*x[1];
-out[30] = -x[1]/(pow(x[0], 2) + pow(x[1], 2));
-out[31] = x[0]/(pow(x[0], 2) + pow(x[1], 2));
+out[22] = 0.5*(-y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[29] = 0.5*(-y[4]*sin(x[0] - y[1]) - y[5]*cos(x[0] - y[1]))/p[8];
+out[30] = 0.5*(y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[33] = 0.5*(-2.0*p[16]*y[4] - y[0]*sin(x[0] - y[1]))/p[8];
+out[34] = 0.5*(-2.0*p[16]*y[5] - y[0]*cos(x[0] - y[1]))/p[8];
+out[161] = 2.0*y[0]*p[1] + y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[162] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[163] = y[0]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[164] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[183] = 2.0*y[0]*(-p[2] - 0.5*p[3]) + y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[184] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[185] = y[0]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[186] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[205] = y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[206] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[207] = y[0]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + 2.0*y[2]*p[1];
+out[208] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[227] = y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[228] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[229] = y[0]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + 2.0*y[2]*(-p[2] - 0.5*p[3]);
+out[230] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[242] = -y[0]*sin(x[0] - y[1]);
+out[249] = cos(x[0] - y[1]);
+out[250] = y[0]*sin(x[0] - y[1]);
+out[264] = y[0]*cos(x[0] - y[1]);
+out[271] = sin(x[0] - y[1]);
+out[272] = -y[0]*cos(x[0] - y[1]);
+out[286] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]);
+out[293] = y[4]*sin(x[0] - y[1]) + y[5]*cos(x[0] - y[1]);
+out[294] = -y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]);
+out[297] = y[0]*sin(x[0] - y[1]);
+out[298] = y[0]*cos(x[0] - y[1]);
+out[308] = -y[0]*y[4]*sin(x[0] - y[1]) - y[0]*y[5]*cos(x[0] - y[1]);
+out[315] = y[4]*cos(x[0] - y[1]) - y[5]*sin(x[0] - y[1]);
+out[316] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]);
+out[319] = y[0]*cos(x[0] - y[1]);
+out[320] = -y[0]*sin(x[0] - y[1]);
+out[356] = -y[2]*cos(x[4] + u[9] - y[3]);
+out[361] = -sin(x[4] + u[9] - y[3]);
+out[362] = y[2]*cos(x[4] + u[9] - y[3]);
+out[378] = y[2]*sin(x[4] + u[9] - y[3]);
+out[383] = -cos(x[4] + u[9] - y[3]);
+out[384] = -y[2]*sin(x[4] + u[9] - y[3]);
+out[400] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[405] = y[9]*sin(x[4] + u[9] - y[3]) + y[10]*cos(x[4] + u[9] - y[3]);
+out[406] = -y[2]*y[9]*cos(x[4] + u[9] - y[3]) + y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[412] = y[2]*sin(x[4] + u[9] - y[3]);
+out[413] = y[2]*cos(x[4] + u[9] - y[3]);
+out[422] = -y[2]*y[9]*sin(x[4] + u[9] - y[3]) - y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[427] = y[9]*cos(x[4] + u[9] - y[3]) - y[10]*sin(x[4] + u[9] - y[3]);
+out[428] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[434] = y[2]*cos(x[4] + u[9] - y[3]);
+out[435] = -y[2]*sin(x[4] + u[9] - y[3]);
 
 }
 
 void de_jac_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[14] = -p[3]/p[2];
-out[21] = -p[3]/p[2];
+out[0] = -p[17];
+out[1] = p[7];
+out[20] = -p[7];
+out[23] = -0.5*p[15]/p[8];
+out[42] = 0.5*p[15]/p[8];
+out[46] = -1/p[9];
+out[55] = (p[13] - p[11])/p[9];
+out[69] = -1/p[10];
+out[78] = (-p[14] + p[12])/p[10];
+out[92] = -p[23];
+out[103] = 6.2831853071795862*p[20];
+out[108] = -6.2831853071795862*p[20];
+out[115] = -p[24];
+out[138] = -p[27];
+out[167] = -p[6]/p[0];
+out[190] = -p[6]/p[0];
+out[216] = -p[19]/p[0];
+out[239] = -p[19]/p[0];
+out[253] = p[13];
+out[254] = p[16];
+out[275] = p[16];
+out[276] = -p[14];
+out[368] = -p[22];
+out[369] = p[21];
+out[390] = -p[21];
+out[391] = -p[22];
+out[441] = p[8]*p[6]/(p[8]*p[6] + 1000000.0*p[19]);
+out[455] = 1000000.0*p[19]/(p[8]*p[6] + 1000000.0*p[19]);
+out[468] = p[26];
+out[482] = -p[25];
 
 }
 
 void de_jac_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[2] = 1.0;
-out[9] = 1.0;
-out[28] = -9.9999999999999995e-7;
-out[35] = -1.0;
+out[152] = -1.0;
+out[244] = -1.0;
+out[267] = -1.0;
+out[299] = -1.0;
+out[322] = -1.0;
+out[335] = 1.0;
+out[345] = -1.0;
+out[414] = -1.0;
+out[437] = -1.0;
+out[460] = -1.0;
+out[483] = -1.0;
 
 }
 
 void sp_jac_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[2] = -2.0*y[0]/p[2];
-out[4] = -2.0*x[0]/p[2];
-out[5] = -2.0*y[0]/p[2];
-out[7] = -2.0*x[1]/p[2];
-out[8] = 2.0*x[0];
-out[9] = 2.0*x[1];
-out[11] = -x[1]/(pow(x[0], 2) + pow(x[1], 2));
-out[12] = x[0]/(pow(x[0], 2) + pow(x[1], 2));
+out[3] = 0.5*(-y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[5] = 0.5*(-y[4]*sin(x[0] - y[1]) - y[5]*cos(x[0] - y[1]))/p[8];
+out[6] = 0.5*(y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[7] = 0.5*(-2.0*p[16]*y[4] - y[0]*sin(x[0] - y[1]))/p[8];
+out[8] = 0.5*(-2.0*p[16]*y[5] - y[0]*cos(x[0] - y[1]))/p[8];
+out[20] = 2.0*y[0]*p[1] + y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[21] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[22] = y[0]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[23] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[25] = 2.0*y[0]*(-p[2] - 0.5*p[3]) + y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[26] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[27] = y[0]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[28] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[30] = y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[31] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[32] = y[0]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + 2.0*y[2]*p[1];
+out[33] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[35] = y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[36] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[37] = y[0]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + 2.0*y[2]*(-p[2] - 0.5*p[3]);
+out[38] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[40] = -y[0]*sin(x[0] - y[1]);
+out[42] = cos(x[0] - y[1]);
+out[43] = y[0]*sin(x[0] - y[1]);
+out[46] = y[0]*cos(x[0] - y[1]);
+out[48] = sin(x[0] - y[1]);
+out[49] = -y[0]*cos(x[0] - y[1]);
+out[52] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]);
+out[53] = y[4]*sin(x[0] - y[1]) + y[5]*cos(x[0] - y[1]);
+out[54] = -y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]);
+out[55] = y[0]*sin(x[0] - y[1]);
+out[56] = y[0]*cos(x[0] - y[1]);
+out[58] = -y[0]*y[4]*sin(x[0] - y[1]) - y[0]*y[5]*cos(x[0] - y[1]);
+out[59] = y[4]*cos(x[0] - y[1]) - y[5]*sin(x[0] - y[1]);
+out[60] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]);
+out[61] = y[0]*cos(x[0] - y[1]);
+out[62] = -y[0]*sin(x[0] - y[1]);
+out[66] = -y[2]*cos(x[4] + u[9] - y[3]);
+out[67] = -sin(x[4] + u[9] - y[3]);
+out[68] = y[2]*cos(x[4] + u[9] - y[3]);
+out[71] = y[2]*sin(x[4] + u[9] - y[3]);
+out[72] = -cos(x[4] + u[9] - y[3]);
+out[73] = -y[2]*sin(x[4] + u[9] - y[3]);
+out[76] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[77] = y[9]*sin(x[4] + u[9] - y[3]) + y[10]*cos(x[4] + u[9] - y[3]);
+out[78] = -y[2]*y[9]*cos(x[4] + u[9] - y[3]) + y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[79] = y[2]*sin(x[4] + u[9] - y[3]);
+out[80] = y[2]*cos(x[4] + u[9] - y[3]);
+out[82] = -y[2]*y[9]*sin(x[4] + u[9] - y[3]) - y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[83] = y[9]*cos(x[4] + u[9] - y[3]) - y[10]*sin(x[4] + u[9] - y[3]);
+out[84] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[85] = y[2]*cos(x[4] + u[9] - y[3]);
+out[86] = -y[2]*sin(x[4] + u[9] - y[3]);
 
 }
 
 void sp_jac_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[3] = -p[3]/p[2];
-out[6] = -p[3]/p[2];
+out[0] = -p[17];
+out[1] = p[7];
+out[2] = -p[7];
+out[4] = -0.5*p[15]/p[8];
+out[9] = 0.5*p[15]/p[8];
+out[10] = -1/p[9];
+out[11] = (p[13] - p[11])/p[9];
+out[12] = -1/p[10];
+out[13] = (-p[14] + p[12])/p[10];
+out[14] = -p[23];
+out[15] = 6.2831853071795862*p[20];
+out[16] = -6.2831853071795862*p[20];
+out[17] = -p[24];
+out[18] = -p[27];
+out[24] = -p[6]/p[0];
+out[29] = -p[6]/p[0];
+out[34] = -p[19]/p[0];
+out[39] = -p[19]/p[0];
+out[44] = p[13];
+out[45] = p[16];
+out[50] = p[16];
+out[51] = -p[14];
+out[69] = -p[22];
+out[70] = p[21];
+out[74] = -p[21];
+out[75] = -p[22];
+out[88] = p[8]*p[6]/(p[8]*p[6] + 1000000.0*p[19]);
+out[89] = 1000000.0*p[19]/(p[8]*p[6] + 1000000.0*p[19]);
+out[91] = p[26];
+out[92] = -p[25];
 
 }
 
 void sp_jac_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = 1.0;
-out[1] = 1.0;
-out[10] = -9.9999999999999995e-7;
-out[13] = -1.0;
+out[19] = -1.0;
+out[41] = -1.0;
+out[47] = -1.0;
+out[57] = -1.0;
+out[63] = -1.0;
+out[64] = 1.0;
+out[65] = -1.0;
+out[81] = -1.0;
+out[87] = -1.0;
+out[90] = -1.0;
+out[93] = -1.0;
 
 }
 
 void de_jac_trap_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[12] = 1.0*Dt*y[0]/p[2];
-out[16] = 1.0*Dt*x[0]/p[2];
-out[19] = 1.0*Dt*y[0]/p[2];
-out[22] = 1.0*Dt*x[1]/p[2];
-out[24] = 2.0*x[0];
-out[25] = 2.0*x[1];
-out[30] = -x[1]/(pow(x[0], 2) + pow(x[1], 2));
-out[31] = x[0]/(pow(x[0], 2) + pow(x[1], 2));
+out[22] = -0.25*Dt*(-y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[29] = -0.25*Dt*(-y[4]*sin(x[0] - y[1]) - y[5]*cos(x[0] - y[1]))/p[8];
+out[30] = -0.25*Dt*(y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[33] = -0.25*Dt*(-2.0*p[16]*y[4] - y[0]*sin(x[0] - y[1]))/p[8];
+out[34] = -0.25*Dt*(-2.0*p[16]*y[5] - y[0]*cos(x[0] - y[1]))/p[8];
+out[161] = 2.0*y[0]*p[1] + y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[162] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[163] = y[0]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[164] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[183] = 2.0*y[0]*(-p[2] - 0.5*p[3]) + y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[184] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[185] = y[0]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[186] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[205] = y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[206] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[207] = y[0]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + 2.0*y[2]*p[1];
+out[208] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[227] = y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[228] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[229] = y[0]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + 2.0*y[2]*(-p[2] - 0.5*p[3]);
+out[230] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[242] = -y[0]*sin(x[0] - y[1]);
+out[249] = cos(x[0] - y[1]);
+out[250] = y[0]*sin(x[0] - y[1]);
+out[264] = y[0]*cos(x[0] - y[1]);
+out[271] = sin(x[0] - y[1]);
+out[272] = -y[0]*cos(x[0] - y[1]);
+out[286] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]);
+out[293] = y[4]*sin(x[0] - y[1]) + y[5]*cos(x[0] - y[1]);
+out[294] = -y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]);
+out[297] = y[0]*sin(x[0] - y[1]);
+out[298] = y[0]*cos(x[0] - y[1]);
+out[308] = -y[0]*y[4]*sin(x[0] - y[1]) - y[0]*y[5]*cos(x[0] - y[1]);
+out[315] = y[4]*cos(x[0] - y[1]) - y[5]*sin(x[0] - y[1]);
+out[316] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]);
+out[319] = y[0]*cos(x[0] - y[1]);
+out[320] = -y[0]*sin(x[0] - y[1]);
+out[356] = -y[2]*cos(x[4] + u[9] - y[3]);
+out[361] = -sin(x[4] + u[9] - y[3]);
+out[362] = y[2]*cos(x[4] + u[9] - y[3]);
+out[378] = y[2]*sin(x[4] + u[9] - y[3]);
+out[383] = -cos(x[4] + u[9] - y[3]);
+out[384] = -y[2]*sin(x[4] + u[9] - y[3]);
+out[400] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[405] = y[9]*sin(x[4] + u[9] - y[3]) + y[10]*cos(x[4] + u[9] - y[3]);
+out[406] = -y[2]*y[9]*cos(x[4] + u[9] - y[3]) + y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[412] = y[2]*sin(x[4] + u[9] - y[3]);
+out[413] = y[2]*cos(x[4] + u[9] - y[3]);
+out[422] = -y[2]*y[9]*sin(x[4] + u[9] - y[3]) - y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[427] = y[9]*cos(x[4] + u[9] - y[3]) - y[10]*sin(x[4] + u[9] - y[3]);
+out[428] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[434] = y[2]*cos(x[4] + u[9] - y[3]);
+out[435] = -y[2]*sin(x[4] + u[9] - y[3]);
 
 }
 
 void de_jac_trap_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[2] = -0.5*Dt;
-out[9] = -0.5*Dt;
-out[14] = 0.5*Dt*p[3]/p[2] + 1.0;
-out[21] = 0.5*Dt*p[3]/p[2] + 1.0;
+out[0] = 0.5*Dt*p[17] + 1.0;
+out[1] = -0.5*Dt*p[7];
+out[20] = 0.5*Dt*p[7];
+out[23] = 0.25*p[15]*Dt/p[8] + 1.0;
+out[42] = -0.25*p[15]*Dt/p[8];
+out[46] = 0.5*Dt/p[9] + 1.0;
+out[55] = -0.5*Dt*(p[13] - p[11])/p[9];
+out[69] = 0.5*Dt/p[10] + 1.0;
+out[78] = -0.5*Dt*(-p[14] + p[12])/p[10];
+out[92] = 0.5*Dt*p[23] + 1.0;
+out[103] = -3.1415926535897931*Dt*p[20];
+out[108] = 3.1415926535897931*Dt*p[20];
+out[115] = 0.5*Dt*p[24] + 1.0;
+out[138] = 0.5*Dt*p[27] + 1.0;
+out[152] = 0.5*Dt;
+out[167] = -p[6]/p[0];
+out[190] = -p[6]/p[0];
+out[216] = -p[19]/p[0];
+out[239] = -p[19]/p[0];
+out[253] = p[13];
+out[254] = p[16];
+out[275] = p[16];
+out[276] = -p[14];
+out[368] = -p[22];
+out[369] = p[21];
+out[390] = -p[21];
+out[391] = -p[22];
+out[441] = p[8]*p[6]/(p[8]*p[6] + 1000000.0*p[19]);
+out[455] = 1000000.0*p[19]/(p[8]*p[6] + 1000000.0*p[19]);
+out[468] = p[26];
+out[482] = -p[25];
 
 }
 
 void de_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = 1.0;
-out[7] = 1.0;
-out[28] = -9.9999999999999995e-7;
-out[35] = -1.0;
+out[244] = -1.0;
+out[267] = -1.0;
+out[299] = -1.0;
+out[322] = -1.0;
+out[335] = 1.0;
+out[345] = -1.0;
+out[414] = -1.0;
+out[437] = -1.0;
+out[460] = -1.0;
+out[483] = -1.0;
 
 }
 
 void sp_jac_trap_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[4] = 1.0*Dt*y[0]/p[2];
-out[6] = 1.0*Dt*x[0]/p[2];
-out[7] = 1.0*Dt*y[0]/p[2];
-out[9] = 1.0*Dt*x[1]/p[2];
-out[10] = 2.0*x[0];
-out[11] = 2.0*x[1];
-out[13] = -x[1]/(pow(x[0], 2) + pow(x[1], 2));
-out[14] = x[0]/(pow(x[0], 2) + pow(x[1], 2));
+out[3] = -0.25*Dt*(-y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[5] = -0.25*Dt*(-y[4]*sin(x[0] - y[1]) - y[5]*cos(x[0] - y[1]))/p[8];
+out[6] = -0.25*Dt*(y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]))/p[8];
+out[7] = -0.25*Dt*(-2.0*p[16]*y[4] - y[0]*sin(x[0] - y[1]))/p[8];
+out[8] = -0.25*Dt*(-2.0*p[16]*y[5] - y[0]*cos(x[0] - y[1]))/p[8];
+out[20] = 2.0*y[0]*p[1] + y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[21] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[22] = y[0]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[23] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[25] = 2.0*y[0]*(-p[2] - 0.5*p[3]) + y[2]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[26] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[27] = y[0]*(p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[28] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[30] = y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[31] = y[0]*y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[32] = y[0]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3])) + 2.0*y[2]*p[1];
+out[33] = y[0]*y[2]*(-p[2]*cos(y[1] - y[3]) - p[1]*sin(y[1] - y[3]));
+out[35] = y[2]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3]));
+out[36] = y[0]*y[2]*(-p[2]*sin(y[1] - y[3]) + p[1]*cos(y[1] - y[3]));
+out[37] = y[0]*(p[2]*cos(y[1] - y[3]) + p[1]*sin(y[1] - y[3])) + 2.0*y[2]*(-p[2] - 0.5*p[3]);
+out[38] = y[0]*y[2]*(p[2]*sin(y[1] - y[3]) - p[1]*cos(y[1] - y[3]));
+out[40] = -y[0]*sin(x[0] - y[1]);
+out[42] = cos(x[0] - y[1]);
+out[43] = y[0]*sin(x[0] - y[1]);
+out[46] = y[0]*cos(x[0] - y[1]);
+out[48] = sin(x[0] - y[1]);
+out[49] = -y[0]*cos(x[0] - y[1]);
+out[52] = y[0]*y[4]*cos(x[0] - y[1]) - y[0]*y[5]*sin(x[0] - y[1]);
+out[53] = y[4]*sin(x[0] - y[1]) + y[5]*cos(x[0] - y[1]);
+out[54] = -y[0]*y[4]*cos(x[0] - y[1]) + y[0]*y[5]*sin(x[0] - y[1]);
+out[55] = y[0]*sin(x[0] - y[1]);
+out[56] = y[0]*cos(x[0] - y[1]);
+out[58] = -y[0]*y[4]*sin(x[0] - y[1]) - y[0]*y[5]*cos(x[0] - y[1]);
+out[59] = y[4]*cos(x[0] - y[1]) - y[5]*sin(x[0] - y[1]);
+out[60] = y[0]*y[4]*sin(x[0] - y[1]) + y[0]*y[5]*cos(x[0] - y[1]);
+out[61] = y[0]*cos(x[0] - y[1]);
+out[62] = -y[0]*sin(x[0] - y[1]);
+out[66] = -y[2]*cos(x[4] + u[9] - y[3]);
+out[67] = -sin(x[4] + u[9] - y[3]);
+out[68] = y[2]*cos(x[4] + u[9] - y[3]);
+out[71] = y[2]*sin(x[4] + u[9] - y[3]);
+out[72] = -cos(x[4] + u[9] - y[3]);
+out[73] = -y[2]*sin(x[4] + u[9] - y[3]);
+out[76] = y[2]*y[9]*cos(x[4] + u[9] - y[3]) - y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[77] = y[9]*sin(x[4] + u[9] - y[3]) + y[10]*cos(x[4] + u[9] - y[3]);
+out[78] = -y[2]*y[9]*cos(x[4] + u[9] - y[3]) + y[2]*y[10]*sin(x[4] + u[9] - y[3]);
+out[79] = y[2]*sin(x[4] + u[9] - y[3]);
+out[80] = y[2]*cos(x[4] + u[9] - y[3]);
+out[82] = -y[2]*y[9]*sin(x[4] + u[9] - y[3]) - y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[83] = y[9]*cos(x[4] + u[9] - y[3]) - y[10]*sin(x[4] + u[9] - y[3]);
+out[84] = y[2]*y[9]*sin(x[4] + u[9] - y[3]) + y[2]*y[10]*cos(x[4] + u[9] - y[3]);
+out[85] = y[2]*cos(x[4] + u[9] - y[3]);
+out[86] = -y[2]*sin(x[4] + u[9] - y[3]);
 
 }
 
 void sp_jac_trap_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[1] = -0.5*Dt;
-out[3] = -0.5*Dt;
-out[5] = 0.5*Dt*p[3]/p[2] + 1.0;
-out[8] = 0.5*Dt*p[3]/p[2] + 1.0;
+out[0] = 0.5*Dt*p[17] + 1.0;
+out[1] = -0.5*Dt*p[7];
+out[2] = 0.5*Dt*p[7];
+out[4] = 0.25*p[15]*Dt/p[8] + 1.0;
+out[9] = -0.25*p[15]*Dt/p[8];
+out[10] = 0.5*Dt/p[9] + 1.0;
+out[11] = -0.5*Dt*(p[13] - p[11])/p[9];
+out[12] = 0.5*Dt/p[10] + 1.0;
+out[13] = -0.5*Dt*(-p[14] + p[12])/p[10];
+out[14] = 0.5*Dt*p[23] + 1.0;
+out[15] = -3.1415926535897931*Dt*p[20];
+out[16] = 3.1415926535897931*Dt*p[20];
+out[17] = 0.5*Dt*p[24] + 1.0;
+out[18] = 0.5*Dt*p[27] + 1.0;
+out[19] = 0.5*Dt;
+out[24] = -p[6]/p[0];
+out[29] = -p[6]/p[0];
+out[34] = -p[19]/p[0];
+out[39] = -p[19]/p[0];
+out[44] = p[13];
+out[45] = p[16];
+out[50] = p[16];
+out[51] = -p[14];
+out[69] = -p[22];
+out[70] = p[21];
+out[74] = -p[21];
+out[75] = -p[22];
+out[88] = p[8]*p[6]/(p[8]*p[6] + 1000000.0*p[19]);
+out[89] = 1000000.0*p[19]/(p[8]*p[6] + 1000000.0*p[19]);
+out[91] = p[26];
+out[92] = -p[25];
 
 }
 
 void sp_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-out[0] = 1.0;
-out[2] = 1.0;
-out[12] = -9.9999999999999995e-7;
-out[15] = -1.0;
+out[41] = -1.0;
+out[47] = -1.0;
+out[57] = -1.0;
+out[63] = -1.0;
+out[64] = 1.0;
+out[65] = -1.0;
+out[81] = -1.0;
+out[87] = -1.0;
+out[90] = -1.0;
+out[93] = -1.0;
 
 }
 
@@ -2913,7 +3426,7 @@ static const struct _cffi_type_context_s _cffi_type_context = {
 
 #ifdef PYPY_VERSION
 PyMODINIT_FUNC
-_cffi_pypyinit_pendulum_cffi(const void *p[])
+_cffi_pypyinit_prueba_cffi(const void *p[])
 {
     p[0] = (const void *)0x2601;
     p[1] = &_cffi_type_context;
@@ -2924,22 +3437,22 @@ _cffi_pypyinit_pendulum_cffi(const void *p[])
 #  ifdef _MSC_VER
      PyMODINIT_FUNC
 #  if PY_MAJOR_VERSION >= 3
-     PyInit_pendulum_cffi(void) { return NULL; }
+     PyInit_prueba_cffi(void) { return NULL; }
 #  else
-     initpendulum_cffi(void) { }
+     initprueba_cffi(void) { }
 #  endif
 #  endif
 #elif PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
-PyInit_pendulum_cffi(void)
+PyInit_prueba_cffi(void)
 {
-  return _cffi_init("pendulum_cffi", 0x2601, &_cffi_type_context);
+  return _cffi_init("prueba_cffi", 0x2601, &_cffi_type_context);
 }
 #else
 PyMODINIT_FUNC
-initpendulum_cffi(void)
+initprueba_cffi(void)
 {
-  _cffi_init("pendulum_cffi", 0x2601, &_cffi_type_context);
+  _cffi_init("prueba_cffi", 0x2601, &_cffi_type_context);
 }
 #endif
 

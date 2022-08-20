@@ -11,84 +11,58 @@ import sympy as sym
 import pydae.build_cffi as db
  
  
-    
-def test_pendulum_builder():
-    params_dict = {'L':5.21,'G':9.81,'M':10.0,'K_d':1e-6}
+def test_leon_vsg_ll():
+    import pydae.build_cffi as db
+    from pydae.bmapu import bmapu_builder
+    from pydae.bmapu.vsgs.vsgs import add_vsgs
+    import pydae.build_cffi as db
+    import sympy as sym
+
+    data = {
+        "sys":{"name":"sys2buses","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
+        "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
+                {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+        "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.15,"R_pu":0.0, "S_mva":900.0}],
+        "vsgs":[
+            {"bus":"1","type":"vsg_ll",'S_n':10e6,'F_n':50,'K_delta':0.0,
+            'R_v':0.01,'X_v':0.1,'K_p':1.0,'K_i':0.1,'K_g':0.0,'K_q':20.0,
+            'T_q':0.1,'K_p_v':1e-6,'K_i_v':1e-6}],
+        "genapes":[{"bus":"2","S_n":100e6,"F_n":50.0,"R_v":0.0,"X_v":0.1,"K_delta":0.001,"K_alpha":1.0}],
+        }
+
+    grid = bmapu_builder.bmapu(data)
+
+    add_vsgs(grid)
+    omega_coi = sym.Symbol("omega_coi", real=True)  
+
+    grid.dae['g'] += [ -omega_coi + grid.omega_coi_numerator/grid.omega_coi_denominator]
+    grid.dae['y_ini'] += [ omega_coi]
+    grid.dae['y_run'] += [ omega_coi]
+
+    sys_dict = {'name':'prueba','uz_jacs':True,
+        'params_dict':grid.dae['params_dict'],
+        'f_list':grid.dae['f'],
+        'g_list':grid.dae['g'],
+        'x_list':grid.dae['x'],
+        'y_ini_list':grid.dae['y_ini'],
+        'y_run_list':grid.dae['y_run'],
+        'u_run_dict':grid.dae['u_run_dict'],
+        'u_ini_dict':grid.dae['u_ini_dict'],
+        'h_dict':grid.dae['h_dict']}
+
+    bldr = db.builder(sys_dict)
+    bldr.build()
+
+    import prueba 
+    model = prueba.model()
+    model.ini({'p_ref_1':0.8},'xy_0_2.json')
+    model.report_y()
 
 
-    u_ini_dict = {'theta':np.deg2rad(5.0)}  # for the initialization problem
-    u_run_dict = {'f_x':10}  # for the running problem (here initialization and running problem are the same)
-    
-    #u_ini_dict = {'theta':10}  # for the initialization problem
-    u_run_dict = {'f_x':10}  # for the running problem (here initialization and running problem are the same)
-    
-    
-    
-    x_list = ['pos_x','pos_y','v_x','v_y']    # [inductor current, PI integrator]
-    y_ini_list = ['lam','f_x'] # for the initialization problem
-    y_run_list = ['lam','theta'] # for the running problem (here initialization and running problem are the same)
-    
-    sys_vars = {'params':params_dict,
-                'u_list':u_run_dict,
-                'x_list':x_list,
-                'y_list':y_run_list}
-    
-    exec(db.sym_gen_str())  # exec to generate the required symbolic varables and constants
-    
-    dpos_x = v_x
-    dpos_y = v_y
-    dv_x = (-2*pos_x*lam + f_x - K_d*v_x)/M
-    dv_y = (-M*G - 2*pos_y*lam - K_d*v_y)/M   
-    
-    g_1 = pos_x**2 + pos_y**2 - L**2 -lam*1e-6
-    g_2 = -theta + sym.atan2(pos_x,-pos_y)
-
-    sys = {'name':'pendulum',
-           'params_dict':params_dict,
-           'f_list':[dpos_x,dpos_y,dv_x,dv_y],
-           'g_list':[g_1,g_2],
-           'x_list':x_list,
-           'y_ini_list':y_ini_list,
-           'y_run_list':y_run_list,
-           'u_run_dict':u_run_dict,
-           'u_ini_dict':u_ini_dict,
-           'h_dict':{'g_1':g_1,'PE':M*G*pos_y,'KE':0.5*M*(v_x**2+v_y**2),'theta':theta}}
-    
-    sys = db.build(sys)
-
-
-def test_pendulum_ini():
-    
-    import pendulum
-    
-    pend = pendulum.pendulum_class()
-    M = 30.0
-    L = 5.21
-    pend.ini({'f_x':0,'M':M,'L':L,'theta':np.deg2rad(-5)},-5)
-    
-    expected_results ={'pos_x' : -0.4541,
-                        'pos_y' : -5.19,
-                        'v_x' :     0.0,
-                        'v_y' :     0.0,
-                        'lam' : 28.35,
-                        'g_1' : -3.553e-15,
-                        'PE' : -1527.46911,
-                        'KE' :     0,
-                        'theta' : -0.08727,
-                        'f_x'  :-25.7479}
-
-    
-    
-    for item in expected_results:
-        item_computed_value = pend.get_value(item)
-        assert np.abs(item_computed_value-expected_results[item])<0.01
-        
-    
-    del pendulum 
 
 
 
 if __name__ == "__main__":
     
     #test_pendulum_builder()
-    test_pendulum_ini()
+    test_leon_vsg_ll()

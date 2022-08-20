@@ -624,7 +624,9 @@ out[21] = -p[3]/p[2];
 
 void de_jac_ini_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-
+out[2] = 1.0;
+out[9] = 1.0;
+out[28] = -9.9999999999999995e-7;
 
 }
 
@@ -651,7 +653,9 @@ out[7] = -p[3]/p[2];
 
 void sp_jac_ini_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-
+out[0] = 1.0;
+out[1] = 1.0;
+out[11] = -9.9999999999999995e-7;
 
 }
 
@@ -677,7 +681,10 @@ out[21] = -p[3]/p[2];
 
 void de_jac_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-
+out[2] = 1.0;
+out[9] = 1.0;
+out[28] = -9.9999999999999995e-7;
+out[35] = -1.0;
 
 }
 
@@ -703,7 +710,10 @@ out[6] = -p[3]/p[2];
 
 void sp_jac_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-
+out[0] = 1.0;
+out[1] = 1.0;
+out[10] = -9.9999999999999995e-7;
+out[13] = -1.0;
 
 }
 
@@ -731,7 +741,10 @@ out[21] = 0.5*Dt*p[3]/p[2] + 1.0;
 
 void de_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-
+out[0] = 1.0;
+out[7] = 1.0;
+out[28] = -9.9999999999999995e-7;
+out[35] = -1.0;
 
 }
 
@@ -759,7 +772,10 @@ out[8] = 0.5*Dt*p[3]/p[2] + 1.0;
 
 void sp_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-
+out[0] = 1.0;
+out[2] = 1.0;
+out[12] = -9.9999999999999995e-7;
+out[15] = -1.0;
 
 }
 

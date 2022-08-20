@@ -36,9 +36,8 @@ needs_sphinx = '1.3'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
+#    'sphinx.ext.napoleon',
     'sphinx.ext.todo',
-    'sphinx.ext.mathjax',
     'sphinx.ext.intersphinx',
     'nbsphinx',
     'IPython.sphinxext.ipython_console_highlighting',
@@ -126,7 +125,6 @@ pygments_style = 'sphinx'
 #Intersphinx configuration
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'astropy': ('http://docs.astropy.org/en/stable/', None),
     'numpy': ('https://docs.scipy.org/doc/numpy/', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference', None),
     'matplotlib': ('https://matplotlib.org', None)
@@ -143,6 +141,7 @@ else:
 # -- Options for HTML output ----------------------------------------------
 
 html_theme = "sphinx_rtd_theme"
+#html_theme = "furo"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -157,7 +156,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 #html_title = None
 
 # HTML style
-html_style = os.path.join("css", "custom.css")
+#html_style = os.path.join("css", "custom.css")
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None

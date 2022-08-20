@@ -39,6 +39,5 @@ Contents
     user_guide 
     ss.ipynb 
     ssa
-    examples/pendulum_dae.ipynb
-    examples/pendulum_sim.ipynb
-    grid_urisi/index
+    tutorial
+    api/api

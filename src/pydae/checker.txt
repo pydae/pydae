@@ -1,0 +1,6 @@
+if genapes:
+    "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.1
+
+only one K_delta > 0
+
+genapes is adding a 0, should not

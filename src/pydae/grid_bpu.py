@@ -349,11 +349,15 @@ class bpu:
             G_jk = G[idx_j,idx_k] 
             B_jk = B[idx_j,idx_k] 
             theta_jk = theta_j - theta_k
-            P_line = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
-            Q_line = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
+            P_line_to   = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
+            Q_line_to   = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
+            P_line_from = V_j*V_k*(G_jk*sym.cos(-theta_jk) + B_jk*sym.sin(-theta_jk)) - V_k**2*(G_jk) 
+            Q_line_from = V_j*V_k*(G_jk*sym.sin(-theta_jk) - B_jk*sym.cos(-theta_jk)) + V_k**2*(B_jk) 
 
-            h_grid.update({f"p_line_{line_name}":P_line})
-            h_grid.update({f"q_line_{line_name}":Q_line})       
+            h_grid.update({f"p_line_{bus_j}_{bus_k}":P_line_to})
+            h_grid.update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
+            h_grid.update({f"p_line_{bus_k}_{bus_j}":P_line_from})
+            h_grid.update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
 
         self.dae['f'] += []
         self.dae['g'] += g_grid
@@ -387,6 +391,9 @@ class bpu:
         self.H_total = 0
         self.omega_coi_numerator = 0.0
         self.omega_coi_denominator = 0.0
+
+        self.dae['xy_0_dict'].update({str(omega_coi):1.0})
+
     
         if 'syns' in self.data:    
             self.add_syns()
@@ -403,6 +410,7 @@ class bpu:
         if 'genapes' in self.data:  
             for genape_data in self.data['genapes']:
                 self.add_genape(genape_data) 
+                
             
          
         self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
@@ -456,12 +464,13 @@ class bpu:
         p_agc = sym.Symbol("p_agc", real=True)  
         K_p_agc = sym.Symbol("K_p_agc", real=True) 
         K_i_agc = sym.Symbol("K_i_agc", real=True) 
-        
+        K_xif  = sym.Symbol("K_xif", real=True)
+
         epsilon_freq = 1-omega_coi
         g_agc = [ -p_agc + K_p_agc*epsilon_freq + K_i_agc*xi_freq ]
         y_agc = [  p_agc]
         x_agc = [ xi_freq]
-        f_agc = [epsilon_freq]
+        f_agc = [epsilon_freq - K_xif*xi_freq]
         
         self.dae['g'] += g_agc
         self.dae['y_ini'] += y_agc
@@ -469,6 +478,10 @@ class bpu:
         self.dae['f'] += f_agc
         self.dae['x'] += x_agc
         self.dae['params_dict'].update({'K_p_agc':self.sys['K_p_agc'],'K_i_agc':self.sys['K_i_agc']})
+        if 'K_xif' in self.sys:
+            self.dae['params_dict'].update({'K_xif':self.sys['K_xif']})
+        else:
+            self.dae['params_dict'].update({'K_xif':0.0})
         
         #for gformer_droop_z in data['gformers_droop_z']:
         #         bus_name = gformer_droop_z['bus']
@@ -708,10 +721,7 @@ class bpu:
             g_p_out = -p_out + p_out_sat
             g_q_out = -q_out + q_out_sat
 
-            
             # dae 
-
-    
             self.dae['f'] += []
             self.dae['x'] += []
             self.dae['g'] += [g_p_out,g_q_out]
@@ -724,8 +734,7 @@ class bpu:
             self.dae['u_run_dict'].update({f'{Dp_r}':0.0})
             self.dae['u_ini_dict'].update({f'{Dq_r}':0.0})
             self.dae['u_run_dict'].update({f'{Dq_r}':0.0})            
-            
-           
+                 
             # grid power injection
             S_base = sym.Symbol('S_base', real = True)
             self.dae['g'][idx_bus*2]   += -p_out/S_base
@@ -753,6 +762,11 @@ class bpu:
                 self.add_uvsg_high(vsg_data) 
             if vsg_data['type'] == 'vsg_co':
                 self.add_vsg_co(vsg_data) 
+            if vsg_data['type'] == 'gvsg':
+                self.add_gvsg(vsg_data) 
+            if vsg_data['type'] == 'vsg_ll':
+                self.add_vsg_ll(vsg_data) 
+
                 
     def add_vsg_wo(self,vsg_data):
         sin = sym.sin
@@ -1581,6 +1595,32 @@ class bpu:
 
         
     def add_genape(self,vsg_data):
+        '''
+
+        parameters
+        ----------
+
+        S_n: nominal power in VA
+        F_n: nominal frequency in Hz
+        X_v: coupling reactance in pu (base machine S_n)
+        R_v: coupling resistance in pu (base machine S_n)
+        K_delta: if K_delta>0.0 current generator is converted to reference machine 
+        K_alpha: alpha gain to obtain Domega integral 
+
+        inputs
+        ------
+
+        alpha: RoCoF in pu if K_alpha = 1.0
+        omega_ref: frequency in pu
+        v_ref: internal voltage reference
+
+        example
+        -------
+
+        "genapes": [{"S_n":1e9,"F_n":}]
+
+        
+        '''
         sin = sym.sin
         cos = sym.cos
         buses = self.data['buses']
@@ -1611,8 +1651,9 @@ class bpu:
         theta = sym.Symbol(f"theta_{bus_name}", real=True)
         omega_coi = sym.Symbol("omega_coi", real=True)   
         alpha = sym.Symbol(f"alpha_{name}", real=True)
-        e_qv = sym.Symbol(f"e_qv_{name}", real=True)
+        v_ref = sym.Symbol(f"v_ref_{name}", real=True)
         omega_ref = sym.Symbol(f"omega_ref_{name}", real=True) 
+        phi = sym.Symbol(f"phi_{name}", real=True) 
         
         # dynamic states
         delta = sym.Symbol(f"delta_{name}", real=True)
@@ -1627,19 +1668,21 @@ class bpu:
         
         # parameters
         S_n = sym.Symbol(f"S_n_{name}", real=True)
-        Omega_b = sym.Symbol(f"Omega_b_{name}", real=True)            
+        F_n = sym.Symbol(f"F_n_{name}", real=True)            
         X_v = sym.Symbol(f"X_v_{name}", real=True)
         R_v = sym.Symbol(f"R_v_{name}", real=True)
         K_delta = sym.Symbol(f"K_delta_{name}", real=True)
         K_alpha = sym.Symbol(f"K_alpha_{name}", real=True)
         
-        params_list = ['S_n','Omega_b','X_v','R_v','K_delta']
+        params_list = ['S_n','F_n','X_v','R_v','K_delta','K_alpha']
         
         # auxiliar
-        v_d = V*sin(delta - theta) 
-        v_q = V*cos(delta - theta) 
+        v_d = V*sin(delta + phi - theta) 
+        v_q = V*cos(delta + phi - theta) 
+        Omega_b = 2*np.pi*F_n
         omega_s = omega_coi
-        e_dv = 0                           
+        e_dv = 0  
+        e_qv = v_ref    
         
         # dynamic equations            
         ddelta = Omega_b*(omega - omega_s) - K_delta*delta
@@ -1674,12 +1717,15 @@ class bpu:
         self.dae['u_ini_dict'].update({f'{str(alpha)}':0})
         self.dae['u_run_dict'].update({f'{str(alpha)}':0})
 
-        self.dae['u_ini_dict'].update({f'{str(e_qv)}':1})
-        self.dae['u_run_dict'].update({f'{str(e_qv)}':1})
+        self.dae['u_ini_dict'].update({f'{str(v_ref)}':1.0})
+        self.dae['u_run_dict'].update({f'{str(v_ref)}':1.0})
 
-        self.dae['u_ini_dict'].update({f'{str(omega_ref)}':1})
-        self.dae['u_run_dict'].update({f'{str(omega_ref)}':1})
-        
+        self.dae['u_ini_dict'].update({f'{str(omega_ref)}':1.0})
+        self.dae['u_run_dict'].update({f'{str(omega_ref)}':1.0})
+
+        self.dae['u_ini_dict'].update({f'{str(phi)}':0.0})
+        self.dae['u_run_dict'].update({f'{str(phi)}':0.0})
+
         self.dae['xy_0_dict'].update({str(omega):1.0})
         
         # grid power injection
@@ -1692,10 +1738,207 @@ class bpu:
         
         for item in params_list:       
             self.dae['params_dict'].update({f"{item}_{name}":vsg_data[item]})
-        self.dae['params_dict'].update({f"{'K_alpha'}_{name}":1e-6})    
         
+    def add_gvsg(self,vsg_data):
 
+        sin = sym.sin
+        cos = sym.cos
+        buses = self.data['buses']
+        buses_list = [bus['name'] for bus in buses]                  
+        bus_name = vsg_data['bus']
+        name = bus_name
+
+        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+        buses[idx_bus]['idx_powers'] += 1
+
+        # inputs:
+        p_ref,q_ref = sym.symbols(f'p_ref_{name},q_ref_{name}', real=True)
+
+        # dynamical states:
+        delta,x_v,x_w,xi_q = sym.symbols(f'delta_{name},x_v_{name},x_w_{name},xi_q_{name}', real=True)
+        
+        # algebraic states:
+        i_d_ref,i_q_ref,p,q,e_qv = sym.symbols(f'i_d_ref_{name},i_q_ref_{name},p_{name},q_{name},e_qv_{name}', real=True)
+
+        # params:
+        S_base = sym.Symbol('S_base', real = True) # S_base = global power base, S_n = machine power base
+        S_n,F_n,K_delta = sym.symbols(f'S_n_{name},F_n_{name},K_delta_{name}', real=True)
+        F,T_d,K,H,D_s = sym.symbols(f'F_{name},T_d_{name},K_{name},H_{name},D_s_{name}', real=True)
+        R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
+        K_q,T_q = sym.symbols(f'K_q_{name},T_q_{name}', real=True)
+        params_list = ['S_n','F_n','K_delta','F','T_d','K','H','D_s','R_v','X_v','K_q','T_q']
+
+        # auxiliar variables and constants
+        omega_coi = sym.Symbol("omega_coi", real=True) # from global system
+        V = sym.Symbol(f"V_{bus_name}", real=True) # from global system
+        theta = sym.Symbol(f"theta_{bus_name}", real=True) # from global system
+        i_d = sym.Symbol(f"i_d_{name}", real=True)
+        i_q = sym.Symbol(f"i_q_{name}", real=True)
+
+        # auxiliar equations
+        Omega_b = 2*np.pi*F_n
+        omega_s = omega_coi
+        v_D = V*sin(theta)  # e^(-j)
+        v_Q = V*cos(theta) 
+        v_d = v_D * cos(delta) - v_Q * sin(delta)   
+        v_q = v_D * sin(delta) + v_Q * cos(delta)
+
+        Domega = (x_v + F*(p_ref - p))/K
+        e_dv = 0.0
+        epsilon_q = q_ref - q
+        i_d = i_d_ref
+        i_q = i_q_ref
+        omega_v = Domega + 1.0
+
+        # dynamical equations
+        ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta
+        dx_v = p_ref - p - D_s*Domega
+        dx_w = x_v + T_d*(p_ref - p) - 2*H*Domega
+        dxi_q = epsilon_q # PI agregado
+
+        # algebraic equations
+        g_i_d_ref  = e_dv - R_v * i_d_ref - X_v * i_q_ref - v_d 
+        g_i_q_ref  = e_qv - R_v * i_q_ref + X_v * i_d_ref - v_q 
+        g_p  = v_d*i_d + v_q*i_q - p  
+        g_q  = v_d*i_q - v_q*i_d - q 
+        g_e_qv = -e_qv +  K_q*(epsilon_q + xi_q/T_q) + 1.0
+        
+        # DAE system update
+        self.dae['f'] += [ddelta,dx_v,dx_w,dxi_q]
+        self.dae['x'] += [ delta, x_v, x_w, xi_q]
+        self.dae['g'] +=     [g_i_d_ref,g_i_q_ref,g_p,g_q,g_e_qv]
+        self.dae['y_ini'] += [  i_d_ref,  i_q_ref,  p,  q,  e_qv]
+        self.dae['y_run'] += [  i_d_ref,  i_q_ref,  p,  q,  e_qv]
                 
+        # default inputs
+        self.dae['u_ini_dict'].update({f'p_ref_{name}':0.0})
+        self.dae['u_ini_dict'].update({f'q_ref_{name}':0.0})
+        self.dae['u_run_dict'].update({f'p_ref_{name}':0.0})
+        self.dae['u_run_dict'].update({f'q_ref_{name}':0.0})
+
+
+        # default parameters
+        for item in params_list:
+            self.dae['params_dict'].update({item + f'_{name}':vsg_data[item]})
+
+        # power inyection to the grid
+        self.dae['g'][idx_bus*2]   += -p*S_n/S_base
+        self.dae['g'][idx_bus*2+1] += -q*S_n/S_base
+
+        # add speed*H term to global for COI speed computing
+        self.H_total += H
+        self.omega_coi_numerator += omega_v*H*S_n
+        self.omega_coi_denominator += H*S_n
+
+        # DAE outputs update
+        self.dae['h_dict'].update({f"omega_v_{bus_name}":omega_v})
+
+    def add_vsg_ll(self,vsg_data):
+
+        sin = sym.sin
+        cos = sym.cos
+        buses = self.data['buses']
+        buses_list = [bus['name'] for bus in buses]                  
+        bus_name = vsg_data['bus']
+        name = bus_name
+
+        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+        buses[idx_bus]['idx_powers'] += 1
+
+        # inputs:
+        p_ref,q_ref,v_ref = sym.symbols(f'p_ref_{name},q_ref_{name},v_ref_{name}', real=True)
+
+        # dynamical states:
+        delta,x_v,e_qm,xi_v = sym.symbols(f'delta_{name},x_v_{name},e_qm_{name},xi_v_{name}', real=True)
+        
+        # algebraic states:
+        i_d_ref,i_q_ref,p,q,e_qv = sym.symbols(f'i_d_ref_{name},i_q_ref_{name},p_{name},q_{name},e_qv_{name}', real=True)
+
+        # params:
+        S_base = sym.Symbol('S_base', real = True) # S_base = global power base, S_n = machine power base
+        S_n,F_n,K_delta = sym.symbols(f'S_n_{name},F_n_{name},K_delta_{name}', real=True)
+        K_p,K_i,K_g,K_i_q = sym.symbols(f'K_p_{name},K_i_{name},K_g_{name},K_i_q_{name}', real=True)
+        R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
+        K_q,T_q = sym.symbols(f'K_q_{name},T_q_{name}', real=True)
+        K_p_v,K_i_v = sym.symbols(f'K_p_v_{name},K_i_v_{name}', real=True)
+        params_list = ['S_n','F_n','K_delta','K_p','K_i','K_g','R_v','X_v','K_q','T_q','K_p_v','K_i_v']
+
+        # auxiliar variables and constants
+        omega_coi = sym.Symbol("omega_coi", real=True) # from global system
+        V = sym.Symbol(f"V_{bus_name}", real=True) # from global system
+        theta = sym.Symbol(f"theta_{bus_name}", real=True) # from global system
+        i_d = sym.Symbol(f"i_d_{name}", real=True)
+        i_q = sym.Symbol(f"i_q_{name}", real=True)
+
+        # auxiliar equations
+        Omega_b = 2*np.pi*F_n
+        omega_s = omega_coi
+        v_D = V*sin(theta)  # e^(-j)
+        v_Q = V*cos(theta) 
+        v_d = v_D * cos(delta) - v_Q * sin(delta)   
+        v_q = v_D * sin(delta) + v_Q * cos(delta)
+
+        Domega = x_v + K_p * (p_ref - p)
+        e_dv = 0.0
+        epsilon_v = v_ref - V
+        i_d = i_d_ref
+        i_q = i_q_ref
+        omega_v = Domega + 1.0
+        q_ref_0 = K_p_v * epsilon_v + K_i_v * xi_v
+
+        # dynamical equations
+        ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta
+        dx_v = K_i*(p_ref - p) - K_g*(omega_v - 1.0)
+        de_qm = 1.0/T_q * (q - q_ref_0 - q_ref - e_qm) 
+        dxi_v = epsilon_v # PI agregado
+    
+        # algebraic equations
+        g_i_d_ref  = e_dv - R_v * i_d_ref - X_v * i_q_ref - v_d 
+        g_i_q_ref  = e_qv - R_v * i_q_ref + X_v * i_d_ref - v_q 
+        g_p  = v_d*i_d + v_q*i_q - p  
+        g_q  = v_d*i_q - v_q*i_d - q 
+        g_e_qv = 1.0 - e_qv - K_q*e_qm 
+        
+        # DAE system update
+        self.dae['f'] += [ddelta,dx_v,de_qm,dxi_v]
+        self.dae['x'] += [ delta, x_v, e_qm, xi_v]
+        self.dae['g'] +=     [g_i_d_ref,g_i_q_ref,g_p,g_q,g_e_qv]
+        self.dae['y_ini'] += [  i_d_ref,  i_q_ref,  p,  q,  e_qv]
+        self.dae['y_run'] += [  i_d_ref,  i_q_ref,  p,  q,  e_qv]
+                
+        # default inputs
+        self.dae['u_ini_dict'].update({f'p_ref_{name}':0.0})
+        self.dae['u_ini_dict'].update({f'q_ref_{name}':0.0})
+        self.dae['u_ini_dict'].update({f'v_ref_{name}':1.0})
+        self.dae['u_run_dict'].update({f'p_ref_{name}':0.0})
+        self.dae['u_run_dict'].update({f'q_ref_{name}':0.0})
+        self.dae['u_run_dict'].update({f'v_ref_{name}':1.0})
+
+        # default parameters
+        for item in params_list:
+            self.dae['params_dict'].update({item + f'_{name}':vsg_data[item]})
+
+        # power inyection to the grid
+        self.dae['g'][idx_bus*2]   += -p*S_n/S_base
+        self.dae['g'][idx_bus*2+1] += -q*S_n/S_base
+
+        # add speed*H term to global for COI speed computing
+        H = 4.0
+        self.H_total += H
+        self.omega_coi_numerator += omega_v*H*S_n
+        self.omega_coi_denominator += H*S_n
+
+        # DAE outputs update
+        self.dae['h_dict'].update({f"omega_v_{name}":omega_v})
+        self.dae['h_dict'].update({f"p_ref_{name}":p_ref})
+        self.dae['h_dict'].update({f"q_ref_{name}":q_ref})
+        self.dae['h_dict'].update({f"v_ref_{name}":v_ref})
+
+        self.dae['xy_0_dict'].update({str(e_qv):1.0})
+
+
 def add_avr(dae,syn_data):
     
     if syn_data['avr']['type'] == 'sexs':
@@ -2070,359 +2313,360 @@ def hygov_original(grid,syn_data):
     grid['params'].update({str(A_t):gov_data['A_t']})
     grid['u'].update({str(omega_ref):gov_data['omega_ref']})
 
-def vsgs_add(grid):
-    sin = sym.sin
-    cos = sym.cos
-    buses = grid['data']['buses']
-    buses_list = [bus['name'] for bus in buses]
-    for vsg in grid['data']['vsgs']:
+# def vsgs_add(grid):
+#     sin = sym.sin
+#     cos = sym.cos
+#     buses = grid['data']['buses']
+#     buses_list = [bus['name'] for bus in buses]
+#     for vsg in grid['data']['vsgs']:
 
-        bus_name = vsg['bus']
-        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
-        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
-        buses[idx_bus]['idx_powers'] += 1
+#         bus_name = vsg['bus']
+#         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+#         if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+#         buses[idx_bus]['idx_powers'] += 1
 
-        p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
-        q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
-        V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
-        theta = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
-        i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
-        i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
-        delta = sym.Symbol(f"delta_{bus_name}", real=True)
-        omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
-        x_wo = sym.Symbol(f"x_wo_{bus_name}", real=True)
-        p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
-        e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
-        p_d2 = sym.Symbol(f"p_d2_{bus_name}", real=True)
-        i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
-        i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
-        q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
-        xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
-        p_src = sym.Symbol(f"p_src_{bus_name}", real=True)
-        soc_ref = sym.Symbol(f"soc_ref_{bus_name}", real=True)
-        p_sto = sym.Symbol(f"p_sto_{bus_name}", real=True)
-        Dp_ref = sym.Symbol(f"Dp_ref_{bus_name}", real=True)
-        soc = sym.Symbol(f"soc_{bus_name}", real=True)
-        xi_soc = sym.Symbol(f"xi_soc_{bus_name}", real=True)
+#         p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
+#         q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
+#         V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
+#         theta = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
+#         i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
+#         i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
+#         delta = sym.Symbol(f"delta_{bus_name}", real=True)
+#         omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
+#         x_wo = sym.Symbol(f"x_wo_{bus_name}", real=True)
+#         p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+#         e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
+#         p_d2 = sym.Symbol(f"p_d2_{bus_name}", real=True)
+#         i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
+#         i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
+#         q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
+#         xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
+#         p_src = sym.Symbol(f"p_src_{bus_name}", real=True)
+#         soc_ref = sym.Symbol(f"soc_ref_{bus_name}", real=True)
+#         p_sto = sym.Symbol(f"p_sto_{bus_name}", real=True)
+#         Dp_ref = sym.Symbol(f"Dp_ref_{bus_name}", real=True)
+#         soc = sym.Symbol(f"soc_{bus_name}", real=True)
+#         xi_soc = sym.Symbol(f"xi_soc_{bus_name}", real=True)
         
-        omega_coi = sym.Symbol("omega_coi", real=True)
+#         omega_coi = sym.Symbol("omega_coi", real=True)
 
-        v_d = V*sin(delta - theta) 
-        v_q = V*cos(delta - theta) 
-        #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
-        for item in ['S_n','R_s','H','Omega_b','R_v','X_v','D1','D2','D3','K_delta','T_wo','T_i','K_q','T_q','H_s','K_p_soc','K_i_soc']:
-            string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
-            exec(string,globals())
-            grid['params'].update({f'{item}_{bus_name}':vsg[item]})
+#         v_d = V*sin(delta - theta) 
+#         v_q = V*cos(delta - theta) 
+#         #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
+#         for item in ['S_n','R_s','H','Omega_b','R_v','X_v','D1','D2','D3','K_delta','T_wo','T_i','K_q','T_q','H_s','K_p_soc','K_i_soc']:
+#             string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
+#             exec(string,globals())
+#             grid['params'].update({f'{item}_{bus_name}':vsg[item]})
 
-        p_t = i_d*(v_d + R_s*i_d) + i_q*(v_q + R_s*i_q) 
+#         p_t = i_d*(v_d + R_s*i_d) + i_q*(v_q + R_s*i_q) 
 
-        omega_s = omega_coi
+#         omega_s = omega_coi
         
-        u_wo = omega_v - 1.0
-        epsilon_q = q_ref - q_g
+#         u_wo = omega_v - 1.0
+#         epsilon_q = q_ref - q_g
         
-        dx_wo  =  (u_wo - x_wo)/T_wo 
-        g_p_d2 =  D2*(u_wo - x_wo) - p_d2  
+#         dx_wo  =  (u_wo - x_wo)/T_wo 
+#         g_p_d2 =  D2*(u_wo - x_wo) - p_d2  
         
 
-        p_d1 = D1*(omega_v - 1)
+#         p_d1 = D1*(omega_v - 1)
 
-        #  D3 = K_p*Omega_b
-        ddelta   = Omega_b*(omega_v - omega_s) + D3*(p_m- p_g) - K_delta*delta
-        domega_v = 1/(2*H)*(p_m - p_g - p_d1 - p_d2)
-        di_d = 1/T_i*(i_d_ref - i_d)
-        di_q = 1/T_i*(i_q_ref - i_q)
-        dxi_q = epsilon_q
-        dsoc = -p_sto/H_s
-        dxi_soc = (soc_ref - soc)
+#         #  D3 = K_p*Omega_b
+#         ddelta   = Omega_b*(omega_v - omega_s) + D3*(p_m- p_g) - K_delta*delta
+#         domega_v = 1/(2*H)*(p_m - p_g - p_d1 - p_d2)
+#         di_d = 1/T_i*(i_d_ref - i_d)
+#         di_q = 1/T_i*(i_q_ref - i_q)
+#         dxi_q = epsilon_q
+#         dsoc = -p_sto/H_s
+#         dxi_soc = (soc_ref - soc)
         
-        p_soc_ref = K_p_soc*(soc_ref - soc) + K_i_soc*xi_soc
-        p_soc = sym.Piecewise((p_soc_ref - (Dp_ref + p_src),(soc<0.0) & (p_sto>0.0)),(p_soc_ref - (Dp_ref + p_src),(soc>1.0) & (p_sto<0.0)), (p_soc_ref, True))
+#         p_soc_ref = K_p_soc*(soc_ref - soc) + K_i_soc*xi_soc
+#         p_soc = sym.Piecewise((p_soc_ref - (Dp_ref + p_src),(soc<0.0) & (p_sto>0.0)),(p_soc_ref - (Dp_ref + p_src),(soc>1.0) & (p_sto<0.0)), (p_soc_ref, True))
         
-        g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
-        g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
-        g_p_g  = i_d*v_d + i_q*v_q - p_g  
-        g_q_g  = i_d*v_q - i_q*v_d - q_g 
-        g_e_v = -e_v +  K_q*(epsilon_q + xi_q/T_q)
-        g_p_sto = -p_t + p_sto + p_src 
-        g_p_m = -p_m + p_soc + Dp_ref + p_src
-        #dv_dc = 1/C_dc*(-i_t + i_src + i_sto)
-        #dv_dc = 1/(v_dc*C_dc)*(-p_t + p_src + p_sto)
+#         g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
+#         g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
+#         g_p_g  = i_d*v_d + i_q*v_q - p_g  
+#         g_q_g  = i_d*v_q - i_q*v_d - q_g 
+#         g_e_v = -e_v +  K_q*(epsilon_q + xi_q/T_q)
+#         g_p_sto = -p_t + p_sto + p_src 
+#         g_p_m = -p_m + p_soc + Dp_ref + p_src
+#         #dv_dc = 1/C_dc*(-i_t + i_src + i_sto)
+#         #dv_dc = 1/(v_dc*C_dc)*(-p_t + p_src + p_sto)
         
-        f_syn = [ddelta,domega_v,dx_wo,di_d,di_q,dxi_q, dsoc,dxi_soc]
-        x_syn = [ delta, omega_v, x_wo, i_d, i_q, xi_q,  soc, xi_soc]
-        g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g,g_p_d2,g_e_v, g_p_sto,g_p_m]
-        y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g,  p_d2,  e_v,   p_sto,  p_m]
+#         f_syn = [ddelta,domega_v,dx_wo,di_d,di_q,dxi_q, dsoc,dxi_soc]
+#         x_syn = [ delta, omega_v, x_wo, i_d, i_q, xi_q,  soc, xi_soc]
+#         g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g,g_p_d2,g_e_v, g_p_sto,g_p_m]
+#         y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g,  p_d2,  e_v,   p_sto,  p_m]
         
-        if 'f' not in grid: grid.update({'f':[]})
-        if 'x' not in grid: grid.update({'x':[]})
-        grid['f'] += f_syn
-        grid['x'] += x_syn
-        grid['g'] += g_syn
-        grid['y'] += y_syn  
+#         if 'f' not in grid: grid.update({'f':[]})
+#         if 'x' not in grid: grid.update({'x':[]})
+#         grid['f'] += f_syn
+#         grid['x'] += x_syn
+#         grid['g'] += g_syn
+#         grid['y'] += y_syn  
         
-        S_base = sym.Symbol('S_base', real = True)
-        grid['u'].update({f'p_in_{bus_name}':0.0})
-        grid['u'].update({f'Dp_ref_{bus_name}':0.0})
-        grid['u'].update({f'q_ref_{bus_name}':0.0})
-        grid['u'].update({f'p_src_{bus_name}':vsg['p_src']})
-        grid['u'].update({f'soc_ref_{bus_name}':vsg['soc_ref']})
-        grid['g'][idx_bus*2]   += -p_g*S_n/S_base
-        grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
-        grid['h'].update({f"p_t_{bus_name}":p_t})
-        grid['h'].update({f"p_soc_{bus_name}":p_soc})
+#         S_base = sym.Symbol('S_base', real = True)
+#         grid['u'].update({f'p_in_{bus_name}':0.0})
+#         grid['u'].update({f'Dp_ref_{bus_name}':0.0})
+#         grid['u'].update({f'q_ref_{bus_name}':0.0})
+#         grid['u'].update({f'p_src_{bus_name}':vsg['p_src']})
+#         grid['u'].update({f'soc_ref_{bus_name}':vsg['soc_ref']})
+#         grid['g'][idx_bus*2]   += -p_g*S_n/S_base
+#         grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
+#         grid['h'].update({f"p_t_{bus_name}":p_t})
+#         grid['h'].update({f"p_soc_{bus_name}":p_soc})
 
-def uvsgs_add(grid):
-    sin = sym.sin
-    cos = sym.cos
-    buses = grid['data']['buses']
-    buses_list = [bus['name'] for bus in buses]
-    for uvsg in grid['data']['uvsgs']:
+# def uvsgs_add(grid):
+#     sin = sym.sin
+#     cos = sym.cos
+#     buses = grid['data']['buses']
+#     buses_list = [bus['name'] for bus in buses]
+#     for uvsg in grid['data']['uvsgs']:
 
-        bus_name = uvsg['bus']
-        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
-        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
-        buses[idx_bus]['idx_powers'] += 1
+#         bus_name = uvsg['bus']
+#         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+#         if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+#         buses[idx_bus]['idx_powers'] += 1
 
-        p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True)
-        q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True)
-        V = sym.Symbol(f"V_{bus_name}", real=True)
-        theta = sym.Symbol(f"theta_{bus_name}", real=True)
-        i_d = sym.Symbol(f"i_d_{bus_name}", real=True)
-        i_q = sym.Symbol(f"i_q_{bus_name}", real=True)
-        delta = sym.Symbol(f"delta_{bus_name}", real=True)
-        omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
-        p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
-        e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
-        i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
-        i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
-        q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
-        xi_p = sym.Symbol(f"xi_p_{bus_name}", real=True)
-        xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
+#         p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True)
+#         q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True)
+#         V = sym.Symbol(f"V_{bus_name}", real=True)
+#         theta = sym.Symbol(f"theta_{bus_name}", real=True)
+#         i_d = sym.Symbol(f"i_d_{bus_name}", real=True)
+#         i_q = sym.Symbol(f"i_q_{bus_name}", real=True)
+#         delta = sym.Symbol(f"delta_{bus_name}", real=True)
+#         omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
+#         p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+#         e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
+#         i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
+#         i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
+#         q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
+#         xi_p = sym.Symbol(f"xi_p_{bus_name}", real=True)
+#         xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
       
-        omega_coi = sym.Symbol("omega_coi", real=True)
+#         omega_coi = sym.Symbol("omega_coi", real=True)
 
-        v_d = V*sin(delta - theta) 
-        v_q = V*cos(delta - theta) 
-        #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
-        for item in ['S_n','Omega_b','R_v','X_v','K_delta','T_i','K_q','T_q','K_p','K_i']:
-            string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
-            exec(string,globals())
-            grid['params'].update({f'{item}_{bus_name}':uvsg[item]})
+#         v_d = V*sin(delta - theta) 
+#         v_q = V*cos(delta - theta) 
+#         #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
+#         for item in ['S_n','Omega_b','R_v','X_v','K_delta','T_i','K_q','T_q','K_p','K_i']:
+#             string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
+#             exec(string,globals())
+#             grid['params'].update({f'{item}_{bus_name}':uvsg[item]})
 
-        p_e = i_d*(v_d + R_v*i_d) + i_q*(v_q + R_v*i_q) 
+#         p_e = i_d*(v_d + R_v*i_d) + i_q*(v_q + R_v*i_q) 
 
-        omega_s = omega_coi
+#         omega_s = omega_coi
         
-        epsilon_p = p_m - p_g
-        epsilon_q = q_ref - q_g
+#         epsilon_p = p_m - p_g
+#         epsilon_q = q_ref - q_g
         
-        # digsilent: omega_v = K_p*(epsilon_p + xi_p/T_p) + 1.0  ! UVSG PI             
-        # digsilent: phi_v. =  2.0*pi()*50.0*(omega_v-fref)  
+#         # digsilent: omega_v = K_p*(epsilon_p + xi_p/T_p) + 1.0  ! UVSG PI             
+#         # digsilent: phi_v. =  2.0*pi()*50.0*(omega_v-fref)  
    
 
-        omega_v = (K_p*epsilon_p + K_i*xi_p)  + 1.0
+#         omega_v = (K_p*epsilon_p + K_i*xi_p)  + 1.0
 
-        ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta
-        dxi_p = epsilon_p
-        di_d = 1/T_i*(i_d_ref - i_d)
-        di_q = 1/T_i*(i_q_ref - i_q)
-        dxi_q = epsilon_q
+#         ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta
+#         dxi_p = epsilon_p
+#         di_d = 1/T_i*(i_d_ref - i_d)
+#         di_q = 1/T_i*(i_q_ref - i_q)
+#         dxi_q = epsilon_q
         
         
-        g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
-        g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
-        g_p_g  = i_d*v_d + i_q*v_q - p_g  
-        g_q_g  = i_d*v_q - i_q*v_d - q_g 
-        g_e_v = -e_v +  K_q*(epsilon_q + xi_q/T_q)
+#         g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
+#         g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
+#         g_p_g  = i_d*v_d + i_q*v_q - p_g  
+#         g_q_g  = i_d*v_q - i_q*v_d - q_g 
+#         g_e_v = -e_v +  K_q*(epsilon_q + xi_q/T_q)
         
-        f_syn = [ddelta,dxi_p,di_d,di_q,dxi_q]
-        x_syn = [ delta, xi_p, i_d, i_q, xi_q]
-        g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g,g_e_v]
-        y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g,  e_v]
+#         f_syn = [ddelta,dxi_p,di_d,di_q,dxi_q]
+#         x_syn = [ delta, xi_p, i_d, i_q, xi_q]
+#         g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g,g_e_v]
+#         y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g,  e_v]
         
-        if 'f' not in grid: grid.update({'f':[]})
-        if 'x' not in grid: grid.update({'x':[]})
-        grid['f'] += f_syn
-        grid['x'] += x_syn
-        grid['g'] += g_syn
-        grid['y'] += y_syn  
+#         if 'f' not in grid: grid.update({'f':[]})
+#         if 'x' not in grid: grid.update({'x':[]})
+#         grid['f'] += f_syn
+#         grid['x'] += x_syn
+#         grid['g'] += g_syn
+#         grid['y'] += y_syn  
         
-        S_base = sym.Symbol('S_base', real = True)
-        grid['u'].update({f'q_ref_{bus_name}':0.0})
-        grid['u'].update({f'p_m_{bus_name}':uvsg['p_m']})
-        grid['g'][idx_bus*2]   += -p_g*S_n/S_base
-        grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
-        grid['h'].update({f"p_e_{bus_name}":p_e})
-        grid['h'].update({f"omega_v_{bus_name}":omega_v})
+#         S_base = sym.Symbol('S_base', real = True)
+#         grid['u'].update({f'q_ref_{bus_name}':0.0})
+#         grid['u'].update({f'p_m_{bus_name}':uvsg['p_m']})
+#         grid['g'][idx_bus*2]   += -p_g*S_n/S_base
+#         grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
+#         grid['h'].update({f"p_e_{bus_name}":p_e})
+#         grid['h'].update({f"omega_v_{bus_name}":omega_v})
 
-def gformer_z_add(grid):
-    sin = sym.sin
-    cos = sym.cos
-    buses = grid['data']['buses']
-    buses_list = [bus['name'] for bus in buses]
-    for gformer_z in grid['data']['gformers_z']:
+# def gformer_z_add(grid):
+#     sin = sym.sin
+#     cos = sym.cos
+#     buses = grid['data']['buses']
+#     buses_list = [bus['name'] for bus in buses]
+#     for gformer_z in grid['data']['gformers_z']:
 
-        bus_name = gformer_z['bus']
-        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
-        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
-        buses[idx_bus]['idx_powers'] += 1
+#         bus_name = gformer_z['bus']
+#         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+#         if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+#         buses[idx_bus]['idx_powers'] += 1
 
-        p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
-        q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
-        V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
-        theta   = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
-        theta_v_0 = sym.Symbol(f"theta_v_0_{bus_name}", real=True) # bus voltage angle (rad)
+#         p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
+#         q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
+#         V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
+#         theta   = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
+#         theta_v_0 = sym.Symbol(f"theta_v_0_{bus_name}", real=True) # bus voltage angle (rad)
 
-        i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
-        i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
-        delta = sym.Symbol(f"delta_{bus_name}", real=True)
-        omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
-        x_wo = sym.Symbol(f"x_wo_{bus_name}", real=True)
-        p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
-        e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
-        p_d2 = sym.Symbol(f"p_d2_{bus_name}", real=True)
-        i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
-        i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
-        q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
-        xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
-        p_src = sym.Symbol(f"p_src_{bus_name}", real=True)
-        soc_ref = sym.Symbol(f"soc_ref_{bus_name}", real=True)
-        p_sto = sym.Symbol(f"p_sto_{bus_name}", real=True)
-        Dp_ref = sym.Symbol(f"Dp_ref_{bus_name}", real=True)
-        soc = sym.Symbol(f"soc_{bus_name}", real=True)
-        xi_soc = sym.Symbol(f"xi_soc_{bus_name}", real=True)
+#         i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
+#         i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
+#         delta = sym.Symbol(f"delta_{bus_name}", real=True)
+#         omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
+#         x_wo = sym.Symbol(f"x_wo_{bus_name}", real=True)
+#         p_m = sym.Symbol(f"p_m_{bus_name}", real=True)
+#         e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
+#         p_d2 = sym.Symbol(f"p_d2_{bus_name}", real=True)
+#         i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
+#         i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
+#         q_ref = sym.Symbol(f"q_ref_{bus_name}", real=True)
+#         xi_q = sym.Symbol(f"xi_q_{bus_name}", real=True)
+#         p_src = sym.Symbol(f"p_src_{bus_name}", real=True)
+#         soc_ref = sym.Symbol(f"soc_ref_{bus_name}", real=True)
+#         p_sto = sym.Symbol(f"p_sto_{bus_name}", real=True)
+#         Dp_ref = sym.Symbol(f"Dp_ref_{bus_name}", real=True)
+#         soc = sym.Symbol(f"soc_{bus_name}", real=True)
+#         xi_soc = sym.Symbol(f"xi_soc_{bus_name}", real=True)
         
-        omega_coi = sym.Symbol("omega_coi", real=True)
+#         omega_coi = sym.Symbol("omega_coi", real=True)
 
-        v_d = V*sin(delta - theta) 
-        v_q = V*cos(delta - theta) 
-        #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
-        for item in ['S_n','Omega_b','R_v','X_v','T_i','K_delta']:
-            string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
-            exec(string,globals())
-            grid['params'].update({f'{item}_{bus_name}':gformer_z[item]})
+#         v_d = V*sin(delta - theta) 
+#         v_q = V*cos(delta - theta) 
+#         #S_n,H,Omega_b,R_v,X_v,D,K_delta = 0,0,0,0,0,0,0
+#         for item in ['S_n','Omega_b','R_v','X_v','T_i','K_delta']:
+#             string = f"{item}=sym.Symbol('{item}_{bus_name}', real = True)" 
+#             exec(string,globals())
+#             grid['params'].update({f'{item}_{bus_name}':gformer_z[item]})
 
-        omega_s = omega_coi
+#         omega_s = omega_coi
         
-        ddelta   = Omega_b*(omega_v - omega_s)  - K_delta*delta
-        di_d = 1/T_i*(i_d_ref - i_d)
-        di_q = 1/T_i*(i_q_ref - i_q)
+#         ddelta   = Omega_b*(omega_v - omega_s)  - K_delta*delta
+#         di_d = 1/T_i*(i_d_ref - i_d)
+#         di_q = 1/T_i*(i_q_ref - i_q)
           
-        g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
-        g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
-        g_p_g  = i_d*v_d + i_q*v_q - p_g  
-        g_q_g  = i_d*v_q - i_q*v_d - q_g 
+#         g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
+#         g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
+#         g_p_g  = i_d*v_d + i_q*v_q - p_g  
+#         g_q_g  = i_d*v_q - i_q*v_d - q_g 
         
-        f_syn = [ ddelta,di_d,di_q]
-        x_syn = [  delta, i_d, i_q]
-        g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g]
-        y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g]
+#         f_syn = [ ddelta,di_d,di_q]
+#         x_syn = [  delta, i_d, i_q]
+#         g_syn = [g_i_d_ref,g_i_q_ref,g_p_g,g_q_g]
+#         y_syn = [  i_d_ref,  i_q_ref,  p_g,  q_g]
         
-        if 'f' not in grid: grid.update({'f':[]})
-        if 'x' not in grid: grid.update({'x':[]})
-        grid['f'] += f_syn
-        grid['x'] += x_syn
-        grid['g'] += g_syn
-        grid['y'] += y_syn  
+#         if 'f' not in grid: grid.update({'f':[]})
+#         if 'x' not in grid: grid.update({'x':[]})
+#         grid['f'] += f_syn
+#         grid['x'] += x_syn
+#         grid['g'] += g_syn
+#         grid['y'] += y_syn  
         
-        S_base = sym.Symbol('S_base', real = True)
-        grid['u'].update({f'e_v_{bus_name}':1.0})
-        grid['u'].update({f'omega_v_{bus_name}':1.0})
-        grid['g'][idx_bus*2]   += -p_g*S_n/S_base
-        grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
+#         S_base = sym.Symbol('S_base', real = True)
+#         grid['u'].update({f'e_v_{bus_name}':1.0})
+#         grid['u'].update({f'omega_v_{bus_name}':1.0})
+#         grid['g'][idx_bus*2]   += -p_g*S_n/S_base
+#         grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
 
 
-def gformer_droop_z_add(grid):
-    sin = sym.sin
-    cos = sym.cos
-    buses = grid['data']['buses']
-    buses_list = [bus['name'] for bus in buses]
-    for gformer_droop_z in grid['data']['gformers_droop_z']:
+# def gformer_droop_z_add(grid):
+#     sin = sym.sin
+#     cos = sym.cos
+#     buses = grid['data']['buses']
+#     buses_list = [bus['name'] for bus in buses]
+#     for gformer_droop_z in grid['data']['gformers_droop_z']:
 
-        bus_name = gformer_droop_z['bus']
-        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
-        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
-        buses[idx_bus]['idx_powers'] += 1
+#         bus_name = gformer_droop_z['bus']
+#         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+#         if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+#         buses[idx_bus]['idx_powers'] += 1
 
-        p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
-        q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
-        V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
-        theta   = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
+#         p_g = sym.Symbol(f"p_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected active power (m-pu)
+#         q_g = sym.Symbol(f"q_g_{bus_name}_{buses[idx_bus]['idx_powers']}", real=True) # inyected reactive power (m-pu)
+#         V = sym.Symbol(f"V_{bus_name}", real=True)    # bus voltage module (pu)
+#         theta   = sym.Symbol(f"theta_{bus_name}", real=True) # bus voltage angle (rad)
 
-        p_c = sym.Symbol(f"p_c_{bus_name}", real=True)
-        p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
+#         p_c = sym.Symbol(f"p_c_{bus_name}", real=True)
+#         p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
 
-        q_c = sym.Symbol(f"q_c_{bus_name}", real=True)
-        q_r = sym.Symbol(f"q_r_{bus_name}", real=True)
+#         q_c = sym.Symbol(f"q_c_{bus_name}", real=True)
+#         q_r = sym.Symbol(f"q_r_{bus_name}", real=True)
         
-        i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
-        i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
-        delta = sym.Symbol(f"delta_{bus_name}", real=True)
-        omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
-        e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
-        i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
-        i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
+#         i_d = sym.Symbol(f"i_d_{bus_name}", real=True)  # d-axe current (pu)
+#         i_q = sym.Symbol(f"i_q_{bus_name}", real=True)  # q-axe current (pu)
+#         delta = sym.Symbol(f"delta_{bus_name}", real=True)
+#         omega_v = sym.Symbol(f"omega_v_{bus_name}", real=True)
+#         e_v = sym.Symbol(f"e_v_{bus_name}", real=True)
+#         i_d_ref = sym.Symbol(f"i_d_ref_{bus_name}", real=True)
+#         i_q_ref = sym.Symbol(f"i_q_ref_{bus_name}", real=True)
 
-        omega_v_0 = sym.Symbol(f"omega_v_0_{bus_name}", real=True)
-        e_v_0 = sym.Symbol(f"e_v_0_{bus_name}", real=True)
+#         omega_v_0 = sym.Symbol(f"omega_v_0_{bus_name}", real=True)
+#         e_v_0 = sym.Symbol(f"e_v_0_{bus_name}", real=True)
         
 
-        S_n = sym.Symbol(f"S_n_{bus_name}", real=True)
-        Omega_b = sym.Symbol(f"Omega_b_{bus_name}", real=True)
-        R_v = sym.Symbol(f"R_v_{bus_name}", real=True)
-        X_v = sym.Symbol(f"X_v_{bus_name}", real=True)
-        K_delta = sym.Symbol(f"K_delta_{bus_name}", real=True)
-        K_droop_p = sym.Symbol(f"K_droop_p_{bus_name}", real=True)
-        K_droop_q = sym.Symbol(f"K_droop_q_{bus_name}", real=True)
-        T_i = sym.Symbol(f"T_i_{bus_name}", real=True)        
+#         S_n = sym.Symbol(f"S_n_{bus_name}", real=True)
+#         Omega_b = sym.Symbol(f"Omega_b_{bus_name}", real=True)
+#         R_v = sym.Symbol(f"R_v_{bus_name}", real=True)
+#         X_v = sym.Symbol(f"X_v_{bus_name}", real=True)
+#         K_delta = sym.Symbol(f"K_delta_{bus_name}", real=True)
+#         K_droop_p = sym.Symbol(f"K_droop_p_{bus_name}", real=True)
+#         K_droop_q = sym.Symbol(f"K_droop_q_{bus_name}", real=True)
+#         T_i = sym.Symbol(f"T_i_{bus_name}", real=True)        
     
-        for item in ['S_n','Omega_b','R_v','X_v','K_droop_p','K_droop_q','T_i','K_delta']:
-            grid['params'].update({f'{item}_{bus_name}':gformer_droop_z[item]})
+#         for item in ['S_n','Omega_b','R_v','X_v','K_droop_p','K_droop_q','T_i','K_delta']:
+#             grid['params'].update({f'{item}_{bus_name}':gformer_droop_z[item]})
 
         
-        omega_coi = sym.Symbol("omega_coi", real=True)
+#         omega_coi = sym.Symbol("omega_coi", real=True)
 
-        v_d = V*sin(delta - theta) 
-        v_q = V*cos(delta - theta) 
+#         v_d = V*sin(delta - theta) 
+#         v_q = V*cos(delta - theta) 
         
-        omega_s = omega_coi
+#         omega_s = omega_coi
         
-        g_omega_v = -omega_v + omega_v_0 + K_droop_p*(p_c - p_g + p_r)
-        g_e_v     =     -e_v +     e_v_0 + K_droop_q*(q_c - q_g + q_r)
+#         g_omega_v = -omega_v + omega_v_0 + K_droop_p*(p_c - p_g + p_r)
+#         g_e_v     =     -e_v +     e_v_0 + K_droop_q*(q_c - q_g + q_r)
         
-        ddelta   = Omega_b*(omega_v - omega_s)  - K_delta*delta
-        di_d = 1/T_i*(i_d_ref - i_d)
-        di_q = 1/T_i*(i_q_ref - i_q)
+#         ddelta   = Omega_b*(omega_v - omega_s)  - K_delta*delta
+#         di_d = 1/T_i*(i_d_ref - i_d)
+#         di_q = 1/T_i*(i_q_ref - i_q)
           
-        g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
-        g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
-        g_p_g  = i_d*v_d + i_q*v_q - p_g  
-        g_q_g  = i_d*v_q - i_q*v_d - q_g 
+#         g_i_d_ref  = v_q + R_v*i_q_ref + X_v*i_d_ref - e_v
+#         g_i_q_ref  = v_d + R_v*i_d_ref - X_v*i_q_ref - 0
+#         g_p_g  = i_d*v_d + i_q*v_q - p_g  
+#         g_q_g  = i_d*v_q - i_q*v_d - q_g 
         
-        f_syn = [ ddelta,di_d,di_q]
-        x_syn = [  delta, i_d, i_q]
-        g_syn = [g_omega_v,g_e_v,g_i_d_ref,g_i_q_ref,g_p_g,g_q_g]
-        y_syn = [  omega_v, e_v, i_d_ref,  i_q_ref,  p_g,  q_g]
+#         f_syn = [ ddelta,di_d,di_q]
+#         x_syn = [  delta, i_d, i_q]
+#         g_syn = [g_omega_v,g_e_v,g_i_d_ref,g_i_q_ref,g_p_g,g_q_g]
+#         y_syn = [  omega_v, e_v, i_d_ref,  i_q_ref,  p_g,  q_g]
         
-        if 'f' not in grid: grid.update({'f':[]})
-        if 'x' not in grid: grid.update({'x':[]})
-        grid['f'] += f_syn
-        grid['x'] += x_syn
-        grid['g'] += g_syn
-        grid['y'] += y_syn  
+#         if 'f' not in grid: grid.update({'f':[]})
+#         if 'x' not in grid: grid.update({'x':[]})
+#         grid['f'] += f_syn
+#         grid['x'] += x_syn
+#         grid['g'] += g_syn
+#         grid['y'] += y_syn  
         
-        S_base = sym.Symbol('S_base', real = True)
-        grid['u'].update({f'e_v_0_{bus_name}':1.0})
-        grid['u'].update({f'omega_v_0_{bus_name}':1.0})
-        grid['u'].update({f'p_c_{bus_name}':0.0})
-        grid['u'].update({f'q_c_{bus_name}':0.0})
+#         S_base = sym.Symbol('S_base', real = True)
+#         grid['u'].update({f'e_v_0_{bus_name}':1.0})
+#         grid['u'].update({f'omega_v_0_{bus_name}':1.0})
+#         grid['u'].update({f'p_c_{bus_name}':0.0})
+#         grid['u'].update({f'q_c_{bus_name}':0.0})
         
-        grid['g'][idx_bus*2]   += -p_g*S_n/S_base
-        grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
+#         grid['g'][idx_bus*2]   += -p_g*S_n/S_base
+#         grid['g'][idx_bus*2+1] += -q_g*S_n/S_base
         
-        
+
+
 if __name__ == "__main__":
     
     data = {
