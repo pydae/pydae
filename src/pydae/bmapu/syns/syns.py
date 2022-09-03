@@ -8,6 +8,10 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 from pydae.bmapu.syns.milano4ord import milano4ord
+from pydae.bmapu.avrs.avrs import add_avr
+from pydae.bmapu.govs.govs import add_gov
+from pydae.bmapu.psss.psss import add_pss
+
 
 def add_syns(grid):
 
@@ -45,4 +49,24 @@ def add_syns(grid):
         S_base = sym.Symbol('S_base', real = True)
         grid.dae['g'][idx_bus*2]   += -p_W/S_base
         grid.dae['g'][idx_bus*2+1] += -q_var/S_base
+        
+        v_f = f'v_f_{name}'
+        p_m = f'p_m_{name}'
+        v_pss = f'v_pss_{name}'
+        
+        if 'avr' in item:
+            add_avr(grid.dae,item,name)
+            grid.dae['u_ini_dict'].pop(str(v_f))
+            grid.dae['u_run_dict'].pop(str(v_f))
+            grid.dae['xy_0_dict'].update({str(v_f):1.5})
+        if 'gov' in item:
+            add_gov(grid.dae,item,name)  
+            grid.dae['u_ini_dict'].pop(str(p_m))
+            grid.dae['u_run_dict'].pop(str(p_m))
+            grid.dae['xy_0_dict'].update({str(p_m):0.5})
+        if 'pss' in item:
+            add_pss(grid.dae,item,name)  
+            grid.dae['u_ini_dict'].pop(str(v_pss))
+            grid.dae['u_run_dict'].pop(str(v_pss))
+            grid.dae['xy_0_dict'].update({str(v_pss):0.0})
         

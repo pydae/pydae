@@ -787,6 +787,42 @@ class model:
         self.x_list = list(data['x_list'] )
         self.y_run_list = list(data['y_run_list'] )
         self.outputs_list = list(data['z_list'] )
+        
+    def full_jacs_eval(self):
+        N_x = self.N_x
+        N_y = self.N_y
+        N_xy = N_x + N_y
+    
+        sp_jac_run = self.sp_jac_run
+        sp_Fu = self.sp_Fu_run
+        sp_Gu = self.sp_Gu_run
+        sp_Hx = self.sp_Hx_run
+        sp_Hy = self.sp_Hy_run
+        sp_Hu = self.sp_Hu_run
+        
+        x = self.xy[0:N_x]
+        y = self.xy[N_x:]
+        u = self.u_run
+        p = self.p
+        Dt = self.Dt
+    
+        sp_jac_run_eval(sp_jac_run.data,x,y,u,p,Dt)
+        
+        self.Fx = sp_jac_run[0:N_x,0:N_x]
+        self.Fy = sp_jac_run[ 0:N_x,N_x:]
+        self.Gx = sp_jac_run[ N_x:,0:N_x]
+        self.Gy = sp_jac_run[ N_x:, N_x:]
+        
+        sp_Fu_run_eval(sp_Fu.data,x,y,u,p,Dt)
+        sp_Gu_run_eval(sp_Gu.data,x,y,u,p,Dt)
+        sp_H_jacs_run_eval(sp_Hx.data,sp_Hy.data,sp_Hu.data,x,y,u,p,Dt)
+        
+        self.Fu = sp_Fu
+        self.Gu = sp_Gu
+        self.Hx = sp_Hx
+        self.Hy = sp_Hy
+        self.Hu = sp_Hu
+
 
 @numba.njit() 
 def daestep(t,t_end,it,xy,u,p,z,jac_trap,iters,Dt,N_x,N_y,N_z,max_it=50,itol=1e-8,store=1): 

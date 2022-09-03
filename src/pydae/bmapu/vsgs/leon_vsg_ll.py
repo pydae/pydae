@@ -88,6 +88,8 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     v_d = v_D * cos(delta) - v_Q * sin(delta)   
     v_q = v_D * sin(delta) + v_Q * cos(delta)
 
+    p_ref = p_l + p_r
+    q_ref = q_l + q_r
     Domega = x_v + K_p * (p_ref - p)
     e_dv = 0.0
     epsilon_v = v_ref - V
@@ -95,8 +97,7 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     i_q = i_q_ref
     omega_v = Domega + 1.0
     q_ref_0 = K_p_v * epsilon_v + K_i_v * xi_v
-    p_ref = p_l + p_r
-    q_ref = q_l + q_r
+
 
     # dynamical equations
     ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta

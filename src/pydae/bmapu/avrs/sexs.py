@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Created on Thu August 10 23:52:55 2022
 
@@ -7,9 +8,10 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 
-def milano4ord(grid,name,bus_name,data_dict):
-    r"""
- 
+
+def sexs(dae,syn_data,name):
+    '''
+
     **Auxiliar equations**
 
     .. math::
@@ -43,6 +45,7 @@ def milano4ord(grid,name,bus_name,data_dict):
         :nowrap:
         
         \begin{eqnarray}
+             0 &=& - v_{f } + \\begin{cases} V_{min } & \\text{for}\\: V_{min } > K_{a } \\left(- v_{c } + v_{pss } + v_{ref }\\right) + K_{ai } \\xi_{v } \\\\V_{max } & \\text{for}\\: V_{max } < K_{a } \\left(- v_{c } + v_{pss } + v_{ref }\\right) + K_{ai } \\xi_{v } \\\\K_{a } \\left(- v_{c } + v_{pss } + v_{ref }\\right) + K_{ai } \\xi_{v } & \\text{otherwise} \\end{cases} \\
              0  &=& v_q + R_a i_q + X'_d i_d - e'_q \\
              0  &=& v_d + R_a i_d - X'_q i_q - e'_d \\
              0  &=& i_d v_d + i_q v_q - p_g  \\
@@ -104,119 +107,57 @@ def milano4ord(grid,name,bus_name,data_dict):
         :math:`v_f`       ``v_f``      Field voltage                                pu-m
         :math:`p_m`       ``p_m``      Mechanical power                             pu-m
         ================= =========== ============================================= ===========
-
-    """
-
-    sin = sym.sin
-    cos = sym.cos  
-
-    # inputs
-    V = sym.Symbol(f"V_{bus_name}", real=True)
-    theta = sym.Symbol(f"theta_{bus_name}", real=True)
-    p_m = sym.Symbol(f"p_m_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)  
-    omega_coi = sym.Symbol("omega_coi", real=True)   
+    
+        T_r K_a K_aw
+        v_ref  v_pss
         
-    # dynamic states
-    delta = sym.Symbol(f"delta_{name}", real=True)
-    omega = sym.Symbol(f"omega_{name}", real=True)
-    e1q = sym.Symbol(f"e1q_{name}", real=True)
-    e1d = sym.Symbol(f"e1d_{name}", real=True)
+        v_c
+        v_f_nosat
+        
+     '''
 
-    # algebraic states
-    i_d = sym.Symbol(f"i_d_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)            
-    p_g = sym.Symbol(f"p_g_{name}", real=True)
-    q_g = sym.Symbol(f"q_g_{name}", real=True)
-
-    # parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
-    Omega_b = sym.Symbol(f"Omega_b_{name}", real=True)            
-    H = sym.Symbol(f"H_{name}", real=True)
-    T1d0 = sym.Symbol(f"T1d0_{name}", real=True)
-    T1q0 = sym.Symbol(f"T1q0_{name}", real=True)
-    X_d = sym.Symbol(f"X_d_{name}", real=True)
-    X_q = sym.Symbol(f"X_q_{name}", real=True)
-    X1d = sym.Symbol(f"X1d_{name}", real=True)
-    X1q = sym.Symbol(f"X1q_{name}", real=True)
-    D = sym.Symbol(f"D_{name}", real=True)
-    R_a = sym.Symbol(f"R_a_{name}", real=True)
-    K_delta = sym.Symbol(f"K_delta_{name}", real=True)
-    params_list = ['S_n','Omega_b','H','T1d0','T1q0','X_d','X_q','X1d','X1q','D','R_a','K_delta','K_sec']
+    bus_name = syn_data['bus']
+    avr_data = syn_data['avr']
     
-    # auxiliar
-    v_d = V*sin(delta - theta) 
-    v_q = V*cos(delta - theta) 
-    p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q)     
-    omega_s = omega_coi
-                
-    # dynamic equations            
-    ddelta = Omega_b*(omega - omega_s) - K_delta*delta
-    domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
-    de1q = 1/T1d0*(-e1q - (X_d - X1d)*i_d + v_f)
-    de1d = 1/T1q0*(-e1d + (X_q - X1q)*i_q)
-
-    # algebraic equations   
-    g_i_d  = v_q + R_a*i_q + X1d*i_d - e1q
-    g_i_q  = v_d + R_a*i_d - X1q*i_q - e1d
-    g_p_g  = i_d*v_d + i_q*v_q - p_g  
-    g_q_g  = i_d*v_q - i_q*v_d - q_g 
+    v_t = sym.Symbol(f"V_{name}", real=True)   
+    v_c = sym.Symbol(f"v_c_{name}", real=True)  
+    xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
+    v_f = sym.Symbol(f"v_f_{name}", real=True)  
+    T_r = sym.Symbol(f"T_r_{name}", real=True) 
+    K_a = sym.Symbol(f"K_a_{name}", real=True)
+    K_ai = sym.Symbol(f"K_ai_{name}", real=True)
+    V_min = sym.Symbol(f"V_min_{name}", real=True)
+    V_max = sym.Symbol(f"V_max_{name}", real=True)
+    K_aw = sym.Symbol(f"K_aw_{name}", real=True)   
     
-    # dae 
-    f_syn = [ddelta,domega,de1q,de1d]
-    x_syn = [ delta, omega, e1q, e1d]
-    g_syn = [g_i_d,g_i_q,g_p_g,g_q_g]
-    y_syn = [  i_d,  i_q,  p_g,  q_g]
+    v_ref = sym.Symbol(f"v_ref_{name}", real=True) 
+    v_pss = sym.Symbol(f"v_pss_{name}", real=True) 
     
-    grid.H_total += H
-    grid.omega_coi_numerator += omega*H*S_n
-    grid.omega_coi_denominator += H*S_n
+    epsilon_v = v_ref - v_c + v_pss
+    v_f_nosat = K_a*epsilon_v + K_ai*xi_v
 
-    grid.dae['f'] += f_syn
-    grid.dae['x'] += x_syn
-    grid.dae['g'] += g_syn
-    grid.dae['y_ini'] += y_syn  
-    grid.dae['y_run'] += y_syn  
     
-    if 'v_f' in data_dict:
-        grid.dae['u_ini_dict'].update({f'{v_f}':{data_dict['v_f']}})
-        grid.dae['u_run_dict'].update({f'{v_f}':{data_dict['v_f']}})
-    else:
-        grid.dae['u_ini_dict'].update({f'{v_f}':1.0})
-        grid.dae['u_run_dict'].update({f'{v_f}':1.0})
-
-    if 'p_m' in data_dict:
-        grid.dae['u_ini_dict'].update({f'{p_m}':{data_dict['p_m']}})
-        grid.dae['u_run_dict'].update({f'{p_m}':{data_dict['p_m']}})
-    else:
-        grid.dae['u_ini_dict'].update({f'{p_m}':1.0})
-        grid.dae['u_run_dict'].update({f'{p_m}':1.0})
-
-    grid.dae['xy_0_dict'].update({str(omega):1.0})
-    grid.dae['xy_0_dict'].update({str(e1q):1.0})
+    dv_c =   (v_t - v_c)/T_r
+    dxi_v =   epsilon_v  - K_aw*(v_f_nosat - v_f) 
     
-    # outputs
-    grid.dae['h_dict'].update({f"p_e_{name}":p_e})
+    g_v_f  =   sym.Piecewise((V_min, v_f_nosat<V_min),(V_max,v_f_nosat>V_max),(v_f_nosat,True)) - v_f 
+  #  g_v_f  =   v_f_nosat - v_f 
+  
+  
     
-    for item in params_list:       
-        grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]})
-    
-    # if 'avr' in syn_data:
-    #     add_avr(grid.dae,syn_data)
-    #     grid.dae['u_ini_dict'].pop(str(v_f))
-    #     grid.dae['u_run_dict'].pop(str(v_f))
-    #     grid.dae['xy_0_dict'].update({str(v_f):1.5})
-
-    # if 'gov' in syn_data:
-    #     add_gov(grid.dae,syn_data)  
-    #     grid.dae['u_ini_dict'].pop(str(p_m))
-    #     grid.dae['u_run_dict'].pop(str(p_m))
-    #     grid.dae['xy_0_dict'].update({str(p_m):0.5})
-
-    # if 'pss' in syn_data:
-    #     add_pss(grid.dae,syn_data)  
-
-    p_W   = p_g * S_n
-    q_var = q_g * S_n
-
-    return p_W,q_var
+    dae['f'] += [dv_c,dxi_v]
+    dae['x'] += [ v_c, xi_v]
+    dae['g'] += [g_v_f]
+    dae['y_ini'] += [v_f] 
+    dae['y_run'] += [v_f]  
+    dae['params_dict'].update({str(K_a):avr_data['K_a']})
+    dae['params_dict'].update({str(K_ai):avr_data['K_ai']})
+    dae['params_dict'].update({str(T_r):avr_data['T_r']})  
+    dae['params_dict'].update({str(V_min):avr_data['V_min']})  
+    dae['params_dict'].update({str(V_max):avr_data['V_max']})  
+    dae['params_dict'].update({str(K_aw):avr_data['K_aw']}) 
+    dae['u_ini_dict'].update({str(v_ref):avr_data['v_ref']})
+    dae['u_ini_dict'].update({str(v_pss):avr_data['v_pss']})
+    dae['u_run_dict'].update({str(v_ref):avr_data['v_ref']})
+    dae['u_run_dict'].update({str(v_pss):avr_data['v_pss']})
+    dae['xy_0_dict'].update({str(xi_v):1})

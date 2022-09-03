@@ -9,8 +9,12 @@ import numpy as np
 import sympy as sym
 import json
 from pydae.bmapu.syns.syns import add_syns
+from pydae.bmapu.vscs.vscs import add_vscs
 from pydae.bmapu.vsgs.vsgs import add_vsgs
+
 from pydae.bmapu.genapes.genapes import add_genapes
+
+import pydae.build_cffi as db
 
 # todo:
     # S_base can't be modified becuase impedances in element base are computed
@@ -76,11 +80,9 @@ class bmapu:
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
         
-        self.contruct_grid()
-        #self.contruct_generators()
-        
-        with open('xy_0_2.json','w') as fobj:
-            fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
+
+            
+                    
                 
     def contruct_grid(self):
         
@@ -394,19 +396,34 @@ class bmapu:
         self.buses_list = [bus['name'] for bus in self.buses]  
         
 
-    def build(self):
+    def build(self, name=''):
+        
+        self.contruct_grid()   
+        
+#        omega_coi = sym.Symbol("omega_coi", real=True)  
+#        
+#        self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
+#        self.dae['y_ini'] += [ omega_coi]
+#        self.dae['y_run'] += [ omega_coi]        
+        
 
-        grid = bmapu_builder.bmapu(data)
-        add_syns(grid)
-        #add_vsgs(grid)
-        add_genapes(grid)
+
+        #grid = bmapu_builder.bmapu(data)
+        if 'syns' in self.data:
+            add_syns(self)
+        if 'vscs' in self.data:
+            add_vscs(self)
+        if 'vsgs' in self.data:
+            add_vsgs(self)
+        if 'genapes' in  self.data:
+            add_genapes(self)
 
         #add_vsgs(grid)
         omega_coi = sym.Symbol("omega_coi", real=True)  
 
-        grid.dae['g'] += [ -omega_coi + grid.omega_coi_numerator/grid.omega_coi_denominator]
-        grid.dae['y_ini'] += [ omega_coi]
-        grid.dae['y_run'] += [ omega_coi]
+        self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
+        self.dae['y_ini'] += [ omega_coi]
+        self.dae['y_run'] += [ omega_coi]
 
         # secondary frequency control
         xi_freq = sym.Symbol("xi_freq", real=True) 
@@ -421,17 +438,87 @@ class bmapu:
         x_agc = [ xi_freq]
         f_agc = [epsilon_freq - K_xif*xi_freq]
 
-        grid.dae['g'] += g_agc
-        grid.dae['y_ini'] += y_agc
-        grid.dae['y_run'] += y_agc
-        grid.dae['f'] += f_agc
-        grid.dae['x'] += x_agc
-        grid.dae['params_dict'].update({'K_p_agc':grid.sys['K_p_agc'],'K_i_agc':grid.sys['K_i_agc']})
+        self.dae['g'] += g_agc
+        self.dae['y_ini'] += y_agc
+        self.dae['y_run'] += y_agc
+        self.dae['f'] += f_agc
+        self.dae['x'] += x_agc
+        self.dae['params_dict'].update({'K_p_agc':self.sys['K_p_agc'],'K_i_agc':self.sys['K_i_agc']})
 
-        if 'K_xif' in grid.sys:
-            grid.dae['params_dict'].update({'K_xif':grid.sys['K_xif']})
+        if 'K_xif' in self.sys:
+            self.dae['params_dict'].update({'K_xif':self.sys['K_xif']})
         else:
-            grid.dae['params_dict'].update({'K_xif':0.0})
+            self.dae['params_dict'].update({'K_xif':0.0})
+            
+        with open('xy_0.json','w') as fobj:
+            fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
+            
+        
+        if not name == '':
+            sys_dict = {'name':name,
+                   'params_dict':self.dae['params_dict'],
+                   'f_list':self.dae['f'],
+                   'g_list':self.dae['g'] ,
+                   'x_list':self.dae['x'],
+                   'y_ini_list':self.dae['y_ini'],
+                   'y_run_list':self.dae['y_run'],
+                   'u_run_dict':self.dae['u_run_dict'],
+                   'u_ini_dict':self.dae['u_ini_dict'],
+                   'h_dict':self.dae['h_dict']}
+            
+            bldr = db.builder(sys_dict);
+            bldr.build()        
+
+    def checker(self):
+        
+        if not 'syns' in self.data: self.data.update({'syns':[]})
+        if not 'vscs' in self.data: self.data.update({'vscs':[]})
+        if not 'vsgs' in self.data: self.data.update({'vsgs':[]})
+        if not 'genapes' in self.data: self.data.update({'genapes':[]})
+                                                         
+                                                         
+        K_deltas_n = 0
+        for item in self.data['syns']:
+            if item['K_delta'] > 0.0:
+                K_deltas_n += 1
+        for item in self.data['vscs']:
+            if item['K_delta'] > 0.0:
+                K_deltas_n += 1
+        for item in self.data['vsgs']:
+            if item['K_delta'] > 0.0:
+                K_deltas_n += 1
+        for item in self.data['genapes']:
+            if item['K_delta'] > 0.0:
+                K_deltas_n += 1      
+
+        if  K_deltas_n == 0:
+            print('One generator must have K_delta > 0.0')
+        if  K_deltas_n > 1:
+            print('Only one generator must have K_delta > 0.0')                                          
+                                                      
+        if len(self.data['genapes']) > 0:
+            if self.data['sys']['K_p_agc'] != 0.0:
+                print('With a genape in the system K_p_agc must be set to 0.0')
+            if self.data['sys']['K_i_agc'] != 0.0:
+                print('With a genape in the system K_i_agc must be set to 0.0')  
+            if not self.data['sys']['K_xif'] > 0.0:
+                print('With a genape in the system K_xif must be set larger than 0.0')     
+
+
+        for item in self.data['syns']:
+            if 'gov' in item:
+                if 'K_imw' in item['gov']:
+                    if item['gov']['p_c'] > 0.0 and item['gov']['K_imw'] == 0.0:
+                        print(f"Synchornous machine at bus {item['bus']} has p_c > 0, therefore K_imw should be larger than 0")                
+            
+        
+        for item in self.data['syns']:
+            if 'avr' in item:
+                if 'sexs' in item['avr']:
+                    if item['avr']['K_ai'] <= 0.0:
+                        print(f"AVR of a synchornous machine at bus {item['bus']} must have constant K_ai larger than 0")                
+            
+               
             
 
 if __name__ == "__main__":

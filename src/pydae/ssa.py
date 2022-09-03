@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import scipy
 import matplotlib.pyplot as plt
+from scipy.sparse.linalg import spsolve
+from scipy.sparse import csc_matrix
 
 from matplotlib.patches import Circle, Wedge, Polygon, Rectangle
 
@@ -101,6 +103,69 @@ def eval_ss(system):
     return A
 
 
+def ss_eval(model):
+    '''
+    
+    Parameters
+    ----------
+    system : system class
+        object.
+
+    Returns
+    -------
+    A : np.array
+        System A matrix.
+
+    # DAE system        
+    dx = f(x,y,u)
+     0 = g(x,y,u)
+     z = h(x,y,u)
+     
+    # system linealization
+    Δdx = Fx*Δx + Fy*Δy + Fu*Δu
+      0 = Gx*Δx + Gy*Δy + Gu*Δu
+     Δz = Hx*Δx + Hy*Δy + Hu*Δu
+    
+    Δy = -inv(Gy)*Gx*Dx - inv(Gy)*Gu*Du
+                                     
+    Δdx = Fx*Dx - Fy*inv(Gy*Gx)*Δx - Fy*inv(Gy)*Gu*Δu + Fu*Δu           
+    Δdx = (Fx - Fy*inv(Gy*Gx))*Δx + (Fu - Fy*inv(Gy)*Gu)*Δu
+    
+
+    Δz = Hx*Dx + Hy*Δy + Hu*Δu
+    Δz = Hx*Dx - Hy*inv(Gy)*(Gx*Δx) - Hy*inv(Gy)*Gu*Du + Hu*Δu
+    Δz = (Hx - Hy*inv(Gy)*(Gx))*Δx + (Hu - Hy*inv(Gy)*Gu)*Δu
+
+
+    '''
+    
+    model.full_jacs_eval()
+    
+    Fx = model.Fx
+    Fy = model.Fy
+    Gx = csc_matrix(model.Gx)
+    Gy = csc_matrix(model.Gy)
+    
+    Fu = model.Fu
+    Gu = csc_matrix(model.Gu)  
+    
+    Hx = model.Hx
+    Hy = model.Hy  
+    Hu = model.Hu 
+    
+    A = Fx - Fy @ spsolve(Gy,Gx)
+    B = Fu - Fy @ spsolve(Gy,Gu)
+    C = Hx - Hy @ spsolve(Gy,Gx)
+    D = Hu - Hy @ spsolve(Gy,Gu)
+    
+    model.A = A
+    model.B = B
+    model.C = C
+    model.D = D
+    
+    return A
+
+
 
 def eval_A_ini(system):
     
@@ -116,8 +181,13 @@ def eval_A_ini(system):
     return A
 
 
-def damp_report(system):
-    eig,eigv = np.linalg.eig(system.A)
+def damp_report(system, sparse=False):
+    
+    if sparse:
+        eig,eigv = np.linalg.eig(system.A.toarray())
+    else:      
+        eig,eigv = np.linalg.eig(system.A)
+        
     omegas = eig.imag
     sigmas = eig.real
 

@@ -37,7 +37,7 @@ def vsc_pq(grid,name,bus_name,data_dict):
 
     # algebraic equations   
     p_out_sat = sym.Piecewise((0.0,p_in + Dp_r<0.0),(p_in,p_in + Dp_r>p_in),(p_in + Dp_r,True))         
-    q_out_max = (S_n**2 - p_out_sat**2)**0.5
+    q_out_max = (1**2 - p_out_sat**2)**0.5
     q_out_sat = sym.Piecewise((-q_out_max,Dq_r<-q_out_max),(q_out_max,Dq_r>q_out_max),(Dq_r,True))     
     g_p_out = -p_out + p_out_sat
     g_q_out = -q_out + q_out_sat
@@ -64,7 +64,7 @@ def vsc_pq(grid,name,bus_name,data_dict):
     # parameters            
     grid.dae['params_dict'].update({f"{S_n}":data_dict['S_n']}) 
 
-    p_W   = p_out
-    q_var = q_out
+    p_W   = p_out*S_n
+    q_var = q_out*S_n
 
     return p_W,q_var

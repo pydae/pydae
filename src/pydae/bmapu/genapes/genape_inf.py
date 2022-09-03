@@ -38,28 +38,7 @@ def genape_inf(grid,name,bus_name,data_dict):
 
     sin = sym.sin
     cos = sym.cos
-    buses = grid.data['buses']
-    buses_list = [bus['name'] for bus in buses]
-                
-    bus_name = data_dict['bus']
-    
-    if 'name' in data_dict:
-        name = data_dict['name']
-    else:
-        name = bus_name
-        
-    for gen_id in range(100):
-        if name not in grid.generators_id_list:
-            grid.generators_id_list += [name]
-            break
-        else:
-            name = name + f'_{gen_id}'
-            
-    data_dict['name'] = name
-                        
-    idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
-    if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
-    buses[idx_bus]['idx_powers'] += 1
+
     
     # inputs
     V = sym.Symbol(f"V_{bus_name}", real=True)
