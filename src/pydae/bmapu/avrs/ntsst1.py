@@ -51,7 +51,7 @@ def ntsst1(dae,syn_data,name):
     z_cb  = (v_1 - x_cb)*T_c/T_b + x_cb 
     dxi_v = epsilon_v  # this integrator is added in pydae to force V = v_ref in the initialization
 
-    g_v_f  =   z_cb - v_f 
+    g_v_f  =   K_a*z_cb - v_f 
     
     dae['f'] += [dx_cb,dxi_v]
     dae['x'] += [ x_cb, xi_v]
