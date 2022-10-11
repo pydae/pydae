@@ -8,6 +8,8 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 from pydae.bmapu.syns.milano4ord import milano4ord
+from pydae.bmapu.syns.milano6ord import pai6
+
 from pydae.bmapu.avrs.avrs import add_avr
 from pydae.bmapu.govs.govs import add_gov
 from pydae.bmapu.psss.psss import add_pss
@@ -38,8 +40,15 @@ def add_syns(grid):
                 
         item['name'] = name
                             
-
-        p_W, q_var = milano4ord(grid,name,bus_name,data_dict)
+        if 'type' in item:
+            if item['type'] == 'pai6':
+                p_W, q_var = pai6(grid,name,bus_name,data_dict)
+            elif item['type'] == 'milano4':
+                p_W, q_var = milano4ord(grid,name,bus_name,data_dict)
+            else:
+                print(f"Synchrnous machine model type {item['type']} not found")
+        else:
+            p_W, q_var = milano4ord(grid,name,bus_name,data_dict)
 
         # grid power injection
         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected

@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def sexs(dae,syn_data,name):
+def sexs_dev(dae,syn_data,name):
     '''
 
     .. table:: Constants
@@ -27,7 +27,7 @@ def sexs(dae,syn_data,name):
 
     Example:
     
-    ``"avr":{'type':'sexs','K_a':100.0,'T_a':0.1,'T_b':1.0,'T_e':0.1,'E_min':-10.0,'E_max':10.0,"v_ref":1.0},``
+    ``"avr":{'type':'sexs_dev','K_a':100.0,'T_a':0.1,'T_b':1.0,'T_e':0.1,'E_min':-10.0,'E_max':10.0,"v_ref":1.0},``
 
     '''
 
@@ -62,16 +62,15 @@ def sexs(dae,syn_data,name):
     dx_ab = (v_2 - x_ab)/T_b;  
     z_ab  = (v_2 - x_ab)*T_a/T_b + x_ab 
     dx_e  = (K_a*z_ab - x_e)/T_e 
-    dxi_v = epsilon_v  # this integrator is added in pydae to force V = v_ref in the initialization
 
-    efd_nosat = x_e + 1.0
+    efd_nosat = x_e
     efd = sym.Piecewise((E_min, efd_nosat<E_min),(E_max,efd_nosat>E_max),(efd_nosat,True))
-    g_v_f  =   efd - v_f 
+    g_v_f  =   efd - v_f + v_f_0
     
-    dae['f'] += [dx_ab,dx_e,dxi_v]
-    dae['x'] += [ x_ab, x_e, xi_v]
+    dae['f'] += [dx_ab,dx_e]
+    dae['x'] += [ x_ab, x_e]
     dae['g'] += [g_v_f]
-    dae['y_ini'] += [v_f] 
+    dae['y_ini'] += [v_f_0] 
     dae['y_run'] += [v_f]  
 
     dae['params_dict'].update({str(K_a):avr_data['K_a']})
@@ -89,8 +88,7 @@ def sexs(dae,syn_data,name):
     dae['u_ini_dict'].update({str(v_pss):0.0})
 
     dae['xy_0_dict'].update({str(xi_v):0.0})
-    dae['xy_0_dict'].update({str(x_e):0.0})
-    dae['xy_0_dict'].update({str(v_f):1.0})    
+    
     
 def sexsq(dae,syn_data,name):
     '''

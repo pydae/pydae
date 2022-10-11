@@ -18,43 +18,54 @@ def tgov1(dae,syn_data,name):
     gov_data = syn_data['gov']
     
     # inpunts
-    omega = sym.Symbol(f"omega_{bus_name}", real=True)
-    p_r = sym.Symbol(f"p_r_{bus_name}", real=True)
-    p_c = sym.Symbol(f"p_c_{bus_name}", real=True) 
+    omega = sym.Symbol(f"omega_{name}", real=True)
+    p_agc = sym.Symbol(f"p_agc", real=True)
+    p_c = sym.Symbol(f"p_c_{name}", real=True) 
 
     # dynamic states
-    x_gov_1 = sym.Symbol(f"x_gov_1_{bus_name}", real=True)
-    x_gov_2 = sym.Symbol(f"x_gov_2_{bus_name}", real=True)  
+    x_gov_1 = sym.Symbol(f"x_gov_1_{name}", real=True)
+    x_gov_2 = sym.Symbol(f"x_gov_2_{name}", real=True)  
 
     # algebraic states
-    p_m = sym.Symbol(f"p_m_{bus_name}", real=True)  
-    p_m_ref = sym.Symbol(f"p_m_ref_{bus_name}", real=True)  
+    p_m = sym.Symbol(f"p_m_{name}", real=True)  
+    p_m_ref = sym.Symbol(f"p_m_ref_{name}", real=True)  
 
     # parameters
-    T_1 = sym.Symbol(f"T_gov_1_{bus_name}", real=True)  # 1
-    T_2 = sym.Symbol(f"T_gov_2_{bus_name}", real=True)  # 2
-    T_3 = sym.Symbol(f"T_gov_3_{bus_name}", real=True)  # 10
+    T_1 = sym.Symbol(f"T_gov_1_{name}", real=True)  # 1
+    T_2 = sym.Symbol(f"T_gov_2_{name}", real=True)  # 2
+    T_3 = sym.Symbol(f"T_gov_3_{name}", real=True)  # 10
+    D_t = sym.Symbol(f"D_t_{name}", real=True)  # 10 
+    Droop = sym.Symbol(f"Droop_{name}", real=True)  # 0.05
+    K_sec = sym.Symbol(f"K_sed_{name}", real=True)  # 0.05
+   
+    omega_ref = sym.Symbol(f"omega_ref_{name}", real=True)
 
-    Droop = sym.Symbol(f"Droop_{bus_name}", real=True)  # 0.05
-    
-    omega_ref = sym.Symbol(f"omega_ref_{bus_name}", real=True)
+    # auxiliar
+    Domega = (omega - omega_ref)
+    p_r = K_sec*p_agc
 
     # differential equations
     dx_gov_1 =   (p_m_ref - x_gov_1)/T_1
     dx_gov_2 =   (x_gov_1 - x_gov_2)/T_3
 
-    g_p_m_ref  = -p_m_ref + p_c + p_r - 1/Droop*(omega - omega_ref)
-    g_p_m = (x_gov_1 - x_gov_2)*T_2/T_3 + x_gov_2 - p_m
+    g_p_m_ref  = -p_m_ref + p_c + p_r - 1/Droop*Domega
+    g_p_m = (x_gov_1 - x_gov_2)*T_2/T_3 + x_gov_2 - D_t*Domega - p_m
 
     
     dae['f'] += [dx_gov_1,dx_gov_2]
     dae['x'] += [ x_gov_1, x_gov_2]
     dae['g'] += [g_p_m_ref,g_p_m]
-    dae['y'] += [  p_m_ref,  p_m]  
-    dae['params'].update({str(Droop):gov_data['Droop']})
-    dae['params'].update({str(T_1):gov_data['T_1']})
-    dae['params'].update({str(T_2):gov_data['T_2']})
-    dae['params'].update({str(T_3):gov_data['T_3']})
-    dae['params'].update({str(omega_ref):1.0})
+    dae['y_ini'] += [  p_m_ref,  p_m]  
+    dae['y_run'] += [  p_m_ref,  p_m]  
 
-    dae['u'].update({str(p_c):gov_data['p_c']})
+    dae['params_dict'].update({str(Droop):gov_data['Droop']})
+    dae['params_dict'].update({str(T_1):gov_data['T_1']})
+    dae['params_dict'].update({str(T_2):gov_data['T_2']})
+    dae['params_dict'].update({str(T_3):gov_data['T_3']})
+    dae['params_dict'].update({str(D_t):gov_data['D_t']})
+    dae['params_dict'].update({str(K_sec):gov_data['K_sec']})
+
+    dae['params_dict'].update({str(omega_ref):1.0})
+
+    dae['u_ini_dict'].update({str(p_c):gov_data['p_c']})
+    dae['u_run_dict'].update({str(p_c):gov_data['p_c']})

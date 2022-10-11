@@ -9,101 +9,7 @@ import sympy as sym
 
 def milano4ord(grid,name,bus_name,data_dict):
     r"""
- 
-    **Auxiliar equations**
-
-    .. math::
-        :nowrap:
-        
-        \begin{eqnarray}
-            v_d &=& V \sin(\delta - \theta) \\
-            v_q &=& V \cos(\delta - \theta) \\
-            p_e &=& i_d \left(v_d + R_a i_d\right) + i_q \left(v_q + R_a i_q\right)  \\   
-            \omega_s &=& \omega_{coi}
-        \end{eqnarray} 
-
-
-    **Dynamic equations**
-
-    .. math::
-        :nowrap:
-        
-        \begin{eqnarray}
-            \frac{ d\delta}{dt} &=& \Omega_b \left(\omega - \omega_s \right) - K_{\delta} \delta  \\
-            \frac{ d\omega}{dt} &=& \frac{1}{2H} \left(p_m - p_e - D  \left(\omega - \omega_s \right) \right)  \\
-            \frac{ de'_q}{dt} &=& \frac{1}{T'_{d0}} \left(-e'_q - \left(X_d - X'_d\right) i_d + v_f\right)  \\
-            \frac{ de'_d}{dt} &=& \frac{1}{T'_{q0}} \left(-e'_d + \left(X_q - X'_q\right) i_q\right)
-        \end{eqnarray} 
-
-
-    **Algebraic equations**
-    
-
-    .. math::
-        :nowrap:
-        
-        \begin{eqnarray}
-             0  &=& v_q + R_a i_q + X'_d i_d - e'_q \\
-             0  &=& v_d + R_a i_d - X'_q i_q - e'_d \\
-             0  &=& i_d v_d + i_q v_q - p_g  \\
-             0  &=& i_d v_q - i_q v_d - q_g 
-        \end{eqnarray} 
-
-    .. table:: Constants
-        :widths: auto
-
-        ================== =========== ============================================= =========== 
-        Variable           Code        Description                                   Units
-        ================== =========== ============================================= ===========
-        :math:`S_n`        ``S_n``     Nominal power                                  VA
-        :math:`H`          ``H``       Inertia constaant                              s
-        :math:`S_n`        ``S_n``     Nominal power                                  VA
-        :math:`D`          ``D``       Damping coefficient                            s
-        :math:`X_q`        ``X_q``     q-axis synchronous reactance                   pu-m
-        :math:`X'_q`       ``X1q``     q-axis transient reactance                     pu-m
-        :math:`T'_{q0}`    ``T1q0``    q-axis open circuit transient time constant    s  
-        :math:`X_d`        ``X_d``     d-axis synchronous reactance                   pu-m  
-        :math:`X'_d`       ``X1d``     d-axis transient reactance                     pu-m
-        :math:`T'_{d0}`    ``T1d0``    d-axis open circuit transient time constant    s
-        :math:`R_a`        ``R_a``     Armature resistance                            pu-m
-        :math:`K_{\delta}` ``K_delta`` Reference machine constant                     -
-        :math:`K_{sec}`    ``K_sec``   Secondary frequency control participation      -
-        ================== =========== ============================================= ===========
-
-    .. table:: Dynamic states
-        :widths: auto
-
-        ================= =========== ============================================= =========== 
-        Variable          Code        Description                                   Units
-        ================= =========== ============================================= ===========
-        :math:`\delta`    ``delta``    Rotor angle                                  rad
-        :math:`\omega`    ``omega``    Rotor speed                                  pu
-        :math:`e'_q`      ``e1q``      q-axis transient voltage                     pu
-        :math:`e'_d`      ``e1d``      d-axis transient voltage                     pu
-        ================= =========== ============================================= ===========
-
-
-    .. table:: Algebraic states
-        :widths: auto
-
-        ================= =========== ============================================= =========== 
-        Variable          Code        Description                                   Units
-        ================= =========== ============================================= ===========
-        :math:`i_d`       ``i_d``      d-axis current                               pu-m
-        :math:`i_q`       ``i_q``      q-axis current                               pu-m
-        :math:`p_g`       ``p_g``      Active power                                 pu-m
-        :math:`q_g`       ``q_g``      Reactive power                               pu-m
-        ================= =========== ============================================= ===========
-
-    .. table:: Inputs
-        :widths: auto
-
-        ================= =========== ============================================= =========== 
-        Variable          Code        Description                                   Units
-        ================= =========== ============================================= ===========
-        :math:`v_f`       ``v_f``      Field voltage                                pu-m
-        :math:`p_m`       ``p_m``      Mechanical power                             pu-m
-        ================= =========== ============================================= ===========
+    Synchronous machine model of order 4 from Federico Milano book.
 
     """
 
@@ -194,6 +100,8 @@ def milano4ord(grid,name,bus_name,data_dict):
 
     grid.dae['xy_0_dict'].update({str(omega):1.0})
     grid.dae['xy_0_dict'].update({str(e1q):1.0})
+    grid.dae['xy_0_dict'].update({str(i_q):0.5})
+
     
     # outputs
     grid.dae['h_dict'].update({f"p_e_{name}":p_e})

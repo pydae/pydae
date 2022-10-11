@@ -12,6 +12,7 @@ import sympy as sym
 def pss_kundur(dae,syn_data,name):
     '''
     PSS from Kundur's book1 
+
     
     '''
     pss_data = syn_data['pss']

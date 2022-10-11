@@ -31,7 +31,14 @@ def genape_inf(grid,name,bus_name,data_dict):
     example
     -------
 
-    "genapes": [{"S_n":1e9,"F_n":}]
+    "genapes": [{"S_n":1e9,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
+
+    S_n = sym.Symbol(f"S_n_{name}", real=True)
+    F_n = sym.Symbol(f"F_n_{name}", real=True)            
+    X_v = sym.Symbol(f"X_v_{name}", real=True)
+    R_v = sym.Symbol(f"R_v_{name}", real=True)
+    K_delta = sym.Symbol(f"K_delta_{name}", real=True)
+    K_alpha = sym.Symbol(f"K_alpha_{name}", real=True)
 
     
     '''
