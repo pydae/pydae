@@ -11,6 +11,15 @@ import sympy as sym
 def milano2ord(grid,name,bus_name,data_dict):
     r"""
  
+    "syns":[
+      {"bus":"1","type":"milano2","S_n":100e6,
+         "X1d":0.30,     
+         "X1q":0.55,  
+         "R_a":0.01,
+         "H":5.0,"D":1.0,
+         "Omega_b":314.1592653589793,"omega_s":1.0,"K_sec":0.0,
+         "K_delta":0.00}],
+         
     **Auxiliar equations**
 
     .. math::
@@ -109,14 +118,13 @@ def milano2ord(grid,name,bus_name,data_dict):
     V = sym.Symbol(f"V_{bus_name}", real=True)
     theta = sym.Symbol(f"theta_{bus_name}", real=True)
     p_m = sym.Symbol(f"p_m_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)  
+    e1q = sym.Symbol(f"e1q_{name}", real=True)
     omega_coi = sym.Symbol("omega_coi", real=True)   
         
     # dynamic states
     delta = sym.Symbol(f"delta_{name}", real=True)
     omega = sym.Symbol(f"omega_{name}", real=True)
     e1q = sym.Symbol(f"e1q_{name}", real=True)
-    e1d = sym.Symbol(f"e1d_{name}", real=True)
 
     # algebraic states
     i_d = sym.Symbol(f"i_d_{name}", real=True)
@@ -128,16 +136,12 @@ def milano2ord(grid,name,bus_name,data_dict):
     S_n = sym.Symbol(f"S_n_{name}", real=True)
     Omega_b = sym.Symbol(f"Omega_b_{name}", real=True)            
     H = sym.Symbol(f"H_{name}", real=True)
-    T1d0 = sym.Symbol(f"T1d0_{name}", real=True)
-    T1q0 = sym.Symbol(f"T1q0_{name}", real=True)
-    X_d = sym.Symbol(f"X_d_{name}", real=True)
-    X_q = sym.Symbol(f"X_q_{name}", real=True)
     X1d = sym.Symbol(f"X1d_{name}", real=True)
     X1q = sym.Symbol(f"X1q_{name}", real=True)
     D = sym.Symbol(f"D_{name}", real=True)
     R_a = sym.Symbol(f"R_a_{name}", real=True)
     K_delta = sym.Symbol(f"K_delta_{name}", real=True)
-    params_list = ['S_n','Omega_b','H','T1d0','T1q0','X_d','X_q','X1d','X1q','D','R_a','K_delta','K_sec']
+    params_list = ['S_n','Omega_b','H','X1d','X1q','D','R_a','K_delta','K_sec']
     
     # auxiliar
     v_d = V*sin(delta - theta) 
@@ -148,18 +152,16 @@ def milano2ord(grid,name,bus_name,data_dict):
     # dynamic equations            
     ddelta = Omega_b*(omega - omega_s) - K_delta*delta
     domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
-    de1q = 1/T1d0*(-e1q - (X_d - X1d)*i_d + v_f)
-    de1d = 1/T1q0*(-e1d + (X_q - X1q)*i_q)
 
     # algebraic equations   
     g_i_d  = v_q + R_a*i_q + X1d*i_d - e1q
-    g_i_q  = v_d + R_a*i_d - X1q*i_q - e1d
+    g_i_q  = v_d + R_a*i_d - X1q*i_q 
     g_p_g  = i_d*v_d + i_q*v_q - p_g  
     g_q_g  = i_d*v_q - i_q*v_d - q_g 
     
     # dae 
-    f_syn = [ddelta,domega,de1q,de1d]
-    x_syn = [ delta, omega, e1q, e1d]
+    f_syn = [ddelta,domega]
+    x_syn = [ delta, omega]
     g_syn = [g_i_d,g_i_q,g_p_g,g_q_g]
     y_syn = [  i_d,  i_q,  p_g,  q_g]
     
@@ -174,11 +176,11 @@ def milano2ord(grid,name,bus_name,data_dict):
     grid.dae['y_run'] += y_syn  
     
     if 'v_f' in data_dict:
-        grid.dae['u_ini_dict'].update({f'{v_f}':{data_dict['v_f']}})
-        grid.dae['u_run_dict'].update({f'{v_f}':{data_dict['v_f']}})
+        grid.dae['u_ini_dict'].update({f'{e1q}':{data_dict['e1q']}})
+        grid.dae['u_run_dict'].update({f'{e1q}':{data_dict['e1q']}})
     else:
-        grid.dae['u_ini_dict'].update({f'{v_f}':1.0})
-        grid.dae['u_run_dict'].update({f'{v_f}':1.0})
+        grid.dae['u_ini_dict'].update({f'{e1q}':1.0})
+        grid.dae['u_run_dict'].update({f'{e1q}':1.0})
 
     if 'p_m' in data_dict:
         grid.dae['u_ini_dict'].update({f'{p_m}':{data_dict['p_m']}})
@@ -192,8 +194,8 @@ def milano2ord(grid,name,bus_name,data_dict):
     # outputs
     grid.dae['h_dict'].update({f"p_e_{name}":p_e})
     
-    # for item in params_list:       
-    #     grid.dae['params_dict'].update({f"{item}_{name}":syn_data[item]})
+    for item in params_list:       
+        grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]})
     
     # if 'avr' in syn_data:
     #     add_avr(grid.dae,syn_data)

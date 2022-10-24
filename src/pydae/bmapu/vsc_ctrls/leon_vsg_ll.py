@@ -47,6 +47,9 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
 
     sin = sym.sin
     cos = sym.cos
+
+    ctrl_data = data_dict['ctrl']
+
     buses = grid.data['buses']
     buses_list = [bus['name'] for bus in buses]                  
 
@@ -57,12 +60,17 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     # inputs:
     q_l,q_r,v_ref = sym.symbols(f'q_l_{name},q_r_{name},v_ref_{name}', real=True)
     p_l,p_r = sym.symbols(f'p_l_{name},p_r_{name}', real=True)
+    v_dc = sym.Symbol(f"v_dc_{name}", real=True)   
 
     # dynamical states:
     delta,x_v,e_qm,xi_v = sym.symbols(f'delta_{name},x_v_{name},e_qm_{name},xi_v_{name}', real=True)
     
     # algebraic states:
-    i_d_ref,i_q_ref,p,q,e_qv = sym.symbols(f'i_d_ref_{name},i_q_ref_{name},p_{name},q_{name},e_qv_{name}', real=True)
+    p_s = sym.Symbol(f'p_s_{name}', real=True)
+    q_s = sym.Symbol(f'q_s_{name}', real=True)
+    e_vq = sym.Symbol(f"e_vq_{name}", real=True)
+    v_td_ref = sym.Symbol(f"v_td_ref_{name}", real=True)
+    v_tq_ref = sym.Symbol(f"v_tq_ref_{name}", real=True) 
 
     # params:
     S_base = sym.Symbol('S_base', real = True) # S_base = global power base, S_n = machine power base
@@ -71,54 +79,64 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
     K_q,T_q = sym.symbols(f'K_q_{name},T_q_{name}', real=True)
     K_p_v,K_i_v = sym.symbols(f'K_p_v_{name},K_i_v_{name}', real=True)
-    params_list = ['S_n','F_n','K_delta','K_p','K_i','K_g','R_v','X_v','K_q','T_q','K_p_v','K_i_v']
+    params_list = ['F_n','K_delta','K_p','K_i','K_g','R_v','X_v','K_q','T_q','K_p_v','K_i_v']
 
     # auxiliar variables and constants
     omega_coi = sym.Symbol("omega_coi", real=True) # from global system
-    V = sym.Symbol(f"V_{bus_name}", real=True) # from global system
-    theta = sym.Symbol(f"theta_{bus_name}", real=True) # from global system
-    i_d = sym.Symbol(f"i_d_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)
+    V_s = sym.Symbol(f"V_{bus_name}", real=True) # from global system
+    theta_s = sym.Symbol(f"theta_{bus_name}", real=True) # from global system
+    i_si = sym.Symbol(f"i_si_{name}", real=True)
+    i_sr = sym.Symbol(f"i_sr_{name}", real=True)  
+    m = sym.Symbol(f"m_{name}", real=True) 
+    theta_t = sym.Symbol(f"theta_t_{name}", real=True) 
 
     # auxiliar equations
     Omega_b = 2*np.pi*F_n
     omega_s = omega_coi
-    v_D = V*sin(theta)  # e^(-j)
-    v_Q = V*cos(theta) 
-    v_d = v_D * cos(delta) - v_Q * sin(delta)   
-    v_q = v_D * sin(delta) + v_Q * cos(delta)
+
+    i_sD = i_si  # e^(-j)
+    i_sQ = i_sr
+
+    i_sd = i_sD * cos(delta) - i_sQ * sin(delta)   
+    i_sq = i_sD * sin(delta) + i_sQ * cos(delta)
 
     p_ref = p_l + p_r
     q_ref = q_l + q_r
-    Domega = x_v + K_p * (p_ref - p)
-    e_dv = 0.0
-    epsilon_v = v_ref - V
-    i_d = i_d_ref
-    i_q = i_q_ref
+    Domega = x_v + K_p * (p_ref - p_s)
+    e_vd = 0.0
+    epsilon_v = v_ref - V_s
     omega_v = Domega + 1.0
-    q_ref_0 = K_p_v * epsilon_v + K_i_v * xi_v
+    q_ref_0 = K_p_v * epsilon_v + K_i_v * xi_v 
 
+    v_tD_ref =  v_td_ref * cos(delta) + v_tq_ref * sin(delta)   
+    v_tQ_ref = -v_td_ref * sin(delta) + v_tq_ref * cos(delta) 
+
+    v_ti_ref = v_tD_ref
+    v_tr_ref = v_tQ_ref   
+    m_ref = sym.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
+    theta_t_ref = sym.atan2(v_ti_ref,v_tr_ref) 
+    
 
     # dynamical equations
     ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta
-    dx_v = K_i*(p_ref - p) - K_g*(omega_v - 1.0)
-    de_qm = 1.0/T_q * (q - q_ref_0 - q_ref - e_qm) 
+    dx_v = K_i*(p_ref - p_s) - K_g*(omega_v - 1.0)
+    de_qm = 1.0/T_q * (q_s - q_ref_0 - q_ref - e_qm) 
     dxi_v = epsilon_v # PI agregado
 
     # algebraic equations
-    g_i_d_ref  = e_dv - R_v * i_d_ref - X_v * i_q_ref - v_d 
-    g_i_q_ref  = e_qv - R_v * i_q_ref + X_v * i_d_ref - v_q 
-    
-    g_p  = v_d*i_d + v_q*i_q - p  
-    g_q  = v_d*i_q - v_q*i_d - q 
-    g_e_qv = 1.0 - e_qv - K_q*e_qm 
+    g_v_td_ref  = e_vd - R_v * i_sd - X_v * i_sq - v_td_ref 
+    g_v_tq_ref  = e_vq - R_v * i_sq + X_v * i_sd - v_tq_ref 
+
+    g_e_vq = 1.0 - e_vq - K_q*e_qm 
+    g_m  = m-m_ref
+    g_theta_t  = theta_t-theta_t_ref
     
     # DAE system update
     grid.dae['f'] += [ddelta,dx_v,de_qm,dxi_v]
     grid.dae['x'] += [ delta, x_v, e_qm, xi_v]
-    grid.dae['g'] +=     [g_i_d_ref,g_i_q_ref,g_p,g_q,g_e_qv]
-    grid.dae['y_ini'] += [  i_d_ref,  i_q_ref,  p,  q,  e_qv]
-    grid.dae['y_run'] += [  i_d_ref,  i_q_ref,  p,  q,  e_qv]
+    grid.dae['g'] +=     [g_v_td_ref,g_v_tq_ref,g_e_vq,g_m,g_theta_t]
+    grid.dae['y_ini'] += [  v_td_ref,  v_tq_ref,  e_vq,  m,  theta_t]
+    grid.dae['y_run'] += [  v_td_ref,  v_tq_ref,  e_vq,  m,  theta_t]
             
     # default inputs
     grid.dae['u_ini_dict'].update({f'p_l_{name}':0.0})
@@ -134,7 +152,7 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
 
     # default parameters
     for item in params_list:
-        grid.dae['params_dict'].update({item + f'_{name}':data_dict[item]})
+        grid.dae['params_dict'].update({item + f'_{name}':ctrl_data[item]})
 
     # add speed*H term to global for COI speed computing
     H = 4.0
@@ -147,13 +165,14 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"p_ref_{name}":p_ref})
     grid.dae['h_dict'].update({f"q_ref_{name}":q_ref})
     grid.dae['h_dict'].update({f"v_ref_{name}":v_ref})
-    grid.dae['h_dict'].update({f"i_sd_{name}":i_d_ref})    
-    grid.dae['h_dict'].update({f"i_sq_{name}":i_q_ref})
+    grid.dae['h_dict'].update({f"i_sd_{name}":i_sd})
+    grid.dae['h_dict'].update({f"i_sq_{name}":i_sq})
 
-    grid.dae['xy_0_dict'].update({str(e_qv):1.0}) 
+    grid.dae['xy_0_dict'].update({str(e_vq):1.0}) 
+    grid.dae['xy_0_dict'].update({str(v_tq_ref):1.0}) 
 
-    p_W   = p * S_n
-    q_var = q * S_n
+    p_W   = p_s * S_n
+    q_var = q_s * S_n
 
     return p_W,q_var
 

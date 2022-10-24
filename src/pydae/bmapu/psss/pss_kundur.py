@@ -30,7 +30,7 @@ def pss_kundur(dae,syn_data,name):
     T_2 = sym.Symbol(f"T_2_{name}", real=True)
     K_stab = sym.Symbol(f"K_stab_{name}", real=True)
     V_lim = sym.Symbol(f"V_lim_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True) 
+    v_s = sym.Symbol(f"v_pss_{name}", real=True) 
     
     
     u_wo = omega - 1.0
@@ -40,14 +40,14 @@ def pss_kundur(dae,syn_data,name):
     dx_lead =  (z_wo - x_lead)/T_2      # lead compensator state
     
     g_z_wo =  (u_wo - x_wo) - z_wo  
-    g_v_pss = -v_pss + sym.Piecewise((-V_lim,v_pss_nosat<-V_lim),(V_lim,v_pss_nosat>V_lim),(v_pss_nosat,True))  
+    g_v_s = -v_s + sym.Piecewise((-V_lim,v_pss_nosat<-V_lim),(V_lim,v_pss_nosat>V_lim),(v_pss_nosat,True))  
     
     
     dae['f'] += [dx_wo,dx_lead]
     dae['x'] += [ x_wo, x_lead]
-    dae['g'] += [g_z_wo,g_v_pss]
-    dae['y_ini'] += [  z_wo, v_pss]  
-    dae['y_run'] += [  z_wo, v_pss] 
+    dae['g'] += [g_z_wo,g_v_s]
+    dae['y_ini'] += [  z_wo, v_s]  
+    dae['y_run'] += [  z_wo, v_s] 
     dae['params_dict'].update({str(T_wo):pss_data['T_wo']})
     dae['params_dict'].update({str(T_1):pss_data['T_1']})
     dae['params_dict'].update({str(T_2):pss_data['T_2']})

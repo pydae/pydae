@@ -346,9 +346,16 @@ def lqr(A,B,Q,R):
 
 
 
-def plot_eig(grid, x_min='',x_max='',y_min='',y_max=''):
-    fig,axes = plt.subplots()
+def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig=''):
+    ''''
+    Creates a matplotlib figure from a numapy array of eigenvalues.
 
+
+    
+    '''
+
+    if fig == '':
+        fig,axes = plt.subplots()
     
     pi2 = 2*np.pi
 
@@ -378,14 +385,12 @@ def plot_eig(grid, x_min='',x_max='',y_min='',y_max=''):
     axes.add_patch(poly)
     #axes.text(-0.37, 9.0/pi2, '$\zeta<$5 %', fontsize=12)
 
-
-
     axes.plot([0,0],[-20,20],'-', color='k', lw=4)
 
-    if x_min == '': x_min = np.min(grid.eigvalues.real)*1.1
-    if x_max == '': x_max = np.max(grid.eigvalues.real)
-    if y_min == '': y_min = np.min(grid.eigvalues.imag)/(2*np.pi)*1.1
-    if y_max == '': y_max = np.max(grid.eigvalues.imag)/(2*np.pi)*1.1
+    if x_min == '': x_min = np.min(eigenvalues.real)*1.1
+    if x_max == '': x_max = np.max(eigenvalues.real)
+    if y_min == '': y_min = np.min(eigenvalues.imag)/(2*np.pi)*1.1
+    if y_max == '': y_max = np.max(eigenvalues.imag)/(2*np.pi)*1.1
         
     axes.set_xlim((x_min,x_max))
     axes.set_ylim((y_min,y_max))
@@ -393,7 +398,7 @@ def plot_eig(grid, x_min='',x_max='',y_min='',y_max=''):
     axes.set_xlabel('Real')
     axes.set_ylabel('Imag$/2\pi$ (Hz)')
 
-    axes.plot(grid.eigvalues.real,grid.eigvalues.imag/(2*np.pi),'o')
+    axes.plot(eigenvalues.real,eigenvalues.imag/(2*np.pi),'o')
     fig.tight_layout()
     
     return fig

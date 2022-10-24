@@ -7,18 +7,17 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.vscs.vsc_pq import vsc_pq
-from pydae.bmapu.vscs.vsc_l  import vsc_l
+from pydae.bmapu.wecs.full_converter import full_converter
 
 from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
 from pydae.bmapu.vsc_models.vsc_models import add_model
 
-def add_vscs(grid):
+def add_wecs(grid):
 
     buses = grid.data['buses']
     buses_list = [bus['name'] for bus in buses]
 
-    for item in grid.data['vscs']:
+    for item in grid.data['wecs']:
 
         data_dict = item
         
@@ -38,14 +37,9 @@ def add_vscs(grid):
                 
         item['name'] = name
 
-        if item['type'] == 'vsc_pq':                    
-            p_W, q_var = vsc_pq(grid,name,bus_name,data_dict)
-        if item['type'] == 'vsc_l':                    
-            p_W, q_var = vsc_l(grid,name,bus_name,data_dict)
-
-
-
-
+        print(item['type'])
+        if item['type'] == 'full_converter':                    
+            p_W, q_var = full_converter(grid,name,bus_name,data_dict)
 
         # grid power injection
         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
@@ -60,6 +54,7 @@ def add_vscs(grid):
         ## Add controlers and models
         m = f'm_{name}'
         theta_t = f'theta_t_{name}'
+        p_s_ref = f'p_s_ref_{name}'
         
         if 'ctrl' in item:
             add_ctrl(grid,name,bus_name,data_dict)
@@ -69,6 +64,8 @@ def add_vscs(grid):
             grid.dae['u_run_dict'].pop(str(theta_t))
             grid.dae['xy_0_dict'].update({str(m):0.8})
             grid.dae['xy_0_dict'].update({str(theta_t):0.0})
+            grid.dae['u_ini_dict'].pop(str(p_s_ref))
+            grid.dae['u_run_dict'].pop(str(p_s_ref))
 
 
         if 'models' in item:

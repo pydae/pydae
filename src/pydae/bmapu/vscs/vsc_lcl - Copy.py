@@ -55,7 +55,6 @@ def genape_inf(grid,name,bus_name,data_dict):
     v_ref = sym.Symbol(f"v_ref_{name}", real=True)
     omega_ref = sym.Symbol(f"omega_ref_{name}", real=True) 
     phi = sym.Symbol(f"phi_{name}", real=True) 
-    delta_ref = sym.Symbol(f"delta_ref_{name}", real=True) 
     
     # dynamic states
     delta = sym.Symbol(f"delta_{name}", real=True)
@@ -87,7 +86,7 @@ def genape_inf(grid,name,bus_name,data_dict):
     e_qv = v_ref    
     
     # dynamic equations            
-    ddelta = Omega_b*(omega - omega_s) - K_delta*(delta - delta_ref)
+    ddelta = Omega_b*(omega - omega_s) - K_delta*delta
     dDomega = alpha - K_alpha*Domega
 
     # algebraic equations   
@@ -124,9 +123,6 @@ def genape_inf(grid,name,bus_name,data_dict):
 
     grid.dae['u_ini_dict'].update({f'{str(omega_ref)}':1.0})
     grid.dae['u_run_dict'].update({f'{str(omega_ref)}':1.0})
-
-    grid.dae['u_ini_dict'].update({f'{str(delta_ref)}':0.0})
-    grid.dae['u_run_dict'].update({f'{str(delta_ref)}':0.0})
 
     grid.dae['u_ini_dict'].update({f'{str(phi)}':0.0})
     grid.dae['u_run_dict'].update({f'{str(phi)}':0.0})

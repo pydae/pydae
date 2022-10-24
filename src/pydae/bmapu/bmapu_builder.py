@@ -11,6 +11,7 @@ import json
 from pydae.bmapu.syns.syns import add_syns
 from pydae.bmapu.vscs.vscs import add_vscs
 from pydae.bmapu.vsgs.vsgs import add_vsgs
+from pydae.bmapu.wecs.wecs import add_wecs
 
 from pydae.bmapu.genapes.genapes import add_genapes
 
@@ -62,7 +63,7 @@ class bmapu:
         if not 'transformers' in self.data:
             self.data['transformers'] = []
 
-        self.sys = data['sys']
+        self.system = data['system']
         self.buses = data['buses']
         self.lines = data['lines']
         self.shunts = data['shunts']
@@ -71,7 +72,7 @@ class bmapu:
         self.x_grid = []
         self.f_grid = []
     
-        self.params_grid = {'S_base':self.sys['S_base']}
+        self.params_grid = {'S_base':self.system['S_base']}
         self.S_base = sym.Symbol("S_base", real=True) 
         self.N_bus = len(self.buses)
         self.N_branch = 3*len(self.lines) + len(self.shunts) + 2*len(self.transformers)
@@ -79,16 +80,15 @@ class bmapu:
         self.dae = {'f':[],'g':[],'x':[],'y_ini':[],'y_run':[],
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
-        
 
-            
-                    
+        self.uz_jacs = False     
+        self.verbose = False   
                 
     def contruct_grid(self):
         
         N_branch = self.N_branch
         N_bus = self.N_bus
-        sys = self.sys
+        sys = self.system
         
         S_base = sym.Symbol('S_base', real=True)
         
@@ -417,6 +417,8 @@ class bmapu:
             add_vsgs(self)
         if 'genapes' in  self.data:
             add_genapes(self)
+        if 'wecs' in  self.data:
+            add_wecs(self)
 
         #add_vsgs(grid)
         omega_coi = sym.Symbol("omega_coi", real=True)  
@@ -443,10 +445,10 @@ class bmapu:
         self.dae['y_run'] += y_agc
         self.dae['f'] += f_agc
         self.dae['x'] += x_agc
-        self.dae['params_dict'].update({'K_p_agc':self.sys['K_p_agc'],'K_i_agc':self.sys['K_i_agc']})
+        self.dae['params_dict'].update({'K_p_agc':self.system['K_p_agc'],'K_i_agc':self.system['K_i_agc']})
 
-        if 'K_xif' in self.sys:
-            self.dae['params_dict'].update({'K_xif':self.sys['K_xif']})
+        if 'K_xif' in self.system:
+            self.dae['params_dict'].update({'K_xif':self.system['K_xif']})
         else:
             self.dae['params_dict'].update({'K_xif':0.0})
             
@@ -455,7 +457,7 @@ class bmapu:
             
         
         if not name == '':
-            sys_dict = {'name':name,
+            sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
                    'params_dict':self.dae['params_dict'],
                    'f_list':self.dae['f'],
                    'g_list':self.dae['g'] ,
@@ -466,8 +468,10 @@ class bmapu:
                    'u_ini_dict':self.dae['u_ini_dict'],
                    'h_dict':self.dae['h_dict']}
             
-            bldr = db.builder(sys_dict);
-            bldr.build()        
+            bldr = db.builder(sys_dict,verbose=self.verbose);
+            bldr.build()       
+
+        self.sys_dict = sys_dict 
 
     def checker(self):
         
@@ -497,11 +501,11 @@ class bmapu:
             print('Only one generator must have K_delta > 0.0')                                          
                                                       
         if len(self.data['genapes']) > 0:
-            if self.data['sys']['K_p_agc'] != 0.0:
+            if self.data['system']['K_p_agc'] != 0.0:
                 print('With a genape in the system K_p_agc must be set to 0.0')
-            if self.data['sys']['K_i_agc'] != 0.0:
+            if self.data['system']['K_i_agc'] != 0.0:
                 print('With a genape in the system K_i_agc must be set to 0.0')  
-            if not self.data['sys']['K_xif'] > 0.0:
+            if not self.data['system']['K_xif'] > 0.0:
                 print('With a genape in the system K_xif must be set larger than 0.0')     
 
 
