@@ -62,6 +62,7 @@ def vsc_l(grid,name,bus_name,data_dict):
     i_sr = sym.Symbol(f"i_sr_{name}", real=True)       
     p_s = sym.Symbol(f"p_s_{name}", real=True)
     q_s = sym.Symbol(f"q_s_{name}", real=True)
+    p_dc = sym.Symbol(f"p_dc_{name}", real=True)
 
     # parameters
     S_n = sym.Symbol(f"S_n_{name}", real=True)
@@ -84,7 +85,6 @@ def vsc_l(grid,name,bus_name,data_dict):
     i_m = sym.sqrt(i_sr**2 + i_si**2)
     p_loss = A_l + B_l*i_m + C_l*i_m**2
     p_ac = p_s + R_s*i_m**2
-    p_dc = p_ac + p_loss
     i_d = p_dc/v_dc
 
     # dynamic equations            
@@ -94,12 +94,13 @@ def vsc_l(grid,name,bus_name,data_dict):
     g_i_sr = v_tr - R_s*i_sr + X_s*i_si - v_sr 
     g_p_s  =  i_sr*v_sr + i_si*v_si - p_s  
     g_q_s  =  i_sr*v_si - i_si*v_sr - q_s 
+    g_p_dc = -p_dc + p_ac + p_loss
 
     # dae 
     f_vsg = [(m - m_f)]
     x_vsg = [m_f]
-    g_vsg = [g_i_si,g_i_sr,g_p_s,g_q_s]
-    y_vsg = [  i_si,  i_sr,  p_s,  q_s]
+    g_vsg = [g_i_si,g_i_sr,g_p_s,g_q_s,g_p_dc]
+    y_vsg = [  i_si,  i_sr,  p_s,  q_s,  p_dc]
 
     grid.dae['f'] += f_vsg
     grid.dae['x'] += x_vsg
@@ -116,9 +117,12 @@ def vsc_l(grid,name,bus_name,data_dict):
     grid.dae['u_ini_dict'].update({f'{v_dc}':1.2})
     grid.dae['u_run_dict'].update({f'{v_dc}':1.2})
 
-    grid.dae['xy_0_dict'].update({str(p_s):0.5})
+    p_s_0 = 0.5
+    grid.dae['xy_0_dict'].update({str(p_s):p_s_0})
     grid.dae['xy_0_dict'].update({str(i_sr):0.1})
-       
+
+    grid.dae['xy_0_dict'].update({str(p_dc):0.0001})
+
     # outputs
     grid.dae['h_dict'].update({f"{str(p_s)}":p_s})
     grid.dae['h_dict'].update({f"{str(q_s)}":q_s}) 
@@ -126,7 +130,7 @@ def vsc_l(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"{str(i_sr)}":i_sr})
     grid.dae['h_dict'].update({f"{str(m_f)}":m_f})
     grid.dae['h_dict'].update({f"p_ac_{name}":p_ac})
-    grid.dae['h_dict'].update({f"p_dc_{name}":p_dc})
+    grid.dae['h_dict'].update({f"p_dc_{name}":p_s_0})
     grid.dae['h_dict'].update({f"i_d_{name}":i_d})
 
     for item in params_list:       

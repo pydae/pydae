@@ -61,6 +61,7 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     q_l,q_r,v_ref = sym.symbols(f'q_l_{name},q_r_{name},v_ref_{name}', real=True)
     p_l,p_r = sym.symbols(f'p_l_{name},p_r_{name}', real=True)
     v_dc = sym.Symbol(f"v_dc_{name}", real=True)   
+    Ddelta_ff,Domega_ff = sym.symbols(f'Ddelta_ff_{name},Domega_ff_{name}', real=True)
 
     # dynamical states:
     delta,x_v,e_qm,xi_v = sym.symbols(f'delta_{name},x_v_{name},e_qm_{name},xi_v_{name}', real=True)
@@ -97,19 +98,21 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     i_sD = i_si  # e^(-j)
     i_sQ = i_sr
 
-    i_sd = i_sD * cos(delta) - i_sQ * sin(delta)   
-    i_sq = i_sD * sin(delta) + i_sQ * cos(delta)
+
+    delta_ff =  delta + Ddelta_ff
+    i_sd = i_sD * cos(delta_ff) - i_sQ * sin(delta_ff)   
+    i_sq = i_sD * sin(delta_ff) + i_sQ * cos(delta_ff)
 
     p_ref = p_l + p_r
     q_ref = q_l + q_r
     Domega = x_v + K_p * (p_ref - p_s)
     e_vd = 0.0
     epsilon_v = v_ref - V_s
-    omega_v = Domega + 1.0
+    omega_v = Domega + 1.0 + Domega_ff
     q_ref_0 = K_p_v * epsilon_v + K_i_v * xi_v 
 
-    v_tD_ref =  v_td_ref * cos(delta) + v_tq_ref * sin(delta)   
-    v_tQ_ref = -v_td_ref * sin(delta) + v_tq_ref * cos(delta) 
+    v_tD_ref =  v_td_ref * cos(delta_ff) + v_tq_ref * sin(delta_ff)   
+    v_tQ_ref = -v_td_ref * sin(delta_ff) + v_tq_ref * cos(delta_ff) 
 
     v_ti_ref = v_tD_ref
     v_tr_ref = v_tQ_ref   
@@ -144,11 +147,16 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     grid.dae['u_ini_dict'].update({f'p_r_{name}':0.0})
     grid.dae['u_ini_dict'].update({f'q_r_{name}':0.0})
     grid.dae['u_ini_dict'].update({f'v_ref_{name}':1.0})
+    grid.dae['u_ini_dict'].update({f'Ddelta_ff_{name}':0.0})
+    grid.dae['u_ini_dict'].update({f'Domega_ff_{name}':0.0})
+
     grid.dae['u_run_dict'].update({f'p_l_{name}':0.0})
     grid.dae['u_run_dict'].update({f'q_l_{name}':0.0})
     grid.dae['u_run_dict'].update({f'p_r_{name}':0.0})
     grid.dae['u_run_dict'].update({f'q_r_{name}':0.0})
     grid.dae['u_run_dict'].update({f'v_ref_{name}':1.0})
+    grid.dae['u_run_dict'].update({f'Ddelta_ff_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'Domega_ff_{name}':0.0})
 
     # default parameters
     for item in params_list:
@@ -167,6 +175,8 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"v_ref_{name}":v_ref})
     grid.dae['h_dict'].update({f"i_sd_{name}":i_sd})
     grid.dae['h_dict'].update({f"i_sq_{name}":i_sq})
+    grid.dae['h_dict'].update({f"delta_ff_{name}":delta_ff})
+    
 
     grid.dae['xy_0_dict'].update({str(e_vq):1.0}) 
     grid.dae['xy_0_dict'].update({str(v_tq_ref):1.0}) 
@@ -178,49 +188,4 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
 
 
 if __name__ == "__main__":
-
-    import pydae.build_cffi as db
-    from pydae.bmapu import bmapu_builder
-    from pydae.bmapu.vsgs.vsgs import add_vsgs
-    import pydae.build_cffi as db
-    import sympy as sym
-
-    data = {
-        "sys":{"name":"sys2buses","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
-        "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
-                {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
-        "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.15,"R_pu":0.0, "S_mva":900.0}],
-        "vsgs":[
-            {"bus":"1","type":"vsg_ll",'S_n':10e6,'F_n':50,'K_delta':0.0,
-            'R_v':0.01,'X_v':0.1,'K_p':1.0,'K_i':0.1,'K_g':0.0,'K_q':20.0,
-            'T_q':0.1,'K_p_v':1e-6,'K_i_v':1e-6}],
-        "genapes":[{"bus":"2","S_n":100e6,"F_n":50.0,"R_v":0.0,"X_v":0.1,"K_delta":0.001,"K_alpha":1.0}],
-        }
-
-    grid = bmapu_builder.bmapu(data)
-
-    add_vsgs(grid)
-    omega_coi = sym.Symbol("omega_coi", real=True)  
-
-    grid.dae['g'] += [ -omega_coi + grid.omega_coi_numerator/grid.omega_coi_denominator]
-    grid.dae['y_ini'] += [ omega_coi]
-    grid.dae['y_run'] += [ omega_coi]
-
-    sys_dict = {'name':'prueba','uz_jacs':True,
-        'params_dict':grid.dae['params_dict'],
-        'f_list':grid.dae['f'],
-        'g_list':grid.dae['g'],
-        'x_list':grid.dae['x'],
-        'y_ini_list':grid.dae['y_ini'],
-        'y_run_list':grid.dae['y_run'],
-        'u_run_dict':grid.dae['u_run_dict'],
-        'u_ini_dict':grid.dae['u_ini_dict'],
-        'h_dict':grid.dae['h_dict']}
-
-    bldr = db.builder(sys_dict)
-    bldr.build()
-
-    import prueba 
-    model = prueba.model()
-    model.ini({'p_ref_1':0.8},'xy_0_2.json')
-    model.report_y()
+    pass  

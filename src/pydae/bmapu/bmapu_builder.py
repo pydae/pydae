@@ -17,6 +17,8 @@ from pydae.bmapu.genapes.genapes import add_genapes
 
 import pydae.build_cffi as db
 
+import requests
+
 # todo:
     # S_base can't be modified becuase impedances in element base are computed
     # in S_base only in the build
@@ -49,8 +51,13 @@ class bmapu:
     def __init__(self,data_input=''):
         
         if type(data_input) == str:
-            with open(data_input,'r') as fobj:
-                data = json.loads(fobj.read().replace("'",'"'))
+            if 'http' in data_input:
+                url = data_input
+                resp = requests.get(url)
+                data = json.loads(resp.text)
+            else:
+                with open(data_input,'r') as fobj:
+                    data = json.loads(fobj.read().replace("'",'"'))
         elif type(data_input) == dict:
             data = data_input
             

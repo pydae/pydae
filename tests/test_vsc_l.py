@@ -30,7 +30,7 @@ def test_vsc_l_pq_builder():
     grid.build('smib_vsc_l_pq')
 
 
-def test_vsc_l_pq():
+def test_vsc_l():
 
     import smib_vsc_l_pq
 
@@ -80,7 +80,22 @@ def test_vsc_l_pq():
     assert np.abs(s_s_exp.real - p_s_ri) < tol  # p_s
     assert np.abs(s_s_exp.imag - q_s_ri) < tol  # q_s
 
-    
+
+def test_vsc_l_pq():
+
+    import smib_vsc_l_pq
+
+    model = smib_vsc_l_pq.model()
+    model.ini({'p_s_ref_1':0.5, 'q_s_ref_1':0.3},'xy_0.json')
+
+    p_s_ref_1 = model.get_value('p_s_ref_1')
+    q_s_ref_1 = model.get_value('q_s_ref_1')
+    p_s_1 = model.get_value('p_s_1')
+    q_s_1 = model.get_value('q_s_1')
+
+    tol = 1e-8
+    assert np.abs(p_s_ref_1 - p_s_1) < tol  # p_s
+    assert np.abs(q_s_ref_1 - q_s_1) < tol  # q_s
 
     #delta = -0.1
     #v_sd = v_si * np.cos(delta) - v_sr * np.sin(delta)   

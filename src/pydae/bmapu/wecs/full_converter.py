@@ -60,6 +60,7 @@ def full_converter(grid,name,bus_name,data_dict):
     theta_tr = sym.Symbol(f"theta_tr_{name}", real=True)
     omega_t  = sym.Symbol(f"omega_t_{name}", real=True)
     omega_r  = sym.Symbol(f"omega_r_{name}", real=True)
+    xi_beta  = sym.Symbol(f"xi_beta_{name}", real=True)
     beta     = sym.Symbol(f"beta_{name}", real=True)
     p_m_mppt_lpf = sym.Symbol(f"p_m_mppt_lpf_{name}", real=True)
 
@@ -85,7 +86,8 @@ def full_converter(grid,name,bus_name,data_dict):
     Nu_w_b,Lam_b = sym.symbols(f"Nu_w_b_{name},Lam_b_{name}", real=True)
     K_tr,D_tr,Omega_t_b = sym.symbols(f"K_tr_{name},D_tr_{name},Omega_t_b_{name}", real=True)
     C_p_b,T_beta,T_mppt,K_mppt = sym.symbols(f"C_p_b_{name},T_beta_{name},T_mppt_{name},K_mppt_{name}", real=True)
-    K_beta = sym.Symbol(f"K_beta_{name}", real=True)
+    K_p_beta = sym.Symbol(f"K_p_beta_{name}", real=True)
+    K_i_beta = sym.Symbol(f"K_i_beta_{name}", real=True)
     H_t,H_r= sym.symbols(f"H_t_{name},H_r_{name}", real=True)
     K_tr,D_tr= sym.symbols(f"K_tr_{name},D_tr_{name}", real=True)
     params_list = ['S_n','F_n','X_s','R_s']
@@ -110,7 +112,7 @@ def full_converter(grid,name,bus_name,data_dict):
     c_p = C_1*(C_2*inv_lam_i - C_3*beta - C_4)*sym.exp(-C_5*inv_lam_i) + C_6*lam 
     c_p_pu = c_p/C_p_b # (pu)
     p_m_nosat = K_pow*c_p_pu*(nu_w/Nu_w_b)**3
-    p_m = sym.Piecewise((0.1,p_m_nosat<0.1), (p_m_nosat,True))
+    p_m = sym.Piecewise((0.0,p_m_nosat<0.0), (p_m_nosat,True))
 
     ## MPPT
     Lam_opt = Lam_b
@@ -121,36 +123,38 @@ def full_converter(grid,name,bus_name,data_dict):
     c_p_mppt_pu = c_p_mppt/C_p_b # (pu)
     p_m_mppt_ref = K_pow*c_p_mppt_pu*(nu_w_mppt/Nu_w_b)**3
     omega_r_th = 0.2
-    test_1 = (Dp_e_ref>0.01) & (omega_r>omega_r_th)
+    test_1 = (np.abs(Dp_e_ref)>0.01) & (omega_r>omega_r_th)
     p_m_mppt = sym.Piecewise((p_m_mppt_lpf,test_1), (p_m_mppt_ref,True))
     K_mppt = sym.Piecewise((0.0,test_1), (1.0,True))
-    #Dp_e = sym.Piecewise((Dp_e_ref,test_1), (Dp_e_ref * (1 + 50*(omega_r - omega_r_th)),True))
-    p_s_mmpt_ref = p_m_mppt_lpf + Dp_e_ref     
+    Dp_e = sym.Piecewise((Dp_e_ref,test_1), (Dp_e_ref * (1 + 50*(omega_r - omega_r_th)),True))
+    p_s_mmpt_ref = p_m_mppt_lpf + Dp_e    
 
     ## Pitch
     Omega_r_b = Omega_t_b
-    beta_ref = sym.Piecewise((0.0,omega_r<=Omega_r_b), 
-                             (K_beta*(omega_r-Omega_r_b),omega_r>Omega_r_b),(0.0,True))
-
+    omega_r_max = Omega_r_b
+    epsilon_beta_nosat = omega_r - omega_r_max
+    epsilon_beta = sym.Piecewise((0.0,epsilon_beta_nosat<0),(epsilon_beta_nosat,True))
+    beta_ref = K_p_beta*epsilon_beta + K_i_beta*xi_beta
 
     # dynamic equations            
     dtheta_tr = omega_t-omega_r - u_dummy
     domega_t  = 1.0/(2*H_t)*(p_m - K_tr*theta_tr - D_tr*(omega_t-omega_r))
     domega_r  = 1.0/(2*H_r)*(K_tr*theta_tr + D_tr*(omega_t-omega_r) - p_dc)
+    dxi_beta  = epsilon_beta - xi_beta*1e-8
     dbeta     = 1.0/T_beta*(beta_ref - beta)
     dp_m_mppt_lpf  = K_mppt/T_mppt*(p_m_mppt_ref - p_m_mppt_lpf)
 
     # algebraic equations   
     g_i_si = v_ti - R_s*i_si - X_s*i_sr - v_si  
     g_i_sr = v_tr - R_s*i_sr + X_s*i_si - v_sr 
-    g_p_s  =  i_si*v_si + i_sr*v_sr - p_s  
-    g_q_s  = -i_si*v_sr + i_sr*v_si - q_s 
-    g_p_s_ref = p_s_ref + p_s_mmpt_ref
+    g_p_s  =  i_sr*v_sr + i_si*v_si - p_s  
+    g_q_s  =  i_sr*v_si - i_si*v_sr - q_s 
+    g_p_s_ref = -p_s_ref + p_s_mmpt_ref
 
 
     # dae 
-    grid.dae['f'] += [dtheta_tr,domega_t,domega_r,dbeta,dp_m_mppt_lpf]
-    grid.dae['x'] += [ theta_tr, omega_t, omega_r, beta, p_m_mppt_lpf]
+    grid.dae['f'] += [dtheta_tr,domega_t,domega_r,dxi_beta,dbeta,dp_m_mppt_lpf]
+    grid.dae['x'] += [ theta_tr, omega_t, omega_r, xi_beta, beta, p_m_mppt_lpf]
     grid.dae['g'] += [g_i_si,g_i_sr,g_p_s,g_q_s,g_p_s_ref]
     grid.dae['y_ini'] += [  i_si,  i_sr,  p_s,  q_s, p_s_ref]  
     grid.dae['y_run'] += [  i_si,  i_sr,  p_s,  q_s, p_s_ref]  
@@ -245,7 +249,8 @@ def full_converter(grid,name,bus_name,data_dict):
     grid.dae['params_dict'].update({f"C_p_b_{name}":C_p_b})
 
     grid.dae['params_dict'].update({f"T_beta_{name}":2.0})
-    grid.dae['params_dict'].update({f"K_beta_{name}":100.0})
+    grid.dae['params_dict'].update({f"K_p_beta_{name}":100.0})
+    grid.dae['params_dict'].update({f"K_i_beta_{name}":1.0})
     grid.dae['params_dict'].update({f"T_mppt_{name}":5})
 
     

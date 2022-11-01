@@ -88,6 +88,8 @@ def sexs(dae,syn_data,name):
     dae['u_run_dict'].update({str(v_pss):0.0})
     dae['u_ini_dict'].update({str(v_pss):0.0})
 
+    dae['h_dict'].update({str(v_pss):v_pss})
+
     dae['xy_0_dict'].update({str(xi_v):0.0})
     dae['xy_0_dict'].update({str(x_e):0.0})
     dae['xy_0_dict'].update({str(v_f):1.0})    

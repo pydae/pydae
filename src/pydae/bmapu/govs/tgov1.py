@@ -36,7 +36,7 @@ def tgov1(dae,syn_data,name):
     T_3 = sym.Symbol(f"T_gov_3_{name}", real=True)  # 10
     D_t = sym.Symbol(f"D_t_{name}", real=True)  # 10 
     Droop = sym.Symbol(f"Droop_{name}", real=True)  # 0.05
-    K_sec = sym.Symbol(f"K_sed_{name}", real=True)  # 0.05
+    K_sec = sym.Symbol(f"K_sec_{name}", real=True)  # 0.05
    
     omega_ref = sym.Symbol(f"omega_ref_{name}", real=True)
 
