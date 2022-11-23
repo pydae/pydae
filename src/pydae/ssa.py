@@ -14,6 +14,7 @@ from scipy.sparse.linalg import spsolve
 from scipy.sparse import csc_matrix
 
 from matplotlib.patches import Circle, Wedge, Polygon, Rectangle
+import pydae.ctrl as ctrl
 
 def eval_A(system):
     
@@ -104,66 +105,7 @@ def eval_ss(system):
 
 
 def ss_eval(model):
-    '''
-    
-    Parameters
-    ----------
-    system : system class
-        object.
-
-    Returns
-    -------
-    A : np.array
-        System A matrix.
-
-    # DAE system        
-    dx = f(x,y,u)
-     0 = g(x,y,u)
-     z = h(x,y,u)
-     
-    # system linealization
-    Δdx = Fx*Δx + Fy*Δy + Fu*Δu
-      0 = Gx*Δx + Gy*Δy + Gu*Δu
-     Δz = Hx*Δx + Hy*Δy + Hu*Δu
-    
-    Δy = -inv(Gy)*Gx*Dx - inv(Gy)*Gu*Du
-                                     
-    Δdx = Fx*Dx - Fy*inv(Gy*Gx)*Δx - Fy*inv(Gy)*Gu*Δu + Fu*Δu           
-    Δdx = (Fx - Fy*inv(Gy*Gx))*Δx + (Fu - Fy*inv(Gy)*Gu)*Δu
-    
-
-    Δz = Hx*Dx + Hy*Δy + Hu*Δu
-    Δz = Hx*Dx - Hy*inv(Gy)*(Gx*Δx) - Hy*inv(Gy)*Gu*Du + Hu*Δu
-    Δz = (Hx - Hy*inv(Gy)*(Gx))*Δx + (Hu - Hy*inv(Gy)*Gu)*Δu
-
-
-    '''
-    
-    model.full_jacs_eval()
-    
-    Fx = model.Fx
-    Fy = model.Fy
-    Gx = csc_matrix(model.Gx)
-    Gy = csc_matrix(model.Gy)
-    
-    Fu = model.Fu
-    Gu = csc_matrix(model.Gu)  
-    
-    Hx = model.Hx
-    Hy = model.Hy  
-    Hu = model.Hu 
-    
-    A = Fx - Fy @ spsolve(Gy,Gx)
-    B = Fu - Fy @ spsolve(Gy,Gu)
-    C = Hx - Hy @ spsolve(Gy,Gx)
-    D = Hu - Hy @ spsolve(Gy,Gu)
-    
-    model.A = A
-    model.B = B
-    model.C = C
-    model.D = D
-    
-    return A
+    return ctrl.ss_eval(model)
 
 
 
@@ -223,6 +165,47 @@ def damp_report(system, sparse=False):
     system.eigvectors = eigv
     return eig_df
  
+def damp(A, sparse=False):
+    
+    if sparse:
+        eig,eigv = np.linalg.eig(A)
+    else:      
+        eig,eigv = np.linalg.eig(A)
+        
+    omegas = eig.imag
+    sigmas = eig.real
+
+    freqs = np.abs(omegas/(2*np.pi))
+    zetas = -sigmas/np.sqrt(sigmas**2+omegas**2)
+    
+    string = ''
+    string += f' Mode'.ljust(10, ' ') 
+    string += f' Real'.ljust(10, ' ') 
+    string += f' Imag'.ljust(10, ' ') 
+    string += f' Freq.'.ljust(10, ' ') 
+    string += f' Damp'.ljust(10, ' ') 
+    string += '\n'
+
+    N_x = len(eig)
+    for it in range(N_x):
+        r = eig[it].real
+        i = eig[it].imag
+        string += f'{it+1:0d}  '.rjust(10, ' ') 
+        string += f'{r:0.4f}  '.rjust(10, ' ') 
+        string += f'{i:0.4f}j'.rjust(10, ' ') 
+        string += f'{freqs[it]:0.4f}'.rjust(10, ' ') 
+        string += f'{zetas[it]:0.4f}'.rjust(10, ' ') 
+
+        string += '\n'
+        #'\t{i:0.4f}\t{freqs[it]:0.3f}\t{zetas[it]:0.4f}\n'
+    
+    columns = ['Real','Imag','Freq.','Damp']     
+    modes = [f'Mode {it+1}' for it in range(N_x)]
+    eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas},index=modes)
+    
+
+    return eig_df
+
 
 def participation(system, method='kundur'):
     '''

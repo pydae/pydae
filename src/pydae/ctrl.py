@@ -68,29 +68,29 @@ def ss_eval(model):
     '''
     
     model.full_jacs_eval()
-    
+
     Fx = model.Fx
     Fy = model.Fy
     Gx = csc_matrix(model.Gx)
     Gy = csc_matrix(model.Gy)
-    
+
     Fu = model.Fu
     Gu = csc_matrix(model.Gu)  
-    
+
     Hx = model.Hx
     Hy = model.Hy  
     Hu = model.Hu 
-    
+
     A = Fx - Fy @ spsolve(Gy,Gx)
     B = Fu - Fy @ spsolve(Gy,Gu)
     C = Hx - Hy @ spsolve(Gy,Gx)
     D = Hu - Hy @ spsolve(Gy,Gu)
-    
+
     model.A = A
     model.B = B
     model.C = C
     model.D = D
-    
+
     return A
 
 

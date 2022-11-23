@@ -252,19 +252,24 @@ class pv_gen(object):
 
 
     def powers(self,date_range):
-        
+
         self.radiations_on_panel = self.radiations_clear(date_range)
-        
+
         self.clearness_indexes = self.clearness()
         self.net_radiation = self.radiations_on_panel*self.clearness_indexes
-        
-        self.Powers_clear = self.radiations_on_panel*self.Panel_area*self.System_efficiency
-        
-        self.Powers = self.net_radiation*self.Panel_area*self.System_efficiency
-        self.Energy = np.sum(self.Powers)/60/1000
-        
-        return self.Powers 
 
+        self.Powers_clear = self.radiations_on_panel*self.Panel_area*self.System_efficiency
+        self.P_max = np.max(self.Powers_clear)
+        self.Powers_clear_pu = self.Powers_clear/self.P_max
+
+        self.Powers = self.net_radiation*self.Panel_area*self.System_efficiency
+        
+        Dt = date_range[1]-date_range[0]
+        Dt_s = Dt.total_seconds()
+        self.Energy_clear = np.sum(self.Powers_clear)*Dt_s
+        self.Energy_clear_pu = np.sum(self.Powers_clear_pu)*Dt_s
+
+        return self.Powers 
 
 high_energy_power = []
 

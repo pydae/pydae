@@ -56,13 +56,15 @@ def genape_inf(grid,name,bus_name,data_dict):
     omega_ref = sym.Symbol(f"omega_ref_{name}", real=True) 
     phi = sym.Symbol(f"phi_{name}", real=True) 
     delta_ref = sym.Symbol(f"delta_ref_{name}", real=True) 
+    rocov = sym.Symbol(f"rocov_{name}", real=True) 
     
     # dynamic states
     delta = sym.Symbol(f"delta_{name}", real=True)
     omega = sym.Symbol(f"omega_{name}", real=True)
+    Domega = sym.Symbol(f"Domega_{name}", real=True)
+    Dv = sym.Symbol(f"Dv_{name}", real=True)
 
     # algebraic states
-    Domega = sym.Symbol(f"Domega_{name}", real=True)
     i_d = sym.Symbol(f"i_d_{name}", real=True)
     i_q = sym.Symbol(f"i_q_{name}", real=True)            
     p_s = sym.Symbol(f"p_s_{name}", real=True)
@@ -75,6 +77,7 @@ def genape_inf(grid,name,bus_name,data_dict):
     R_v = sym.Symbol(f"R_v_{name}", real=True)
     K_delta = sym.Symbol(f"K_delta_{name}", real=True)
     K_alpha = sym.Symbol(f"K_alpha_{name}", real=True)
+    K_rocov = sym.Symbol(f"K_rocov_{name}", real=True)
     
     params_list = ['S_n','F_n','X_v','R_v','K_delta','K_alpha']
     
@@ -84,11 +87,12 @@ def genape_inf(grid,name,bus_name,data_dict):
     Omega_b = 2*np.pi*F_n
     omega_s = omega_coi
     e_dv = 0  
-    e_qv = v_ref    
+    e_qv = v_ref + Dv  
     
     # dynamic equations            
     ddelta = Omega_b*(omega - omega_s) - K_delta*(delta - delta_ref)
     dDomega = alpha - K_alpha*Domega
+    dDv = rocov - K_rocov*Dv
 
     # algebraic equations   
     g_omega = -omega + Domega + omega_ref
@@ -99,8 +103,8 @@ def genape_inf(grid,name,bus_name,data_dict):
     
     
     # dae 
-    f_vsg = [ddelta,dDomega]
-    x_vsg = [ delta, Domega]
+    f_vsg = [ddelta,dDomega,dDv]
+    x_vsg = [ delta, Domega, Dv]
     g_vsg = [g_omega,g_i_d,g_i_q,g_p_s,g_q_s]
     y_vsg = [  omega,  i_d,  i_q,  p_s,  q_s]
     
@@ -131,6 +135,9 @@ def genape_inf(grid,name,bus_name,data_dict):
     grid.dae['u_ini_dict'].update({f'{str(phi)}':0.0})
     grid.dae['u_run_dict'].update({f'{str(phi)}':0.0})
 
+    grid.dae['u_ini_dict'].update({f'{str(rocov)}':0.0})
+    grid.dae['u_run_dict'].update({f'{str(rocov)}':0.0})
+
     grid.dae['xy_0_dict'].update({str(omega):1.0})
        
     # outputs
@@ -138,6 +145,8 @@ def genape_inf(grid,name,bus_name,data_dict):
     
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
+
+    grid.dae['params_dict'].update({f"K_rocov_{name}":1e-6}) 
 
     p_W   = p_s * S_n
     q_var = q_s * S_n

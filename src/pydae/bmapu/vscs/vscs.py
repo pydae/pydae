@@ -9,6 +9,7 @@ import numpy as np
 import sympy as sym
 from pydae.bmapu.vscs.vsc_pq import vsc_pq
 from pydae.bmapu.vscs.vsc_l  import vsc_l
+from pydae.bmapu.vscs.vsc_lcl_uc  import vsc_lcl_uc
 
 from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
 from pydae.bmapu.vsc_models.vsc_models import add_model
@@ -42,7 +43,8 @@ def add_vscs(grid):
             p_W, q_var = vsc_pq(grid,name,bus_name,data_dict)
         if item['type'] == 'vsc_l':                    
             p_W, q_var = vsc_l(grid,name,bus_name,data_dict)
-
+        if item['type'] == 'vsc_lcl_uc':                    
+            p_W, q_var = vsc_lcl_uc(grid,name,bus_name,data_dict)
 
 
 
