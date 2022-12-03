@@ -403,7 +403,7 @@ class bmapu:
         self.buses_list = [bus['name'] for bus in self.buses]  
         
 
-    def build(self, name=''):
+    def construct(self, name):
         
         self.contruct_grid()   
         
@@ -461,24 +461,32 @@ class bmapu:
             
         with open('xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
-            
+
+
+    def compile(self, name):
+
+        sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
+                'params_dict':self.dae['params_dict'],
+                'f_list':self.dae['f'],
+                'g_list':self.dae['g'] ,
+                'x_list':self.dae['x'],
+                'y_ini_list':self.dae['y_ini'],
+                'y_run_list':self.dae['y_run'],
+                'u_run_dict':self.dae['u_run_dict'],
+                'u_ini_dict':self.dae['u_ini_dict'],
+                'h_dict':self.dae['h_dict']}
         
-        if not name == '':
-            sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
-                   'params_dict':self.dae['params_dict'],
-                   'f_list':self.dae['f'],
-                   'g_list':self.dae['g'] ,
-                   'x_list':self.dae['x'],
-                   'y_ini_list':self.dae['y_ini'],
-                   'y_run_list':self.dae['y_run'],
-                   'u_run_dict':self.dae['u_run_dict'],
-                   'u_ini_dict':self.dae['u_ini_dict'],
-                   'h_dict':self.dae['h_dict']}
-            
-            bldr = db.builder(sys_dict,verbose=self.verbose);
-            bldr.build()       
+        bldr = db.builder(sys_dict,verbose=self.verbose);
+        bldr.build()       
 
         self.sys_dict = sys_dict 
+            
+
+    def build(self, name=''):
+        if name == '':
+            print('Error: name is not provided.')
+        self.construct(name)    
+        self.compile(name)  
 
     def checker(self):
         
