@@ -29,7 +29,7 @@ class bmapu:
     Parameters
     ----------
     data_input : string or dict
-        File path to the system data information or dictionar y with the information.
+        File path to the system data information or dictionary with the information.
 
     Returns
     -------

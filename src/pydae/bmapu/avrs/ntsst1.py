@@ -73,3 +73,5 @@ def ntsst1(dae,syn_data,name):
     dae['xy_0_dict'].update({str(v_f):2.0})
     dae['xy_0_dict'].update({str(xi_v):10.0})
     dae['xy_0_dict'].update({str(x_cb):2.0})
+
+    dae['h_dict'].update({str(v_ref):v_ref})  
