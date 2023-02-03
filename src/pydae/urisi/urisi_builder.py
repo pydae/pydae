@@ -96,18 +96,17 @@ class urisi:
         self.N_nodes = 0
         for bus in self.buses:
             if 'nodes' in bus:
-                bus_N_nodes = len(bus['nodes'])
-
-            if 'N_nodes' in bus:
-                bus_N_nodes = bus['N_nodes']
-                bus['nodes'] = list(range(bus_N_nodes))
+                bus['N_nodes'] = len(bus['nodes'])
+            elif 'N_nodes' in bus:
+                bus['nodes'] = list(range(bus['N_nodes']))
             else:
-                bus_N_nodes = 4
-                bus['N_nodes'] = bus_N_nodes
-                bus['nodes'] = list(range(bus_N_nodes))
-            self.N_nodes += bus_N_nodes
-            for it in bus['nodes']:
-                self.nodes_list += [f"{bus['name']}.{it}"]
+                bus['N_nodes'] = 4
+                bus['nodes'] = list(range(bus['N_nodes']))
+
+            self.N_nodes += bus['N_nodes']
+
+            for node in bus['nodes']:
+                self.nodes_list += [f"{bus['name']}.{node}"]
 
         self.it_branch = 0 # current branch
         lines_preprocess(self)

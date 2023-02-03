@@ -331,7 +331,7 @@ def lqr(A,B,Q,R):
 
 def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig=''):
     ''''
-    Creates a matplotlib figure from a numapy array of eigenvalues.
+    Creates a matplotlib figure from a numpy array of eigenvalues.
 
 
     
@@ -339,6 +339,8 @@ def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig=''):
 
     if fig == '':
         fig,axes = plt.subplots()
+    else:
+        axes = fig.axes[0]
     
     pi2 = 2*np.pi
 
@@ -384,7 +386,7 @@ def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig=''):
     axes.plot(eigenvalues.real,eigenvalues.imag/(2*np.pi),'o')
     fig.tight_layout()
     
-    return fig
+    return fig;
     
 def add_arrow(string,name='arrow',scale=1,angle=0,center_x=0,center_y=0,color="#337ab7"):
     trans_x = center_x*(1-scale)

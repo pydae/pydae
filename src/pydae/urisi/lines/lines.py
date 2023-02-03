@@ -18,8 +18,18 @@ def add_lines(self):
             bus_j = line['bus_j']
             bus_k = line['bus_k']
 
-            idx_j = self.nodes_list.index(f"{bus_j}.{ibranch}")
-            idx_k = self.nodes_list.index(f"{bus_k}.{ibranch}")    
+            if 'bus_j_nodes' in line:
+                node_j = line['bus_j_nodes'][ibranch]
+            else:
+                node_j = ibranch
+
+            if 'bus_k_nodes' in line:
+                node_k = line['bus_k_nodes'][ibranch]
+            else:
+                node_k = ibranch
+
+            idx_j = self.nodes_list.index(f"{bus_j}.{node_j}")
+            idx_k = self.nodes_list.index(f"{bus_k}.{node_k}")    
 
             self.A[self.it_branch+ibranch,idx_j] = 1
             self.A[self.it_branch+ibranch,idx_k] =-1   
@@ -27,15 +37,25 @@ def add_lines(self):
             #A[it+2,idx_k] = 1   
             
             for icol in range(line['N_branches']):
-                if np.abs(line['Y_primitive'][ibranch,icol]) != 0.0:
-                    line_name = f"{bus_j}_{bus_k}_{ibranch}_{icol}"
-                    g_jk = sym.Symbol(f"g_{line_name}", real=True) 
-                    b_jk = sym.Symbol(f"b_{line_name}", real=True) 
-                    bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
-                    self.G_primitive[self.it_branch+ibranch,self.it_branch+icol] = g_jk
-                    self.B_primitive[self.it_branch+ibranch,self.it_branch+icol] = b_jk
-                    self.dae['params_dict'].update({str(g_jk):line['Y_primitive'][ibranch,icol].real})
-                    self.dae['params_dict'].update({str(b_jk):line['Y_primitive'][ibranch,icol].imag})
+                if line['sym']:
+                    if np.abs(line['Y_primitive'][ibranch,icol]) != 0.0:
+                        line_name = f"{bus_j}_{node_j}_{bus_k}_{node_k}_{icol}"
+                        g_jk = sym.Symbol(f"g_{line_name}", real=True) 
+                        b_jk = sym.Symbol(f"b_{line_name}", real=True) 
+                        bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
+                        self.G_primitive[self.it_branch+ibranch,self.it_branch+icol] = g_jk
+                        self.B_primitive[self.it_branch+ibranch,self.it_branch+icol] = b_jk
+                        self.dae['params_dict'].update({str(g_jk):line['Y_primitive'][ibranch,icol].real})
+                        self.dae['params_dict'].update({str(b_jk):line['Y_primitive'][ibranch,icol].imag})
+
+                else:
+                    if np.abs(line['Y_primitive'][ibranch,icol]) != 0.0:
+                        line_name = f"{bus_j}_{node_j}_{bus_k}_{node_k}_{icol}"
+                        g_jk = line['Y_primitive'][ibranch,icol].real 
+                        b_jk = line['Y_primitive'][ibranch,icol].imag 
+                        bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
+                        self.G_primitive[self.it_branch+ibranch,self.it_branch+icol] = g_jk
+                        self.B_primitive[self.it_branch+ibranch,self.it_branch+icol] = b_jk
 
 
             #B_primitive[it,ibranch+it] = b_jk
@@ -60,6 +80,11 @@ def lines_preprocess(self):
             N_branches = Y_primitive_matrix.shape[0]
             line.update({'N_branches':N_branches}) 
 
+        if not 'sym' in line:
+            line.update({'sym':False})
+
+
+
         self.N_branches += N_branches
 
         
@@ -75,7 +100,18 @@ def add_line_monitors(self):
                 bus_k_name = line['bus_k']
   
                 for it in range(line['N_branches']):
-                    self.dae['h_dict'].update({f"i_l_{bus_j_name}_{bus_k_name}_{it}_r" : sym.re(self.I_lines[self.it_branch ++it,0])})
-                    self.dae['h_dict'].update({f"i_l_{bus_j_name}_{bus_k_name}_{it}_i" : sym.im(self.I_lines[self.it_branch ++it,0])})
+
+                    if 'bus_j_nodes' in line:
+                        node_j = line['bus_j_nodes'][it]
+                    else:
+                        node_j = it
+
+                    if 'bus_k_nodes' in line:
+                        node_k = line['bus_k_nodes'][it]
+                    else:
+                        node_k = it
+
+                    self.dae['h_dict'].update({f"i_l_{bus_j_name}_{node_j}_{bus_k_name}_{node_k}_r" : sym.re(self.I_lines[self.it_branch ++it,0])})
+                    self.dae['h_dict'].update({f"i_l_{bus_j_name}_{node_j}_{bus_k_name}_{node_k}_i" : sym.im(self.I_lines[self.it_branch ++it,0])})
 
         self.it_branch += line['N_branches']

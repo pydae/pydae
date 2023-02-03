@@ -11,7 +11,7 @@ import sympy as sym
 
 def kundur_tgr(dae,syn_data,name):
     '''
-        "avr":{"type":"kundur_tgr","K_a":200,"T_r":0.01,"E_fmin":-5,"E_fmax":10.0,"T_a":1,"T_b":10,"v_ref":1.0}
+        "avr":{"type":"kundur_tgr","K_a":200,"T_r":0.01,"T_a":1,"T_b":10,"v_ref":1.0}
        
      '''
 
@@ -27,9 +27,6 @@ def kundur_tgr(dae,syn_data,name):
     T_b = sym.Symbol(f"T_b_{name}", real=True) 
     K_a = sym.Symbol(f"K_a_{name}", real=True)
     K_ai = sym.Symbol(f"K_ai_{name}", real=True)
-    E_fmin = sym.Symbol(f"E_fmin_{name}", real=True)
-    E_fmax = sym.Symbol(f"E_fmax_{name}", real=True)
-    K_aw = sym.Symbol(f"K_aw_{name}", real=True)   
     
     # inputs
     v_ref = sym.Symbol(f"v_ref_{name}", real=True) 
@@ -47,7 +44,7 @@ def kundur_tgr(dae,syn_data,name):
     dxi_v =   epsilon_v 
 
     # algebraic equations   
-    g_v_f  =   sym.Piecewise((E_fmin, v_f_nosat<E_fmin),(E_fmax,v_f_nosat>E_fmax),(v_f_nosat,True)) - v_f 
+    g_v_f  =   z_ab - v_f 
   
     dae['f'] += [dv_r,dx_ab,dxi_v]
     dae['x'] += [ v_r, x_ab, xi_v]
@@ -60,8 +57,6 @@ def kundur_tgr(dae,syn_data,name):
     dae['params_dict'].update({str(T_r):avr_data['T_r']})  
     dae['params_dict'].update({str(T_a):avr_data['T_a']}) 
     dae['params_dict'].update({str(T_b):avr_data['T_b']}) 
-    dae['params_dict'].update({str(E_fmin):avr_data['E_fmin']})  
-    dae['params_dict'].update({str(E_fmax):avr_data['E_fmax']}) 
 
     dae['u_ini_dict'].update({str(v_ref):avr_data['v_ref']})
     dae['u_ini_dict'].update({str(v_s):0.0})

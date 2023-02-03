@@ -339,6 +339,77 @@ def lead_design(angle,omega, verbose=False):
     return T_1,T_2
     
      
+def reduce(model):
+    '''
+    
+    Parameters
+    ----------
+    model : pydae model class 
+        object.
+
+    Returns
+    -------
+    A : np.array
+        System A matrix.
+
+    # DAE system        
+    dx = f(x,y,u)
+     0 = g(x,y,u)
+     z = h(x,y,u)
+     
+    # system 
+    Δdx_1 = A_11*Δx_1 + A_12*Δx_2 + B_1*Δu
+    Δdx_2 = A_21*Δx_1 + A_22*Δx_2 + B_2*Δu = 0
+
+    Δx_2 = -inv(A_22)*(A_21*Δx_1 + B_2*Δu)
+    Δdx_1 = A_11*Δx_1 - A_12*(inv(A_22)*(A_21*Δx_1 + B_2*Δu)) + B_1*Δu
+    Δdx_1 = A_11*Δx_1 - A_12*(inv(A_22)*(A_21*Δx_1)) - A_12*(inv(A_22)*(B_2*Δu)) + B_1*Δu
+
+    A_r = A_11 - A_12*inv(inv(A_22))*A_21
+    B_r =  B_1 - A_12*inv(inv(A_22))*B_2
+        
+    Δz = A_11*Δx_1 + A_12*Δx_2 + B_1*Δu
+    Δdx_2 = A_21*Δx_1 + A_22*Δx_2 + B_2*Δu = 0
+    
+    Δy = -inv(Gy)*Gx*Dx - inv(Gy)*Gu*Du
+                                     
+    Δdx = Fx*Dx - Fy*inv(Gy*Gx)*Δx - Fy*inv(Gy)*Gu*Δu + Fu*Δu           
+    Δdx = (Fx - Fy*inv(Gy*Gx))*Δx + (Fu - Fy*inv(Gy)*Gu)*Δu
+    
+
+    Δz = Hx*Dx + Hy*Δy + Hu*Δu
+    Δz = Hx*Dx - Hy*inv(Gy)*(Gx*Δx) - Hy*inv(Gy)*Gu*Du + Hu*Δu
+    Δz = (Hx - Hy*inv(Gy)*(Gx))*Δx + (Hu - Hy*inv(Gy)*Gu)*Δu
+
+
+    '''
+    
+    model.full_jacs_eval()
+
+    Fx = model.Fx
+    Fy = model.Fy
+    Gx = csc_matrix(model.Gx)
+    Gy = csc_matrix(model.Gy)
+
+    Fu = model.Fu
+    Gu = csc_matrix(model.Gu)  
+
+    Hx = model.Hx
+    Hy = model.Hy  
+    Hu = model.Hu 
+
+    A = Fx - Fy @ spsolve(Gy,Gx)
+    B = Fu - Fy @ spsolve(Gy,Gu)
+    C = Hx - Hy @ spsolve(Gy,Gx)
+    D = Hu - Hy @ spsolve(Gy,Gu)
+
+    model.A = A
+    model.B = B
+    model.C = C
+    model.D = D
+
+    return A
+
 if __name__ == "__main__":
     
     class sys_class():

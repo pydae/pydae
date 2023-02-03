@@ -859,7 +859,7 @@ def phasor2inst(grid_obj,bus_name,magnitude='v',to_bus='',phases=['a','b','c'],F
     return Times,out
 
 
-def get_voltage(grid_obj,bus_name,output='v_an_m'):
+def get_voltage(grid_obj,bus_name,output='V_an_m'):
     '''
     Get voltage module of a bus.
 
@@ -879,23 +879,72 @@ def get_voltage(grid_obj,bus_name,output='v_an_m'):
 
     '''
     
+    a20 = {'a':0,'b':1,'c':2,'n':3}
+
     if output in ['v_an','v_bn','v_cn']:
         v_sub = f'v_{bus_name}_{output[-2]}'
         v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
         return v
     
-    if output in ['v_an_m','v_bn_m','v_cn_m']:
-        v_sub = f'v_{bus_name}_{output[-2]}'[:-2]
-        v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
-        return np.abs(v)
+    if output in ['V_an_m','V_bn_m','V_cn_m']:
+        phase = a20[output[-4]]
+        V_sub = f'V_{bus_name}_{phase}'
+        
+        V = grid_obj.get_value(f'{V_sub}_r') + 1j* grid_obj.get_value(f'{V_sub}_i')
+        return np.abs(V)
     
     if output in ['v_abcn']:
         v_list = []
-        for ph in ['a','b','c']:
+        for ph in ['0','1','2']:
             v_sub = f'v_{bus_name}_{ph}'
             v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
             v_list += [v]
         return np.array(v_list).reshape((3,1))
+
+def get_voltages(grid_obj,bus_name,output='V_an_m'):
+    '''
+    Get array of time simulations with voltage module of a bus.
+
+    Parameters
+    ----------
+    grid_obj : object of pydae class
+    bus_name : string
+        name of the bus.
+    output : string
+         v_an: a phase to neutral voltage phasor (V).
+         v_an_m: a phase to neutral RMS voltage (V).
+         v_abcn_m: a,b and c phases to neutral voltage phasors (V).
+        
+    Returns
+    -------
+    phase-ground voltage module (V).
+
+    '''
+    
+    a20 = {'a':0,'b':1,'c':2,'n':3}
+
+    if output in ['v_an','v_bn','v_cn']:
+        v_sub = f'v_{bus_name}_{output[-2]}'
+        v = grid_obj.get_value(f'{v_sub}_r') + 1j* grid_obj.get_value(f'{v_sub}_i')
+        return v
+    
+    if output in ['V_an_m','V_bn_m','V_cn_m']:
+        phase = a20[output[-4]]
+        V_sub = f'V_{bus_name}_{phase}'
+        
+        V = grid_obj.get_values(f'{V_sub}_r') + 1j* grid_obj.get_values(f'{V_sub}_i')
+        return np.abs(V)
+    
+    if output in ['v_abcn']:
+        v_list = []
+        for ph in ['0','1','2']:
+            v_sub = f'v_{bus_name}_{ph}'
+            v = grid_obj.get_values(f'{v_sub}_r') + 1j* grid_obj.get_values(f'{v_sub}_i')
+            v_list += [v]
+        return np.array(v_list).reshape((3,1))
+
+
+
     
 
 

@@ -462,10 +462,7 @@ class bmapu:
         with open('xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
 
-
-    def compile(self, name):
-
-        sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
+        self.sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
                 'params_dict':self.dae['params_dict'],
                 'f_list':self.dae['f'],
                 'g_list':self.dae['g'] ,
@@ -475,18 +472,17 @@ class bmapu:
                 'u_run_dict':self.dae['u_run_dict'],
                 'u_ini_dict':self.dae['u_ini_dict'],
                 'h_dict':self.dae['h_dict']}
-        
-        bldr = db.builder(sys_dict,verbose=self.verbose);
-        bldr.build()       
 
-        self.sys_dict = sys_dict 
-            
+    def compile(self):
+
+        bldr = db.builder(self.sys_dict,verbose=self.verbose);
+        bldr.build()       
 
     def build(self, name=''):
         if name == '':
             print('Error: name is not provided.')
         self.construct(name)    
-        self.compile(name)  
+        self.compile()  
 
     def checker(self):
         

@@ -52,6 +52,12 @@ def ac3ph3w_ideal(grid,vsc_data):
     v_sa = v_sa_r + 1j*v_sa_i
     v_sb = v_sb_r + 1j*v_sb_i
     v_sc = v_sc_r + 1j*v_sc_i
+
+    s_a = v_sa*np.conj(i_sa)
+    s_b = v_sb*np.conj(i_sb)
+    s_c = v_sc*np.conj(i_sc)
+
+    s_total = s_a + s_b + s_c
     
     e_a_r = (e_ao_m)*sym.cos(phi) 
     e_a_i = (e_ao_m)*sym.sin(phi) 
@@ -105,6 +111,9 @@ def ac3ph3w_ideal(grid,vsc_data):
     params_dict.update({f'X_{name}_sn':vsc_data['X_n'],f'R_{name}_sn':vsc_data['R_n']})
     params_dict.update({f'X_{name}_ng':vsc_data['X_ng'],f'R_{name}_ng':vsc_data['R_ng']})
 
+    grid.dae['h_dict'].update({f'p_{name}':sym.re(s_total)})
+    grid.dae['h_dict'].update({f'q_{name}':sym.im(s_total)})
+    
     grid.dae['xy_0_dict'].update({'omega':1.0})
 
     HS_coi  = 1.0

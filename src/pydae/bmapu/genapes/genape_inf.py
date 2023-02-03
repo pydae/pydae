@@ -142,6 +142,7 @@ def genape_inf(grid,name,bus_name,data_dict):
        
     # outputs
     grid.dae['h_dict'].update({f"alpha_{name}":alpha})
+    grid.dae['h_dict'].update({f"Dv_{name}":Dv})
     
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
