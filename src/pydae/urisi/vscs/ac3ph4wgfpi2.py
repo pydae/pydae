@@ -216,6 +216,7 @@ def ac3ph4wgfpi2(grid,vsc_data):
     v_sabc = sym.Matrix([[v_sa],[v_sb],[v_sc]])
     i_sabc = sym.Matrix([[i_sa],[i_sb],[i_sc]])
     
+
     v_szpn = A_a0*v_sabc
     i_szpn = A_a0*i_sabc
     
@@ -253,6 +254,13 @@ def ac3ph4wgfpi2(grid,vsc_data):
     h_dict.update({f'p_{name}_pos':sym.re(s_pos),f'p_{name}_neg':sym.re(s_neg),f'p_{name}_zer':sym.re(s_zer)})
     h_dict.update({str(e_ao_m):e_ao_m,str(e_bo_m):e_bo_m,str(e_co_m):e_co_m})
     h_dict.update({str(v_ra):v_ra,str(v_rb):v_rb,str(v_rc):v_rc})
+
+    n2a = {0:'a',1:'b',2:'c'}
+    for ph in [0,1,2]:
+        s = v_sabc[ph]*sym.conjugate(i_sabc[ph])
+        p = sym.re(s)
+        q = sym.im(s)
+        h_dict.update({f'p_vsc_{name}_{n2a[ph]}':p,f'q_vsc_{name}_{n2a[ph]}':q})
 
     h_dict.update({str(p_c):p_c,str(omega_ref):omega_ref})
     h_dict.update({str(phi):phi})

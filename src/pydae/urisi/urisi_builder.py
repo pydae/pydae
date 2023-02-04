@@ -164,9 +164,44 @@ class urisi:
             self.dae['y_run'] += [sym.re(V[it])]
             self.dae['y_run'] += [sym.im(V[it])]
 
+
+        # monitor voltages
+        for bus in self.buses:
+            if not 'monitor' in bus:
+                bus.update({'monitor':False})  # do not monitor by default
+            
+            if bus['monitor']:
+                n2a = {0:'a',1:'b',2:'c'}
+                # phase top neutral voltages:
+                name = bus['name']
+                V_n_r = sym.Symbol(f'V_{name}_{3}_r', real = True)
+                V_n_i = sym.Symbol(f'V_{name}_{3}_i', real = True)
+
+                # phase-neutral voltage module
+                for ph in [0,1,2]:
+                    V_ph_r = sym.Symbol(f'V_{name}_{ph}_r', real = True)
+                    V_ph_i = sym.Symbol(f'V_{name}_{ph}_i', real = True)
+                    z_name = f'V_{name}_{n2a[ph]}n'
+                    z_value = ((V_ph_r-V_n_r)**2 + (V_ph_i-V_n_i)**2)**0.5
+                    self.dae['h_dict'].update({z_name:z_value})
+                # neutral-ground voltage module
+                z_name = f'V_{name}_ng'
+                z_value = ((V_n_r)**2 + (V_n_i)**2)**0.5
+                self.dae['h_dict'].update({z_name:z_value})
+
+                # phase-phase voltage module
+                for phj,phk in [(0,1),(1,2),(2,0)]:
+                    V_phj_r = sym.Symbol(f'V_{name}_{phj}_r', real = True)
+                    V_phj_i = sym.Symbol(f'V_{name}_{phj}_i', real = True)
+                    V_phk_r = sym.Symbol(f'V_{name}_{phk}_r', real = True)
+                    V_phk_i = sym.Symbol(f'V_{name}_{phk}_i', real = True)
+
+                    z_name = f'V_{name}_{n2a[phj]}{n2a[phk]}'
+                    z_value = ((V_phj_r-V_phk_r)**2 + (V_phj_i-V_phk_i)**2)**0.5
+                    self.dae['h_dict'].update({z_name:z_value})               
+
     
         # voltages initial guess
-
         for bus in self.buses:
             
             V_phg = bus['U_kV']*1000.0/np.sqrt(3)
@@ -221,9 +256,9 @@ class urisi:
     
         omega_coi = sym.Symbol("omega_coi", real=True)  
 
-        if self.omega_coi_denominator <1e-6:
-            self.omega_coi_denominator = 1e-6
-            self.omega_coi_numerator = 1e-6
+        # if self.omega_coi_denominator <1e-6:
+        #     self.omega_coi_denominator = 1e-6
+        #     self.omega_coi_numerator = 1e-6
 
         self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
         self.dae['y_ini'] += [ omega_coi]
