@@ -84,8 +84,8 @@ def acdc_3ph_4w_pq(grid,vsc_data):
 
     eq_p_dc = -p_dc +  p_ac + p_loss_total
 
-    eq_i_pos =-i_pos + p_dc/v_dc
-    eq_i_neg =-i_neg -p_dc/v_dc
+    eq_i_pos = -i_pos + p_dc/v_dc
+    eq_i_neg = -i_neg - p_dc/v_dc
     #eq_v_og = -v_og/R_gdc - i_pos - i_neg 
 
 

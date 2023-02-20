@@ -329,7 +329,7 @@ def lqr(A,B,Q,R):
 
 
 
-def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig=''):
+def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig='', mark='o'):
     ''''
     Creates a matplotlib figure from a numpy array of eigenvalues.
 
@@ -383,7 +383,7 @@ def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig=''):
     axes.set_xlabel('Real')
     axes.set_ylabel('Imag$/2\pi$ (Hz)')
 
-    axes.plot(eigenvalues.real,eigenvalues.imag/(2*np.pi),'o')
+    axes.plot(eigenvalues.real,eigenvalues.imag/(2*np.pi),mark)
     fig.tight_layout()
     
     return fig;

@@ -1,6 +1,8 @@
 import numpy as np
 import sympy as sym
 import json
+import hjson
+import os
 from pydae.urisi.genapes.genapes import add_genapes
 from pydae.urisi.vscs.vscs import add_vscs
 from pydae.urisi.loads.loads import add_loads
@@ -47,8 +49,13 @@ class urisi:
                 resp = requests.get(url)
                 data = json.loads(resp.text)
             else:
-                with open(data_input,'r') as fobj:
-                    data = json.loads(fobj.read().replace("'",'"'))
+                print(os.path.splitext(data_input)[1])
+                if os.path.splitext(data_input)[1] == '.json':
+                    with open(data_input,'r') as fobj:
+                        data = json.loads(fobj.read().replace("'",'"'))
+                if os.path.splitext(data_input)[1] == '.hjson':
+                    with open(data_input,'r') as fobj:
+                        data = hjson.loads(fobj.read().replace("'",'"'))
         elif type(data_input) == dict:
             data = data_input
             

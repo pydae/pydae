@@ -8,7 +8,7 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 
-def leon_vsg_ll(grid,name,bus_name,data_dict):
+def i_vsg_ll(grid,name,bus_name,data_dict):
     """
     # auxiliar equations
     Omega_b = 2*np.pi*F_n
@@ -64,9 +64,10 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     Ddelta_ff,Domega_ff = sym.symbols(f'Ddelta_ff_{name},Domega_ff_{name}', real=True)
 
     # dynamical states:
-    delta,x_v,e_qm,xi_v = sym.symbols(f'delta_{name},x_v_{name},e_qm_{name},xi_v_{name}', real=True)
+    delta,x_p1,x_p2,e_qm,xi_v = sym.symbols(f'delta_{name},x_p1_{name},x_p2_{name},e_qm_{name},xi_v_{name}', real=True)
     
     # algebraic states:
+    Domega = sym.Symbol(f'Domega_{name}', real=True)
     p_s = sym.Symbol(f'p_s_{name}', real=True)
     q_s = sym.Symbol(f'q_s_{name}', real=True)
     e_vq = sym.Symbol(f"e_vq_{name}", real=True)
@@ -105,10 +106,9 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
 
     p_ref = p_l + p_r
     q_ref = q_l + q_r
-    Domega = x_v + K_p * (p_ref - p_s)
     e_vd = 0.0
     epsilon_v = v_ref - V_s
-    omega_v = Domega + 1.0 + Domega_ff
+    omega_v = Domega + 1.0
     q_ref_0 = K_p_v * epsilon_v + K_i_v * xi_v 
 
     v_tD_ref =  v_td_ref * cos(delta_ff) + v_tq_ref * sin(delta_ff)   
@@ -118,15 +118,17 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     v_tr_ref = v_tQ_ref   
     m_ref = sym.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
     theta_t_ref = sym.atan2(v_ti_ref,v_tr_ref) 
-    
+    p_meas = p_s
 
     # dynamical equations
     ddelta   = Omega_b*(omega_v - omega_s) - K_delta*delta
-    dx_v = K_i*(p_ref - p_s) - K_g*(omega_v - 1.0)
+    dx_p1 = K_i*(p_ref - p_meas) - K_g*x_p1
+    dx_p2 = K_p*(p_ref - p_meas) - K_g*x_p2
     de_qm = 1.0/T_q * (q_s - q_ref_0 - q_ref - e_qm) 
     dxi_v = epsilon_v # PI agregado
 
     # algebraic equations
+    g_Domega = -Domega +  dx_p2 + x_p1
     g_v_td_ref  = e_vd - R_v * i_sd - X_v * i_sq - v_td_ref 
     g_v_tq_ref  = e_vq - R_v * i_sq + X_v * i_sd - v_tq_ref 
 
@@ -135,11 +137,11 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
     g_theta_t  = theta_t-theta_t_ref
     
     # DAE system update
-    grid.dae['f'] += [ddelta,dx_v,de_qm,dxi_v]
-    grid.dae['x'] += [ delta, x_v, e_qm, xi_v]
-    grid.dae['g'] +=     [g_v_td_ref,g_v_tq_ref,g_e_vq,g_m,g_theta_t]
-    grid.dae['y_ini'] += [  v_td_ref,  v_tq_ref,  e_vq,  m,  theta_t]
-    grid.dae['y_run'] += [  v_td_ref,  v_tq_ref,  e_vq,  m,  theta_t]
+    grid.dae['f'] += [ddelta,dx_p1,dx_p2,de_qm,dxi_v]
+    grid.dae['x'] += [ delta, x_p1, x_p2, e_qm, xi_v]
+    grid.dae['g'] +=     [g_Domega,g_v_td_ref,g_v_tq_ref,g_e_vq,g_m,g_theta_t]
+    grid.dae['y_ini'] += [  Domega,v_td_ref,  v_tq_ref,  e_vq,  m,  theta_t]
+    grid.dae['y_run'] += [  Domega,v_td_ref,  v_tq_ref,  e_vq,  m,  theta_t]
             
     # default inputs
     grid.dae['u_ini_dict'].update({f'p_l_{name}':0.0})

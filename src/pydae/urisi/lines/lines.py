@@ -57,7 +57,6 @@ def add_lines(self):
                         self.G_primitive[self.it_branch+ibranch,self.it_branch+icol] = g_jk
                         self.B_primitive[self.it_branch+ibranch,self.it_branch+icol] = b_jk
 
-
             #B_primitive[it,ibranch+it] = b_jk
             #B_primitive[it+1,it+1] = bs_jk/2
             #B_primitive[it+2,it+2] = bs_jk/2
@@ -82,8 +81,6 @@ def lines_preprocess(self):
 
         if not 'sym' in line:
             line.update({'sym':False})
-
-
 
         self.N_branches += N_branches
 
@@ -115,3 +112,73 @@ def add_line_monitors(self):
                     self.dae['h_dict'].update({f"i_l_{bus_j_name}_{node_j}_{bus_k_name}_{node_k}_i" : sym.im(self.I_lines[self.it_branch ++it,0])})
 
         self.it_branch += line['N_branches']
+
+
+def change_line(model,bus_j,bus_k,data_line_code,length,N_branches=4):
+    """
+    Change line parameters.
+
+    Parameters
+    ----------
+    model : pydae object
+            pydae model of the grid where the line will be modified
+    bus_j : str
+            name of the from bus of the line
+    bus_k : str
+            name of the to bus of the line
+    data_line_code : dict 
+            dictionary with 2 keys 'R' and 'X' and the respective matrices as list of lists (see example below)
+
+            
+    Returns
+    -------
+    None
+
+
+    Note
+    ----
+
+    Line must be considered *symbolic* ("sym":true) when building the model.
+
+    "lines":[{"bus_j": "A2",  "bus_k": "A3",  "code": "UG1", "m": 100.0,"monitor":true,"sym":true}],
+       
+                 
+    Example
+    -------
+
+    data_line_code = {"R":[[ 0.211,  0.049,  0.049,  0.049],
+                           [ 0.049,  0.211,  0.049,  0.049],
+                           [ 0.049,  0.049,  0.211,  0.049],
+                           [ 0.049,  0.049,  0.049,  0.211]],
+                      "X":[[ 0.747,  0.673,  0.651,  0.673],
+                           [ 0.673,  0.747,  0.673,  0.651],
+                           [ 0.651,  0.673,  0.747,  0.673],
+                           [ 0.673,  0.651,  0.673,  0.747]], "I_max":430.0}
+    
+    length = 10
+    N_branches = 4
+    change_line(model,'A2','A3',data_line_code,length,N_branches)
+    
+    """
+    
+
+    R_primitive_matrix = np.array(data_line_code['R'])
+    X_primitive_matrix = np.array(data_line_code['X'])
+    Z_primitive_matrix = R_primitive_matrix + 1j*X_primitive_matrix
+    Y_primitive_matrix = np.linalg.inv(Z_primitive_matrix*length/1000)
+
+    for ibranch in range(N_branches):
+
+        node_j = ibranch
+        node_k = ibranch    
+
+        for icol in range(N_branches):
+            line_name = f"{bus_j}_{node_j}_{bus_k}_{node_k}_{icol}"
+            g_jk  = f"g_{line_name}" 
+            b_jk  = f"b_{line_name}" 
+            bs_jk = f"bs_{line_name}"
+                           
+            model.set_value(g_jk,Y_primitive_matrix[ibranch,icol].real)
+            model.set_value(b_jk,Y_primitive_matrix[ibranch,icol].imag)
+
+    return None
