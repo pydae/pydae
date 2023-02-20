@@ -39,6 +39,7 @@ dependencies = [
     "numba",
     "hjson",
 ]
+dynamic = ["version", "description"]
 
 
 
