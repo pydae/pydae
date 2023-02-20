@@ -10,13 +10,7 @@ maintainers = [
     {name = "Juan Manuel Mauricio", email = "jmmauricio6@gmail.com"}
 ]
 keywords = [
-    "aero",
-    "aerospace",
     "engineering",
-    "astrodynamics",
-    "orbits",
-    "kepler",
-    "orbital mechanics"
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -38,10 +32,9 @@ dependencies = [
     "scipy",
     "numba",
     "hjson",
+    "svgwrite",
 ]
 dynamic = ["version", "description"]
-
-
 
 [tool.pytest.ini_options]
 minversion = "6.0"
