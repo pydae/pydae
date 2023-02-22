@@ -8,6 +8,8 @@ Created on Thu Feb 25 23:52:55 2021
 import numpy as np
 import sympy as sym
 import json
+import os
+import hjson
 from pydae.bmapu.syns.syns import add_syns
 from pydae.bmapu.vscs.vscs import add_vscs
 from pydae.bmapu.vsgs.vsgs import add_vsgs
@@ -56,8 +58,12 @@ class bmapu:
                 resp = requests.get(url)
                 data = json.loads(resp.text)
             else:
-                with open(data_input,'r') as fobj:
-                    data = json.loads(fobj.read().replace("'",'"'))
+                if os.path.splitext(data_input)[1] == '.json':
+                    with open(data_input,'r') as fobj:
+                        data = json.loads(fobj.read().replace("'",'"'))
+                if os.path.splitext(data_input)[1] == '.hjson':
+                    with open(data_input,'r') as fobj:
+                        data = hjson.loads(fobj.read().replace("'",'"'))
         elif type(data_input) == dict:
             data = data_input
             

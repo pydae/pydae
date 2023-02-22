@@ -49,7 +49,6 @@ class urisi:
                 resp = requests.get(url)
                 data = json.loads(resp.text)
             else:
-                print(os.path.splitext(data_input)[1])
                 if os.path.splitext(data_input)[1] == '.json':
                     with open(data_input,'r') as fobj:
                         data = json.loads(fobj.read().replace("'",'"'))

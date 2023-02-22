@@ -1,0 +1,51 @@
+#Author: Cameron Davidson-Pilon, replicated styles from FiveThirtyEight.com
+# See https://www.dataorigami.net/blogs/fivethirtyeight-mpl
+
+lines.linewidth: 3
+lines.solid_capstyle: butt
+
+legend.fancybox: true
+legend.fontsize: 10
+#d9524f
+#axes.prop_cycle: d9524f, 5cb85c, 337ab7, f0ad4e, 5bc0de,5e4485   # bootsrap
+#axes.prop_cycle: 30a2da, fc4f30, e5ae38, 5cb85c, 8b8b8b  # fivethirtyeight
+#axes.prop_cycle: [fc4f30, 5cb85c, 30a2da,  e5ae38,  8b8b8b]  # jmcolors
+axes.prop_cycle: cycler('color', ['d9524f', '5cb85c', '337ab7', 'f0ad4e', '5bc0de','5e4485', 'b4d0e8', 'b3deb3', 'f5ce98', 'eeb7b3','ace0ee','c1b5d7'])
+axes.facecolor: ffffff
+axes.labelsize: large
+axes.axisbelow: true
+axes.grid: true
+axes.edgecolor: ffffff
+axes.linewidth: 2.0
+axes.titlesize: x-large
+
+
+patch.edgecolor: ffffff
+patch.linewidth: 0.5
+
+svg.fonttype: none
+
+grid.linestyle: -
+grid.linewidth: 1.0
+grid.color: cbcbcb
+
+xtick.major.size: 0
+xtick.minor.size: 0
+ytick.major.size: 0
+ytick.minor.size: 0
+
+font.size:9.0
+font.family        : sans-serif
+font.serif         : Times, Palatino, New Century Schoolbook, Bookman, Computer Modern Roman
+font.sans-serif    : Arial
+font.cursive       : Zapf Chancery
+font.monospace     : Courier, Computer Modern Typewriter
+
+text.usetex        : False
+
+figure.subplot.left: 0.15
+figure.subplot.right: 0.95
+figure.autolayout : True
+figure.subplot.top: 0.95
+figure.subplot.bottom: 0.1
+figure.facecolor: ffffff

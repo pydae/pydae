@@ -11,6 +11,8 @@ from xml.etree.ElementTree import Element
 import numpy as np
 import json
 import svgwrite
+import os
+import hjson
 
 class svg():
     
@@ -112,9 +114,13 @@ class svg():
             data = grid_data
 
         if type(grid_data) == str:
-            data_input = open(grid_data).read().replace("'",'"')
-            data = json.loads(data_input)
-            
+            if os.path.splitext(grid_data)[1] == '.json':
+                with open(grid_data,'r') as fobj:
+                    data = json.loads(fobj.read().replace("'",'"'))
+            if os.path.splitext(grid_data)[1] == '.hjson':
+                with open(grid_data,'r') as fobj:
+                    data = hjson.loads(fobj.read().replace("'",'"'))
+
         self.grid_data = data
 
     def set_tooltips(self, output_file):
