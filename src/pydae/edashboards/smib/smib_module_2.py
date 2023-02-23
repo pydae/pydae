@@ -68,12 +68,12 @@ class dashboard():
         #axes[1].set_title('Corriente en función de la velocidad')
 
 
-        self.sld_p_m = ipywidgets.FloatSlider(orientation='horizontal',description = "<p>p<sub>m</sub></p>", 
+        self.sld_p_m = ipywidgets.FloatSlider(orientation='horizontal',description = "p<sub>m</sub>", 
                                         value=model.get_value('p_m_1'), min=0.0,max= 1.2, 
                                         step=.1)
 
 
-        self.sld_v_f = ipywidgets.FloatSlider(orientation='horizontal',description = "<p>v<sub>f</sub></p>", 
+        self.sld_v_f = ipywidgets.FloatSlider(orientation='horizontal',description = "v<sub>f</sub>", 
                                         value=model.get_value('v_f_1'), min=0.5,max= 4, 
                                         step=.1)
 
