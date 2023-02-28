@@ -69,3 +69,5 @@ def tgov1(dae,syn_data,name):
 
     dae['u_ini_dict'].update({str(p_c):gov_data['p_c']})
     dae['u_run_dict'].update({str(p_c):gov_data['p_c']})
+
+    dae['h_dict'].update({str(p_c):gov_data['p_c']})

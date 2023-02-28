@@ -61,6 +61,11 @@ def kundur(dae,syn_data,name):
 
     dae['xy_0_dict'].update({str(v_1):1.0})
     dae['xy_0_dict'].update({str(xi_v):0.0})
+
+    dae['h_dict'].update({str(v_ref):v_ref})
+    dae['h_dict'].update({str(v_s):v_s})
+
+
     
     
 def avr_kundurq(dae,syn_data,name):

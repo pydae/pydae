@@ -17,7 +17,7 @@ def kundur_tgr(dae,syn_data,name):
 
     avr_data = syn_data['avr']
     
-    v_t = sym.Symbol(f"V_{name}", real=True)   
+    v_c = sym.Symbol(f"V_{name}", real=True)   
     v_r = sym.Symbol(f"v_r_{name}", real=True)  
     x_ab = sym.Symbol(f"x_ab_{name}", real=True)  
     xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
@@ -33,13 +33,14 @@ def kundur_tgr(dae,syn_data,name):
     v_s   = sym.Symbol(f"v_pss_{name}", real=True) 
 
     # auxiliar
-    epsilon_v = v_ref - v_r + v_s
-    u_ab = K_a * epsilon_v
+    epsilon_v = v_ref - v_r 
+    v_i = K_ai*xi_v
+    u_ab = K_a * (epsilon_v + v_s + v_i)
     z_ab = (u_ab - x_ab)*T_a/T_b + x_ab
-    v_f_nosat = z_ab + K_ai*xi_v + 1.5
     
+        
     # differential equations
-    dv_r =   (v_t - v_r)/T_r
+    dv_r =   (v_c - v_r)/T_r
     dx_ab =  (u_ab - x_ab)/T_b      # lead compensator state
     dxi_v =   epsilon_v 
 
@@ -68,3 +69,5 @@ def kundur_tgr(dae,syn_data,name):
     dae['xy_0_dict'].update({str(x_ab):1.0})
     dae['xy_0_dict'].update({str(xi_v):0.0})
     
+    dae['h_dict'].update({str(v_ref):v_ref})
+    dae['h_dict'].update({str(v_s):v_s})
