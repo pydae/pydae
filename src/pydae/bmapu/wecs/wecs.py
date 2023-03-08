@@ -8,6 +8,7 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 from pydae.bmapu.wecs.full_converter import full_converter
+from pydae.bmapu.wecs.pmsm_1 import pmsm_1
 
 from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
 from pydae.bmapu.vsc_models.vsc_models import add_model
@@ -37,9 +38,10 @@ def add_wecs(grid):
                 
         item['name'] = name
 
-        print(item['type'])
         if item['type'] == 'full_converter':                    
             p_W, q_var = full_converter(grid,name,bus_name,data_dict)
+        if item['type'] == 'pmsm_1':                    
+            p_W, q_var = pmsm_1(grid,name,bus_name,data_dict)
 
         # grid power injection
         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected

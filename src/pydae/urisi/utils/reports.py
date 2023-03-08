@@ -1,8 +1,7 @@
 import numpy as np
 import json
-
-import numpy as np
-import json
+import os
+import hjson
 
 class style():    
     RED = '\033[31m'
@@ -47,9 +46,13 @@ def report_v(grid,data_input,show=True,model='urisi'):
         data = data_input
         
     if type(data_input) == str:
-        data_input = open(data_input).read().replace("'",'"')
-        data = json.loads(data_input)
-        
+        if os.path.splitext(data_input)[1] == '.json':
+            with open(data_input,'r') as fobj:
+                data = json.loads(fobj.read().replace("'",'"'))
+        if os.path.splitext(data_input)[1] == '.hjson':
+            with open(data_input,'r') as fobj:
+                data = hjson.loads(fobj.read().replace("'",'"'))
+
     buses_dict = {}
 
     

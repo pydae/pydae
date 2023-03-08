@@ -464,7 +464,9 @@ class bmapu:
             self.dae['params_dict'].update({'K_xif':self.system['K_xif']})
         else:
             self.dae['params_dict'].update({'K_xif':0.0})
-            
+
+        print(self.dae['xy_0_dict'])
+         
         with open('xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
 
