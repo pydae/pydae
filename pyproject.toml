@@ -30,6 +30,7 @@ classifiers = [
 dependencies = [
     "numpy",
     "scipy",
+    "sympy",
     "numba",
     "hjson",
     "svgwrite",
