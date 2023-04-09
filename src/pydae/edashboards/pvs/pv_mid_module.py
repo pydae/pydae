@@ -56,7 +56,7 @@ class dashboard():
         plt.ioff()
         plt.clf()
 
-        self.s = st.svg(r"https://raw.githubusercontent.com/pydae/pydae/master/src/pydae/edashboards/pvs/pv_dashboard.svg")
+        self.s = st.svg(r"pv_dashboard.svg")
 
         self.html = widgets.HTML(
             value= self.s.tostring(),
