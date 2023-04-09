@@ -162,15 +162,17 @@ def pmsm_1(grid,name,bus_name,data_dict):
     ## Pitch
     xi_beta  = sym.Symbol(f"xi_beta_{name}", real=True)
     tau_r  = sym.Symbol(f"tau_r_{name}", real=True)
+    Omega_r_max  = sym.Symbol(f"Omega_r_max_{name}", real=True)
     Omega_r_b = Omega_t_b
-    omega_r_max = Omega_r_b
-    epsilon_beta_nosat = omega_r - omega_r_max
+    epsilon_beta_nosat = omega_r - Omega_r_max
     epsilon_beta = sym.Piecewise((0.0,epsilon_beta_nosat<0),(epsilon_beta_nosat,True)) # test
     beta_ref = K_p_beta*epsilon_beta + K_i_beta*xi_beta
     p_m = tau_r*omega_r
     dxi_beta  = epsilon_beta - xi_beta*1e-8 # test
     #dxi_beta  = epsilon_beta_nosat - xi_beta*1e-8 # test
     dbeta     = 1.0/T_beta*(beta_ref - beta)
+
+    grid.dae['params_dict'].update({f"Omega_r_max_{name}":1.2})
 
     if 'pitch' in mode:
         grid.dae['f'] += [dxi_beta,dbeta]

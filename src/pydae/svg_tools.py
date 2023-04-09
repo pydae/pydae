@@ -48,11 +48,21 @@ class svg():
         
     def set_text(self,text_id,string):
         for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
-            if text.attrib['id'] == text_id: 
-                text.text = string
+            if 'id' in text.attrib: 
+                if text.attrib['id'] == text_id: 
+                    text.text = string
         #for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
         #    tspan.text = string
- 
+
+    def set_tspan(self,tspan_id,string):
+        for tspan in self.root.findall('.//{http://www.w3.org/2000/svg}tspan'):
+            if 'id' in tspan.attrib: 
+                if tspan.attrib['id'] == tspan_id: 
+                    tspan.text = string
+                    
+        #for tspan in text_obj.findall('.//{http://www.w3.org/2000/svg}tspan'):
+        #    tspan.text = string
+        #  
     def set_title(self,text_id,string):
         for text in self.root.findall('.//{http://www.w3.org/2000/svg}text'):
             if text.attrib['id'] == text_id: text_obj = text

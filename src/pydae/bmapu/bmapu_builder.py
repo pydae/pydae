@@ -14,6 +14,7 @@ from pydae.bmapu.syns.syns import add_syns
 from pydae.bmapu.vscs.vscs import add_vscs
 from pydae.bmapu.vsgs.vsgs import add_vsgs
 from pydae.bmapu.wecs.wecs import add_wecs
+from pydae.bmapu.pvs.pvs import add_pvs
 
 from pydae.bmapu.genapes.genapes import add_genapes
 
@@ -432,6 +433,8 @@ class bmapu:
             add_genapes(self)
         if 'wecs' in  self.data:
             add_wecs(self)
+        if 'pvs' in  self.data:
+            add_pvs(self)
 
         #add_vsgs(grid)
         omega_coi = sym.Symbol("omega_coi", real=True)  
