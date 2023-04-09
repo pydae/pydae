@@ -1,4 +1,6 @@
 from pydae.bmapu import bmapu_builder
+import pydae.svg_tools as st 
+
 
 data = {
 "system":{"name":"smib","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},       
@@ -91,6 +93,8 @@ class dashboard(smib.model):
         axes[1,1].set_xlabel('Time (s)') 
 
         fig.tight_layout()
+
+        fig.savefig('results.svg')
         
         self.fig = fig
         #axes[0].set_title('Par en función de la velocidad')
@@ -125,6 +129,15 @@ class dashboard(smib.model):
             bar_style='', # 'success', 'info', 'warning', 'danger' or ''
             orientation='horizontal' 
         )
+
+        self.s = st.svg(r"results.svg")
+
+        self.html = ipywidgets.HTML(
+            value= self.s.tostring(),
+            placeholder='',
+            description='',
+        )
+
         
     def update(self,change):
         
@@ -162,12 +175,17 @@ class dashboard(smib.model):
 
         self.fig.canvas.draw_idle()
 
+        self.fig.savefig('results.svg')
+
+        self.s = st.svg(r"results.svg")
+        self.html.value = self.s.tostring()
+
     def show(self):
 
         self.sld_p_m.observe(self.update, names='value')
         self.sld_v_f.observe(self.update, names='value')
 
-        layout_row1 = ipywidgets.HBox([self.fig.canvas])
+        layout_row1 = ipywidgets.HBox([self.html])
         layout_row2 = ipywidgets.HBox([self.sld_p_m,self.sld_v_f,self.prog_c])
 
         layout = ipywidgets.VBox([layout_row1,layout_row2])
