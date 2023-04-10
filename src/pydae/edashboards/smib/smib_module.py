@@ -127,7 +127,7 @@ class dashboard(smib.model):
             step=1,
             description='ζ = 1.0',
             bar_style='', # 'success', 'info', 'warning', 'danger' or ''
-            orientation='horizontal' 
+            orientation='horizontal' S
         )
 
         self.s = st.svg(r"results.svg")

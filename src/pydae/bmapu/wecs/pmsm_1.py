@@ -139,6 +139,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
 
     ## MPPT
     K_mppt3  = sym.Symbol(f"K_mppt3_{name}", real=True)
+    p_ref_ext = sym.Symbol(f"p_ref_ext_{name}", real=True)
     Lam_opt = Lam_b
     beta_mppt = 0.0
     nu_w_mppt = Nu_w_b*(omega_t/Omega_t_b)   
@@ -152,15 +153,18 @@ def pmsm_1(grid,name,bus_name,data_dict):
     K_mppt = sym.Piecewise((0.0,test_1), (1.0,True))
     Dp_e = sym.Piecewise((Dp_e_ref,test_1), (Dp_e_ref * (1 + 50*(omega_r - omega_r_th)),True))
     p_w_mmpt_ref = p_w_mppt_lpf #+ Dp_e   test
-    p_w_mmpt_ref = K_mppt3*omega_t**3
-    dp_w_mppt_lpf  = K_mppt/T_mppt*(p_w_mmpt_ref - p_w_mppt_lpf)
+    p_w_mmpt_ref = K_mppt3*omega_t**3 
+    dp_w_mppt_lpf  = K_mppt/T_mppt*(p_w_mmpt_ref + p_ref_ext - p_w_mppt_lpf)
     if 'aero' in mode and 'mppt' in mode:
         grid.dae['f'] += [dp_w_mppt_lpf]
         grid.dae['x'] += [ p_w_mppt_lpf]
     grid.dae['params_dict'].update({f"K_mppt3_{name}":0.4})
+    grid.dae['u_ini_dict'].update({f'p_ref_ext_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'p_ref_ext_{name}':0.0})  
 
     ## Pitch
     xi_beta  = sym.Symbol(f"xi_beta_{name}", real=True)
+    beta_ext  = sym.Symbol(f"beta_ext_{name}", real=True)
     tau_r  = sym.Symbol(f"tau_r_{name}", real=True)
     Omega_r_max  = sym.Symbol(f"Omega_r_max_{name}", real=True)
     Omega_r_b = Omega_t_b
@@ -170,8 +174,11 @@ def pmsm_1(grid,name,bus_name,data_dict):
     p_m = tau_r*omega_r
     dxi_beta  = epsilon_beta - xi_beta*1e-8 # test
     #dxi_beta  = epsilon_beta_nosat - xi_beta*1e-8 # test
-    dbeta     = 1.0/T_beta*(beta_ref - beta)
+    dbeta     = 1.0/T_beta*(beta_ref + beta_ext - beta)
 
+    grid.dae['u_ini_dict'].update({f'beta_ext_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'beta_ext_{name}':0.0})  
+    
     grid.dae['params_dict'].update({f"Omega_r_max_{name}":1.2})
 
     if 'pitch' in mode:
@@ -187,6 +194,9 @@ def pmsm_1(grid,name,bus_name,data_dict):
         grid.dae['u_run_dict'].update({f'p_w_{name}':0.0})   
 
     grid.dae['h_dict'].update({f"nu_w_{name}":nu_w})
+    grid.dae['params_dict'].update({f"T_beta_{name}":2.0})
+    grid.dae['params_dict'].update({f"K_p_beta_{name}":100.0})
+    grid.dae['params_dict'].update({f"K_i_beta_{name}":1.0})
 
     ## Mechanical system: 2 mass equivalent    
     dtheta_tr = omega_t - omega_r - u_dummy
@@ -197,16 +207,15 @@ def pmsm_1(grid,name,bus_name,data_dict):
         grid.dae['f'] += [dtheta_tr,domega_t,domega_r]
         grid.dae['x'] += [ theta_tr, omega_t, omega_r]
     else:
-        grid.dae['u_ini_dict'].update({f'omega_r_{name}':1.0})
-        grid.dae['u_run_dict'].update({f'omega_r_{name}':1.0})        
+        grid.dae['u_ini_dict'].update({f'omega_r_{name}':1.2})
+        grid.dae['u_run_dict'].update({f'omega_r_{name}':1.2})        
 
     p_w_0 = 0.8
-    omega_t_0,omega_r_0,beta_0 = 0.6,0.6,0.0
+    omega_t_0,omega_r_0,beta_0 = 1.2,1.2,0.0
     grid.dae['xy_0_dict'].update({str(theta_tr):p_w_0})
     grid.dae['xy_0_dict'].update({str(omega_t):omega_t_0})
     grid.dae['xy_0_dict'].update({str(omega_r):omega_r_0})
     grid.dae['xy_0_dict'].update({str(beta):beta_0})
-    grid.dae['xy_0_dict'].update({str(nu_w):8.0})
     H_t, H_r = data_dict['H_t'],data_dict['H_r']
     grid.dae['params_dict'].update({f"H_t_{name}":H_t})
     grid.dae['params_dict'].update({f"H_r_{name}":H_r})
@@ -282,6 +291,10 @@ def pmsm_1(grid,name,bus_name,data_dict):
     g_i_mq =  L_m*i_md*omega_e + Phi_m*omega_e - R_m*i_mq - v_mq
     g_tau_r = Phi_m*i_mq - tau_r
 
+    grid.dae['h_dict'].update({f"p_m_{name}":i_md*v_md + i_mq*v_mq})
+    grid.dae['h_dict'].update({f"q_m_{name}":i_mq*v_md - i_md*v_mq}) 
+
+
     if 'vsc_m' in mode:
         grid.dae['g'] += [g_i_md,g_i_mq,g_tau_r]
         grid.dae['y_ini'] += [i_md,i_mq,tau_r]
@@ -308,7 +321,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     m_ref = sym.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
     theta_t_ref = sym.atan2(v_ti_ref,v_tr_ref) 
     
-    eq_p_s_ref = -p_s_ref - K_pdc*(v_dc_ref - v_dc)
+    eq_p_s_ref = -p_s_ref - K_pdc*(v_dc_ref - v_dc) + i_md*v_md + i_mq*v_mq
     eq_i_sd_ref  = i_sd_ref*v_sd + i_sq_ref*v_sq - p_s_ref  
     eq_i_sq_ref  = i_sq_ref*v_sd - i_sd_ref*v_sq - q_s_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
@@ -410,8 +423,6 @@ def pmsm_1(grid,name,bus_name,data_dict):
     # grid.dae['h_dict'].update({f"nu_w_mppt_{name}":nu_w_mppt})
     # grid.dae['h_dict'].update({f"p_m_{name}":p_m})
     
-    print(grid.dae['params_dict'])
-
 
     # for item in params_list:       
     #     grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
@@ -454,9 +465,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     C_p_b = C_1*(C_2*inv_lam_i - C_3*beta_b - C_4)*np.exp(-C_5*inv_lam_i) + C_6*lam 
     grid.dae['params_dict'].update({f"C_p_b_{name}":C_p_b})
 
-    grid.dae['params_dict'].update({f"T_beta_{name}":2.0})
-    grid.dae['params_dict'].update({f"K_p_beta_{name}":100.0})
-    grid.dae['params_dict'].update({f"K_i_beta_{name}":1.0})
+
     grid.dae['params_dict'].update({f"T_mppt_{name}":5})
 
     if 'vsc_g' in mode:
