@@ -468,7 +468,6 @@ class bmapu:
         else:
             self.dae['params_dict'].update({'K_xif':0.0})
 
-        print(self.dae['xy_0_dict'])
          
         with open('xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
@@ -489,7 +488,7 @@ class bmapu:
         bldr = db.builder(self.sys_dict,verbose=self.verbose);
         bldr.build()       
 
-    def build(self, name=''):
+    def build(self, name =''):
         if name == '':
             print('Error: name is not provided.')
         self.construct(name)    
