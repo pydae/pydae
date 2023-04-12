@@ -134,7 +134,7 @@ class dashboard():
         self.line_q_t[0].set_data(model.Time, model.get_values('q_g_1'))
 
         i_d, i_q = model.get_mvalue(['i_d_1','i_q_1'])
-        c = (i_d**2+i_q**2)*0.5
+        c = (i_d**2+i_q**2)**0.5
 
         self.prog_c.bar_style = 'success'
         if c>0.9:

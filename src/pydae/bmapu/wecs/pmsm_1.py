@@ -154,7 +154,8 @@ def pmsm_1(grid,name,bus_name,data_dict):
     Dp_e = sym.Piecewise((Dp_e_ref,test_1), (Dp_e_ref * (1 + 50*(omega_r - omega_r_th)),True))
     p_w_mmpt_ref = p_w_mppt_lpf #+ Dp_e   test
     p_w_mmpt_ref = K_mppt3*omega_t**3 
-    dp_w_mppt_lpf  = K_mppt/T_mppt*(p_w_mmpt_ref + p_ref_ext - p_w_mppt_lpf)
+    p_m_ref = sym.Piecewise((p_w_mmpt_ref+p_ref_ext,p_ref_ext<0), (p_w_mmpt_ref,True))
+    dp_w_mppt_lpf  = K_mppt/T_mppt*(p_m_ref - p_w_mppt_lpf)
     if 'aero' in mode and 'mppt' in mode:
         grid.dae['f'] += [dp_w_mppt_lpf]
         grid.dae['x'] += [ p_w_mppt_lpf]
