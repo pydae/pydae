@@ -239,10 +239,10 @@ def ac3ph4wgfpi3(grid,vsc_data):
     dp_ef = 1/T_e*(p_pos/S_n - p_ef)
     dp_cf = 1/T_c*(p_c - p_cf)
    
-    dDe_ao_m = 1/T_v*(v_ra*V_b - De_ao_m)
-    dDe_bo_m = 1/T_v*(v_rb*V_b - De_bo_m)
-    dDe_co_m = 1/T_v*(v_rc*V_b - De_co_m)
-    dDe_no_m = 1/T_v*(v_rn*V_b - De_no_m)
+    dDe_ao_m = 1/T_v*(v_ra - De_ao_m)
+    dDe_bo_m = 1/T_v*(v_rb - De_bo_m)
+    dDe_co_m = 1/T_v*(v_rc - De_co_m)
+    dDe_no_m = 1/T_v*(v_rn - De_no_m)
 
 
     # algebraic equations   
