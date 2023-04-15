@@ -113,7 +113,7 @@ def pv_1(grid,name,bus_name,data_dict):
     ## PV model
     I_sc,I_mpp,V_mpp,V_oc = sym.symbols(f'I_sc_{name},I_mpp_{name},V_mpp_{name},V_oc_{name}', real=True)
     N_s,K_vt,K_it = sym.symbols(f'N_s_{name},K_vt_{name},K_it_{name}', real=True)
-    K_d,R_s,R_sh = sym.symbols(f'K_d_{name},R_s_{name},R_sh_{name}', real=True)
+    K_d,R_pv_s,R_pv_sh = sym.symbols(f'K_d_{name},R_pv_s_{name},R_pv_sh_{name}', real=True)
 
     temp_deg,irrad,i_pv,v_pv,p_pv = sym.symbols(f'temp_deg_{name},irrad_{name},i_pv_{name},v_pv_{name},p_pv_{name}', real=True)
     
@@ -122,12 +122,11 @@ def pv_1(grid,name,bus_name,data_dict):
     Boltzmann = 1.3806e-23 # Boltzmann constant
 
     params_dict = {str(I_sc):3.87,str(I_mpp):3.56,str(V_mpp):33.7,str(V_oc):42.1,str(N_s):72,str(K_vt):-0.160,str(K_it):0.065}
-    params_dict.update({str(R_s):0.5602,str(R_sh):1862,str(K_d):1.3433})
+    params_dict.update({str(R_pv_s):0.5602,str(R_pv_sh):1862,str(K_d):1.3433})
 
     temp_k = temp_deg +273.4
 
-    V_t = K_d*Boltzmann*T_stc/E_c
-    V_oc_t = V_oc + K_vt*( temp_k - T_stc)
+
 
     I_rrad_sts = 1000
 
@@ -138,12 +137,22 @@ def pv_1(grid,name,bus_name,data_dict):
     N_mp = data_dict['N_mp'] 
     v_pv = v_dc*V_dc_b/N_ms
 
-    I_sc_t = I_sc*irrad/I_rrad_sts*(1 + K_it/100*(temp_k - T_stc))
-    I_0 = (I_sc - (V_oc_t - I_sc_t*R_s)/R_sh)*sym.exp(-V_oc_t/(N_s*V_t))
+    # I_sc_t = I_sc*irrad/I_rrad_sts*(1 + K_it/100*(temp_k - T_stc))
+    # I_0 = (I_sc - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*sym.exp(-V_oc_t/(N_s*V_t))
 
-    I_ph = (I_0*sym.exp(V_oc_t/(N_s*V_t)) + V_oc_t/R_sh)*irrad/I_rrad_sts
+    # I_ph = (I_0*sym.exp(V_oc_t/(N_s*V_t)) + V_oc_t/R_pv_sh)*irrad/I_rrad_sts
 
-    eq_i_pv = -i_pv + I_ph - I_0 * (sym.exp((v_pv + i_pv*R_s)/(N_s*V_t))-1)-(v_pv+i_pv*R_s)/R_sh 
+    # eq_i_pv = -i_pv + I_ph - I_0 * (sym.exp((v_pv + i_pv*R_pv_s)/(N_s*V_t))-1)-(v_pv+i_pv*R_pv_s)/R_pv_sh 
+
+    V_t = K_d*Boltzmann*T_stc/E_c
+    V_oc_t = V_oc + K_vt*( temp_k - T_stc)
+    
+    I_sc_t = I_sc*(1 + K_it/100*(temp_k - T_stc))
+    I_0 = (I_sc_t - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*np.exp(-V_oc_t/(N_s*V_t))
+    I_d = I_0*(np.exp((v_pv+i_pv*R_pv_s)/(V_t*N_s))-1)
+    I_ph = I_sc_t*irrad/I_rrad_sts
+    
+    eq_i_pv = -i_pv + I_ph - I_d - (v_pv+i_pv*R_pv_s)/R_pv_sh 
 
     grid.dae['h_dict'].update({f"v_pv_{name}":v_pv})
     grid.dae['h_dict'].update({f"p_pv_{name}":v_pv*i_pv})
@@ -157,7 +166,7 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['y_run'] += [  i_pv]  
     
     grid.dae['params_dict'].update({str(I_sc):3.87,str(I_mpp):3.56,str(V_mpp):33.7,str(V_oc):42.1,str(N_s):72,str(K_vt):-0.160,str(K_it):0.065})
-    grid.dae['params_dict'].update({str(R_s):0.5602,str(R_sh):1862,str(K_d):1.3433})
+    grid.dae['params_dict'].update({str(R_pv_s):0.5602,str(R_pv_sh):1862,str(K_d):1.3433})
 
     grid.dae['xy_0_dict'].update({str(i_pv):3.7})
 
