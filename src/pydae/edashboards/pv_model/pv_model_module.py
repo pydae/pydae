@@ -80,7 +80,7 @@ class dashboard():
 
         self.compute_point(self.sld_v_pv.value)
 
-        self.curve_vi_point = axes[0].plot(self.V,self.I,'o', color='k');
+        #self.curve_vi_point = axes[0].plot(self.V,self.I,'o', color='k');
         # self.curve_vp_point = axes[1].plot(self.v_pv,self.v_pv*self.i_pv,'o', color='k');
 
         axes[0].set_ylim(0,5)
@@ -119,12 +119,12 @@ class dashboard():
         self.V = np.arange(0,50,1.0)
         self.compute_curve(self.V)
 
-        self.curve_vi.set_data(self.V,self.I)
+        self.curve_vi[0].set_data(self.V,self.I)
         self.curve_vp[0].set_data(self.V,self.V*self.I)
 
         self.compute_point(self.sld_v_pv.value)
 
-        self.curve_vi_point.set_data(self.V,self.I+0.1)
+        #self.curve_vi_point.set_data(self.V,self.I+0.1)
         # self.curve_vp_point[0].set_data(self.v_pv,self.v_pv*self.i_pv)
 
 
