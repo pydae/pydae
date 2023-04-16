@@ -145,7 +145,7 @@ def pv_1(grid,name,bus_name,data_dict):
     # eq_i_pv = -i_pv + I_ph - I_0 * (sym.exp((v_pv + i_pv*R_pv_s)/(N_s*V_t))-1)-(v_pv+i_pv*R_pv_s)/R_pv_sh 
 
     V_t = K_d*Boltzmann*T_stc/E_c
-    V_oc_t = V_oc + K_vt*( temp_k - T_stc)
+    V_oc_t = V_oc * (1+K_vt/100.0*( temp_k - T_stc))
 
     I_sc_t = I_sc*(1 + K_it/100*(temp_k - T_stc))
     I_0 = (I_sc_t - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*sym.exp(-V_oc_t/(N_s*V_t))

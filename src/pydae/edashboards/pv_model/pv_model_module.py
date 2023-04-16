@@ -15,7 +15,8 @@ class dashboard():
 
         
         self.colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
-
+        self.data = {"I_sc":3.87,"V_oc":42.1,"I_mpp":3.56,"V_mpp":33.7,"N_s":72,
+        "K_vt":-0.160,"K_it":0.065,"R_s": 0.5602, "R_sh": 1862, "K_d": 1.3433}
 
 
     def ini(self):
@@ -25,16 +26,15 @@ class dashboard():
         self.model = pv_test.model()
         self.model.Dt = 0.01
         self.model.decimation = 1
-        self.model.ini({},{'i_pv':3,'v_mpp':40})
-        
+        self.model.ini(self.data,{'i_pv':3,'v_mpp':40})
+        self.plot_V_max = self.data['V_oc']*1.2
+        self.plot_P_max = self.data['V_mpp']*self.data['I_mpp']*1.2
+        self.plot_I_max = self.data['I_sc']*1.2
         
     def build(self):
 
-        data = {"I_sc":3.87,"V_oc":42.1,"I_mpp":3.56,"V_mpp":33.7,"N_s":72,
-        "K_vt":-0.160,"K_it":0.065,"R_s": 0.5602, "R_sh": 1862, "K_d": 1.3433}
-
         pv = pv_model('pv_test')
-        pv.model_params(data)
+        pv.model_params(self.data)
         pv.build()
 
         self.pv = pv
@@ -68,7 +68,7 @@ class dashboard():
 
         self.sld_irrad = widgets.FloatSlider(description='irrad',min=0, max=1200, step=50, value=1000)
         self.sld_temp_deg = widgets.FloatSlider(description='temp (deg)',min=0, max=75, step=1, value=25)
-        self.sld_v_pv = widgets.FloatSlider(description='v<sub>pv</sub>*',min=0.0, max=50.0, step=1, value=33)
+        self.sld_v_pv = widgets.FloatSlider(description='v<sub>pv</sub>*',min=0.0, max=self.data['V_oc']*1.2, step=1, value=33)
         
         self.V = np.arange(0,50,1.0)
         self.compute_curve(self.V)
@@ -83,11 +83,12 @@ class dashboard():
         #self.curve_vi_point = axes[0].plot(self.V,self.I,'o', color='k');
         # self.curve_vp_point = axes[1].plot(self.v_pv,self.v_pv*self.i_pv,'o', color='k');
 
-        axes[0].set_ylim(0,5)
-        axes[0].set_xlim(0,55)    
-        axes[1].set_ylim(0,150)
-        axes[1].set_xlim(0,55)    
-        axes[1].set_xlim(0,55)    
+        axes[0].set_ylim(0,self.plot_I_max)
+        axes[0].set_xlim(0,self.plot_V_max)  
+         
+        axes[1].set_ylim(0,self.plot_P_max)
+        axes[1].set_xlim(0,self.plot_V_max)    
+        axes[1].set_xlim(0,self.plot_V_max)    
 
         axes[0].set_xlabel(r'$\sf v_{pv}$ (V)')
         axes[1].set_xlabel(r'$\sf v_{pv}$ (V)')
@@ -116,7 +117,7 @@ class dashboard():
         
     def update(self,change):
         
-        self.V = np.arange(0,50,1.0)
+        self.V = np.arange(0,self.data['V_oc']*1.25,1.0)
         self.compute_curve(self.V)
 
         self.curve_vi[0].set_data(self.V,self.I)
