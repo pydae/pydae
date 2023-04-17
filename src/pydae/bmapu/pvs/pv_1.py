@@ -121,21 +121,33 @@ def pv_1(grid,name,bus_name,data_dict):
     E_c = 1.6022e-19 # Elementary charge
     Boltzmann = 1.3806e-23 # Boltzmann constant
 
-    params_dict = {str(I_sc):3.87,str(I_mpp):3.56,str(V_mpp):33.7,str(V_oc):42.1,str(N_s):72,str(K_vt):-0.160,str(K_it):0.065}
-    params_dict.update({str(R_pv_s):0.5602,str(R_pv_sh):1862,str(K_d):1.3433})
-
+    params_dict = {str(I_sc):data_dict['I_sc'],
+                   str(I_mpp):data_dict['I_mpp'],
+                   str(V_mpp):data_dict['V_mpp'],
+                   str(V_oc):data_dict['V_oc'],
+                   str(N_s):data_dict['N_s'],
+                   str(K_vt):data_dict['K_vt'],
+                   str(K_it):data_dict['K_it'],
+                   str(R_pv_s):data_dict['R_pv_s'],
+                   str(R_pv_sh):data_dict['R_pv_sh'],
+                   str(K_d):data_dict['K_d'],
+                   }
+    
     temp_k = temp_deg +273.4
 
-
+    N_ms,N_mp = sym.symbols(f'N_ms_{name},N_mp_{name}', real=True)
 
     I_rrad_sts = 1000
 
     S_n = data_dict['S_n']
     V_dc_b = data_dict['U_n']*np.sqrt(2)
     I_dc_b = S_n/V_dc_b
-    N_ms = data_dict['N_ms'] 
-    N_mp = data_dict['N_mp'] 
+    # N_ms = data_dict['N_ms'] 
+    # N_mp = data_dict['N_mp'] 
     v_pv = v_dc*V_dc_b/N_ms
+
+    grid.dae['params_dict'].update({str(N_ms):data_dict['N_ms'],str(N_mp):data_dict['N_mp'] })
+
 
     # I_sc_t = I_sc*irrad/I_rrad_sts*(1 + K_it/100*(temp_k - T_stc))
     # I_0 = (I_sc - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*sym.exp(-V_oc_t/(N_s*V_t))
@@ -165,10 +177,9 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['y_ini'] += [  i_pv]  
     grid.dae['y_run'] += [  i_pv]  
     
-    grid.dae['params_dict'].update({str(I_sc):3.87,str(I_mpp):3.56,str(V_mpp):33.7,str(V_oc):42.1,str(N_s):72,str(K_vt):-0.160,str(K_it):0.065})
-    grid.dae['params_dict'].update({str(R_pv_s):0.5602,str(R_pv_sh):1862,str(K_d):1.3433})
+    grid.dae['params_dict'].update(params_dict)
 
-    grid.dae['xy_0_dict'].update({str(i_pv):3.7})
+    grid.dae['xy_0_dict'].update({str(i_pv):data_dict['I_sc']})
 
 
     ## grid side VSC control  

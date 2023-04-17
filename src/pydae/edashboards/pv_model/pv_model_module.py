@@ -16,7 +16,7 @@ class dashboard():
         
         self.colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
         self.data = {"I_sc":3.87,"V_oc":42.1,"I_mpp":3.56,"V_mpp":33.7,"N_s":72,
-        "K_vt":-0.160,"K_it":0.065,"R_s": 0.5602, "R_sh": 1862, "K_d": 1.3433}
+        "K_vt":-0.160,"K_it":0.065,"R_pv_s": 0.5602, "R_pv_sh": 1862, "K_d": 1.3433}
 
 
     def ini(self):

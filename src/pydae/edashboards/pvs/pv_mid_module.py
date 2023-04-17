@@ -14,7 +14,10 @@ class dashboard():
 
         
         self.colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+        self.params = {'v_dc_ref_1':1.35,"K_pdc_1":100,'irrad_1':1000,'mode_1':2}
 
+        self.data_pv = {"I_sc":3.87,"V_oc":42.1,"I_mpp":3.56,"V_mpp":33.7,"N_s":72,
+        "K_vt":-0.160,"K_it":0.065,"R_pv_s": 0.5602, "R_pv_sh": 1862, "K_d": 1.3433}
 
     def ini(self):
 
@@ -23,7 +26,7 @@ class dashboard():
         self.model = pv_mid.model()
         self.model.Dt = 0.01
         self.model.decimation = 1
-        self.model.ini({'v_dc_ref_1':1.35,"K_pdc_1":100,'irrad_1':1000,'mode_1':2},'xy_0.json')
+        self.model.ini(self.params,'xy_0.json')
         
         
     def build(self):
@@ -36,11 +39,15 @@ class dashboard():
         "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":100.0}],
         "pvs":[
             {"type":"pv_1","bus":"1","S_n":1e6,"U_n":400.0,      
-            "R_s":0.01,"X_s":0.05,
-                "K_pdc":100,"C_dc":10.5,
-                "N_ms":25,"N_mp":250}],
+             "R_s":0.01,"X_s":0.05,
+             "K_pdc":100,"C_dc":10.5,
+             "I_sc":8,"V_oc":42.1,"I_mpp":3.56,"V_mpp":33.7,"N_s":72,
+             "K_vt":-0.160,"K_it":0.065,"R_pv_s": 0.5602, "R_pv_sh": 1862, "K_d": 1.3433,
+             "N_ms":25,"N_mp":250}],
         "genapes":[{"bus":"2","S_n":100e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
         }
+
+        data['pvs'][0].update(self.data_pv)
 
         grid = bmapu_builder.bmapu(data)
         #grid.checker()
@@ -103,19 +110,21 @@ class dashboard():
         self.tab.set_title(1, 'VSC')
         self.tab.set_title(2, 'Grid')
 
-        model.ini({'v_dc_ref_1':self.sld_v_dc.value,"K_pdc_1":100,'irrad_1':1000,
-                'b_1_2':-0.1,'g_1_2':0.0},'xy_0.json')
+        self.params.update({'v_dc_ref_1':self.sld_v_dc.value,
+                            "K_pdc_1":100,'irrad_1':1000,'b_1_2':-0.1,'g_1_2':0.0})
+
+        model.ini(self.params,'xy_0.json')
         
     def update(self,change):
         
         model = self.model
 
-        model.ini({'v_dc_ref_1':self.sld_v_dc.value,"K_pdc_1":100,'q_s_ref_1':self.sld_q_s.value,
+        self.params.update({'v_dc_ref_1':self.sld_v_dc.value,"K_pdc_1":100,'q_s_ref_1':self.sld_q_s.value,
                 'irrad_1':self.tab_1_sld_irrad.value,'temp_deg_1':self.tab_1_sld_temp_deg.value,
                 'i_sd_i_ref_1':self.sld_i_d.value, 'i_sq_i_ref_1':self.sld_i_q.value, 
                 'b_1_2':-0.1*self.sld_SCR.value,
-                'v_ref_2':self.sld_V_g.value},
-                'xy_0.json')
+                'v_ref_2':self.sld_V_g.value})
+        model.ini(self.params,'xy_0.json')
         
         if self.options_mode.value == 'LVRT':
             model.ini({'v_dc_ref_1':1.8,"K_pdc_1":1,'q_s_ref_1':0.0,
