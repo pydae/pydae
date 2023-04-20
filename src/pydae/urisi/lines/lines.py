@@ -7,6 +7,7 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
+import numba
 
 
 def add_lines(self):
@@ -182,3 +183,72 @@ def change_line(model,bus_j,bus_k,data_line_code,length,N_branches=4):
             model.set_value(b_jk,Y_primitive_matrix[ibranch,icol].imag)
 
     return None
+
+
+def codes_matrix(model,data):
+    """
+    Generates two numpy arrays, code_g_primitives and code_b_primitives, with N rows each. 
+    Each row of code_g_primitives has the flatten real part of primitive admitance matrix while code_b_primitives has the imaginary parts.
+
+    Input
+    =====
+
+    Dictionary with line codes and their R and X primitive matrices.
+
+    Returns
+    =======
+
+    - code_g_primitives: flatten real part of primitive admitance matrix
+    - code_b_primitives: flatten imaginary part of primitive admitance matrix  
+
+    """
+
+    code_y_primitives = [] 
+
+    line_codes = data['line_codes']
+    for line_code in line_codes:
+
+        R_primitive_matrix = np.array(line_codes[line_code]['R'])
+        X_primitive_matrix = np.array(line_codes[line_code]['X'])
+        Z_primitive_matrix = R_primitive_matrix + 1j*X_primitive_matrix
+        Y_primitive_matrix = np.linalg.inv(Z_primitive_matrix)
+        code_y_primitives += [Y_primitive_matrix.flatten()]
+    y_primitives = np.array(code_y_primitives)
+    codes_g_primitives = y_primitives.real
+    codes_b_primitives =  y_primitives.imag
+        
+    model.codes_g_primitives = codes_g_primitives
+    model.codes_b_primitives = codes_b_primitives
+
+    return codes_g_primitives,codes_b_primitives
+    
+def lines2p_idx(model,data):
+    """
+
+    """
+
+    lines2p_indices_list = []
+    for line in data['lines']:
+        bus_j = line['bus_j']
+        bus_k = line['bus_k']
+        line_name = f"{bus_j}_{0}_{bus_k}_{0}_{0}"
+        idx = model.params_list.index(f"g_{line_name}")
+        N_branches = 4
+        lines2p_indices_list += [[idx,N_branches]]
+        lines2p_indices = np.array(lines2p_indices_list)
+    
+    model.lines2p_indices = lines2p_indices
+
+    return lines2p_indices
+
+
+@numba.njit()
+def change_line_fast(p,lines_idxs,line_codes_idx,lengths_km,codes_g_primitives,codes_b_primitives,lines2p_indices):
+    for it in range(len(lines_idxs)):
+        length_km = lengths_km[it]
+        line_code_idx = line_codes_idx[it]
+        ini_idx = lines2p_indices[lines_idxs[it],0] 
+        end_idx = ini_idx + lines2p_indices[lines_idxs[it],1]**2*2
+
+        p[ini_idx:  end_idx:2] = codes_g_primitives[line_code_idx]/length_km
+        p[ini_idx+1:end_idx:2] = codes_b_primitives[line_code_idx]/length_km
