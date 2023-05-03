@@ -57,7 +57,7 @@ class bmapu:
             if 'http' in data_input:
                 url = data_input
                 resp = requests.get(url)
-                data = json.loads(resp.text)
+                data = hjson.loads(resp.text)
             else:
                 if os.path.splitext(data_input)[1] == '.json':
                     with open(data_input,'r') as fobj:
@@ -95,7 +95,7 @@ class bmapu:
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
 
-        self.uz_jacs = False     
+        self.uz_jacs = True     
         self.verbose = False   
                 
     def contruct_grid(self):

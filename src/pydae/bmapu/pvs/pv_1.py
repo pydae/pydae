@@ -188,6 +188,7 @@ def pv_1(grid,name,bus_name,data_dict):
     K_pdc,K_idc = sym.symbols(f'K_pdc_{name},K_idc_{name}', real=True)
     omega_coi = sym.symbols(f'omega_coi_{name}', real=True)
     mode,i_sd_i_ref,i_sq_i_ref = sym.symbols(f'mode_{name},i_sd_i_ref_{name},i_sq_i_ref_{name}', real=True)
+    p_ppc_ref,q_ppc_ref = sym.symbols(f'p_ppc_ref_{name},q_ppc_ref_{name}', real=True)
 
     delta = theta_s # ideal PLL
     v_sD = V_s*sin(theta_s)  # v_si   e^(-j)
@@ -205,9 +206,11 @@ def pv_1(grid,name,bus_name,data_dict):
     i_sd_ref = i_sd_i_ref + i_sd_pq_ref
     i_sq_ref = i_sq_i_ref + i_sq_pq_ref
 
-    eq_p_s_ref = -p_s_ref - K_pdc*(v_dc_ref - v_dc)
+    p_s_vdc_ref = - K_pdc*(v_dc_ref - v_dc) 
+    
+    eq_p_s_ref = -p_s_ref + sym.Piecewise((p_ppc_ref,p_ppc_ref<-p_s_vdc_ref),(p_s_vdc_ref,True))
     eq_i_sd_pq_ref  = i_sd_pq_ref*v_sd + i_sq_pq_ref*v_sq - p_s_ref  
-    eq_i_sq_pq_ref  = i_sq_pq_ref*v_sd - i_sd_pq_ref*v_sq - q_s_ref
+    eq_i_sq_pq_ref  = i_sq_pq_ref*v_sd - i_sd_pq_ref*v_sq - q_s_ref - q_ppc_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
     eq_v_tq_ref  = v_tq_ref - R_s*i_sq_ref + X_s*i_sd_ref - v_sq 
 
@@ -225,6 +228,12 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['u_run_dict'].update({f'i_sd_i_ref_{name}':0})
     grid.dae['u_ini_dict'].update({f'i_sq_i_ref_{name}':0})
     grid.dae['u_run_dict'].update({f'i_sq_i_ref_{name}':0})
+
+    grid.dae['u_ini_dict'].update({f'p_ppc_ref_{name}':0})
+    grid.dae['u_run_dict'].update({f'p_ppc_ref_{name}':0})
+    grid.dae['u_ini_dict'].update({f'q_ppc_ref_{name}':0})
+    grid.dae['u_run_dict'].update({f'q_ppc_ref_{name}':0})
+
     grid.dae['xy_0_dict'].update({str(i_sr):0.1})
     grid.dae['h_dict'].update({f"i_sd_ref_{name}":i_sd_ref})
     grid.dae['h_dict'].update({f"i_sq_ref_{name}":i_sq_ref})
