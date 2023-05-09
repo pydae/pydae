@@ -9,6 +9,7 @@ import numpy as np
 import sympy as sym
 
 from pydae.bmapu.pvs.pv_1 import pv_1
+from pydae.bmapu.pvs.pv_dq import pv_dq
 
 def add_pvs(grid):
 
@@ -37,6 +38,9 @@ def add_pvs(grid):
 
         if item['type'] == 'pv_1':                    
             p_W, q_var = pv_1(grid,name,bus_name,data_dict)
+
+        if item['type'] == 'pv_dq':                    
+            p_W, q_var = pv_dq(grid,name,bus_name,data_dict)
 
         # grid power injection
         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected

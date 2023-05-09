@@ -20,7 +20,7 @@ def load_ac(grid,data):
     name = data['bus']
     v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'V_{name}_0_r,V_{name}_1_r,V_{name}_2_r,V_{name}_3_r,v_{name}_o_r', real=True)
     v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'V_{name}_0_i,V_{name}_1_i,V_{name}_2_i,V_{name}_3_i,v_{name}_o_i', real=True)
-
+    K_abc,V_th = sym.symbols(f'K_abc_{name},V_th_{name}',real=True)
     # i_a = I_node_sym_list[nodes_list.index(f'{bus_name}.1')]
     # i_b = I_node_sym_list[nodes_list.index(f'{bus_name}.2')]
     # i_c = I_node_sym_list[nodes_list.index(f'{bus_name}.3')]
@@ -45,6 +45,16 @@ def load_ac(grid,data):
     v_bn = v_b - v_n
     v_cn = v_c - v_n
 
+    v_anm = (v_sa_r**2 + v_sa_i**2)**0.5 
+    v_bnm = (v_sb_r**2 + v_sb_i**2)**0.5 
+    v_cnm = (v_sc_r**2 + v_sc_i**2)**0.5 
+
+    V_th = 0.7
+
+    Kv_anm_lim = sym.Piecewise(((v_anm+0.3),v_anm<V_th),(1.0,v_anm>=V_th))
+    Kv_bnm_lim = sym.Piecewise(((v_bnm+0.3),v_bnm<V_th),(1.0,v_bnm>=V_th))
+    Kv_cnm_lim = sym.Piecewise(((v_cnm+0.3),v_cnm<V_th),(1.0,v_cnm>=V_th))
+
     s_a = v_an*sym.conjugate(i_a)
     s_b = v_bn*sym.conjugate(i_b)
     s_c = v_cn*sym.conjugate(i_c)
@@ -59,12 +69,12 @@ def load_ac(grid,data):
     s_z_b = sym.conjugate((g_b + 1j*b_b)*v_bn)*v_bn
     s_z_c = sym.conjugate((g_c + 1j*b_c)*v_cn)*v_cn
     
-    self.dae['g'] += [p_a + sym.re(s_z_a) + sym.re(s_a)]
-    self.dae['g'] += [p_b + sym.re(s_z_b) + sym.re(s_b)]
-    self.dae['g'] += [p_c + sym.re(s_z_c) + sym.re(s_c)]
-    self.dae['g'] += [q_a + sym.im(s_z_a) + sym.im(s_a)]
-    self.dae['g'] += [q_b + sym.im(s_z_b) + sym.im(s_b)]
-    self.dae['g'] += [q_c + sym.im(s_z_c) + sym.im(s_c)]
+    self.dae['g'] += [K_abc*(p_a + sym.re(s_z_a) + sym.re(s_a)/Kv_anm_lim)]
+    self.dae['g'] += [K_abc*(p_b + sym.re(s_z_b) + sym.re(s_b)/Kv_bnm_lim)]
+    self.dae['g'] += [K_abc*(p_c + sym.re(s_z_c) + sym.re(s_c)/Kv_cnm_lim)]
+    self.dae['g'] += [K_abc*(q_a + sym.im(s_z_a) + sym.im(s_a)/Kv_anm_lim)]
+    self.dae['g'] += [K_abc*(q_b + sym.im(s_z_b) + sym.im(s_b)/Kv_bnm_lim)]
+    self.dae['g'] += [K_abc*(q_c + sym.im(s_z_c) + sym.im(s_c)/Kv_cnm_lim)]
 
     self.dae['g'] += [sym.re(i_a+i_b+i_c+i_n)]
     self.dae['g'] += [sym.im(i_a+i_b+i_c+i_n)]
@@ -106,3 +116,5 @@ def load_ac(grid,data):
         self.dae['u_ini_dict'].update({f'b_load_{name}_{phase}':0})
         self.dae['u_run_dict'].update({f'g_load_{name}_{phase}':0})
         self.dae['u_run_dict'].update({f'b_load_{name}_{phase}':0})
+
+    self.dae['params_dict'].update({f'K_abc_{name}':1.0})

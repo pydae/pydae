@@ -208,7 +208,7 @@ def pv_1(grid,name,bus_name,data_dict):
 
     p_s_vdc_ref = - K_pdc*(v_dc_ref - v_dc) 
     
-    eq_p_s_ref = -p_s_ref + sym.Piecewise((p_ppc_ref,p_ppc_ref<-p_s_vdc_ref),(p_s_vdc_ref,True))
+    eq_p_s_ref = -p_s_ref + sym.Piecewise((p_ppc_ref,p_ppc_ref<p_s_vdc_ref),(p_s_vdc_ref,True))
     eq_i_sd_pq_ref  = i_sd_pq_ref*v_sd + i_sq_pq_ref*v_sq - p_s_ref  
     eq_i_sq_pq_ref  = i_sq_pq_ref*v_sd - i_sd_pq_ref*v_sq - q_s_ref - q_ppc_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
@@ -237,6 +237,7 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['xy_0_dict'].update({str(i_sr):0.1})
     grid.dae['h_dict'].update({f"i_sd_ref_{name}":i_sd_ref})
     grid.dae['h_dict'].update({f"i_sq_ref_{name}":i_sq_ref})
+    grid.dae['h_dict'].update({f"p_s_vdc_ref_{name}":i_sq_ref})
 
     ## grid side VSC
     v_sr =  V_s*cos(theta_s)  # v_Q

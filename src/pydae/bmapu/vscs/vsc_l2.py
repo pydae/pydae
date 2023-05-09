@@ -11,27 +11,29 @@ import sympy as sym
 def vsc_l(grid,name,bus_name,data_dict):
     '''
 
+    VSC model with L filter coupling and purely algebraic.
+    No control is implemented. 
+
     parameters
     ----------
 
     S_n: nominal power in VA
+    U_n: nominal rms phase to phase voltage in V
     F_n: nominal frequency in Hz
-    X_v: coupling reactance in pu (base machine S_n)
-    R_v: coupling resistance in pu (base machine S_n)
-    K_delta: if K_delta>0.0 current generator is converted to reference machine 
-    K_alpha: alpha gain to obtain Domega integral 
+    X_s: coupling reactance in pu (base machine S_n)
+    R_s: coupling resistance in pu (base machine S_n)
 
     inputs
     ------
 
-    alpha: RoCoF in pu if K_alpha = 1.0
-    omega_ref: frequency in pu
-    v_ref: internal voltage reference
+    v_dc: dc voltage in pu (when v_dc = 1 and m = 1, v_ac = 1)
+    m: modulation index (-)
+    theta_t: absolute terminal voltage phase angle (rad)
 
     example
     -------
 
-    "vscs": [{"type":"vsc_l","S_n":1e6,"F_n":50.0,"X_s":0.1,"R_s":0.01}]
+    "vscs": [{"type":"vsc_l","S_n":1e6,"U_n":400.0,"F_n":50.0,"X_s":0.1,"R_s":0.01,"monitor":True}]
     
     '''
 
@@ -46,7 +48,7 @@ def vsc_l(grid,name,bus_name,data_dict):
     v_dc = sym.Symbol(f"v_dc_{name}", real=True)
       
     # dynamic states
-    m_f = sym.Symbol(f"m_f_{name}", real=True)
+    #m_f = sym.Symbol(f"m_f_{name}", real=True)
 
     # algebraic states
     i_si = sym.Symbol(f"i_si_{name}", real=True)
@@ -56,17 +58,18 @@ def vsc_l(grid,name,bus_name,data_dict):
 
     # parameters
     S_n = sym.Symbol(f"S_n_{name}", real=True)
+    U_n = sym.Symbol(f"U_n_{name}", real=True)
     F_n = sym.Symbol(f"F_n_{name}", real=True)            
     X_s = sym.Symbol(f"X_s_{name}", real=True)
     R_s = sym.Symbol(f"R_s_{name}", real=True)
     
-    params_list = ['S_n','F_n','X_s','R_s']
+    params_list = ['S_n','F_n','U_n','X_s','R_s']
     
     # auxiliar
     v_si = V_s*sin(theta_s)  # v_D, e^(-j)
     v_sr = V_s*cos(theta_s)  # v_Q
     Omega_b = 2*np.pi*F_n
-    v_t_m = m*v_dc/np.sqrt(6)
+    v_t_m = m*v_dc
     v_tr = v_t_m*cos(theta_t)
     v_ti = v_t_m*sin(theta_t)
     
@@ -79,8 +82,8 @@ def vsc_l(grid,name,bus_name,data_dict):
     g_q_s  = i_si*v_sr - i_sr*v_si - q_s 
 
     # dae 
-    f_vsg = [(m - m_f)]
-    x_vsg = [m_f]
+    f_vsg = []
+    x_vsg = []
     g_vsg = [g_i_si,g_i_sr,g_p_s,g_q_s]
     y_vsg = [  i_si,  i_sr,  p_s,  q_s]
 
@@ -111,6 +114,13 @@ def vsc_l(grid,name,bus_name,data_dict):
 
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
+
+    if 'monitor' in data_dict:
+        if data_dict['monitor'] == True:
+            V_dc_b = U_n*np.sqrt(2)
+            grid.dae['h_dict'].update({f"v_dc_v_{name}":v_dc*V_dc_b})
+            grid.dae['h_dict'].update({f"v_ac_v_{name}":v_t_m*U_n})
+            
 
     p_W   = p_s * S_n
     q_var = q_s * S_n
