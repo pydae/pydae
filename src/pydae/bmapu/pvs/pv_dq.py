@@ -108,10 +108,7 @@ def pv_dq(grid,name,bus_name,data_dict):
                    str(K_it):data_dict['K_it']
                    })
 
-    grid.dae['h_dict'].update({f"v_dc_v_{name}":v_dc_v})    
-    grid.dae['h_dict'].update({f"p_mp_{name}":p_mp})    
-    grid.dae['h_dict'].update({f"i_pv_{name}":i_pv})    
-    grid.dae['h_dict'].update({f"v_dc_{name}":v_dc})    
+   
     
     grid.dae['xy_0_dict'].update({f"v_dc_v_{name}":data_dict['V_mp']*data_dict['N_pv_s']})
 
@@ -128,7 +125,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     i_sd_pq_ref,i_sq_pq_ref = sym.symbols(f'i_sd_pq_ref_{name},i_sq_pq_ref_{name}', real=True)
     i_sd_ar_ref,i_sq_ar_ref = sym.symbols(f'i_sd_ar_ref_{name},i_sq_ar_ref_{name}', real=True)
     v_td_ref,v_tq_ref = sym.symbols(f'v_td_ref_{name},v_tq_ref_{name}', real=True)
-    v_lvrt = sym.Symbol(f"v_lvrt_{name}", real=True)
+    v_lvrt,lvrt_ext = sym.symbols(f"v_lvrt_{name},lvrt_ext_{name}", real=True)
      
     ### parameters
     
@@ -140,7 +137,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     v_sq = v_sD * sin(delta) + v_sQ * cos(delta)
 
     v_m = sym.sqrt(v_sd**2 + v_sq**2)
-    lvrt = sym.Piecewise((0.0,v_m>=v_lvrt),(1.0,v_m<v_lvrt))
+    lvrt = sym.Piecewise((0.0,v_m>=v_lvrt),(1.0,v_m<v_lvrt)) + lvrt_ext
     p_s_ref = sym.Piecewise((p_s_ppc,p_s_ppc<p_mp),(p_mp,p_s_ppc>=p_mp))
     q_s_ref = q_s_ppc
 
@@ -159,8 +156,10 @@ def pv_dq(grid,name,bus_name,data_dict):
 
     i_sd_pq_ref = (p_s_ref*v_sd + q_s_ref*v_sq)/(v_sd**2 + v_sq**2)
     i_sq_pq_ref = (p_s_ref*v_sq - q_s_ref*v_sd)/(v_sd**2 + v_sq**2)
-    i_sd_ref = (1.0-lvrt)*i_sd_pq_ref + lvrt*i_sd_ar_ref
-    i_sq_ref = (1.0-lvrt)*i_sq_pq_ref + lvrt*i_sq_ar_ref
+    i_sd_ref_nosat = (1.0-lvrt)*i_sd_pq_ref + lvrt*i_sd_ar_ref
+    i_sq_ref_nosat = (1.0-lvrt)*i_sq_pq_ref + lvrt*i_sq_ar_ref
+    i_sd_ref = sym.Piecewise((-1.2,i_sd_ref_nosat<-1.2),(1.2,i_sd_ref_nosat>1.2),(i_sd_ref_nosat,True))
+    i_sq_ref = sym.Piecewise((-1.2,i_sq_ref_nosat<-1.2),(1.2,i_sq_ref_nosat>1.2),(i_sq_ref_nosat,True))
 
     v_td_ref  =  R_s*i_sd_ref - X_s*i_sq_ref + v_sd  
     v_tq_ref  =  R_s*i_sq_ref + X_s*i_sd_ref + v_sq 
@@ -174,6 +173,9 @@ def pv_dq(grid,name,bus_name,data_dict):
 
 
     ### dae 
+
+    grid.dae['u_ini_dict'].update({f'lvrt_ext_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'lvrt_ext_{name}':0.0})
 
     grid.dae['u_ini_dict'].update({f'p_s_ppc_{name}':1.5})
     grid.dae['u_run_dict'].update({f'p_s_ppc_{name}':1.5})
@@ -230,18 +232,18 @@ def pv_dq(grid,name,bus_name,data_dict):
     ### algebraic equations   
     v_ti = v_ti_ref 
     v_tr = v_tr_ref 
-    # g_i_si = v_ti - R_s*i_si + X_s*i_sr - v_si  
-    # g_i_sr = v_tr - R_s*i_sr - X_s*i_si - v_sr 
-    i_sr = (-R_s*v_sr + R_s*v_tr + X_s*v_si - X_s*v_ti)/(R_s**2 + X_s**2)
-    i_si = (-R_s*v_si + R_s*v_ti - X_s*v_sr + X_s*v_tr)/(R_s**2 + X_s**2)
+    g_i_si = v_ti - R_s*i_si + X_s*i_sr - v_si  
+    g_i_sr = v_tr - R_s*i_sr - X_s*i_si - v_sr 
+    # i_sr = (-R_s*v_sr + R_s*v_tr + X_s*v_si - X_s*v_ti)/(R_s**2 + X_s**2)
+    # i_si = (-R_s*v_si + R_s*v_ti - X_s*v_sr + X_s*v_tr)/(R_s**2 + X_s**2)
     g_p_s  = i_si*v_si + i_sr*v_sr - p_s  
     g_q_s  = i_si*v_sr - i_sr*v_si - q_s 
 
     ### dae 
     f_vsg = []
     x_vsg = []
-    g_vsg = [g_p_s,g_q_s]
-    y_vsg = [  p_s,  q_s]
+    g_vsg = [g_i_si,g_i_sr,g_p_s,g_q_s]
+    y_vsg = [  i_sr,  i_si,  p_s,  q_s]
 
     grid.dae['f'] += f_vsg
     grid.dae['x'] += x_vsg
@@ -261,14 +263,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     grid.dae['xy_0_dict'].update({str(p_s):0.5})
        
     ### outputs
-    grid.dae['h_dict'].update({f"p_s_{name}":p_s})
-    grid.dae['h_dict'].update({f"q_s_{name}":q_s})
-    grid.dae['h_dict'].update({f"v_ti_{name}":v_ti})
-    grid.dae['h_dict'].update({f"v_tr_{name}":v_tr})    
-    grid.dae['h_dict'].update({f"i_si_{name}":i_si})
-    grid.dae['h_dict'].update({f"i_sr_{name}":i_sr})
-    i_s = sym.sqrt(i_sr**2 + i_si**2) 
-    grid.dae['h_dict'].update({f"i_s_{name}":i_s})
+
 
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
@@ -278,7 +273,18 @@ def pv_dq(grid,name,bus_name,data_dict):
             
             grid.dae['h_dict'].update({f"v_dc_v_{name}":v_dc*V_dc_b})
             grid.dae['h_dict'].update({f"v_ac_v_{name}":v_t_m*U_n})
-            
+            grid.dae['h_dict'].update({f"v_dc_v_{name}":v_dc_v})    
+            grid.dae['h_dict'].update({f"p_mp_{name}":p_mp})    
+            grid.dae['h_dict'].update({f"i_pv_{name}":i_pv})    
+            grid.dae['h_dict'].update({f"v_dc_{name}":v_dc}) 
+            grid.dae['h_dict'].update({f"p_s_{name}":p_s})
+            grid.dae['h_dict'].update({f"q_s_{name}":q_s})
+            grid.dae['h_dict'].update({f"v_ti_{name}":v_ti})
+            grid.dae['h_dict'].update({f"v_tr_{name}":v_tr})    
+            grid.dae['h_dict'].update({f"i_si_{name}":i_si})
+            grid.dae['h_dict'].update({f"i_sr_{name}":i_sr})
+            i_s = sym.sqrt(i_sr**2 + i_si**2) 
+            grid.dae['h_dict'].update({f"i_s_{name}":i_s})            
 
     p_W   = p_s * S_n
     q_var = q_s * S_n
@@ -359,7 +365,7 @@ if __name__ == "__main__":
                  "K_vt":-0.160,"K_it":0.065,
                  "N_pv_s":25,"N_pv_p":250}
 
-    p_W,q_var = pv_pq(grid,'1','1',data_dict)
+    p_W,q_var = pv_dq(grid,'1','1',data_dict)
 
     # grid power injection
     idx_bus = [bus['name'] for bus in grid.data['buses']].index(bus_name) # get the number of the bus where the syn is connected

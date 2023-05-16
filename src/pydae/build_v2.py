@@ -25,6 +25,8 @@ import os
 import cffi
 import time
 import logging
+import multiprocessing
+from functools import partial
 
 
 
@@ -33,7 +35,7 @@ class builder():
 
     def __init__(self,sys,verbose=False):
 
-        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.ERROR)
+        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
 
         self.verbose = verbose
         self.sys = sys
@@ -43,6 +45,7 @@ class builder():
         self.string_u2z = ''
         self.u2z = '\#'
         self.inirun = True
+        self.sparse = False
 
 
         if not os.path.exists('build'):
@@ -71,13 +74,17 @@ class builder():
             self.string_u2z = '\n'
             self.u2z_comment = '#'
         else:
-            self.uz_jacs = sys['uz_jacs'] 
-            self.u2z_comment = ''
+            if sys['uz_jacs'] == True:
+                self.uz_jacs = True 
+                self.u2z_comment = ''
+            else:
+                self.uz_jacs = False 
+                self.string_u2z = '\n'
+                self.u2z_comment = '#'
 
     def dict2system(self):
         '''
         Converts input dictionary of DAE system to sympy matrices of the DAE system
-
 
         Parameters
         ----------
@@ -378,40 +385,45 @@ class builder():
         sym2xyup(self.sys,self.jac_trap_list,'run')
         logging.debug('end jac_trap c to c xyup')  
 
-        ## Fu_run
-        self.Fu_run_sp = _doktocsr(SparseMatrix(Fu_run))
-        for item in self.Fu_run_sp[0]:
-            self.Fu_list += [{'sym':item}]
-        sym2c(self.Fu_list)
-        sym2xyup(self.sys,self.Fu_list,'run')
+        if self.uz_jacs:
+            ## Fu_run
+            logging.debug('Fu_run_sp symbolic to c')
+            self.Fu_run_sp = _doktocsr(SparseMatrix(Fu_run))
+            for item in self.Fu_run_sp[0]:
+                self.Fu_list += [{'sym':item}]
+            sym2c(self.Fu_list)
+            logging.debug('end Fu_run_sp symbolic to c')
+            logging.debug('Fu_run_sp c to c xyup')
+            sym2xyup(self.sys,self.Fu_list,'run')
+            logging.debug('end Fu_run_sp c to c xyup')
 
-        ## Gu_run
-        self.Gu_run_sp = _doktocsr(SparseMatrix(Gu_run))
-        for item in self.Gu_run_sp[0]:
-            self.Gu_list += [{'sym':item}]
-        sym2c(self.Gu_list)
-        sym2xyup(self.sys,self.Gu_list,'run')
+            ## Gu_run
+            self.Gu_run_sp = _doktocsr(SparseMatrix(Gu_run))
+            for item in self.Gu_run_sp[0]:
+                self.Gu_list += [{'sym':item}]
+            sym2c(self.Gu_list)
+            sym2xyup(self.sys,self.Gu_list,'run')
 
-        ## Hx_run
-        self.Hx_run_sp = _doktocsr(SparseMatrix(Hx_run))
-        for item in self.Hx_run_sp[0]:
-            self.Hx_list += [{'sym':item}]
-        sym2c(self.Hx_list)
-        sym2xyup(self.sys,self.Hx_list,'run')
+            ## Hx_run
+            self.Hx_run_sp = _doktocsr(SparseMatrix(Hx_run))
+            for item in self.Hx_run_sp[0]:
+                self.Hx_list += [{'sym':item}]
+            sym2c(self.Hx_list)
+            sym2xyup(self.sys,self.Hx_list,'run')
 
-        ## Hy_run
-        self.Hy_run_sp = _doktocsr(SparseMatrix(Hy_run))
-        for item in self.Hy_run_sp[0]:
-            self.Hy_list += [{'sym':item}]
-        sym2c(self.Hy_list)
-        sym2xyup(self.sys,self.Hy_list,'run')
+            ## Hy_run
+            self.Hy_run_sp = _doktocsr(SparseMatrix(Hy_run))
+            for item in self.Hy_run_sp[0]:
+                self.Hy_list += [{'sym':item}]
+            sym2c(self.Hy_list)
+            sym2xyup(self.sys,self.Hy_list,'run')
 
-        ## Hu_run
-        self.Hu_run_sp = _doktocsr(SparseMatrix(Hu_run))
-        for item in self.Hu_run_sp[0]:
-            self.Hu_list += [{'sym':item}]
-        sym2c(self.Hu_list)
-        sym2xyup(self.sys,self.Hu_list,'run')
+            ## Hu_run
+            self.Hu_run_sp = _doktocsr(SparseMatrix(Hu_run))
+            for item in self.Hu_run_sp[0]:
+                self.Hu_list += [{'sym':item}]
+            sym2c(self.Hu_list)
+            sym2xyup(self.sys,self.Hu_list,'run')
 
     def check_system(self):
         sys = self.sys
@@ -449,170 +461,179 @@ class builder():
   
     def cwrite(self): 
 
-        defs = ''
-        source = '' 
+        defs_ini = ''
+        source_ini = '' 
 
-        defs += f'void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_run = ''
+        source_run = '' 
+
+        defs_trap = ''
+        source_trap = '' 
+
+        defs_ini += f'void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_ini += f'void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.f_ini_list):
-            source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            source_ini += f"data[{it}] = {item['xyup']}; \n"
+        source_ini += '\n}\n\n'
 
-        defs += f'void f_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void f_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_run += f'void f_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_run += f'void f_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.f_run_list):
-            source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            source_run += f"data[{it}] = {item['xyup']}; \n"
+        source_run += '\n}\n\n'
 
-        defs += f'void g_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void g_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_ini += f'void g_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_ini += f'void g_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.g_ini_list):
-            source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            source_ini += f"data[{it}] = {item['xyup']}; \n"
+        source_ini += '\n}\n\n'
 
-        defs += f'void g_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void g_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_run += f'void g_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_run += f'void g_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.g_run_list):
-            source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            source_run += f"data[{it}] = {item['xyup']}; \n"
+        source_run += '\n}\n\n'
 
-        defs += f'void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_ini += f'void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_ini += f'void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.h_list):
-            source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            source_ini += f"data[{it}] = {item['xyup']}; \n"
+        source_ini += '\n}\n\n'
 
         # jac_ini dense
-        defs += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_ini_list):
             if item['tipo'] == 'up':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_ini += '\n}\n\n'
 
-        defs += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_ini_list):
             if item['tipo'] == 'xy':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_ini += '\n}\n\n'
 
-        defs += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_ini_list):
             if item['tipo'] == 'num':   
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_ini += '\n}\n\n'
 
-        # jac_ini sparse
-        defs += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_ini_list):
-            if item['tipo'] == 'up':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+        if self.sparse:
+            # jac_ini sparse
+            defs += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_ini_list):
+                if item['tipo'] == 'up':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
-        defs += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_ini_list):
-            if item['tipo'] == 'xy':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            defs += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_ini_list):
+                if item['tipo'] == 'xy':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
-        defs += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_ini_list):
-            if item['tipo'] == 'num':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            defs += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_ini_list):
+                if item['tipo'] == 'num':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
         # jac_run dense
-        defs += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_run_list):
             if item['tipo'] == 'up':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_run += '\n}\n\n'
 
-        defs += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_run += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_run += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_run_list):
             if item['tipo'] == 'xy':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_run += '\n}\n\n'
 
-        defs += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_run += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_run += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_run_list):
             if item['tipo'] == 'num':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_run += '\n}\n\n'
 
-        # jac_run sparse
-        defs += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_run_list):
-            if item['tipo'] == 'up':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+        if self.sparse:
+            # jac_run sparse
+            defs += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_run_list):
+                if item['tipo'] == 'up':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
-        defs += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_run_list):
-            if item['tipo'] == 'xy':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            defs += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_run_list):
+                if item['tipo'] == 'xy':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
-        defs += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_run_list):
-            if item['tipo'] == 'num':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            defs += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_run_list):
+                if item['tipo'] == 'num':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
         # jac_trap dense
-        defs += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_trap_list):
             if item['tipo'] == 'up':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_trap += '\n}\n\n'
 
-        defs += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_trap += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_trap += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_trap_list):
             if item['tipo'] == 'xy':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_trap += '\n}\n\n'
 
-        defs += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        defs_trap += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_trap += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_trap_list):
             if item['tipo'] == 'num':
-                source += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+                source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+        source_trap += '\n}\n\n'
 
-        # jac_trap sparse
-        defs += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_trap_list):
-            if item['tipo'] == 'up':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+        if self.sparse:
+            # jac_trap sparse
+            defs += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_trap_list):
+                if item['tipo'] == 'up':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
-        defs += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_trap_list):
-            if item['tipo'] == 'xy':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            defs += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_trap_list):
+                if item['tipo'] == 'xy':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
-        defs += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_trap_list):
-            if item['tipo'] == 'num':
-                source += f"data[{it}] = {item['xyup']}; \n"
-        source += '\n}\n\n'
+            defs += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_trap_list):
+                if item['tipo'] == 'num':
+                    source += f"data[{it}] = {item['xyup']}; \n"
+            source += '\n}\n\n'
 
         if self.uz_jacs:
             self.string_u2z = 'sp_Fu_run_up_eval = jacs.lib.sp_Fu_run_up_eval\n'
@@ -654,25 +675,48 @@ class builder():
         save_npz( f"./{self.matrices_folder}/{self.sys['name']}_sp_jac_trap_num.npz",sp_jac_trap_num_matrix, compressed=True)
 
 
-        self.defs = defs
-        self.source = source
+        self.defs_ini = defs_ini
+        self.source_ini = source_ini
+        self.defs_run = defs_run
+        self.source_run = source_run
+        self.defs_trap = defs_trap
+        self.source_trap = source_trap
 
-        with open(f'./build/defs_{self.name}_cffi.h', 'w') as fobj:
-            fobj.write(self.defs)
-        with open(f'./build/source_{self.name}_cffi.c', 'w') as fobj:
-            fobj.write(self.source)
-
+        with open(f'./build/defs_ini_{self.name}_cffi.h', 'w') as fobj:
+            fobj.write(self.defs_ini)
+        with open(f'./build/source_ini_{self.name}_cffi.c', 'w') as fobj:
+            fobj.write(self.source_ini)
+        with open(f'./build/defs_run_{self.name}_cffi.h', 'w') as fobj:
+            fobj.write(self.defs_run)
+        with open(f'./build/source_run_{self.name}_cffi.c', 'w') as fobj:
+            fobj.write(self.source_run)
+        with open(f'./build/defs_trap_{self.name}_cffi.h', 'w') as fobj:
+            fobj.write(self.defs_trap)
+        with open(f'./build/source_trap_{self.name}_cffi.c', 'w') as fobj:
+            fobj.write(self.source_trap)
 
     def compile(self):
         
-        logging.debug('start compiling module')
-        ffi = cffi.FFI()
-        name = self.name
-            
-        ffi.cdef(self.defs, override=True)
-        ffi.set_source(module_name=f"{self.name}_cffi",source=self.source)
-        ffi.compile()
-        logging.debug('end compiling module')
+        logging.debug('start compiling ini module')
+        ffi_ini = cffi.FFI()
+        ffi_ini.cdef(self.defs_ini, override=True)
+        ffi_ini.set_source(module_name=f"{self.name}_ini_cffi",source=self.source_ini)
+        ffi_ini.compile()
+        logging.debug('end compiling ini module')
+
+        logging.debug('start compiling run module')
+        ffi_run = cffi.FFI()
+        ffi_run.cdef(self.defs_run, override=True)
+        ffi_run.set_source(module_name=f"{self.name}_run_cffi",source=self.source_run)
+        ffi_run.compile()
+        logging.debug('end compiling run module')
+
+        logging.debug('start compiling trap module')
+        ffi_trap = cffi.FFI()
+        ffi_trap.cdef(self.defs_trap, override=True)
+        ffi_trap.set_source(module_name=f"{self.name}_trap_cffi",source=self.source_trap)
+        ffi_trap.compile()
+        logging.debug('end compiling trap module')
 
 
     def template(self):
@@ -686,7 +730,7 @@ class builder():
         N_z = sys['N_z']
         N_u = sys['N_u']
 
-        class_template = pkgutil.get_data(__name__, "templates/class_dae_cffi_template.py").decode().replace('\r\n','\n') 
+        class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2.py").decode().replace('\r\n','\n') 
         functions_template = pkgutil.get_data(__name__, "templates/functions_template.py").decode().replace('\r\n','\n') 
     #     solver_template = pkgutil.get_data(__name__, "templates/solver_template_v2.py").decode().replace('\r\n','\n') 
 
@@ -791,36 +835,89 @@ def sym2xyup(sys,full_list,inirun):
     Converts symbols to vectors x, y, u and p
     '''
 
-    for element in full_list:
-        string = element['ccode']
-        i = 0
-        for symbol in sys['x']:
-            string = re.sub(f"\\b{symbol}\\b"  ,f'x[{i}]',string)
-            i+=1
+    full_string = '#'.join([element['ccode'] for element in full_list])
+    i = 0
+    for symbol in sys['x']:
+        full_string = re.sub(f"\\b{symbol}\\b"  ,f'x[{i}]',full_string)
+        i+=1
 
-        i = 0
-        for symbol in sys[f'y_{inirun}']:
-            string = re.sub(f"\\b{symbol}\\b"  ,f'y[{i}]',string)
-            i+=1
+    i = 0
+    for symbol in sys[f'y_{inirun}']:
+        full_string = re.sub(f"\\b{symbol}\\b"  ,f'y[{i}]',full_string)
+        i+=1
 
-        i = 0
-        for symbol in sys[f'u_{inirun}']:
-            string = re.sub(f"\\b{symbol}\\b"  ,f'u[{i}]',string)
-            i+=1
+    i = 0
+    for symbol in sys[f'u_{inirun}']:
+        full_string = re.sub(f"\\b{symbol}\\b"  ,f'u[{i}]',full_string)
+        i+=1
 
-        i = 0
-        for symbol in sys['params_dict']:
-            string = re.sub(f"\\b{symbol}\\b"  ,f'p[{i}]',string)
-            i+=1
+    i = 0
+    for symbol in sys['params_dict']:
+        full_string = re.sub(f"\\b{symbol}\\b"  ,f'p[{i}]',full_string)
+        i+=1
 
+    for item,string in zip(full_list,full_string.split('#')):
         tipo = 'num'
         if 'x[' in string or 'y[' in string:
             tipo = 'xy' 
         elif 'p[' in string or 'u[' in string or 'Dt' in string:
             tipo = 'up' 
-    
-        element.update({'xyup':string,'tipo':tipo})
+        item.update({'xyup':string,'tipo':tipo})
 
+
+def sym2xyup_process(sys,inirun,element):
+    '''
+    Converts symbols to vectors x, y, u and p
+    '''
+
+    string = element['ccode']
+    i = 0
+    for symbol in sys['x']:
+        string = re.sub(f"\\b{symbol}\\b"  ,f'x[{i}]',string)
+        i+=1
+
+    i = 0
+    for symbol in sys[f'y_{inirun}']:
+        string = re.sub(f"\\b{symbol}\\b"  ,f'y[{i}]',string)
+        i+=1
+
+    i = 0
+    for symbol in sys[f'u_{inirun}']:
+        string = re.sub(f"\\b{symbol}\\b"  ,f'u[{i}]',string)
+        i+=1
+
+    i = 0
+    for symbol in sys['params_dict']:
+        string = re.sub(f"\\b{symbol}\\b"  ,f'p[{i}]',string)
+        i+=1
+
+    tipo = 'num'
+    if 'x[' in string or 'y[' in string:
+        tipo = 'xy' 
+    elif 'p[' in string or 'u[' in string or 'Dt' in string:
+        tipo = 'up' 
+
+    return string,tipo 
+
+def sym2xyup_mp(sys,full_list,inirun):
+
+    pool = multiprocessing.Pool()
+
+    # use the pool to process each string in parallel
+    sym2xyup_p = partial(sym2xyup_process,sys,inirun)
+    
+    logging.debug('start sym2xyup pool')
+    xyup_tipo_list = pool.map(sym2xyup_p, full_list)
+
+    pool.close()
+    pool.join()
+    logging.debug('end sym2xyup pool')
+
+    logging.debug('start full_list update with xyup and tipo')
+    for item,xyup_tipo in zip(full_list,xyup_tipo_list):
+        xyup,tipo = xyup_tipo
+        item.update({'xyup':xyup,'tipo':tipo})
+    logging.debug('end full_list update with xyup and tipo')
 
 
 
