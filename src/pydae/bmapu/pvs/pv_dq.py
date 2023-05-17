@@ -124,6 +124,8 @@ def pv_dq(grid,name,bus_name,data_dict):
     ### algebraic states
     i_sd_pq_ref,i_sq_pq_ref = sym.symbols(f'i_sd_pq_ref_{name},i_sq_pq_ref_{name}', real=True)
     i_sd_ar_ref,i_sq_ar_ref = sym.symbols(f'i_sd_ar_ref_{name},i_sq_ar_ref_{name}', real=True)
+    i_sd_ref,i_sq_ref = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name}', real=True)
+
     v_td_ref,v_tq_ref = sym.symbols(f'v_td_ref_{name},v_tq_ref_{name}', real=True)
     v_lvrt,lvrt_ext = sym.symbols(f"v_lvrt_{name},lvrt_ext_{name}", real=True)
      
@@ -158,8 +160,8 @@ def pv_dq(grid,name,bus_name,data_dict):
     i_sq_pq_ref = (p_s_ref*v_sq - q_s_ref*v_sd)/(v_sd**2 + v_sq**2)
     i_sd_ref_nosat = (1.0-lvrt)*i_sd_pq_ref + lvrt*i_sd_ar_ref
     i_sq_ref_nosat = (1.0-lvrt)*i_sq_pq_ref + lvrt*i_sq_ar_ref
-    i_sd_ref = sym.Piecewise((-1.2,i_sd_ref_nosat<-1.2),(1.2,i_sd_ref_nosat>1.2),(i_sd_ref_nosat,True))
-    i_sq_ref = sym.Piecewise((-1.2,i_sq_ref_nosat<-1.2),(1.2,i_sq_ref_nosat>1.2),(i_sq_ref_nosat,True))
+    g_i_sd_ref = -i_sd_ref + sym.Piecewise((-1.2,i_sd_ref_nosat<-1.2),(1.2,i_sd_ref_nosat>1.2),(i_sd_ref_nosat,True))
+    g_i_sq_ref = -i_sq_ref + sym.Piecewise((-1.2,i_sq_ref_nosat<-1.2),(1.2,i_sq_ref_nosat>1.2),(i_sq_ref_nosat,True))
 
     v_td_ref  =  R_s*i_sd_ref - X_s*i_sq_ref + v_sd  
     v_tq_ref  =  R_s*i_sq_ref + X_s*i_sd_ref + v_sq 
@@ -173,6 +175,9 @@ def pv_dq(grid,name,bus_name,data_dict):
 
 
     ### dae 
+    grid.dae['g'] += [g_i_sd_ref, g_i_sq_ref]
+    grid.dae['y_ini'] += [i_sq_ref, i_sd_ref]  
+    grid.dae['y_run'] += [i_sq_ref, i_sd_ref]  
 
     grid.dae['u_ini_dict'].update({f'lvrt_ext_{name}':0.0})
     grid.dae['u_run_dict'].update({f'lvrt_ext_{name}':0.0})
@@ -232,18 +237,18 @@ def pv_dq(grid,name,bus_name,data_dict):
     ### algebraic equations   
     v_ti = v_ti_ref 
     v_tr = v_tr_ref 
-    g_i_si = v_ti - R_s*i_si + X_s*i_sr - v_si  
-    g_i_sr = v_tr - R_s*i_sr - X_s*i_si - v_sr 
-    # i_sr = (-R_s*v_sr + R_s*v_tr + X_s*v_si - X_s*v_ti)/(R_s**2 + X_s**2)
-    # i_si = (-R_s*v_si + R_s*v_ti - X_s*v_sr + X_s*v_tr)/(R_s**2 + X_s**2)
+    # g_i_si = v_ti - R_s*i_si + X_s*i_sr - v_si  
+    # g_i_sr = v_tr - R_s*i_sr - X_s*i_si - v_sr 
+    i_sr = (-R_s*v_sr + R_s*v_tr + X_s*v_si - X_s*v_ti)/(R_s**2 + X_s**2)
+    i_si = (-R_s*v_si + R_s*v_ti - X_s*v_sr + X_s*v_tr)/(R_s**2 + X_s**2)
     g_p_s  = i_si*v_si + i_sr*v_sr - p_s  
     g_q_s  = i_si*v_sr - i_sr*v_si - q_s 
 
     ### dae 
     f_vsg = []
     x_vsg = []
-    g_vsg = [g_i_si,g_i_sr,g_p_s,g_q_s]
-    y_vsg = [  i_sr,  i_si,  p_s,  q_s]
+    g_vsg = [g_p_s,g_q_s]
+    y_vsg = [  p_s,  q_s]
 
     grid.dae['f'] += f_vsg
     grid.dae['x'] += x_vsg
