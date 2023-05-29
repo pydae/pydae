@@ -22,20 +22,20 @@ def pss_kundur_2(dae,syn_data,name):
     
     omega = sym.Symbol(f"omega_{name}", real=True)   
        
-    x_wo  = sym.Symbol(f"x_wo_{name}", real=True)
-    x_lead  = sym.Symbol(f"x_lead_{name}", real=True)
+    x_wo  = sym.Symbol(f"x_wo_pss_{name}", real=True)
+    x_lead  = sym.Symbol(f"x_lead_pss_{name}", real=True)
 
-    z_wo  = sym.Symbol(f"z_wo_{name}", real=True)
-    x_12  = sym.Symbol(f"x_12_{name}", real=True)
-    x_34  = sym.Symbol(f"x_34_{name}", real=True)  
+    z_wo  = sym.Symbol(f"z_wo_pss_{name}", real=True)
+    x_12  = sym.Symbol(f"x_12_pss_{name}", real=True)
+    x_34  = sym.Symbol(f"x_34_pss_{name}", real=True)  
 
-    T_wo = sym.Symbol(f"T_wo_{name}", real=True)  
-    T_1 = sym.Symbol(f"T_1_{name}", real=True) 
-    T_2 = sym.Symbol(f"T_2_{name}", real=True)
-    T_3 = sym.Symbol(f"T_3_{name}", real=True) 
-    T_4 = sym.Symbol(f"T_4_{name}", real=True)
+    T_wo = sym.Symbol(f"T_wo_pss_{name}", real=True)  
+    T_1 = sym.Symbol(f"T_1_pss_{name}", real=True) 
+    T_2 = sym.Symbol(f"T_2_pss_{name}", real=True)
+    T_3 = sym.Symbol(f"T_3_pss_{name}", real=True) 
+    T_4 = sym.Symbol(f"T_4_pss_{name}", real=True)
     K_stab = sym.Symbol(f"K_stab_{name}", real=True)
-    V_lim = sym.Symbol(f"V_lim_{name}", real=True)
+    V_lim = sym.Symbol(f"V_lim_pss_{name}", real=True)
     v_s = sym.Symbol(f"v_pss_{name}", real=True) 
     
     

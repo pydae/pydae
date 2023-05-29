@@ -14,11 +14,11 @@ dae_file_mode = 'local'
 ffi = cffi.FFI()
 
 if dae_file_mode == 'local':
-    import pv_test_cffi as jacs
+    import wecs_pmsm_cffi as jacs
 if dae_file_mode == 'enviroment':
-    import envus.no_enviroment.pv_test_cffi as jacs
+    import envus.no_enviroment.wecs_pmsm_cffi as jacs
 if dae_file_mode == 'colab':
-    import pv_test_cffi as jacs
+    import wecs_pmsm_cffi as jacs
     
 cffi_support.register_module(jacs)
 f_ini_eval = jacs.lib.f_ini_eval
@@ -51,7 +51,16 @@ sp_jac_trap_xy_eval= jacs.lib.sp_jac_trap_xy_eval
 sp_jac_trap_up_eval= jacs.lib.sp_jac_trap_up_eval        
 sp_jac_trap_num_eval= jacs.lib.sp_jac_trap_num_eval
 
-
+sp_Fu_run_up_eval = jacs.lib.sp_Fu_run_up_eval
+sp_Gu_run_up_eval = jacs.lib.sp_Gu_run_up_eval
+sp_Hx_run_up_eval = jacs.lib.sp_Hx_run_up_eval
+sp_Hy_run_up_eval = jacs.lib.sp_Hy_run_up_eval
+sp_Hu_run_up_eval = jacs.lib.sp_Hu_run_up_eval
+sp_Fu_run_xy_eval = jacs.lib.sp_Fu_run_xy_eval
+sp_Gu_run_xy_eval = jacs.lib.sp_Gu_run_xy_eval
+sp_Hx_run_xy_eval = jacs.lib.sp_Hx_run_xy_eval
+sp_Hy_run_xy_eval = jacs.lib.sp_Hy_run_xy_eval
+sp_Hu_run_xy_eval = jacs.lib.sp_Hu_run_xy_eval
 
 
 
@@ -80,21 +89,21 @@ class model:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 1
-        self.N_y = 3 
-        self.N_z = 1 
+        self.N_x = 17
+        self.N_y = 30 
+        self.N_z = 18 
         self.N_store = 100000 
-        self.params_list = ['I_sc', 'I_mpp', 'V_mpp', 'V_oc', 'N_s', 'K_vt', 'K_it', 'R_pv_s', 'R_pv_sh', 'K_d'] 
-        self.params_values_list  = [4.785, 4.54, 32.5, 39.1, 60, -0.16, 0.065, 0.4670611451557527, 79002.91413359849, 0.9776160521423578] 
-        self.inputs_ini_list = ['v_pv', 'irrad', 'temp_deg', 'u_dummy'] 
-        self.inputs_ini_values_list  = [30, 1000, 25, 1.0] 
-        self.inputs_run_list = ['v_pv', 'irrad', 'temp_deg', 'u_dummy'] 
-        self.inputs_run_values_list = [30, 1000, 25, 1.0] 
-        self.outputs_list = ['p'] 
-        self.x_list = ['x_dummy'] 
-        self.y_run_list = ['i_pv', 'i_pv_mpp', 'v_mpp'] 
+        self.params_list = ['S_base', 'g_1_2', 'b_1_2', 'bs_1_2', 'g_2_3', 'b_2_3', 'bs_2_3', 'U_1_n', 'U_2_n', 'U_3_n', 'S_n_3', 'Omega_b_3', 'H_3', 'T1d0_3', 'T1q0_3', 'X_d_3', 'X_q_3', 'X1d_3', 'X1q_3', 'D_3', 'R_a_3', 'K_delta_3', 'K_sec_3', 'K_a_3', 'K_ai_3', 'T_a_3', 'T_b_3', 'T_e_3', 'E_min_3', 'E_max_3', 'Droop_3', 'T_gov_1_3', 'T_gov_2_3', 'T_gov_3_3', 'D_t_3', 'omega_ref_3', 'S_n_1', 'K_mppt3_1', 'Omega_r_max_1', 'T_beta_1', 'K_p_beta_1', 'K_i_beta_1', 'H_t_1', 'H_r_1', 'K_tr_1', 'D_tr_1', 'R_m_1', 'L_m_1', 'Phi_m_1', 'K_pdc_1', 'R_s_1', 'X_s_1', 'C_dc_1', 'A_l_1', 'B_l_1', 'C_l_1', 'C_1_1', 'C_2_1', 'C_3_1', 'C_4_1', 'C_5_1', 'C_6_1', 'Nu_w_b_1', 'Lam_b_1', 'Omega_t_b_1', 'K_pow_1', 'C_p_b_1', 'T_mppt_1', 'K_p_agc', 'K_i_agc', 'K_xif'] 
+        self.params_values_list  = [100000000.0, 0.07692307692307693, -0.38461538461538464, -1e-08, 0.07692307692307693, -0.38461538461538464, -1e-08, 400.0, 400.0, 400.0, 1000000.0, 314.1592653589793, 5.0, 8.0, 0.4, 1.81, 1.81, 0.3, 0.55, 1.0, 0.02, 0.01, 1.0, 100.0, 1e-06, 0.1, 1.0, 0.1, -10.0, 10.0, 0.05, 1.0, 1.0, 1.0, 0.0, 1.0, 1000000.0, 0.4, 1.2, 2.0, 100.0, 1.0, 4.0, 1.0, 1579.1367041742974, 19.844017075391882, 0.01, 0.05, 1.0, 0.1, 0.02, 0.05, 0.5, 0.005, 0.005, 0.005, 0.5176, 116, 0.4, 5.0, 21, 0.0068, 12, 8.1, 1.2, 1.0, 0.48001190251033915, 5, 0.0, 0.0, 0.01] 
+        self.inputs_ini_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'v_ref_3', 'v_pss_3', 'p_c_3', 'p_ref_ext_1', 'beta_ext_1', 'i_md_ref_1', 'p_r_1', 'v_dc_ref_1', 'q_s_ref_1', 'Dp_e_ref_1', 'nu_w_1', 'u_dummy_1'] 
+        self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.2, 0.0, 0.0, 10.0, 0.0] 
+        self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'P_3', 'Q_3', 'v_ref_3', 'v_pss_3', 'p_c_3', 'p_ref_ext_1', 'beta_ext_1', 'i_md_ref_1', 'p_r_1', 'v_dc_ref_1', 'q_s_ref_1', 'Dp_e_ref_1', 'nu_w_1', 'u_dummy_1'] 
+        self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.2, 0.0, 0.0, 10.0, 0.0] 
+        self.outputs_list = ['V_1', 'V_2', 'V_3', 'p_e_3', 'v_f_3', 'p_m_3', 'v_pss_3', 'v_ref_3', 'p_c_3', 'nu_w_1', 'p_m_1', 'q_m_1', 'p_s_1', 'q_s_1', 'i_si_1', 'i_sr_1', 'i_tdc_1', 'i_mdc_1'] 
+        self.x_list = ['delta_3', 'omega_3', 'e1q_3', 'e1d_3', 'x_ab_3', 'x_e_3', 'xi_v_3', 'x_gov_1_3', 'x_gov_2_3', 'p_w_mppt_lpf_1', 'xi_beta_1', 'beta_1', 'theta_tr_1', 'omega_t_1', 'omega_r_1', 'v_dc_1', 'xi_freq'] 
+        self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'V_3', 'theta_3', 'i_d_3', 'i_q_3', 'p_g_3', 'q_g_3', 'v_f_3', 'p_m_ref_3', 'p_m_3', 'i_mq_ref_1', 'v_md_1', 'v_mq_1', 'i_md_1', 'i_mq_1', 'tau_r_1', 'p_s_ref_1', 'i_sd_ref_1', 'i_sq_ref_1', 'v_td_ref_1', 'v_tq_ref_1', 'i_si_1', 'i_sr_1', 'p_s_1', 'q_s_1', 'omega_coi', 'p_agc'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['i_pv', 'i_pv_mpp', 'v_mpp'] 
+        self.y_ini_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'V_3', 'theta_3', 'i_d_3', 'i_q_3', 'p_g_3', 'q_g_3', 'v_f_3', 'p_m_ref_3', 'p_m_3', 'i_mq_ref_1', 'v_md_1', 'v_mq_1', 'i_md_1', 'i_mq_1', 'tau_r_1', 'p_s_ref_1', 'i_sd_ref_1', 'i_sq_ref_1', 'v_td_ref_1', 'v_tq_ref_1', 'i_si_1', 'i_sr_1', 'p_s_1', 'q_s_1', 'omega_coi', 'p_agc'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -135,10 +144,10 @@ class model:
         #self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
            
         if self.dae_file_mode == 'enviroment':
-            fobj = BytesIO(pkgutil.get_data(__name__, f'./pv_test_sp_jac_ini_num.npz'))
+            fobj = BytesIO(pkgutil.get_data(__name__, f'./wecs_pmsm_sp_jac_ini_num.npz'))
             self.sp_jac_ini = sspa.load_npz(fobj)
         else:
-            self.sp_jac_ini = sspa.load_npz(f'./{self.matrices_folder}/pv_test_sp_jac_ini_num.npz')
+            self.sp_jac_ini = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_sp_jac_ini_num.npz')
             
             
         self.jac_ini = self.sp_jac_ini.toarray()
@@ -157,10 +166,10 @@ class model:
         data = np.array(self.sp_jac_run_ia,dtype=np.float64)
 
         if self.dae_file_mode == 'enviroment':
-            fobj = BytesIO(pkgutil.get_data(__name__, './pv_test_sp_jac_run_num.npz'))
+            fobj = BytesIO(pkgutil.get_data(__name__, './wecs_pmsm_sp_jac_run_num.npz'))
             self.sp_jac_run = sspa.load_npz(fobj)
         else:
-            self.sp_jac_run = sspa.load_npz(f'./{self.matrices_folder}/pv_test_sp_jac_run_num.npz')
+            self.sp_jac_run = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_sp_jac_run_num.npz')
         self.jac_run = self.sp_jac_run.toarray()            
            
         self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
@@ -178,10 +187,10 @@ class model:
     
 
         if self.dae_file_mode == 'enviroment':
-            fobj = BytesIO(pkgutil.get_data(__name__, './pv_test_sp_jac_trap_num.npz'))
+            fobj = BytesIO(pkgutil.get_data(__name__, './wecs_pmsm_sp_jac_trap_num.npz'))
             self.sp_jac_trap = sspa.load_npz(fobj)
         else:
-            self.sp_jac_trap = sspa.load_npz(f'./{self.matrices_folder}/pv_test_sp_jac_trap_num.npz')
+            self.sp_jac_trap = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_sp_jac_trap_num.npz')
             
 
         self.jac_trap = self.sp_jac_trap.toarray()
@@ -203,11 +212,11 @@ class model:
 
         self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.0
 
-        #self.sp_Fu_run = sspa.load_npz(f'./{self.matrices_folder}/pv_test_Fu_run_num.npz')
-        #self.sp_Gu_run = sspa.load_npz(f'./{self.matrices_folder}/pv_test_Gu_run_num.npz')
-        #self.sp_Hx_run = sspa.load_npz(f'./{self.matrices_folder}/pv_test_Hx_run_num.npz')
-        #self.sp_Hy_run = sspa.load_npz(f'./{self.matrices_folder}/pv_test_Hy_run_num.npz')
-        #self.sp_Hu_run = sspa.load_npz(f'./{self.matrices_folder}/pv_test_Hu_run_num.npz')        
+        self.sp_Fu_run = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_Fu_run_num.npz')
+        self.sp_Gu_run = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_Gu_run_num.npz')
+        self.sp_Hx_run = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_Hx_run_num.npz')
+        self.sp_Hy_run = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_Hy_run_num.npz')
+        self.sp_Hu_run = sspa.load_npz(f'./{self.matrices_folder}/wecs_pmsm_Hu_run_num.npz')        
         
         self.ss_solver = 2
         self.lsolver = 2
@@ -1773,7 +1782,7 @@ def c_h_eval(z,x,y,u,p,Dt):
     
     return z
 
-#@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_Fu_run_eval(jac,x,y,u,p,Dt):   
     '''
     Computes the dense full initialization jacobian:
@@ -1817,7 +1826,7 @@ def sp_Fu_run_eval(jac,x,y,u,p,Dt):
     
     #return jac
 
-#@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_Gu_run_eval(jac,x,y,u,p,Dt):   
     '''
     Computes the dense full initialization jacobian:
@@ -1861,7 +1870,7 @@ def sp_Gu_run_eval(jac,x,y,u,p,Dt):
     
     #return jac
 
-#@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+@numba.njit("(float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
 def sp_H_jacs_run_eval(H_x,H_y,H_u,x,y,u,p,Dt):   
     '''
     Computes the dense full initialization jacobian:
@@ -1916,24 +1925,24 @@ def sp_H_jacs_run_eval(H_x,H_y,H_u,x,y,u,p,Dt):
 
 def sp_jac_ini_vectors():
 
-    sp_jac_ini_ia = [0, 1, 2, 3, 2, 3]
-    sp_jac_ini_ja = [0, 1, 2, 4, 6]
-    sp_jac_ini_nia = 4
-    sp_jac_ini_nja = 4
+    sp_jac_ini_ia = [0, 1, 45, 0, 1, 21, 22, 23, 24, 29, 45, 2, 23, 27, 3, 24, 4, 6, 21, 4, 5, 6, 21, 21, 7, 28, 7, 8, 9, 13, 10, 14, 10, 11, 14, 13, 14, 11, 12, 13, 14, 12, 13, 14, 35, 15, 18, 31, 32, 33, 34, 39, 40, 41, 42, 16, 45, 17, 18, 19, 20, 43, 17, 18, 19, 20, 44, 17, 18, 19, 20, 21, 22, 17, 18, 19, 20, 21, 22, 19, 20, 21, 22, 25, 19, 20, 21, 22, 26, 0, 2, 21, 22, 23, 24, 0, 3, 21, 22, 23, 24, 0, 21, 22, 23, 24, 25, 0, 21, 22, 23, 24, 26, 5, 27, 1, 28, 46, 1, 7, 8, 29, 9, 14, 30, 14, 30, 31, 14, 30, 32, 14, 31, 33, 34, 14, 32, 33, 34, 34, 35, 15, 31, 32, 33, 34, 36, 17, 36, 38, 17, 37, 37, 38, 39, 17, 37, 38, 40, 17, 18, 39, 40, 41, 42, 17, 18, 39, 40, 41, 42, 17, 18, 41, 42, 43, 17, 18, 41, 42, 44, 1, 45, 16, 45, 46]
+    sp_jac_ini_ja = [0, 3, 11, 14, 16, 19, 23, 24, 26, 28, 30, 32, 35, 37, 41, 45, 55, 57, 62, 67, 73, 79, 84, 89, 95, 101, 107, 113, 115, 118, 122, 125, 128, 131, 135, 139, 141, 147, 150, 152, 155, 159, 165, 171, 176, 181, 183, 186]
+    sp_jac_ini_nia = 47
+    sp_jac_ini_nja = 47
     return sp_jac_ini_ia, sp_jac_ini_ja, sp_jac_ini_nia, sp_jac_ini_nja 
 
 def sp_jac_run_vectors():
 
-    sp_jac_run_ia = [0, 1, 2, 3, 2, 3]
-    sp_jac_run_ja = [0, 1, 2, 4, 6]
-    sp_jac_run_nia = 4
-    sp_jac_run_nja = 4
+    sp_jac_run_ia = [0, 1, 45, 0, 1, 21, 22, 23, 24, 29, 45, 2, 23, 27, 3, 24, 4, 6, 21, 4, 5, 6, 21, 21, 7, 28, 7, 8, 9, 13, 10, 14, 10, 11, 14, 13, 14, 11, 12, 13, 14, 12, 13, 14, 35, 15, 18, 31, 32, 33, 34, 39, 40, 41, 42, 16, 45, 17, 18, 19, 20, 43, 17, 18, 19, 20, 44, 17, 18, 19, 20, 21, 22, 17, 18, 19, 20, 21, 22, 19, 20, 21, 22, 25, 19, 20, 21, 22, 26, 0, 2, 21, 22, 23, 24, 0, 3, 21, 22, 23, 24, 0, 21, 22, 23, 24, 25, 0, 21, 22, 23, 24, 26, 5, 27, 1, 28, 46, 1, 7, 8, 29, 9, 14, 30, 14, 30, 31, 14, 30, 32, 14, 31, 33, 34, 14, 32, 33, 34, 34, 35, 15, 31, 32, 33, 34, 36, 17, 36, 38, 17, 37, 37, 38, 39, 17, 37, 38, 40, 17, 18, 39, 40, 41, 42, 17, 18, 39, 40, 41, 42, 17, 18, 41, 42, 43, 17, 18, 41, 42, 44, 1, 45, 16, 45, 46]
+    sp_jac_run_ja = [0, 3, 11, 14, 16, 19, 23, 24, 26, 28, 30, 32, 35, 37, 41, 45, 55, 57, 62, 67, 73, 79, 84, 89, 95, 101, 107, 113, 115, 118, 122, 125, 128, 131, 135, 139, 141, 147, 150, 152, 155, 159, 165, 171, 176, 181, 183, 186]
+    sp_jac_run_nia = 47
+    sp_jac_run_nja = 47
     return sp_jac_run_ia, sp_jac_run_ja, sp_jac_run_nia, sp_jac_run_nja 
 
 def sp_jac_trap_vectors():
 
-    sp_jac_trap_ia = [0, 1, 2, 3, 2, 3]
-    sp_jac_trap_ja = [0, 1, 2, 4, 6]
-    sp_jac_trap_nia = 4
-    sp_jac_trap_nja = 4
+    sp_jac_trap_ia = [0, 1, 45, 0, 1, 21, 22, 23, 24, 29, 45, 2, 23, 27, 3, 24, 4, 6, 21, 4, 5, 6, 21, 6, 21, 7, 28, 7, 8, 9, 13, 10, 14, 10, 11, 14, 12, 13, 14, 11, 12, 13, 14, 12, 13, 14, 35, 15, 18, 31, 32, 33, 34, 39, 40, 41, 42, 16, 45, 17, 18, 19, 20, 43, 17, 18, 19, 20, 44, 17, 18, 19, 20, 21, 22, 17, 18, 19, 20, 21, 22, 19, 20, 21, 22, 25, 19, 20, 21, 22, 26, 0, 2, 21, 22, 23, 24, 0, 3, 21, 22, 23, 24, 0, 21, 22, 23, 24, 25, 0, 21, 22, 23, 24, 26, 5, 27, 1, 28, 46, 1, 7, 8, 29, 9, 14, 30, 14, 30, 31, 14, 30, 32, 14, 31, 33, 34, 14, 32, 33, 34, 34, 35, 15, 31, 32, 33, 34, 36, 17, 36, 38, 17, 37, 37, 38, 39, 17, 37, 38, 40, 17, 18, 39, 40, 41, 42, 17, 18, 39, 40, 41, 42, 17, 18, 41, 42, 43, 17, 18, 41, 42, 44, 1, 45, 16, 45, 46]
+    sp_jac_trap_ja = [0, 3, 11, 14, 16, 19, 23, 25, 27, 29, 31, 33, 36, 39, 43, 47, 57, 59, 64, 69, 75, 81, 86, 91, 97, 103, 109, 115, 117, 120, 124, 127, 130, 133, 137, 141, 143, 149, 152, 154, 157, 161, 167, 173, 178, 183, 185, 188]
+    sp_jac_trap_nia = 47
+    sp_jac_trap_nja = 47
     return sp_jac_trap_ia, sp_jac_trap_ja, sp_jac_trap_nia, sp_jac_trap_nja 

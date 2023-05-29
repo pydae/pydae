@@ -119,11 +119,11 @@ class model:
         self.u_run_list = self.inputs_run_list
         self.u_run_values_list = self.inputs_run_values_list
         self.N_u = len(self.u_run_list)
-        self.u_ini = np.array(self.inputs_ini_values_list)
-        self.p = np.array(self.params_values_list)
-        self.xy_0 = np.zeros((self.N_x+self.N_y,))
-        self.xy = np.zeros((self.N_x+self.N_y,))
-        self.z = np.zeros((self.N_z,))
+        self.u_ini = np.array(self.inputs_ini_values_list, dtype=np.float64)
+        self.p = np.array(self.params_values_list, dtype=np.float64)
+        self.xy_0 = np.zeros((self.N_x+self.N_y,),dtype=np.float64)
+        self.xy = np.zeros((self.N_x+self.N_y,),dtype=np.float64)
+        self.z = np.zeros((self.N_z,),dtype=np.float64)
         
         # numerical elements of jacobians computing:
         x = self.xy[:self.N_x]

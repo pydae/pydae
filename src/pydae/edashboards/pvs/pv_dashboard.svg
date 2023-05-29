@@ -21,9 +21,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="4.661896"
-     inkscape:cx="712.50067"
-     inkscape:cy="135.93905"
+     inkscape:zoom="3.2964583"
+     inkscape:cx="549.65822"
+     inkscape:cy="124.14753"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
@@ -309,6 +309,22 @@
          id="path9149-78-43-5"
          inkscape:connector-curvature="0" />
     </marker>
+    <marker
+       inkscape:collect="always"
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="Arrow2Mend-1-7-7-4"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow2Mend">
+      <path
+         transform="scale(-0.6)"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         id="path9149-78-4-7-2"
+         inkscape:connector-curvature="0" />
+    </marker>
   </defs>
   <metadata
      id="metadata13546">
@@ -318,7 +334,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -3843,5 +3859,30 @@
          y="501.93448">V<tspan
    style="font-size:65%;baseline-shift:sub"
    id="tspan21306">g</tspan></tspan></text>
+    <path
+       inkscape:connector-curvature="0"
+       id="path3212-8-5-1-1-4"
+       d="m 580.17914,490.11854 h 29.37344"
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Mend-1-7-7-4)" />
+    <text
+       xml:space="preserve"
+       style="font-size:13.3333px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas"
+       x="585.47003"
+       y="505.48874"
+       id="pf_s_txt"><tspan
+         sodipodi:role="line"
+         id="pf_s"
+         x="585.47003"
+         y="505.48874">=pf_s</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13.3333px;line-height:1.25;font-family:Consolas;-inkscape-font-specification:Consolas"
+       x="569.26477"
+       y="505.70325"
+       id="text8958-10-4-0-8-5"><tspan
+         sodipodi:role="line"
+         id="tspan8956-6-4-5-8-6"
+         x="569.26477"
+         y="505.70325">pf </tspan></text>
   </g>
 </svg>

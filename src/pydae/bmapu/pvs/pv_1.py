@@ -229,8 +229,8 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['u_ini_dict'].update({f'i_sq_i_ref_{name}':0})
     grid.dae['u_run_dict'].update({f'i_sq_i_ref_{name}':0})
 
-    grid.dae['u_ini_dict'].update({f'p_ppc_ref_{name}':0})
-    grid.dae['u_run_dict'].update({f'p_ppc_ref_{name}':0})
+    grid.dae['u_ini_dict'].update({f'p_ppc_ref_{name}':2})
+    grid.dae['u_run_dict'].update({f'p_ppc_ref_{name}':2})
     grid.dae['u_ini_dict'].update({f'q_ppc_ref_{name}':0})
     grid.dae['u_run_dict'].update({f'q_ppc_ref_{name}':0})
 

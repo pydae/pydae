@@ -370,10 +370,12 @@ class bmapu:
             P_line_from = V_j*V_k*(G_jk*sym.cos(-theta_jk) + B_jk*sym.sin(-theta_jk)) - V_k**2*(G_jk) 
             Q_line_from = V_j*V_k*(G_jk*sym.sin(-theta_jk) - B_jk*sym.cos(-theta_jk)) + V_k**2*(B_jk) 
 
-            h_grid.update({f"p_line_{bus_j}_{bus_k}":P_line_to})
-            h_grid.update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
-            h_grid.update({f"p_line_{bus_k}_{bus_j}":P_line_from})
-            h_grid.update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
+            if 'monitor' in line:
+                if line['monitor']:
+                    h_grid.update({f"p_line_{bus_j}_{bus_k}":P_line_to})
+                    h_grid.update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
+                    h_grid.update({f"p_line_{bus_k}_{bus_j}":P_line_from})
+                    h_grid.update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
 
         self.dae['f'] += []
         self.dae['g'] += g_grid

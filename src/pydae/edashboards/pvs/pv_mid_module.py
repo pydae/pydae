@@ -97,7 +97,7 @@ class dashboard():
         tab_3 = widgets.HBox([tab_3_0])
 
         self.sld_V_g = widgets.FloatSlider(description='V<sub>g</sub>',min=0.2, max=1.2, step=0.1, value=1.0)
-        self.sld_SCR = widgets.FloatSlider(description='SCR',min=1, max=10, step=1, value=10)
+        self.sld_SCR = widgets.FloatSlider(description='SCR',min=10, max=100, step=1, value=10)
 
         tab_grid = widgets.HBox([self.sld_V_g,self.sld_SCR])
 
@@ -118,11 +118,13 @@ class dashboard():
     def update(self,change):
         
         model = self.model
-
+        S_n_1_MVA = model.get_value('S_n_1')/1e6
+        S_b_s_MVA = 100.0
+        b_1_2 = -self.sld_SCR.value*S_n_1_MVA/S_b_s_MVA
         self.params.update({'v_dc_ref_1':self.sld_v_dc.value,"K_pdc_1":100,'q_s_ref_1':self.sld_q_s.value,
                 'irrad_1':self.tab_1_sld_irrad.value,'temp_deg_1':self.tab_1_sld_temp_deg.value,
                 'i_sd_i_ref_1':self.sld_i_d.value, 'i_sq_i_ref_1':self.sld_i_q.value, 
-                'b_1_2':-0.1*self.sld_SCR.value,
+                'b_1_2':b_1_2,
                 'v_ref_2':self.sld_V_g.value})
         model.ini(self.params,'xy_0.json')
         
@@ -130,18 +132,24 @@ class dashboard():
             model.ini({'v_dc_ref_1':1.8,"K_pdc_1":1,'q_s_ref_1':0.0,
                     'irrad_1':self.tab_1_sld_irrad.value,'temp_deg_1':self.tab_1_sld_temp_deg.value,
                     'i_sd_i_ref_1':self.sld_i_d.value, 'i_sq_i_ref_1':self.sld_i_q.value, 
-                    'b_1_2':-0.1*self.sld_SCR.value,
+                    'b_1_2':b_1_2,
                     'v_ref_2':self.sld_V_g.value})
 
         # s.set_tspan('p_g', f'={model.get_value("p_g_"):0.2f}')
         # s.set_tspan('q_g', f'={model.get_value("q_g_"):0.2f}')
         I_s = (model.get_value("i_si_1")**2 + model.get_value("i_sr_1")**2)**0.5
+        p_s = model.get_value("p_s_1")
+        q_s = model.get_value("q_s_1")   
+        s_s = p_s+ 1j*q_s
+        phi_s = np.angle(s_s) 
+        pf_s = np.sign(q_s)*np.cos(phi_s)
+
         self.s.set_tspan('I_s', f'={I_s:4.2f}')
         self.s.set_tspan('i_d_ref', f'={model.get_value("i_sd_ref_1"):5.2f}')
         self.s.set_tspan('i_q_ref', f'={model.get_value("i_sq_ref_1"):5.2f}')
         self.s.set_tspan('m', f'={model.get_value("m_ref_1"):0.2f}')
-        self.s.set_tspan('p_s', f'={model.get_value("p_s_1"):5.2f}')
-        self.s.set_tspan('q_s', f'={model.get_value("q_s_1"):5.2f}')
+        self.s.set_tspan('p_s', f'={p_s:5.2f}')
+        self.s.set_tspan('q_s', f'={q_s:5.2f}')
         self.s.set_tspan('v_dc', f'={model.get_value("v_dc_1"):0.2f}')
         self.s.set_tspan('i_dc', f'={model.get_value("i_pv_pu_1"):0.2f}')
         self.s.set_tspan('v_pv', f'={model.get_value("v_pv_1"):4.1f} V')
@@ -149,6 +157,8 @@ class dashboard():
         self.s.set_tspan('p_pv', f'={model.get_value("p_pv_1"):5.1f} W')
         self.s.set_tspan('V_pcc', f'={model.get_value("V_1"):5.2f}')
         self.s.set_tspan('V_g', f'={model.get_value("V_2"):5.2f}')
+        self.s.set_tspan('pf_s', f'={pf_s:5.2f}')
+
         # s.set_tspan('beta', f'={np.abs(model.get_value("beta_")):5.2f}')
 
         self.html.value = self.s.tostring() 

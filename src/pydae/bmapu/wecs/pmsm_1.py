@@ -198,6 +198,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     grid.dae['params_dict'].update({f"T_beta_{name}":2.0})
     grid.dae['params_dict'].update({f"K_p_beta_{name}":100.0})
     grid.dae['params_dict'].update({f"K_i_beta_{name}":1.0})
+    grid.dae['h_dict'].update({f"p_w_{name}":p_w})
 
     ## Mechanical system: 2 mass equivalent    
     dtheta_tr = omega_t - omega_r - u_dummy
@@ -240,17 +241,25 @@ def pmsm_1(grid,name,bus_name,data_dict):
     v_dc,p_m_ref = sym.symbols(f"v_dc_{name},p_m_ref_{name}", real=True)   
     i_md,i_mq,v_md,v_mq,tau_r = sym.symbols(f'i_md_{name},i_mq_{name},v_md_{name},v_mq_{name},tau_r_{name}', real=True)
     R_m,L_m,Phi_m = sym.symbols(f'R_m_{name},L_m_{name},Phi_m_{name}', real=True)
+    omega_pll_f,T_pll,K_f = sym.symbols(f'omega_pll_f_{name},T_pll_{name},K_f_{name}', real=True)
+    rocof,K_h = sym.symbols(f'rocof_{name},K_h_{name}', real=True)
     omega_e = omega_r # from mechanical system
     
 
     i_mq_ref,i_md_ref,p_r = sym.symbols(f'i_mq_ref_{name},i_md_ref_{name},p_r_{name}', real=True)
+    p_f = K_f*(1.0 - omega_pll_f) 
+    p_h = -K_h*rocof
+
+    grid.dae['h_dict'].update({f"p_f_{name}":p_f})
+    grid.dae['h_dict'].update({f"q_h_{name}":p_h}) 
+
 
     if 'mppt' in mode:
         # K_w_mppt = sym.Symbol(f'K_w_mppt_{name}', real=True)
         # p_m_ref = p_w_mmpt_ref # from mppt 
         # omega_r_ref = nu_w*K_w_mppt
         # grid.dae['params_dict'].update({f"K_w_mppt_{name}":8.0}) 
-        p_m_ref = p_w_mppt_lpf + p_r
+        p_m_ref = p_w_mppt_lpf + p_r + p_f + p_h
     else:
         if not 'aero' in mode:
             grid.dae['u_ini_dict'].update({f'p_w_{name}':0.0})
@@ -271,6 +280,8 @@ def pmsm_1(grid,name,bus_name,data_dict):
             grid.dae['u_ini_dict'].update({f'u_dummy_{name}':0.0})
             grid.dae['u_run_dict'].update({f'u_dummy_{name}':0.0})   
 
+    grid.dae['params_dict'].update({f"K_f_{name}":0.0}) 
+    grid.dae['params_dict'].update({f"K_h_{name}":0.0}) 
 
     g_i_mq_ref  = Phi_m*i_mq_ref*omega_r - p_m_ref  
     g_v_md = -L_m*i_mq_ref*omega_e - R_m*i_md_ref - v_md
@@ -308,13 +319,20 @@ def pmsm_1(grid,name,bus_name,data_dict):
     i_sd_ref,i_sq_ref,v_td_ref,v_tq_ref = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name},v_td_ref_{name},v_tq_ref_{name}', real=True)
     v_dc_ref,q_s_ref = sym.symbols(f'v_dc_ref_{name},q_s_ref_{name}', real=True)
     K_pdc,K_idc = sym.symbols(f'K_pdc_{name},K_idc_{name}', real=True)
-    omega_coi = sym.symbols(f'omega_coi_{name}', real=True)
+    omega_coi = sym.symbols(f'omega_coi', real=True)
+    Domega_pll,theta_pll,xi_pll = sym.symbols(f'Domega_pll_{name},theta_pll_{name},xi_pll_{name}', real=True)
+    K_p_pll,K_i_pll,K_d_pll = sym.symbols(f'K_p_pll_{name},K_i_pll_{name},K_d_pll_{name}', real=True)
+    # omega_vsg,theta_vsg = sym.symbols(f'omega_vsg_{name},theta_vsg_{name}', real=True)
+    # K_p_vsg,K_i_vsg = sym.symbols(f'K_p_vsg_{name},K_i_vsg_{name}', real=True)
+    # X_vsg,v_vsg = sym.symbols(f'X_vsg_{name},v_vsg_{name}', real=True)
     delta = theta_s # ideal PLL
     v_sD = V_s*sin(theta_s)  # v_si   e^(-j)
     v_sQ = V_s*cos(theta_s)  # v_sr
     v_sd = v_sD * cos(delta) - v_sQ * sin(delta)   
     v_sq = v_sD * sin(delta) + v_sQ * cos(delta)
+    
     omega_s = omega_coi
+    
     v_tD_ref = v_td_ref * cos(delta) + v_tq_ref * sin(delta)   
     v_tQ_ref =-v_td_ref * sin(delta) + v_tq_ref * cos(delta)    
     v_ti_ref = v_tD_ref
@@ -322,22 +340,38 @@ def pmsm_1(grid,name,bus_name,data_dict):
     m_ref = sym.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
     theta_t_ref = sym.atan2(v_ti_ref,v_tr_ref) 
     
+    v_sd_pll = v_sD * cos(theta_pll) - v_sQ * sin(theta_pll)   
+    Domega_pll = K_p_pll*v_sd_pll + K_i_pll*xi_pll 
+    omega_pll = Domega_pll + 1.0
+    dtheta_pll = 2*np.pi*50*(omega_pll - omega_coi) 
+    dxi_pll = v_sd_pll 
+    domega_pll_f = 1/T_pll*(omega_pll - omega_pll_f)
+    
+
     eq_p_s_ref = -p_s_ref - K_pdc*(v_dc_ref - v_dc) + i_md*v_md + i_mq*v_mq
     eq_i_sd_ref  = i_sd_ref*v_sd + i_sq_ref*v_sq - p_s_ref  
     eq_i_sq_ref  = i_sq_ref*v_sd - i_sd_ref*v_sq - q_s_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
     eq_v_tq_ref  = v_tq_ref - R_s*i_sq_ref + X_s*i_sd_ref - v_sq 
+    eq_rocof = rocof - domega_pll_f
 
     if 'vsc_g' in mode:
-        grid.dae['g'] += [eq_p_s_ref,eq_i_sd_ref,eq_i_sq_ref,eq_v_td_ref,eq_v_tq_ref]
-        grid.dae['y_ini'] += [p_s_ref, i_sd_ref, i_sq_ref, v_td_ref, v_tq_ref]  
-        grid.dae['y_run'] += [p_s_ref, i_sd_ref, i_sq_ref, v_td_ref, v_tq_ref] 
+        grid.dae['f'] += [dtheta_pll,dxi_pll,domega_pll_f]
+        grid.dae['x'] += [ theta_pll, xi_pll, omega_pll_f]
+
+        grid.dae['g'] += [eq_p_s_ref,eq_i_sd_ref,eq_i_sq_ref,eq_v_td_ref,eq_v_tq_ref,eq_rocof]
+        grid.dae['y_ini'] += [p_s_ref, i_sd_ref, i_sq_ref, v_td_ref, v_tq_ref,rocof]  
+        grid.dae['y_run'] += [p_s_ref, i_sd_ref, i_sq_ref, v_td_ref, v_tq_ref,rocof] 
         grid.dae['u_ini_dict'].update({f'v_dc_ref_{name}':1.5})
         grid.dae['u_run_dict'].update({f'v_dc_ref_{name}':1.5})
         grid.dae['u_ini_dict'].update({f'q_s_ref_{name}':0.0})
         grid.dae['u_run_dict'].update({f'q_s_ref_{name}':0.0})
         grid.dae['params_dict'].update({f'K_pdc_{name}':data_dict['K_pdc']}) 
+        grid.dae['params_dict'].update({f'K_p_pll_{name}':10,f'K_i_pll_{name}':100}) 
+        grid.dae['params_dict'].update({f'T_pll_{name}':0.1}) 
         grid.dae['xy_0_dict'].update({str(i_sr):0.1})
+        grid.dae['h_dict'].update({f"omega_pll_{name}":omega_pll})
+        grid.dae['h_dict'].update({f"omega_pll_f_{name}":omega_pll_f})
 
     ## grid side VSC
     v_sr =  V_s*cos(theta_s)  # v_Q

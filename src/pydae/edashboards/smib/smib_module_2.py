@@ -1,6 +1,6 @@
 
 import matplotlib.pyplot as plt
-plt.style.use('https://raw.githubusercontent.com/pydae/pydae/master/src/pydae/edashboards/presentation.mplstyle')
+plt.style.use(r'https://raw.githubusercontent.com/pydae/pydae/master/src/pydae/edashboards/presentation.mplstyle')
 
 import numpy as np
 import ipywidgets

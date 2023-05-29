@@ -85,7 +85,7 @@ class model:
         self.N_z = 1 
         self.N_store = 100000 
         self.params_list = ['I_sc', 'I_mpp', 'V_mpp', 'V_oc', 'N_s', 'K_vt', 'K_it', 'R_pv_s', 'R_pv_sh', 'K_d'] 
-        self.params_values_list  = [4.785, 4.54, 32.5, 39.1, 60, -0.16, 0.065, 0.4670611451557527, 79002.91413359849, 0.9776160521423578] 
+        self.params_values_list  = [3.87, 3.56, 33.7, 42.1, 72, -0.16, 0.065, 0.5602447674925701, 1862.1251868520048, 1.3433275036477912] 
         self.inputs_ini_list = ['v_pv', 'irrad', 'temp_deg', 'u_dummy'] 
         self.inputs_ini_values_list  = [30, 1000, 25, 1.0] 
         self.inputs_run_list = ['v_pv', 'irrad', 'temp_deg', 'u_dummy'] 

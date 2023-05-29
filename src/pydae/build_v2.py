@@ -830,7 +830,55 @@ def sym2c(full_list):
         item.update({'ccode':c_expr})
 
 
+def replace_words(long_string, replacements):
+    pattern = re.compile(r'\b({})\b'.format('|'.join(map(re.escape, replacements))))
+    
+    def replace(match):
+        return replacements[match.group(0)]
+    
+    replaced_string = pattern.sub(replace, long_string)
+    
+    return replaced_string
+
 def sym2xyup(sys,full_list,inirun):
+    '''
+    Converts symbols to vectors x, y, u and p
+    '''
+
+    full_string = '#'.join([element['ccode'] for element in full_list])
+
+    replacements = {}
+    i = 0
+    for symbol in sys['x']:
+        replacements.update({f'{symbol}':f'x[{i}]'})
+        i+=1
+
+    i = 0
+    for symbol in sys[f'y_{inirun}']:
+        replacements.update({f'{symbol}':f'y[{i}]'})
+        i+=1
+
+    i = 0
+    for symbol in sys[f'u_{inirun}']:
+        replacements.update({f'{symbol}':f'u[{i}]'})
+        i+=1
+
+    i = 0
+    for symbol in sys['params_dict']:
+        replacements.update({f'{symbol}':f'p[{i}]'})
+        i+=1
+
+    full_string = replace_words(full_string, replacements)
+
+    for item,string in zip(full_list,full_string.split('#')):
+        tipo = 'num'
+        if 'x[' in string or 'y[' in string:
+            tipo = 'xy' 
+        elif 'p[' in string or 'u[' in string or 'Dt' in string:
+            tipo = 'up' 
+        item.update({'xyup':string,'tipo':tipo})
+
+def sym2xyup_old(sys,full_list,inirun):
     '''
     Converts symbols to vectors x, y, u and p
     '''
