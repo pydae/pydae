@@ -73,7 +73,7 @@ class dashboard():
 
         tab_0 = widgets.VBox([widgets.Text(description='Sn')])
         self.tab_1_sld_irrad = widgets.FloatSlider(description='irrad',min=0, max=1200, step=100, value=1000)
-        self.tab_1_sld_temp_deg = widgets.FloatSlider(description='temp (deg)',min=10, max=45, step=1, value=25)
+        self.tab_1_sld_temp_deg = widgets.FloatSlider(description='temp (deg)',min=10, max=75, step=1, value=25)
         tab_1 = widgets.HBox([self.tab_1_sld_irrad,self.tab_1_sld_temp_deg])
 
         tab_2_0 = widgets.RadioButtons(
