@@ -108,6 +108,8 @@ class dashboard():
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(9, 4))
 
         self.line_p_g_2 = axes[0,0].plot(model.Time,model.get_values('p_g_2')*model.get_value('S_n_2')/1e6, label='SM Power (MW)')
+        self.line_p_m_2 = axes[0,0].plot(model.Time,model.get_values('p_m_2')*model.get_value('S_n_2')/1e6, label='SM Mech. Power (MW)')
+
         self.line_p_s_1 = axes[0,0].plot(model.Time,model.get_values('p_s_1')*model.get_value('S_n_1')/1e6, label='WECS Power (MW)')
 
         self.line_omega_2 = axes[1,0].plot(model.Time, model.get_values('omega_2')*50, label='System frequency (Hz)', color=colors[1])
@@ -187,6 +189,8 @@ class dashboard():
 
 
         self.line_p_g_2[0].set_data(model.Time,model.get_values('p_g_2')*model.get_value('S_n_2')/1e6)
+        self.line_p_m_2[0].set_data(model.Time,model.get_values('p_m_2')*model.get_value('S_n_2')/1e6)
+
         self.line_p_s_1[0].set_data(model.Time,model.get_values('p_s_1')*model.get_value('S_n_1')/1e6)
 
         self.line_omega_2[0].set_data(model.Time, model.get_values('omega_2')*50)
