@@ -46,6 +46,7 @@ class builder():
         self.u2z = '\#'
         self.inirun = True
         self.sparse = False
+        self.mkl = False
 
 
         if not os.path.exists('build'):
@@ -470,6 +471,16 @@ class builder():
         defs_trap = ''
         source_trap = '' 
 
+        defs_ini_sp = ''
+        source_ini_sp = '' 
+
+        defs_run_sp = ''
+        source_run_sp = '' 
+
+        defs_trap_sp = ''
+        source_trap_sp = '' 
+
+
         defs_ini += f'void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
         source_ini += f'void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.f_ini_list):
@@ -524,26 +535,28 @@ class builder():
 
         if self.sparse:
             # jac_ini sparse
-            defs += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_ini_sp += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_ini_sp += f'void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_ini_list):
                 if item['tipo'] == 'up':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_ini_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_ini_sp += '\n}\n\n'
 
-            defs += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_ini_sp += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_ini_sp += f'void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_ini_list):
                 if item['tipo'] == 'xy':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_ini_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_ini_sp += '\n}\n\n'
 
-            defs += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_ini_sp += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_ini_sp += f'void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_ini_list):
                 if item['tipo'] == 'num':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_ini_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_ini_sp += '\n}\n\n'
+            self.defs_ini_sp = defs_ini_sp
+            self.source_ini_sp = source_ini_sp
 
         # jac_run dense
         defs_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
@@ -569,26 +582,28 @@ class builder():
 
         if self.sparse:
             # jac_run sparse
-            defs += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_run_sp += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_run_sp += f'void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_run_list):
                 if item['tipo'] == 'up':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_run_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_run_sp += '\n}\n\n'
 
-            defs += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_run_sp += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_run_sp += f'void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_run_list):
                 if item['tipo'] == 'xy':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_run_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_run_sp += '\n}\n\n'
 
-            defs += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_run_sp += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_run_sp += f'void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_run_list):
                 if item['tipo'] == 'num':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_run_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_run_sp += '\n}\n\n'
+            self.defs_run_sp = defs_run_sp
+            self.source_run_sp = source_run_sp
 
         # jac_trap dense
         defs_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
@@ -614,26 +629,29 @@ class builder():
 
         if self.sparse:
             # jac_trap sparse
-            defs += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_trap_sp += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_trap_sp += f'void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_trap_list):
                 if item['tipo'] == 'up':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_trap_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_trap_sp += '\n}\n\n'
 
-            defs += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_trap_sp += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_trap_sp += f'void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_trap_list):
                 if item['tipo'] == 'xy':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_trap_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_trap_sp += '\n}\n\n'
 
-            defs += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-            source += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            defs_trap_sp += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_trap_sp += f'void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_trap_list):
                 if item['tipo'] == 'num':
-                    source += f"data[{it}] = {item['xyup']}; \n"
-            source += '\n}\n\n'
+                    source_trap_sp += f"data[{it}] = {item['xyup']}; \n"
+            source_trap_sp += '\n}\n\n'
+
+            self.defs_trap_sp = defs_trap_sp
+            self.source_trap_sp = source_trap_sp
 
         if self.uz_jacs:
             self.string_u2z = 'sp_Fu_run_up_eval = jacs.lib.sp_Fu_run_up_eval\n'
@@ -694,6 +712,20 @@ class builder():
             fobj.write(self.defs_trap)
         with open(f'./build/source_trap_{self.name}_cffi.c', 'w') as fobj:
             fobj.write(self.source_trap)
+
+        if self.mkl:
+            with open(f'./build/defs_ini_sp_{self.name}_cffi.h', 'w') as fobj:
+                fobj.write(self.defs_ini_sp)
+            with open(f'./build/source_ini_sp_{self.name}_cffi.c', 'w') as fobj:
+                fobj.write(self.source_ini_sp)
+            with open(f'./build/defs_run_sp_{self.name}_cffi.h', 'w') as fobj:
+                fobj.write(self.defs_run_sp)
+            with open(f'./build/source_run_sp_{self.name}_cffi.c', 'w') as fobj:
+                fobj.write(self.source_run_sp)
+            with open(f'./build/defs_trap_sp_{self.name}_cffi.h', 'w') as fobj:
+                fobj.write(self.defs_trap_sp)
+            with open(f'./build/source_trap_sp_{self.name}_cffi.c', 'w') as fobj:
+                fobj.write(self.source_trap_sp)        
 
     def compile(self):
         
@@ -972,14 +1004,62 @@ def sym2xyup_mp(sys,full_list,inirun):
 
 
 if __name__ == '__main__':
-    from pydae.bmapu.bmapu_builder import  bmapu
-    grid = bmapu(r"./smib.json")
-    grid.construct('smib')
+    from pydae.bmapu import bmapu_builder
 
-    b = builder(grid.sys_dict)
+    N = 10
+    M = 10
+    S_pv_mva = 1.0
+
+    data = {
+        "system":{"name":f"pv_{M}_{N}","S_base":100e6,"K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},
+        "buses":[
+            {"name":"POI_MV","P_W":0.0,"Q_var":0.0,"U_kV":20.0},
+            {"name":   "POI","P_W":0.0,"Q_var":0.0,"U_kV":132.0},
+            {"name":  "GRID","P_W":0.0,"Q_var":0.0,"U_kV":132.0}
+        ],
+        "lines":[
+            {"bus_j":"POI_MV","bus_k": "POI","X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":120},
+            {"bus_j":   "POI","bus_k":"GRID","X_pu":0.02,"R_pu":0.0,"Bs_pu":0.0,"S_mva":120, 'sym':True, 'monitor':True}
+            ],
+        "pvs":[],
+        "genapes":[{
+            "bus":"GRID","S_n":1000e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,
+            "K_delta":0.001,"K_alpha":1e-6}]
+        }
+
+    for i_m in range(1,M+1):
+        name_j = "POI_MV"
+        for i_n in range(1,N+1):
+            name = f"{i_m}".zfill(2) + f"{i_n}".zfill(2)
+            name_k = 'MV' + name
+
+            data['buses'].append({"name":f"LV{name}","P_W":0.0,"Q_var":0.0,"U_kV":0.4})
+            data['buses'].append({"name":f"MV{name}","P_W":0.0,"Q_var":0.0,"U_kV":20.0})
+
+            data['lines'].append({"bus_j":f"LV{name}","bus_k":f"MV{name}","X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":1.2*S_pv_mva,"monitor":False})
+            data['lines'].append({"bus_j":f"{name_k}","bus_k":f"{name_j}","X_pu":0.02,"R_pu":0.0,"Bs_pu":0.0,"S_mva":1.2*S_pv_mva*(N-i_n+1),"monitor":False})
+            name_j = name_k
+            data['pvs'].append({"bus":f"LV{name}","type":"pv_dq","S_n":S_pv_mva*1e6,"U_n":400.0,"F_n":50.0,"X_s":0.1,"R_s":0.01,"monitor":False,
+                                "I_sc":8,"V_oc":42.1,"I_mp":3.56,"V_mp":33.7,"K_vt":-0.160,"K_it":0.065,"N_pv_s":25,"N_pv_p":250})
+        
+
+
+    grid = bmapu_builder.bmapu(data)
+    grid.construct(f'pv_{M}_{N}')
+
+    grid.uz_jacs = False
+    grid.verbose = True
+
+
+    
+
+    b = builder(grid.sys_dict,verbose=True)
+    b.sparse = True
+    b.mkl = True
+    b.uz_jacs = False
     b.dict2system()
     b.functions()
     b.jacobians()
     b.cwrite()
+    #b.template()
     #b.compile()
-

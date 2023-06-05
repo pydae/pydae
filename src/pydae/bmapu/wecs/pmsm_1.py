@@ -202,8 +202,8 @@ def pmsm_1(grid,name,bus_name,data_dict):
 
     ## Mechanical system: 2 mass equivalent    
     dtheta_tr = omega_t - omega_r - u_dummy
-    domega_t  = 1.0/(2*H_t)*(p_w - K_tr*theta_tr - D_tr*(omega_t-omega_r))
-    domega_r  = 1.0/(2*H_r)*(K_tr*theta_tr + D_tr*(omega_t-omega_r) - p_m)
+    domega_t  = 1.0/(2*H_t*omega_t)*(p_w - K_tr*theta_tr - D_tr*(omega_t-omega_r))
+    domega_r  = 1.0/(2*H_r*omega_r)*(K_tr*theta_tr + D_tr*(omega_t-omega_r) - p_m)
 
     if 'mech' in mode:
         grid.dae['f'] += [dtheta_tr,domega_t,domega_r]
