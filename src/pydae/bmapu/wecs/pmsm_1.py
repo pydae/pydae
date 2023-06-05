@@ -96,6 +96,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     q_s = sym.Symbol(f"q_s_{name}", real=True)
     p_s_ref = sym.Symbol(f"p_s_ref_{name}", real=True)
     nu_w = sym.Symbol(f"nu_w_{name}", real=True)
+    i_md,i_mq,v_md,v_mq,tau_r = sym.symbols(f'i_md_{name},i_mq_{name},v_md_{name},v_mq_{name},tau_r_{name}', real=True)
     
     # parameters
     S_n = sym.Symbol(f"S_n_{name}", real=True)
@@ -115,6 +116,8 @@ def pmsm_1(grid,name,bus_name,data_dict):
     K_i_beta = sym.Symbol(f"K_i_beta_{name}", real=True)
     H_t,H_r= sym.symbols(f"H_t_{name},H_r_{name}", real=True)
     K_tr,D_tr= sym.symbols(f"K_tr_{name},D_tr_{name}", real=True)
+    R_m,L_m,Phi_m = sym.symbols(f'R_m_{name},L_m_{name},Phi_m_{name}', real=True)
+
     params_list = ['S_n','F_n','X_s','R_s']
     
     mode = ['vsc_g','v_dc']
@@ -153,7 +156,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     K_mppt = sym.Piecewise((0.0,test_1), (1.0,True))
     Dp_e = sym.Piecewise((Dp_e_ref,test_1), (Dp_e_ref * (1 + 50*(omega_r - omega_r_th)),True))
     p_w_mmpt_ref = p_w_mppt_lpf #+ Dp_e   test
-    p_w_mmpt_ref = K_mppt3*omega_t**3 
+    p_w_mmpt_ref = K_mppt3*omega_t**3 + R_m*(i_md**2 + i_mq**2)
     p_m_ref = sym.Piecewise((p_w_mmpt_ref+p_ref_ext,p_ref_ext<0), (p_w_mmpt_ref,True))
     dp_w_mppt_lpf  = K_mppt/T_mppt*(p_m_ref - p_w_mppt_lpf)
     if 'aero' in mode and 'mppt' in mode:
@@ -239,8 +242,6 @@ def pmsm_1(grid,name,bus_name,data_dict):
 
     ## machine + VSC control
     v_dc,p_m_ref = sym.symbols(f"v_dc_{name},p_m_ref_{name}", real=True)   
-    i_md,i_mq,v_md,v_mq,tau_r = sym.symbols(f'i_md_{name},i_mq_{name},v_md_{name},v_mq_{name},tau_r_{name}', real=True)
-    R_m,L_m,Phi_m = sym.symbols(f'R_m_{name},L_m_{name},Phi_m_{name}', real=True)
     omega_pll_f,T_pll,K_f = sym.symbols(f'omega_pll_f_{name},T_pll_{name},K_f_{name}', real=True)
     rocof,K_h = sym.symbols(f'rocof_{name},K_h_{name}', real=True)
     omega_e = omega_r # from mechanical system
