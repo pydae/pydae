@@ -349,7 +349,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     domega_pll_f = 1/T_pll*(omega_pll - omega_pll_f)
     
 
-    eq_p_s_ref = -p_s_ref + K_pdc*(v_dc_ref - v_dc) +  K_ffdc*(i_md*v_md + i_mq*v_mq)
+    eq_p_s_ref = -p_s_ref - K_pdc*(v_dc_ref - v_dc) +  K_ffdc*(i_md*v_md + i_mq*v_mq)
     eq_i_sd_ref  = i_sd_ref*v_sd + i_sq_ref*v_sq - p_s_ref  
     eq_i_sq_ref  = i_sq_ref*v_sd - i_sd_ref*v_sq - q_s_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
@@ -417,8 +417,8 @@ def pmsm_1(grid,name,bus_name,data_dict):
 
     ## DC link   
     C_dc,i_dc = sym.symbols(f'C_dc_{name},i_dc_{name}', real=True)
-    i_mdc = -(i_md*v_md + i_mq*v_mq)/(v_dc + 1e-6)
-    i_tdc = -(i_ti*v_ti + i_tr*v_tr)/(v_dc + 1e-6)
+    i_mdc = (i_md*v_md + i_mq*v_mq)/(v_dc + 1e-6)
+    i_tdc = (i_ti*v_ti + i_tr*v_tr)/(v_dc + 1e-6)
 
     if 'vsc_m' in mode: 
         dv_dc = 0.5*(i_mdc - i_tdc)/(C_dc)
