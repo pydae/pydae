@@ -319,7 +319,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     ## grid side VSC control  
     i_sd_ref,i_sq_ref,v_td_ref,v_tq_ref = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name},v_td_ref_{name},v_tq_ref_{name}', real=True)
     v_dc_ref,q_s_ref = sym.symbols(f'v_dc_ref_{name},q_s_ref_{name}', real=True)
-    K_pdc,K_idc = sym.symbols(f'K_pdc_{name},K_idc_{name}', real=True)
+    K_pdc,K_idc,K_ffdc = sym.symbols(f'K_pdc_{name},K_idc_{name},K_ffdc_{name}', real=True)
     omega_coi = sym.symbols(f'omega_coi', real=True)
     Domega_pll,theta_pll,xi_pll = sym.symbols(f'Domega_pll_{name},theta_pll_{name},xi_pll_{name}', real=True)
     K_p_pll,K_i_pll,K_d_pll = sym.symbols(f'K_p_pll_{name},K_i_pll_{name},K_d_pll_{name}', real=True)
@@ -349,7 +349,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     domega_pll_f = 1/T_pll*(omega_pll - omega_pll_f)
     
 
-    eq_p_s_ref = -p_s_ref + K_pdc*(v_dc_ref - v_dc) + i_md*v_md + i_mq*v_mq
+    eq_p_s_ref = -p_s_ref + K_pdc*(v_dc_ref - v_dc) +  K_ffdc*(i_md*v_md + i_mq*v_mq)
     eq_i_sd_ref  = i_sd_ref*v_sd + i_sq_ref*v_sq - p_s_ref  
     eq_i_sq_ref  = i_sq_ref*v_sd - i_sd_ref*v_sq - q_s_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
@@ -368,6 +368,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
         grid.dae['u_ini_dict'].update({f'q_s_ref_{name}':0.0})
         grid.dae['u_run_dict'].update({f'q_s_ref_{name}':0.0})
         grid.dae['params_dict'].update({f'K_pdc_{name}':data_dict['K_pdc']}) 
+        grid.dae['params_dict'].update({f'K_ffdc_{name}':1.0}) 
         grid.dae['params_dict'].update({f'K_p_pll_{name}':10,f'K_i_pll_{name}':100}) 
         grid.dae['params_dict'].update({f'T_pll_{name}':0.1}) 
         grid.dae['xy_0_dict'].update({str(i_sr):0.1})

@@ -714,18 +714,24 @@ class builder():
             fobj.write(self.source_trap)
 
         if self.mkl:
-            with open(f'./build/defs_ini_sp_{self.name}_cffi.h', 'w') as fobj:
-                fobj.write(self.defs_ini_sp)
+            with open(f'./build/source_ini_{self.name}_cffi.c', 'w') as fobj:
+                string = '#include "../daesolver.h"\n\n' + self.source_ini
+                fobj.write(string)
+            with open(f'./build/source_run_{self.name}_cffi.c', 'w') as fobj:
+                string = '#include "../daesolver.h"\n\n' + self.source_run
+                fobj.write(string)
+            with open(f'./build/source_trap_{self.name}_cffi.c', 'w') as fobj:
+                string = '#include "../daesolver.h"\n\n' + self.source_trap
+                fobj.write(string)
             with open(f'./build/source_ini_sp_{self.name}_cffi.c', 'w') as fobj:
-                fobj.write(self.source_ini_sp)
-            with open(f'./build/defs_run_sp_{self.name}_cffi.h', 'w') as fobj:
-                fobj.write(self.defs_run_sp)
+                string = '#include "../daesolver.h"\n\n' + self.source_ini_sp
+                fobj.write(string)
             with open(f'./build/source_run_sp_{self.name}_cffi.c', 'w') as fobj:
-                fobj.write(self.source_run_sp)
-            with open(f'./build/defs_trap_sp_{self.name}_cffi.h', 'w') as fobj:
-                fobj.write(self.defs_trap_sp)
+                string = '#include "../daesolver.h"\n\n' + self.source_run_sp
+                fobj.write(string)
             with open(f'./build/source_trap_sp_{self.name}_cffi.c', 'w') as fobj:
-                fobj.write(self.source_trap_sp)        
+                string = '#include "../daesolver.h"\n\n' + self.source_trap_sp
+                fobj.write(string)       
 
     def compile(self):
         
@@ -762,9 +768,10 @@ class builder():
         N_z = sys['N_z']
         N_u = sys['N_u']
 
-        class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2.py").decode().replace('\r\n','\n') 
-        functions_template = pkgutil.get_data(__name__, "templates/functions_template.py").decode().replace('\r\n','\n') 
-    #     solver_template = pkgutil.get_data(__name__, "templates/solver_template_v2.py").decode().replace('\r\n','\n') 
+        if self.mkl:
+            class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2_mkl.py").decode().replace('\r\n','\n') 
+        else:
+            class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2.py").decode().replace('\r\n','\n') 
 
         class_template = class_template.replace('{name}',str(name))
         class_template = class_template.replace('{u2z_jacobians}',self.string_u2z)
