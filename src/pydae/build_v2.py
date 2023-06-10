@@ -27,8 +27,8 @@ import time
 import logging
 import multiprocessing
 from functools import partial
-
-
+import sysconfig
+from cffi import FFI
 
 
 class builder():   
@@ -824,6 +824,75 @@ class builder():
         
         return string   
 
+    def compile_mkl(self):
+
+        anaconda_path = sysconfig.get_path('data')
+        # anaconda_path = r"C:\Users\jmmau\anaconda3\pkgs"
+        # anaconda_path = r"C:\Program Files (x86)\Intel\oneAPI"
+
+        file_to_find = "mkl.h"
+        folder_to_search = anaconda_path
+
+        mkl_include_folder = find_file(file_to_find, folder_to_search)
+        if not mkl_include_folder:
+            print(f"File '{file_to_find}' not found. Check mkl-devel is installed")
+
+        # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-haa95532_46356\Library\include"
+        # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-intel_46356\Library\include"
+
+        with open('daesolver_template.c') as fobj:
+            string = fobj.read()
+        string = string.replace(r'{mkl_include_folder}',mkl_include_folder )
+        with open('daesolver.c','w') as fobj:
+            fobj.write(string)
+
+
+
+        file_to_find = "mkl_intel_lp64_dll.lib"
+        folder_to_search = anaconda_path
+
+        mkl_lib_folder = find_file(file_to_find, folder_to_search)
+        if not mkl_lib_folder:
+            print(f"File '{file_to_find}' not found. Check mkl-devel is installed")
+
+
+        # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
+        # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
+
+        filename = "solver"
+
+        ffibuilder = FFI()
+        ffibuilder.cdef('''
+        int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+        int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
+                        ''')
+
+        ffibuilder.set_source(filename,
+                            """
+        int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+        int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
+                            """,
+                            library_dirs = [mkl_lib_folder],
+                            libraries=['mkl_intel_lp64_dll',
+                                        'mkl_intel_thread_dll',
+                                        'mkl_core_dll',
+                                        'mkl_sequential_dll'
+                                        #'mkl_blacs_intelmpi_lp64_dll',
+                                        #'libiomp5md_dll',
+                                        #'impi_dll'
+                                        #,
+                                        ], 
+                            sources=["daesolver.c",
+                                    f"./build/source_ini_{self.name}_cffi.c",
+                                    f"./build/source_run_{self.name}_cffi.c",
+                                    f"./build/source_trap_{self.name}_cffi.c",
+                                    f"./build/source_ini_sp_{self.name}_cffi.c",
+                                    f"./build/source_run_sp_{self.name}_cffi.c",
+                                    f"./build/source_trap_sp_{self.name}_cffi.c"])
+        ffibuilder.compile()
+
 def sym_jac(f,x):
     
     N_f = len(f)
@@ -838,6 +907,15 @@ def sym_jac(f,x):
                 J[irow,icol] = f[irow].diff(x[icol])
 
     return J
+
+def find_file(filename, search_path):
+    # Iterate through all subfolders and files in the search path
+    for root, dirs, files in os.walk(search_path):
+        if filename in files:
+            # File found, return the absolute path
+            return root
+    # File not found
+    return None
 
 def spidx2ij(csr_matrix_list):
 

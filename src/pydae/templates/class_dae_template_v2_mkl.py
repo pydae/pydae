@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.sparse as sspa
 import cffi
+import solver
 
 dae_file_mode = {dae_file_mode}
 
@@ -138,6 +139,10 @@ class model:
         self.ss_solver = 2
         self.lsolver = 2
 
+        # ini initialization
+        self.inidblparams = np.zeros(10,dtype=np.float64)
+        self.iniintparams = np.zeros(10,dtype=np.int32)
+
         
     def update(self):
 
@@ -146,14 +151,6 @@ class model:
         self.Y = np.zeros((self.N_store,self.N_y))
         self.Z = np.zeros((self.N_store,self.N_z))
         self.iters = np.zeros(self.N_store)
-        
-    def ss_ini(self):
-
-        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,self.jac_ini,self.N_x,self.N_y)
-        self.xy_ini = xy_ini
-        self.N_iters = it
-        
-        return xy_ini
     
     def jac_run_eval(self):
         de_jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p,self.Dt)
@@ -245,9 +242,7 @@ class model:
         
         self.x = self.xy_ini[:self.N_x]
         self.xy[:self.N_x] = self.x
-        self.xy[self.N_x:] = self.y_run
-        c_h_eval(self.z,self.x,self.y_run,self.u_ini,self.p,self.Dt)
-        
+        self.xy[self.N_x:] = self.y_run        
 
     def get_value(self,name):
         
@@ -384,21 +379,48 @@ class model:
         if type(xy_0) == float or type(xy_0) == int:
             self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
 
-        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,
-                           self.jac_ini,
-                           self.N_x,self.N_y,
-                           max_it=self.max_it,tol=self.itol)
+        self.xy = self.xy_0
+        pt = np.zeros(64,dtype=np.int32)
+        f = np.ones((self.N_x),dtype=np.float64)
+        g = np.ones((self.N_y),dtype=np.float64)
+        fg = np.ones((self.N_x+self.N_y),dtype=np.float64)
+        xy = self.xy
+        x = xy[:self.N_x]
+        y_ini = xy[self.N_x:]
+        Dxy = np.zeros((self.N_x+self.N_y),dtype=np.float64)
         
-        if it < self.max_it-1:
+
+        p_pt =solver.ffi.cast('int *', pt.ctypes.data)
+        p_sp_jac_ini = solver.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
+        p_indptr = solver.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
+        p_indices = solver.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
+        p_x = solver.ffi.cast('double *', x.ctypes.data)
+        p_y_ini = solver.ffi.cast('double *', y_ini.ctypes.data)
+        p_xy = solver.ffi.cast('double *', self.xy.ctypes.data)
+        p_Dxy = solver.ffi.cast('double *', Dxy.ctypes.data)
+        p_u_ini = solver.ffi.cast('double *', self.u_ini.ctypes.data)
+        p_p = solver.ffi.cast('double *', self.p.ctypes.data)
+        N_x = self.N_x
+        N_y = self.N_y
+        max_it = self.max_it
+        itol = self.itol
+        p_z = solver.ffi.cast('double *', self.z.ctypes.data)
+        p_inidblparams = solver.ffi.cast('double *', self.inidblparams.ctypes.data)
+        p_iniintparams = solver.ffi.cast('int *', self.iniintparams.ctypes.data)
+
+        solver.lib.ini(p_pt,p_sp_jac_ini,p_indptr,p_indices,p_x,p_y_ini,p_xy,p_Dxy,p_u_ini,p_p,N_x,N_y,max_it,itol,p_z,p_inidblparams,p_iniintparams)
+
+        
+        if self.iniintparams[2] < self.max_it-1:
             
-            self.xy_ini = xy_ini
-            self.N_iters = it
+            self.xy_ini = self.xy
+            self.N_iters = self.iniintparams[2]
 
             self.ini2run()
             
             self.ini_convergence = True
             
-        if it >= self.max_it-1:
+        if self.iniintparams[2] >= self.max_it-1:
             print(f'Maximum number of iterations (max_it = {self.max_it}) reached without convergence.')
             self.ini_convergence = False
             
