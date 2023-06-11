@@ -715,22 +715,22 @@ class builder():
 
         if self.mkl:
             with open(f'./build/source_ini_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n\n' + self.source_ini
+                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_ini
                 fobj.write(string)
             with open(f'./build/source_run_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n\n' + self.source_run
+                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_run
                 fobj.write(string)
             with open(f'./build/source_trap_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n\n' + self.source_trap
+                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_trap
                 fobj.write(string)
             with open(f'./build/source_ini_sp_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n\n' + self.source_ini_sp
+                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_ini_sp
                 fobj.write(string)
             with open(f'./build/source_run_sp_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n\n' + self.source_run_sp
+                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_run_sp
                 fobj.write(string)
             with open(f'./build/source_trap_sp_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n\n' + self.source_trap_sp
+                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_trap_sp
                 fobj.write(string)       
 
     def compile(self):
