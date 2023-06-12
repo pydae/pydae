@@ -277,98 +277,98 @@ int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,do
 }
 
 
-int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt)
-{
-    mkl_verbose(0);
-    int i;
-    double norma;
-    int N;
-    int flag;
-    int it;
-    
-    N = N_x+N_y;
-
-    sp_jac_trap_num_eval(jac_trap,x,y,u,p,Dt);
-    sp_jac_trap_up_eval(jac_trap,x,y,u,p,Dt);
-    sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
-
-    f_run_eval(f,x,y,u,p,Dt);
-    g_run_eval(g,x,y,u,p,Dt);
-
-    while (t<t_end) // time loop
-    {    
-        its += 1;
-        t += Dt;
-
-        f_run_eval(f,x,y,u,p,Dt);
-        g_run_eval(g,x,y,u,p,Dt);
-        sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
-
-        for (i = 0; i < N_x; i++)
-        {
-            f_0[i] = f[i];
-            x_0[i] = x[i];
-        }
-        
-        // algebraic loop 
-        for  (it = 0; it < max_it; it++)
-        {
-
-            f_run_eval(f,x,y,u,p,Dt);
-            g_run_eval(g,x,y,u,p,Dt);
-            sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
-
-            for (i = 0; i < N_x; i++) //f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
-            {
-                fg[i] = -(x[i]-x_0[i] - 0.5*Dt*(f[i]+f_0[i]));
-            }
-            for (i = 0; i < N_y; i++)
-            {
-                fg[i+N_x] =-g[i];
-            } 
-
-            if (its < 2) { // factorization is only computed in the first iteration
-            flag = 0;
-            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
-            }
-
-            flag = 0; // linear system solution
-            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
-
-            flag = 1; // linear system solution
-            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
-
-
-            for (i = 0; i < (N_y+N_x); i++)
-            {
-                xy[i] += Dxy[i];
-                
-            }         
-
-            for (i = 0; i < N_x; i++)
-            {
-                x[i] = xy[i];
-            } 
-            for (i = 0; i < N_y; i++)
-            {
-                y[i] = xy[i+N_x];
-            } 
-
-            norma = 0.0;
-            for (i = 0; i < (N_y+N_x); i++)
-            {
-                norma += fg[i]*fg[i];
-            } 
-            if (norma < itol) {     
-                
-                break;
-                
-            }
-
-
-        }
-        //printf ("\n N_it[%d]", it); 
-    }    
-
-    return 0;
-}
+//int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt)
+//{
+//    mkl_verbose(0);
+//    int i;
+//    double norma;
+//    int N;
+//    int flag;
+//    int it;
+//    
+//    N = N_x+N_y;
+//
+//    sp_jac_trap_num_eval(jac_trap,x,y,u,p,Dt);
+//    sp_jac_trap_up_eval(jac_trap,x,y,u,p,Dt);
+//    sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
+//
+//    f_run_eval(f,x,y,u,p,Dt);
+//    g_run_eval(g,x,y,u,p,Dt);
+//
+//    while (t<t_end) // time loop
+//    {    
+//        its += 1;
+//        t += Dt;
+//
+//        f_run_eval(f,x,y,u,p,Dt);
+//        g_run_eval(g,x,y,u,p,Dt);
+//        sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
+//
+//        for (i = 0; i < N_x; i++)
+//        {
+//            f_0[i] = f[i];
+//            x_0[i] = x[i];
+//        }
+//        
+//        // algebraic loop 
+//        for  (it = 0; it < max_it; it++)
+//        {
+//
+//            f_run_eval(f,x,y,u,p,Dt);
+//            g_run_eval(g,x,y,u,p,Dt);
+//            sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
+//
+//            for (i = 0; i < N_x; i++) //f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+//            {
+//                fg[i] = -(x[i]-x_0[i] - 0.5*Dt*(f[i]+f_0[i]));
+//            }
+//            for (i = 0; i < N_y; i++)
+//            {
+//                fg[i+N_x] =-g[i];
+//            } 
+//
+//            if (its < 2) { // factorization is only computed in the first iteration
+//            flag = 0;
+//            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
+//            }
+//
+//            flag = 0; // linear system solution
+//            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
+//
+//            flag = 1; // linear system solution
+//            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
+//
+//
+//            for (i = 0; i < (N_y+N_x); i++)
+//            {
+//                xy[i] += Dxy[i];
+//                
+//            }         
+//
+//            for (i = 0; i < N_x; i++)
+//            {
+//                x[i] = xy[i];
+//            } 
+//            for (i = 0; i < N_y; i++)
+//            {
+//                y[i] = xy[i+N_x];
+//            } 
+//
+//            norma = 0.0;
+//            for (i = 0; i < (N_y+N_x); i++)
+//            {
+//                norma += fg[i]*fg[i];
+//            } 
+//            if (norma < itol) {     
+//                
+//                break;
+//                
+//            }
+//
+//
+//        }
+//        //printf ("\n N_it[%d]", it); 
+//    }    
+//
+//    return 0;
+//}

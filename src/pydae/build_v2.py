@@ -955,10 +955,11 @@ class builder():
                             sources=["daesolver.c",
                                     f"./build/source_ini_{self.name}_cffi.c",
                                     f"./build/source_run_{self.name}_cffi.c",
-                                    f"./build/source_trap_{self.name}_cffi.c",
+                                    #f"./build/source_trap_{self.name}_cffi.c",
                                     f"./build/source_ini_sp_{self.name}_cffi.c",
                                     f"./build/source_run_sp_{self.name}_cffi.c",
-                                    f"./build/source_trap_sp_{self.name}_cffi.c"])
+                                    #f"./build/source_trap_sp_{self.name}_cffi.c"
+                                    ])
         ffibuilder.compile()
         
 def sym_jac(f,x):
