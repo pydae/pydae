@@ -572,7 +572,8 @@ class builder():
             self.source_ini_sp = source_ini_sp
 
         # jac_run dense
-        if not self.sparse:
+        #if not self.sparse:
+        if True:
             defs_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
             source_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_run_list):
@@ -901,6 +902,7 @@ class builder():
                                     f"./build/source_ini_sp_{self.name}_cffi.c"])
         ffibuilder_ini.compile()
 
+        ## run template
         filename_run = "solver_run"
 
         string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.c").decode().replace('\r\n','\n') 
@@ -943,6 +945,10 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
         ffibuilder_run.compile()
 
 
+
+
+
+
     def compile_mkl_linux(self):
 
         anaconda_path = sysconfig.get_path('data')
@@ -959,42 +965,39 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-haa95532_46356\Library\include"
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-intel_46356\Library\include"
 
-        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_template.c").decode().replace('\r\n','\n') 
-        string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
-        with open('daesolver.c','w') as fobj:
-            fobj.write(string_daesolver_template)
-
-        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_template.h").decode().replace('\r\n','\n') 
-        with open('daesolver.h','w') as fobj:
-            fobj.write(string_daesolver_template)
-            
         file_to_find = "libmkl_intel_lp64.so"
         folder_to_search = anaconda_path
-        
+
         mkl_lib_folder = find_file(file_to_find, folder_to_search)
         if not mkl_lib_folder:
             print(f"File '{file_to_find}' not found. Check mkl-devel is installed")
-        print(mkl_lib_folder)
 
         # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
         # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
 
-        filename = "solver"
+        filename = "solver_ini"
 
-        ffibuilder = FFI()
-        ffibuilder.cdef('''
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_ini_template.c").decode().replace('\r\n','\n') 
+        string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
+        with open('daesolver_ini.c','w') as fobj:
+            fobj.write(string_daesolver_template)
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_ini_template.h").decode().replace('\r\n','\n') 
+        with open('daesolver_ini.h','w') as fobj:
+            fobj.write(string_daesolver_template)
+            
+
+        ffibuilder_ini = FFI()
+        ffibuilder_ini.cdef('''
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
         int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
-        int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
                         ''')
 
-        ffibuilder.set_source(filename,
+        ffibuilder_ini.set_source(filename,
                             """
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
-        int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
-                            """,
-                            library_dirs = ['/home/ingelectus/anaconda3/lib/'],
+        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);                            """,
+                            library_dirs = [mkl_lib_folder],
                             libraries=['mkl_intel_lp64',
                                        'mkl_intel_thread',
                                        'mkl_core',
@@ -1003,16 +1006,125 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
                                         #'libiomp5md_dll',
                                         #'impi_dll'
                                         #,
-                                        ], 
-                            sources=["daesolver.c",
+                                        ],
+                            sources=["daesolver_ini.c",
                                     f"./build/source_ini_{self.name}_cffi.c",
+                                    f"./build/source_ini_sp_{self.name}_cffi.c"])
+        ffibuilder_ini.compile()
+
+        ## run template
+        filename_run = "solver_run"
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.c").decode().replace('\r\n','\n') 
+        string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
+        with open('daesolver_run.c','w') as fobj:
+            fobj.write(string_daesolver_template)
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.h").decode().replace('\r\n','\n') 
+        with open('daesolver_run.h','w') as fobj:
+            fobj.write(string_daesolver_template)
+
+        ffibuilder_run = FFI()
+        ffibuilder_run.cdef('''
+int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+int step(int a);
+                        ''')
+#int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+# , double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams)
+        ffibuilder_run.set_source(filename_run,
+                            """
+int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+int step(int a);
+                            """,
+                            library_dirs = [mkl_lib_folder],
+                            libraries=['mkl_intel_lp64',
+                                       'mkl_intel_thread',
+                                       'mkl_core',
+                                       'mkl_sequential'
+                                        #'mkl_blacs_intelmpi_lp64_dll',
+                                        #'libiomp5md_dll',
+                                        #'impi_dll'
+                                        #,
+                                        ],
+                            sources=["daesolver_run.c",
                                     f"./build/source_run_{self.name}_cffi.c",
-                                    #f"./build/source_trap_{self.name}_cffi.c",
-                                    f"./build/source_ini_sp_{self.name}_cffi.c",
+                                    f"./build/source_trap_{self.name}_cffi.c",
                                     f"./build/source_run_sp_{self.name}_cffi.c",
-                                    #f"./build/source_trap_sp_{self.name}_cffi.c"
-                                    ])
-        ffibuilder.compile()
+                                    f"./build/source_trap_sp_{self.name}_cffi.c"])
+        ffibuilder_run.compile()
+        
+        
+        
+    # def compile_mkl_linux(self):
+
+    #     anaconda_path = sysconfig.get_path('data')
+    #     # anaconda_path = r"C:\Users\jmmau\anaconda3\pkgs"
+    #     # anaconda_path = r"C:\Program Files (x86)\Intel\oneAPI"
+
+    #     file_to_find = "mkl.h"
+    #     folder_to_search = anaconda_path
+
+    #     mkl_include_folder = find_file(file_to_find, folder_to_search)
+    #     if not mkl_include_folder:
+    #         print(f"File '{file_to_find}' not found. Check mkl-devel is installed")
+
+    #     # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-haa95532_46356\Library\include"
+    #     # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-intel_46356\Library\include"
+
+    #     string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_template.c").decode().replace('\r\n','\n') 
+    #     string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
+    #     with open('daesolver.c','w') as fobj:
+    #         fobj.write(string_daesolver_template)
+
+    #     string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_template.h").decode().replace('\r\n','\n') 
+    #     with open('daesolver.h','w') as fobj:
+    #         fobj.write(string_daesolver_template)
+            
+    #     file_to_find = "libmkl_intel_lp64.so"
+    #     folder_to_search = anaconda_path
+        
+    #     mkl_lib_folder = find_file(file_to_find, folder_to_search)
+    #     if not mkl_lib_folder:
+    #         print(f"File '{file_to_find}' not found. Check mkl-devel is installed")
+    #     print(mkl_lib_folder)
+
+    #     # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
+    #     # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
+
+    #     filename = "solver"
+
+    #     ffibuilder = FFI()
+    #     ffibuilder.cdef('''
+    #     int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+    #     int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+    #     int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
+    #                     ''')
+
+    #     ffibuilder.set_source(filename,
+    #                         """
+    #     int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+    #     int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+    #     int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
+    #                         """,
+    #                         library_dirs = ['/home/ingelectus/anaconda3/lib/'],
+    #                         libraries=['mkl_intel_lp64',
+    #                                    'mkl_intel_thread',
+    #                                    'mkl_core',
+    #                                    'mkl_sequential'
+    #                                     #'mkl_blacs_intelmpi_lp64_dll',
+    #                                     #'libiomp5md_dll',
+    #                                     #'impi_dll'
+    #                                     #,
+    #                                     ], 
+    #                         sources=["daesolver.c",
+    #                                 f"./build/source_ini_{self.name}_cffi.c",
+    #                                 f"./build/source_run_{self.name}_cffi.c",
+    #                                 #f"./build/source_trap_{self.name}_cffi.c",
+    #                                 f"./build/source_ini_sp_{self.name}_cffi.c",
+    #                                 f"./build/source_run_sp_{self.name}_cffi.c",
+    #                                 #f"./build/source_trap_sp_{self.name}_cffi.c"
+    #                                 ])
+    #     ffibuilder.compile()
         
 def sym_jac(f,x):
     

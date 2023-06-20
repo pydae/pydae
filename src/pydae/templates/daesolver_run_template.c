@@ -195,7 +195,7 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
     double norma;
     int N;
     int flag;
-    int it;
+    int it = 0;
     N = N_x+N_y;
 
     double* f = (double*)malloc(N_x * sizeof(double));
@@ -316,7 +316,7 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
     double norma;
     int N;
     int flag;
-    int it;
+    int it = 0;
     N = N_x+N_y;
 
     double* f = (double*)malloc(N_x * sizeof(double));
