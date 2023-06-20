@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "daesolver.h"
+#include "daesolver_ini.h"
+#include "daesolver_run.h"
 
 #include "{mkl_include_folder}/mkl_pardiso.h"
 #include "{mkl_include_folder}/mkl.h"

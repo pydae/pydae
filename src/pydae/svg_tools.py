@@ -80,6 +80,16 @@ class svg():
                 #else:
                 rect.attrib['style'] = new_style
 
+    def set_circle_style(self,object_id,new_style):
+        #style="fill:#337ab7"
+        for circle in self.root.findall('.//{http://www.w3.org/2000/svg}circle'):
+            if circle.attrib['id'] == object_id: 
+                
+                #if 'style' in rect.attrib:
+                #    rect.attrib['style'].update(new_style)
+                #else:
+                circle.attrib['style'] = new_style
+
     def set_line_style(self,object_id,new_style):
         #style="fill:#337ab7"
         for rect in self.root.findall('.//{http://www.w3.org/2000/svg}line'):
@@ -99,13 +109,15 @@ class svg():
                     #    rect.attrib['style'].update(new_style)
                     #else:
                     path.attrib['style'] = new_style
-                    print(path.attrib['style'])
-
+ 
 
     def set_color(self,type_,id_,rgb):
         if type_ == 'rect':
             self.set_rect_style(id_,f"fill:#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}")
-            
+
+        if type_ == 'circle':
+            self.set_circle_style(id_,f"fill:#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}")
+
         if type_ == 'line':
             self.set_line_style(id_,f"stroke:#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}")
 

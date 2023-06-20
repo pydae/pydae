@@ -511,26 +511,39 @@ class builder():
             source_ini += f"data[{it}] = {item['xyup']}; \n"
         source_ini += '\n}\n\n'
 
+        defs_run += f'void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+        source_run += f'void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+        for it,item in enumerate(self.h_list):
+            source_run += f"data[{it}] = {item['xyup']}; \n"
+        source_run += '\n}\n\n'
+
+
         # jac_ini dense
+        self.N_jac_ini_up = 0 # for counting non zeros
         defs_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
         source_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_ini_list):
             if item['tipo'] == 'up':
                 source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+                self.N_jac_ini_up += 1
         source_ini += '\n}\n\n'
 
+        self.N_jac_ini_xy = 0 # for counting non zeros
         defs_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
         source_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_ini_list):
             if item['tipo'] == 'xy':
                 source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+                self.N_jac_ini_xy += 1
         source_ini += '\n}\n\n'
 
+        self.N_jac_ini_num = 0 # for counting non zeros
         defs_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
         source_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
         for it,item in enumerate(self.jac_ini_list):
             if item['tipo'] == 'num':   
                 source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+                self.N_jac_ini_num += 1
         source_ini += '\n}\n\n'
 
         if self.sparse:
@@ -715,22 +728,22 @@ class builder():
 
         if self.mkl:
             with open(f'./build/source_ini_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_ini
+                string = '#include "../daesolver_ini.h"\n#include <math.h>\n\n' + self.source_ini
                 fobj.write(string)
             with open(f'./build/source_run_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_run
+                string = '#include "../daesolver_run.h"\n#include <math.h>\n\n' + self.source_run
                 fobj.write(string)
             with open(f'./build/source_trap_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_trap
+                string = '#include "../daesolver_run.h"\n#include <math.h>\n\n' + self.source_trap
                 fobj.write(string)
             with open(f'./build/source_ini_sp_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_ini_sp
+                string = '#include "../daesolver_ini.h"\n#include <math.h>\n\n' + self.source_ini_sp
                 fobj.write(string)
             with open(f'./build/source_run_sp_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_run_sp
+                string = '#include "../daesolver_run.h"\n#include <math.h>\n\n' + self.source_run_sp
                 fobj.write(string)
             with open(f'./build/source_trap_sp_{self.name}_cffi.c', 'w') as fobj:
-                string = '#include "../daesolver.h"\n#include <math.h>\n\n' + self.source_trap_sp
+                string = '#include "../daesolver_run.h"\n#include <math.h>\n\n' + self.source_trap_sp
                 fobj.write(string)       
 
     def compile(self):
@@ -840,11 +853,6 @@ class builder():
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-haa95532_46356\Library\include"
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-intel_46356\Library\include"
 
-        with open('daesolver_template.c') as fobj:
-            string = fobj.read()
-        string = string.replace(r'{mkl_include_folder}',mkl_include_folder )
-        with open('daesolver.c','w') as fobj:
-            fobj.write(string)
 
         file_to_find = "mkl_intel_lp64_dll.lib"
         folder_to_search = anaconda_path
@@ -857,20 +865,69 @@ class builder():
         # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
         # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
 
-        filename = "solver"
 
-        ffibuilder = FFI()
-        ffibuilder.cdef('''
+
+
+        filename = "solver_ini"
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_ini_template.c").decode().replace('\r\n','\n') 
+        string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
+        with open('daesolver_ini.c','w') as fobj:
+            fobj.write(string_daesolver_template)
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_ini_template.h").decode().replace('\r\n','\n') 
+        with open('daesolver_ini.h','w') as fobj:
+            fobj.write(string_daesolver_template)
+            
+
+        ffibuilder_ini = FFI()
+        ffibuilder_ini.cdef('''
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
         int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
-        int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
                         ''')
 
-        ffibuilder.set_source(filename,
+        ffibuilder_ini.set_source(filename,
                             """
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
-        int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
+        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);                            """,
+                            library_dirs = [mkl_lib_folder],
+                            libraries=['mkl_intel_lp64_dll',
+                                        'mkl_intel_thread_dll',
+                                        'mkl_core_dll',
+                                        'mkl_sequential_dll'
+                                        #'mkl_blacs_intelmpi_lp64_dll',
+                                        #'libiomp5md_dll',
+                                        #'impi_dll'
+                                        #,
+                                        ], 
+                            sources=["daesolver_ini.c",
+                                    f"./build/source_ini_{self.name}_cffi.c",
+                                    f"./build/source_ini_sp_{self.name}_cffi.c"])
+        ffibuilder_ini.compile()
+
+        filename_run = "solver_run"
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.c").decode().replace('\r\n','\n') 
+        string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
+        with open('daesolver_run.c','w') as fobj:
+            fobj.write(string_daesolver_template)
+
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.h").decode().replace('\r\n','\n') 
+        with open('daesolver_run.h','w') as fobj:
+            fobj.write(string_daesolver_template)
+
+        ffibuilder_run = FFI()
+        ffibuilder_run.cdef('''
+int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
+int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+                        ''')
+
+        ffibuilder_run.set_source(filename_run,
+                            """
+int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
+int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                             """,
                             library_dirs = [mkl_lib_folder],
                             libraries=['mkl_intel_lp64_dll',
@@ -882,14 +939,13 @@ class builder():
                                         #'impi_dll'
                                         #,
                                         ], 
-                            sources=["daesolver.c",
-                                    f"./build/source_ini_{self.name}_cffi.c",
+                            sources=["daesolver_run.c",
                                     f"./build/source_run_{self.name}_cffi.c",
                                     f"./build/source_trap_{self.name}_cffi.c",
-                                    f"./build/source_ini_sp_{self.name}_cffi.c",
                                     f"./build/source_run_sp_{self.name}_cffi.c",
                                     f"./build/source_trap_sp_{self.name}_cffi.c"])
-        ffibuilder.compile()
+        ffibuilder_run.compile()
+
 
     def compile_mkl_linux(self):
 

@@ -1,7 +1,7 @@
 import numpy as np
 import scipy.sparse as sspa
 import cffi
-import solver
+import solver_ini,solver_run
 
 dae_file_mode = {dae_file_mode}
 
@@ -142,6 +142,10 @@ class model:
         # ini initialization
         self.inidblparams = np.zeros(10,dtype=np.float64)
         self.iniintparams = np.zeros(10,dtype=np.int32)
+
+        # run initialization
+        self.rundblparams = np.zeros(10,dtype=np.float64)
+        self.runintparams = np.zeros(10,dtype=np.int32)
 
         
     def update(self):
@@ -381,34 +385,31 @@ class model:
 
         self.xy = self.xy_0
         pt = np.zeros(64,dtype=np.int32)
-        f = np.ones((self.N_x),dtype=np.float64)
-        g = np.ones((self.N_y),dtype=np.float64)
-        fg = np.ones((self.N_x+self.N_y),dtype=np.float64)
         xy = self.xy
         x = xy[:self.N_x]
         y_ini = xy[self.N_x:]
         Dxy = np.zeros((self.N_x+self.N_y),dtype=np.float64)
         
 
-        p_pt =solver.ffi.cast('int *', pt.ctypes.data)
-        p_sp_jac_ini = solver.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
-        p_indptr = solver.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
-        p_indices = solver.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
-        p_x = solver.ffi.cast('double *', x.ctypes.data)
-        p_y_ini = solver.ffi.cast('double *', y_ini.ctypes.data)
-        p_xy = solver.ffi.cast('double *', self.xy.ctypes.data)
-        p_Dxy = solver.ffi.cast('double *', Dxy.ctypes.data)
-        p_u_ini = solver.ffi.cast('double *', self.u_ini.ctypes.data)
-        p_p = solver.ffi.cast('double *', self.p.ctypes.data)
+        p_pt =solver_ini.ffi.cast('int *', pt.ctypes.data)
+        p_sp_jac_ini = solver_ini.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
+        p_indptr = solver_ini.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
+        p_indices = solver_ini.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
+        p_x = solver_ini.ffi.cast('double *', x.ctypes.data)
+        p_y_ini = solver_ini.ffi.cast('double *', y_ini.ctypes.data)
+        p_xy = solver_ini.ffi.cast('double *', self.xy.ctypes.data)
+        p_Dxy = solver_ini.ffi.cast('double *', Dxy.ctypes.data)
+        p_u_ini = solver_ini.ffi.cast('double *', self.u_ini.ctypes.data)
+        p_p = solver_ini.ffi.cast('double *', self.p.ctypes.data)
         N_x = self.N_x
         N_y = self.N_y
         max_it = self.max_it
         itol = self.itol
-        p_z = solver.ffi.cast('double *', self.z.ctypes.data)
-        p_inidblparams = solver.ffi.cast('double *', self.inidblparams.ctypes.data)
-        p_iniintparams = solver.ffi.cast('int *', self.iniintparams.ctypes.data)
+        p_z = solver_ini.ffi.cast('double *', self.z.ctypes.data)
+        p_inidblparams = solver_ini.ffi.cast('double *', self.inidblparams.ctypes.data)
+        p_iniintparams = solver_ini.ffi.cast('int *', self.iniintparams.ctypes.data)
 
-        solver.lib.ini(p_pt,p_sp_jac_ini,p_indptr,p_indices,p_x,p_y_ini,p_xy,p_Dxy,p_u_ini,p_p,N_x,N_y,max_it,itol,p_z,p_inidblparams,p_iniintparams)
+        solver_ini.lib.ini(p_pt,p_sp_jac_ini,p_indptr,p_indices,p_x,p_y_ini,p_xy,p_Dxy,p_u_ini,p_p,N_x,N_y,max_it,itol,p_z,p_inidblparams,p_iniintparams)
 
         
         if self.iniintparams[2] < self.max_it-1:
@@ -541,15 +542,34 @@ class model:
         u = self.u_run
         z = self.z
 
-        t,it,xy = daestep(t,t_end,it,
-                          xy,u,p,z,
-                          self.jac_trap,
-                          self.iters,
-                          self.Dt,
-                          self.N_x,
-                          self.N_y,
-                          self.N_z,
-                          max_it=self.max_it,itol=self.itol,store=self.store)
+        pt = np.zeros(64,dtype=np.int32)
+        xy = self.xy
+        x = xy[:self.N_x]
+        y_run = xy[self.N_x:]
+
+        p_pt =solver_run.ffi.cast('int *', pt.ctypes.data)
+        p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
+        p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
+        p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
+        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
+        p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
+        p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
+        p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
+        p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
+        p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
+        p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
+
+
+        p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
+        N_x = self.N_x
+        N_y = self.N_y
+        max_it = self.max_it
+        itol = self.itol
+        max_it = 5
+        itol = 1e-8
+        its = 0
+
+        solver_run.lib.step(p_pt, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,  p_u_run,      p_p,    N_x,    N_y, max_it, itol, its, self.Dt, p_z,p_dblparams, p_intparams)
 
         self.t = t
         self.it = it

@@ -374,6 +374,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
         grid.dae['xy_0_dict'].update({str(i_sr):0.1})
         grid.dae['h_dict'].update({f"omega_pll_{name}":omega_pll})
         grid.dae['h_dict'].update({f"omega_pll_f_{name}":omega_pll_f})
+        grid.dae['h_dict'].update({f"rocof_{name}":rocof})
 
     ## grid side VSC
     v_sr =  V_s*cos(theta_s)  # v_Q
