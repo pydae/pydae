@@ -572,26 +572,27 @@ class builder():
             self.source_ini_sp = source_ini_sp
 
         # jac_run dense
-        defs_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_run_list):
-            if item['tipo'] == 'up':
-                source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source_run += '\n}\n\n'
+        if not self.sparse:
+            defs_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_run_list):
+                if item['tipo'] == 'up':
+                    source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+            source_run += '\n}\n\n'
 
-        defs_run += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_run += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_run_list):
-            if item['tipo'] == 'xy':
-                source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source_run += '\n}\n\n'
+            defs_run += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_run += f'void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_run_list):
+                if item['tipo'] == 'xy':
+                    source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+            source_run += '\n}\n\n'
 
-        defs_run += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_run += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_run_list):
-            if item['tipo'] == 'num':
-                source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source_run += '\n}\n\n'
+            defs_run += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_run += f'void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_run_list):
+                if item['tipo'] == 'num':
+                    source_run += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+            source_run += '\n}\n\n'
 
         if self.sparse:
             # jac_run sparse
@@ -853,7 +854,6 @@ class builder():
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-haa95532_46356\Library\include"
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-intel_46356\Library\include"
 
-
         file_to_find = "mkl_intel_lp64_dll.lib"
         folder_to_search = anaconda_path
 
@@ -861,12 +861,8 @@ class builder():
         if not mkl_lib_folder:
             print(f"File '{file_to_find}' not found. Check mkl-devel is installed")
 
-
         # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
         # mkl_lib_folder =  r"C:\Users\jmmau\anaconda3\pkgs\mkl-devel-2023.1.0-h74d85ca_46356\Library\lib"
-
-
-
 
         filename = "solver_ini"
 
