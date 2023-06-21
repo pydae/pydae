@@ -923,21 +923,20 @@ class builder():
         ffibuilder_run.cdef('''
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
 int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                         ''')
+#int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 
         ffibuilder_run.set_source(filename_run,
                             """
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
 int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                             """,
                             library_dirs = [mkl_lib_folder],
                             libraries=libraries,
                             sources=["daesolver_run.c",
                                     f"./build/source_run_{self.name}_cffi.c",
-                                    f"./build/source_trap_{self.name}_cffi.c",
-                                    f"./build/source_run_sp_{self.name}_cffi.c",
+                                    #f"./build/source_trap_{self.name}_cffi.c",
+                                    #f"./build/source_run_sp_{self.name}_cffi.c",
                                     f"./build/source_trap_sp_{self.name}_cffi.c"])
         logging.debug('start compiling run')
         t_0 = time.perf_counter()
