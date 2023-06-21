@@ -6,10 +6,7 @@ Created on Sat Apr 14 11:53:28 2018
 @author: jmmauricio
 
 todo:
-    - save matrices 
-    - add dense matrices
-    - add (i,j) to lists
-    - add f_ini and f_run
+    - h_eval is computed both in ini and run, remove ini
 
 """
 import numpy as np
@@ -47,6 +44,7 @@ class builder():
         self.inirun = True
         self.sparse = False
         self.mkl = False
+        self.platform = 'Windows'
 
 
         if not os.path.exists('build'):
@@ -519,32 +517,33 @@ class builder():
 
 
         # jac_ini dense
-        self.N_jac_ini_up = 0 # for counting non zeros
-        defs_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_ini_list):
-            if item['tipo'] == 'up':
-                source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-                self.N_jac_ini_up += 1
-        source_ini += '\n}\n\n'
+        if not self.sparse:
+            self.N_jac_ini_up = 0 # for counting non zeros
+            defs_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_ini += f'void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_ini_list):
+                if item['tipo'] == 'up':
+                    source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+                    self.N_jac_ini_up += 1
+            source_ini += '\n}\n\n'
 
-        self.N_jac_ini_xy = 0 # for counting non zeros
-        defs_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_ini_list):
-            if item['tipo'] == 'xy':
-                source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-                self.N_jac_ini_xy += 1
-        source_ini += '\n}\n\n'
+            self.N_jac_ini_xy = 0 # for counting non zeros
+            defs_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_ini += f'void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_ini_list):
+                if item['tipo'] == 'xy':
+                    source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+                    self.N_jac_ini_xy += 1
+            source_ini += '\n}\n\n'
 
-        self.N_jac_ini_num = 0 # for counting non zeros
-        defs_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_ini_list):
-            if item['tipo'] == 'num':   
-                source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-                self.N_jac_ini_num += 1
-        source_ini += '\n}\n\n'
+            self.N_jac_ini_num = 0 # for counting non zeros
+            defs_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_ini += f'void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_ini_list):
+                if item['tipo'] == 'num':   
+                    source_ini += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+                    self.N_jac_ini_num += 1
+            source_ini += '\n}\n\n'
 
         if self.sparse:
             # jac_ini sparse
@@ -572,8 +571,8 @@ class builder():
             self.source_ini_sp = source_ini_sp
 
         # jac_run dense
-        #if not self.sparse:
-        if True:
+        if not self.sparse:
+        #if True:
             defs_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
             source_run += f'void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
             for it,item in enumerate(self.jac_run_list):
@@ -621,26 +620,28 @@ class builder():
             self.source_run_sp = source_run_sp
 
         # jac_trap dense
-        defs_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_trap_list):
-            if item['tipo'] == 'up':
-                source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source_trap += '\n}\n\n'
+        if not self.sparse:
 
-        defs_trap += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_trap += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_trap_list):
-            if item['tipo'] == 'xy':
-                source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source_trap += '\n}\n\n'
+            defs_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_trap += f'void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_trap_list):
+                if item['tipo'] == 'up':
+                    source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+            source_trap += '\n}\n\n'
 
-        defs_trap += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-        source_trap += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
-        for it,item in enumerate(self.jac_trap_list):
-            if item['tipo'] == 'num':
-                source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
-        source_trap += '\n}\n\n'
+            defs_trap += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_trap += f'void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_trap_list):
+                if item['tipo'] == 'xy':
+                    source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+            source_trap += '\n}\n\n'
+
+            defs_trap += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+            source_trap += f'void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+            for it,item in enumerate(self.jac_trap_list):
+                if item['tipo'] == 'num':
+                    source_trap += f"data[{item['de_idx']}] = {item['xyup']}; \n"
+            source_trap += '\n}\n\n'
 
         if self.sparse:
             # jac_trap sparse
@@ -855,7 +856,14 @@ class builder():
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-haa95532_46356\Library\include"
         # mkl_include_folder = r"C:\Users\jmmau\anaconda3\pkgs\mkl-include-2023.1.0-intel_46356\Library\include"
 
-        file_to_find = "mkl_intel_lp64_dll.lib"
+        if self.platform == 'Windows':
+            file_to_find = "mkl_intel_lp64_dll.lib"
+            libraries = ['mkl_intel_lp64_dll','mkl_intel_thread_dll',
+                         'mkl_core_dll','mkl_sequential_dll']
+        else:
+            file_to_find = "libmkl_intel_lp64.so"
+            libraries = ['mkl_intel_lp64','mkl_intel_thread',
+                         'mkl_core','mkl_sequential']
         folder_to_search = anaconda_path
 
         mkl_lib_folder = find_file(file_to_find, folder_to_search)
@@ -888,19 +896,16 @@ class builder():
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
         int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);                            """,
                             library_dirs = [mkl_lib_folder],
-                            libraries=['mkl_intel_lp64_dll',
-                                        'mkl_intel_thread_dll',
-                                        'mkl_core_dll',
-                                        'mkl_sequential_dll'
-                                        #'mkl_blacs_intelmpi_lp64_dll',
-                                        #'libiomp5md_dll',
-                                        #'impi_dll'
-                                        #,
-                                        ], 
+                            libraries=libraries, 
                             sources=["daesolver_ini.c",
                                     f"./build/source_ini_{self.name}_cffi.c",
                                     f"./build/source_ini_sp_{self.name}_cffi.c"])
+        
+        logging.debug('start compiling ini')
+        t_0 = time.perf_counter()
         ffibuilder_ini.compile()
+        t_1 = time.perf_counter()
+        logging.debug(f'end compiling ini (time for ini: {t_1-t_0:0.1f} s)')
 
         ## run template
         filename_run = "solver_run"
@@ -928,21 +933,17 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
 int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                             """,
                             library_dirs = [mkl_lib_folder],
-                            libraries=['mkl_intel_lp64_dll',
-                                        'mkl_intel_thread_dll',
-                                        'mkl_core_dll',
-                                        'mkl_sequential_dll'
-                                        #'mkl_blacs_intelmpi_lp64_dll',
-                                        #'libiomp5md_dll',
-                                        #'impi_dll'
-                                        #,
-                                        ], 
+                            libraries=libraries,
                             sources=["daesolver_run.c",
                                     f"./build/source_run_{self.name}_cffi.c",
                                     f"./build/source_trap_{self.name}_cffi.c",
                                     f"./build/source_run_sp_{self.name}_cffi.c",
                                     f"./build/source_trap_sp_{self.name}_cffi.c"])
+        logging.debug('start compiling run')
+        t_0 = time.perf_counter()
         ffibuilder_run.compile()
+        t_1 = time.perf_counter()
+        logging.debug(f'end compiling run (time for run: {t_1-t_0:0.1f} s)')
 
 
 
