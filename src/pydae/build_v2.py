@@ -910,7 +910,7 @@ class builder():
         ## run template
         filename_run = "solver_run"
 
-        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.c").decode().replace('\r\n','\n') 
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template_2.c").decode().replace('\r\n','\n') 
         string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
         with open('daesolver_run.c','w') as fobj:
             fobj.write(string_daesolver_template)
@@ -923,6 +923,7 @@ class builder():
         ffibuilder_run.cdef('''
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
 int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
+int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
                         ''')
 #int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 
@@ -930,7 +931,8 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
                             """
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
 int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-                            """,
+int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
+""",
                             library_dirs = [mkl_lib_folder],
                             libraries=libraries,
                             sources=["daesolver_run.c",
@@ -1015,7 +1017,7 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
         ## run template
         filename_run = "solver_run"
 
-        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template.c").decode().replace('\r\n','\n') 
+        string_daesolver_template = pkgutil.get_data(__name__, "templates/daesolver_run_template_2.c").decode().replace('\r\n','\n') 
         string_daesolver_template = string_daesolver_template.replace(r'{mkl_include_folder}',mkl_include_folder )
         with open('daesolver_run.c','w') as fobj:
             fobj.write(string_daesolver_template)

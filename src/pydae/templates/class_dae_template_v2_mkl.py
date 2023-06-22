@@ -568,7 +568,7 @@ class model:
         itol = 1e-8
         its = 0
 
-        solver_run.lib.step(p_pt, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,  p_u_run,      p_p,    N_x,    N_y, max_it, itol, its, self.Dt, p_z,p_dblparams, p_intparams)
+        solver_run.lib.step2(p_pt, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,  p_u_run,      p_p,    N_x,    N_y, max_it, itol, its, self.Dt, p_z,p_dblparams, p_intparams)
 
         self.t = t
         self.it = it
