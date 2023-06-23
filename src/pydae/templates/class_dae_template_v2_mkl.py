@@ -147,7 +147,35 @@ class model:
         self.rundblparams = np.zeros(10,dtype=np.float64)
         self.runintparams = np.zeros(10,dtype=np.int32)
 
+        self.xy = self.xy_0
+        pt = np.zeros(64,dtype=np.int32)
+        xy = self.xy
+        x = xy[:self.N_x]
+        y_ini = xy[self.N_x:]
+        Dxy = np.zeros((self.N_x+self.N_y),dtype=np.float64)
         
+        f = np.zeros((self.N_x),dtype=np.float64)
+        g = np.zeros((self.N_y),dtype=np.float64)
+        fg = np.zeros((self.N_x+self.N_y),dtype=np.float64)
+
+
+        self.p_pt =solver_ini.ffi.cast('int *', pt.ctypes.data)
+        self.p_sp_jac_ini = solver_ini.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
+        self.p_indptr = solver_ini.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
+        self.p_indices = solver_ini.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
+        self.p_x = solver_ini.ffi.cast('double *', x.ctypes.data)
+        self.p_y_ini = solver_ini.ffi.cast('double *', y_ini.ctypes.data)
+        self.p_xy = solver_ini.ffi.cast('double *', self.xy.ctypes.data)
+        self.p_Dxy = solver_ini.ffi.cast('double *', Dxy.ctypes.data)
+        self.p_u_ini = solver_ini.ffi.cast('double *', self.u_ini.ctypes.data)
+        self.p_p = solver_ini.ffi.cast('double *', self.p.ctypes.data)
+        self.p_z = solver_ini.ffi.cast('double *', self.z.ctypes.data)
+        self.p_inidblparams = solver_ini.ffi.cast('double *', self.inidblparams.ctypes.data)
+        self.p_iniintparams = solver_ini.ffi.cast('int *', self.iniintparams.ctypes.data)
+        self.p_f = solver_ini.ffi.cast('double *', f.ctypes.data)
+        self.p_g = solver_ini.ffi.cast('double *', g.ctypes.data)
+        self.p_fg = solver_ini.ffi.cast('double *', fg.ctypes.data)
+
     def update(self):
 
         self.Time = np.zeros(self.N_store)
@@ -382,33 +410,25 @@ class model:
         if type(xy_0) == float or type(xy_0) == int:
             self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
 
-        self.xy = self.xy_0
-        pt = np.zeros(64,dtype=np.int32)
-        xy = self.xy
-        x = xy[:self.N_x]
-        y_ini = xy[self.N_x:]
-        Dxy = np.zeros((self.N_x+self.N_y),dtype=np.float64)
-        
 
-        p_pt =solver_ini.ffi.cast('int *', pt.ctypes.data)
-        p_sp_jac_ini = solver_ini.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
-        p_indptr = solver_ini.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
-        p_indices = solver_ini.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
-        p_x = solver_ini.ffi.cast('double *', x.ctypes.data)
-        p_y_ini = solver_ini.ffi.cast('double *', y_ini.ctypes.data)
-        p_xy = solver_ini.ffi.cast('double *', self.xy.ctypes.data)
-        p_Dxy = solver_ini.ffi.cast('double *', Dxy.ctypes.data)
-        p_u_ini = solver_ini.ffi.cast('double *', self.u_ini.ctypes.data)
-        p_p = solver_ini.ffi.cast('double *', self.p.ctypes.data)
-        N_x = self.N_x
-        N_y = self.N_y
-        max_it = self.max_it
-        itol = self.itol
-        p_z = solver_ini.ffi.cast('double *', self.z.ctypes.data)
-        p_inidblparams = solver_ini.ffi.cast('double *', self.inidblparams.ctypes.data)
-        p_iniintparams = solver_ini.ffi.cast('int *', self.iniintparams.ctypes.data)
 
-        solver_ini.lib.ini(p_pt,p_sp_jac_ini,p_indptr,p_indices,p_x,p_y_ini,p_xy,p_Dxy,p_u_ini,p_p,N_x,N_y,max_it,itol,p_z,p_inidblparams,p_iniintparams)
+        solver_ini.lib.ini2(self.p_pt,
+                            self.p_sp_jac_ini,
+                            self.p_indptr,
+                            self.p_indices,
+                            self.p_x,
+                            self.p_y_ini,
+                            self.p_xy,
+                            self.p_Dxy,
+                            self.p_u_ini,
+                            self.p_p,
+                            self.N_x,
+                            self.N_y,
+                            self.max_it,
+                            self.itol,
+                            self.p_z,
+                            self.p_inidblparams,
+                            self.p_iniintparams)
 
         
         if self.iniintparams[2] < self.max_it-1:

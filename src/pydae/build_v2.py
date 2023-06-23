@@ -888,13 +888,16 @@ class builder():
         ffibuilder_ini = FFI()
         ffibuilder_ini.cdef('''
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
                         ''')
 
         ffibuilder_ini.set_source(filename,
                             """
         int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-        int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);                            """,
+int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+        """,
                             library_dirs = [mkl_lib_folder],
                             libraries=libraries, 
                             sources=["daesolver_ini.c",

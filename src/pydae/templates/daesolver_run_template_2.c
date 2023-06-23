@@ -283,11 +283,14 @@ int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *ind
             } 
             if (norma < itol) {     
                 
+                flag = 10;
+                solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
                 break;
                 
             }
 
-
+            flag = 10;
+            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
         }
         //printf ("\n N_it[%d]", it); 
     }    

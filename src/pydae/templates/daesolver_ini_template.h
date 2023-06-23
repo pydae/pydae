@@ -12,3 +12,4 @@ void g_run_eval(double *g,double *x,double *y,double *u,double *p,double Dt);
 //void sp_jac_trap_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt);
 //void sp_jac_trap_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt);
 void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt);
+int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);

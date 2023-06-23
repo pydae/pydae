@@ -223,7 +223,8 @@ int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,do
             //xy[i+N_x] =  y[i];
         } 
 
-        if (iniintparams[0] == 0) { // factorization is always computed
+        // factorization is always computed
+        if (iniintparams[0] == 0) { 
         flag = 0;
         solve(pt,jac_ini, indptr, indices, N, fg,Dxy, flag); 
         }
@@ -262,7 +263,97 @@ int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,do
         {
             y[i] = xy[i+N_x];
         } 
+      }
+    iniintparams[2] = it;
+    if (iniintparams[1] == 0)
+    {
+        h_eval(z,x,y,u,p,Dt);
     }
+        
+    free(f);
+    free(g);
+    free(fg);  
+
+    return 0;
+}
+
+
+int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams)
+{
+    mkl_verbose(0);
+    int i;
+    double norma;
+    int N;
+    int flag;
+    int it;
+    double Dt = 1.0;
+    N = N_x+N_y;
+    double* f = (double*)malloc(N_x * sizeof(double));
+    double* g = (double*)malloc(N_y * sizeof(double));
+    double* fg = (double*)malloc(N * sizeof(double));
+
+    sp_jac_ini_num_eval(jac_ini,x,y,u,p,Dt);
+    sp_jac_ini_up_eval(jac_ini,x,y,u,p,Dt);
+
+    for  (it = 0; it < max_it; it++)
+    {
+        f_ini_eval(f,x,y,u,p,Dt);
+        g_ini_eval(g,x,y,u,p,Dt);
+
+        sp_jac_ini_xy_eval(jac_ini,x,y,u,p,Dt); 
+
+        for (i = 0; i < N_x; i++)
+        {
+            fg[i] = -f[i];
+            //xy[i] =  x[i];
+        }
+        for (i = 0; i < N_y; i++)
+        {
+            fg[i+N_x] = -g[i];
+            //xy[i+N_x] =  y[i];
+        } 
+
+        // factorization is always computed
+        if (iniintparams[0] == 0) { 
+        flag = 0;
+        solve(pt,jac_ini, indptr, indices, N, fg,Dxy, flag); 
+        }
+
+        if (iniintparams[0] == 1) // factorization is only computed in the first iteration
+        { 
+            if (it == 0) 
+            { // factorization is only computed in the first iteration
+                flag = 0;
+                solve(pt,jac_ini, indptr, indices, N, fg,Dxy, flag); 
+            }
+        }
+
+        flag = 1; // linear system solution
+        solve(pt,jac_ini, indptr, indices, N, fg,Dxy, flag);
+
+        for (i = 0; i < (N_y+N_x); i++)
+        {
+            xy[i] += Dxy[i];
+            
+        }         
+        norma = 0.0;
+        for (i = 0; i < (N_y+N_x); i++)
+        {
+            norma += fg[i]*fg[i];
+        } 
+        if (norma < itol) {      
+            break;
+        }
+
+        for (i = 0; i < N_x; i++)
+        {
+            x[i] = xy[i];
+        } 
+        for (i = 0; i < N_y; i++)
+        {
+            y[i] = xy[i+N_x];
+        } 
+      }
     iniintparams[2] = it;
     if (iniintparams[1] == 0)
     {
