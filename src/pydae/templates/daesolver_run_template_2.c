@@ -188,7 +188,7 @@ if (flag == 0){  // flag == 0: initialization and symbolic factorization
  
 }
 
-int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams)
+int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams)
 {
     mkl_verbose(0);
     int i;
@@ -260,6 +260,10 @@ int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *ind
             flag = 1; // linear system solution
             solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
 
+            if (intparams[0] == 0) { // factorization is always computed
+            flag = 10;
+            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
+            }
 
             for (i = 0; i < (N_y+N_x); i++)
             {
@@ -283,16 +287,15 @@ int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *ind
             } 
             if (norma < itol) {     
                 
-                flag = 10;
-                solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
                 break;
                 
             }
 
-            flag = 10;
-            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
+
         }
         //printf ("\n N_it[%d]", it); 
+
+
     }    
 
     free(f);
@@ -308,13 +311,16 @@ int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *ind
         h_eval(z,x,y,u,p,Dt);
     }
 
-
+    if (intparams[0] == 1) // factorization is only computed in the first iteration
+    { 
+        flag = 10;
+        solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
+    }
 
     return 2;
 }
 
-
-int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams)
+int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store)
 {
     mkl_verbose(0);
     int i;
@@ -339,7 +345,7 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
 
     while (t<t_end) // time loop
     {    
-        its += 1;
+        
         t += Dt;
 
         // f_run_eval(f,x,y,u,p,Dt);
@@ -386,6 +392,10 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
             flag = 1; // linear system solution
             solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
 
+            if (intparams[0] == 0) { // factorization is always computed
+            flag = 10;
+            solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
+            }
 
             for (i = 0; i < (N_y+N_x); i++)
             {
@@ -415,7 +425,26 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
 
 
         }
-        //printf ("\n N_it[%d]", it); 
+    if (intparams[1] == 0)
+    {
+        h_eval(z,x,y,u,p,Dt);
+
+        Time[its[0]] = t;     
+
+        for (i = 0; i < N_x; i++)
+        {
+            X[its[0]*N_x+i] = x[i];     
+        }    
+        for (i = 0; i < N_y; i++)
+        {
+            Y[its[0]*N_y+i] = y[i];     
+        }  
+        for (i = 0; i < N_z; i++)
+        {
+            Z[its[0]*N_z+i] = z[i];     
+        }   
+    }
+    its[0] += 1;
     }    
 
     free(f);
@@ -425,11 +454,15 @@ int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
     free(f_0);
     free(Dxy);
 
-    intparams[2] = it;
-    if (intparams[1] == 0)
-    {
-        h_eval(z,x,y,u,p,Dt);
+    if (intparams[0] == 1) // factorization is only computed in the first iteration
+    { 
+        flag = 10;
+        solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
     }
+
+    intparams[2] = it;
+    dblparams[0] = t;
+
 
     return 0;
 }

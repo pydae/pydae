@@ -11,6 +11,7 @@ from pydae.urisi.transformers.transformers import trafos_preprocess,add_trafos,a
 from pydae.urisi.shunts.shunts import add_shunts,shunts_preprocess
 
 import pydae.build_cffi as db
+from pydae.build_v2 import builder
 
 import requests
 
@@ -304,9 +305,6 @@ class urisi:
         with open('xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
 
-
-    def compile(self, name):
-
         sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
                 'params_dict':self.dae['params_dict'],
                 'f_list':self.dae['f'],
@@ -319,10 +317,24 @@ class urisi:
                 'h_dict':self.dae['h_dict']}
 
         self.sys_dict = sys_dict 
-        
-        bldr = db.builder(sys_dict,verbose=self.verbose);
+
+    def compile(self, name):
+
+        bldr = db.builder(self.sys_dict,verbose=self.verbose);
         bldr.build()       
 
+    def compile_mkl(self, name):
+
+        b = builder(self.sys_dict,verbose=self.verbose)
+        b.sparse = True
+        b.mkl = True
+        b.uz_jacs = self.uz_jacs
+        b.dict2system()
+        b.functions()
+        b.jacobians()
+        b.cwrite()
+        b.template()
+        b.compile_mkl()  
 
     def build(self, name=''):
         if name == '':

@@ -688,17 +688,22 @@ class builder():
                         {'name':'Hy_run','lista':self.Hy_list,'matrix':self.Hy_run_sp,'de_sp':['sp'],'ini_run':['run']},
                         {'name':'Hu_run','lista':self.Hu_list,'matrix':self.Hu_run_sp,'de_sp':['sp'],'ini_run':['run']},]
 
+            defs_uz_jacs = ''
+            source_uz_jacs = ''
             for item in matrices:
                 for de_sp in item['de_sp']:
                     for xyup in ['up','xy','num']:
-                        defs += f'void {de_sp}_{item["name"]}_{xyup}_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
-                        source += f'void {de_sp}_{item["name"]}_{xyup}_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
+                        defs_uz_jacs += f'void {de_sp}_{item["name"]}_{xyup}_eval(double *data,double *x,double *y,double *u,double *p,double Dt);\n'
+                        source_uz_jacs += f'void {de_sp}_{item["name"]}_{xyup}_eval(double *data,double *x,double *y,double *u,double *p,double Dt)' + '{' +'\n'*2
                         for it,item2 in enumerate(item["lista"]):
                             if item2['tipo'] == xyup:
-                                source += f"data[{it}] = {item2['xyup']}; \n"
-                        source += '\n}\n\n' 
+                                source_uz_jacs += f"data[{it}] = {item2['xyup']}; \n"
+                        source_uz_jacs += '\n}\n\n' 
                 matrix = csr_matrix((np.zeros(len(item['matrix'][0])),item['matrix'][1],item['matrix'][2]),shape=item['matrix'][3])
                 save_npz( f"./{self.matrices_folder}/{self.sys['name']}_{item['name']}_num.npz", matrix, compressed=True)
+
+            self.defs_uz_jacs = defs_uz_jacs
+            self.source_uz_jacs = source_uz_jacs
 
         sp_jac_ini_num_matrix = csr_matrix((np.zeros(len(self.jac_ini_sp[0])),self.jac_ini_sp[1],self.jac_ini_sp[2]),shape=self.jac_ini_sp[3])
         sp_jac_run_num_matrix = csr_matrix((np.zeros(len(self.jac_run_sp[0])),self.jac_run_sp[1],self.jac_run_sp[2]),shape=self.jac_run_sp[3])
@@ -887,16 +892,14 @@ class builder():
 
         ffibuilder_ini = FFI()
         ffibuilder_ini.cdef('''
-        int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
-int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams,double *f,double *g,double *fg);
                         ''')
 
         ffibuilder_ini.set_source(filename,
                             """
-        int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
-int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams,double *f,double *g,double *fg);
         """,
                             library_dirs = [mkl_lib_folder],
                             libraries=libraries, 
@@ -926,7 +929,7 @@ int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,do
         ffibuilder_run.cdef('''
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
 int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
+int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                         ''')
 #int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 
@@ -934,7 +937,7 @@ int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *ind
                             """
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
 int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int step2(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
+int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 """,
                             library_dirs = [mkl_lib_folder],
                             libraries=libraries,
