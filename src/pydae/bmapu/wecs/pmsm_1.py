@@ -175,7 +175,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     epsilon_beta_nosat = omega_r - Omega_r_max
     epsilon_beta = sym.Piecewise((0.0,epsilon_beta_nosat<0),(epsilon_beta_nosat,True)) # test
     beta_ref = K_p_beta*epsilon_beta + K_i_beta*xi_beta
-    p_m = tau_r*omega_r
+    p_r = tau_r*omega_r
     dxi_beta  = epsilon_beta - xi_beta*1e-8 # test
     #dxi_beta  = epsilon_beta_nosat - xi_beta*1e-8 # test
     dbeta     = 1.0/T_beta*(beta_ref + beta_ext - beta)
@@ -206,7 +206,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     ## Mechanical system: 2 mass equivalent    
     dtheta_tr = omega_t - omega_r - u_dummy
     domega_t  = 1.0/(2*H_t*omega_t)*(p_w - K_tr*theta_tr - D_tr*(omega_t-omega_r))
-    domega_r  = 1.0/(2*H_r*omega_r)*(K_tr*theta_tr + D_tr*(omega_t-omega_r) - p_m)
+    domega_r  = 1.0/(2*H_r*omega_r)*(K_tr*theta_tr + D_tr*(omega_t-omega_r) - p_r)
 
     if 'mech' in mode:
         grid.dae['f'] += [dtheta_tr,domega_t,domega_r]
@@ -241,13 +241,13 @@ def pmsm_1(grid,name,bus_name,data_dict):
 
 
     ## machine + VSC control
-    v_dc,p_m_ref = sym.symbols(f"v_dc_{name},p_m_ref_{name}", real=True)   
+    v_dc,p_r_ref = sym.symbols(f"v_dc_{name},p_r_ref_{name}", real=True)   
     omega_pll_f,T_pll,K_f = sym.symbols(f'omega_pll_f_{name},T_pll_{name},K_f_{name}', real=True)
     rocof,K_h = sym.symbols(f'rocof_{name},K_h_{name}', real=True)
     omega_e = omega_r # from mechanical system
     
 
-    i_mq_ref,i_md_ref,p_r = sym.symbols(f'i_mq_ref_{name},i_md_ref_{name},p_r_{name}', real=True)
+    i_mq_ref,i_md_ref,p_ppc = sym.symbols(f'i_mq_ref_{name},i_md_ref_{name},p_ppc_{name}', real=True)
     p_f = K_f*(1.0 - omega_pll_f) 
     p_h = -K_h*rocof
 
@@ -260,14 +260,14 @@ def pmsm_1(grid,name,bus_name,data_dict):
         # p_m_ref = p_w_mmpt_ref # from mppt 
         # omega_r_ref = nu_w*K_w_mppt
         # grid.dae['params_dict'].update({f"K_w_mppt_{name}":8.0}) 
-        p_m_ref = p_w_mppt_lpf + p_r + p_f + p_h
+        p_r_ref = p_w_mppt_lpf + p_ppc + p_f + p_h
     else:
         if not 'aero' in mode:
             grid.dae['u_ini_dict'].update({f'p_w_{name}':0.0})
             grid.dae['u_run_dict'].update({f'p_w_{name}':0.0})   
         if not 'mech' in mode:
-            grid.dae['u_ini_dict'].update({f'p_m_ref_{name}':0.0})
-            grid.dae['u_run_dict'].update({f'p_m_ref_{name}':0.0})   
+            grid.dae['u_ini_dict'].update({f'p_r_ref_{name}':0.0})
+            grid.dae['u_run_dict'].update({f'p_r_ref_{name}':0.0})   
         else:
             omega_r_ref,K_omega_r = sym.symbols(f'omega_r_ref_{name},K_omega_r_{name}',real=True)
             K_w_mppt = sym.Symbol(f'K_w_mppt_{name}', real=True)
@@ -284,7 +284,7 @@ def pmsm_1(grid,name,bus_name,data_dict):
     grid.dae['params_dict'].update({f"K_f_{name}":0.0}) 
     grid.dae['params_dict'].update({f"K_h_{name}":0.0}) 
 
-    g_i_mq_ref  = Phi_m*i_mq_ref*omega_r - p_m_ref  
+    g_i_mq_ref  = Phi_m*i_mq_ref*omega_r - p_r_ref  
     g_v_md = -L_m*i_mq_ref*omega_e - R_m*i_md_ref - v_md
     g_v_mq =  L_m*i_md_ref*omega_e + Phi_m*omega_e - R_m*i_mq_ref - v_mq
 
@@ -294,8 +294,8 @@ def pmsm_1(grid,name,bus_name,data_dict):
         grid.dae['y_run'] += [ i_mq_ref, v_md, v_mq]
         grid.dae['u_ini_dict'].update({f'i_md_ref_{name}':0.0})
         grid.dae['u_run_dict'].update({f'i_md_ref_{name}':0.0})
-        grid.dae['u_ini_dict'].update({f'p_r_{name}':0.0})
-        grid.dae['u_run_dict'].update({f'p_r_{name}':0.0}) 
+        grid.dae['u_ini_dict'].update({f'p_ppc_{name}':0.0})
+        grid.dae['u_run_dict'].update({f'p_ppc_{name}':0.0}) 
     ## machine + VSC in per unit
     i_md,i_mq,v_md,v_mq,tau_r = sym.symbols(f'i_md_{name},i_mq_{name},v_md_{name},v_mq_{name},tau_r_{name}', real=True)
     omega_e = omega_r # from mechanical system
@@ -656,7 +656,7 @@ if __name__ == '__main__':
             "H_t":4.0,"H_r":1.0, "w_tr":5.0, "d_tr":0.1,
             "R_m":0.01,"L_m":0.05,"Phi_m":1.0,
             "R_s":0.01,"X_s":0.05,
-            "K_pdc":0.1,"C_dc":0.5}],
+            "K_pdc":1,"C_dc":0.5}],
     "genapes":[{"bus":"2","S_n":1e9,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
     }
 
@@ -671,8 +671,10 @@ if __name__ == '__main__':
     model = pmsm_test.model()
     
     
-    N = model.jac_ini.shape[0]
-    for it in range(N):
-        print(it,model.jac_ini[it,:])
+    # N = model.jac_ini.shape[0]
+    # for it in range(N):
+    #     print(it,model.jac_ini[it,:])
 
     model.ini({},'xy_0.json')
+
+    model.report_x()
