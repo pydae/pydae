@@ -124,7 +124,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     ### algebraic states
     i_sd_pq_ref,i_sq_pq_ref = sym.symbols(f'i_sd_pq_ref_{name},i_sq_pq_ref_{name}', real=True)
     i_sd_ar_ref,i_sq_ar_ref = sym.symbols(f'i_sd_ar_ref_{name},i_sq_ar_ref_{name}', real=True)
-    i_sd_ref,i_sq_ref = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name}', real=True)
+    i_sd_ref,i_sq_ref,I_max = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name}, I_max_{name}', real=True)
 
     v_td_ref,v_tq_ref = sym.symbols(f'v_td_ref_{name},v_tq_ref_{name}', real=True)
     v_lvrt,lvrt_ext = sym.symbols(f"v_lvrt_{name},lvrt_ext_{name}", real=True)
@@ -160,8 +160,8 @@ def pv_dq(grid,name,bus_name,data_dict):
     i_sq_pq_ref = (p_s_ref*v_sq - q_s_ref*v_sd)/(v_sd**2 + v_sq**2)
     i_sd_ref_nosat = (1.0-lvrt)*i_sd_pq_ref + lvrt*i_sd_ar_ref
     i_sq_ref_nosat = (1.0-lvrt)*i_sq_pq_ref + lvrt*i_sq_ar_ref
-    g_i_sd_ref = -i_sd_ref + sym.Piecewise((-1.2,i_sd_ref_nosat<-1.2),(1.2,i_sd_ref_nosat>1.2),(i_sd_ref_nosat,True))
-    g_i_sq_ref = -i_sq_ref + sym.Piecewise((-1.2,i_sq_ref_nosat<-1.2),(1.2,i_sq_ref_nosat>1.2),(i_sq_ref_nosat,True))
+    g_i_sd_ref = -i_sd_ref + sym.Piecewise((-I_max,i_sd_ref_nosat<-I_max),(I_max,i_sd_ref_nosat>I_max),(i_sd_ref_nosat,True))
+    g_i_sq_ref = -i_sq_ref + sym.Piecewise((-I_max,i_sq_ref_nosat<-I_max),(I_max,i_sq_ref_nosat>I_max),(i_sq_ref_nosat,True))
 
     v_td_ref  =  R_s*i_sd_ref - X_s*i_sq_ref + v_sd  
     v_tq_ref  =  R_s*i_sq_ref + X_s*i_sd_ref + v_sq 
@@ -195,6 +195,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     grid.dae['u_run_dict'].update({f'{str(i_sr_ref)}':0.0})
 
     grid.dae['params_dict'].update({f'{str(v_lvrt)}':0.8})
+    grid.dae['params_dict'].update({f'{str(I_max)}':1.2})
 
     ### outputs
     grid.dae['h_dict'].update({f"m_ref_{name}":m_ref})

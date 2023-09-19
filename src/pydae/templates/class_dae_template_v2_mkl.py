@@ -197,6 +197,13 @@ class model:
     def jac_run_eval(self):
         de_jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p,self.Dt)
       
+    def post_run_checker(self):
+
+        self.N_iters = self.runintparams[2]  # number of iterations done
+        self.N_mkl_factorizations = self.runintparams[3]
+        self.N_mkl_resets = self.runintparams[4]
+        self.pt_run_sum = np.sum(self.pt_run) # this variable should be 0
+
     def run(self,t_end,up_dict):
 
         for item in up_dict:
@@ -248,7 +255,6 @@ class model:
         self.z = z
 
 
-        
     def post(self):
         
         self.Time = self.Time[:self.its[0]].reshape(self.its[0],1)
@@ -364,7 +370,16 @@ class model:
     def report_params(self,value_format='5.2f'):
         for item in self.params_list:
             print(f'{item:5s} ={self.get_value(item):{value_format}}')
-            
+
+
+    def post_ini_checker(self):
+
+        self.N_iters = self.iniintparams[2]  # number of iterations done
+        self.N_mkl_factorizations = self.iniintparams[3]
+        self.N_mkl_resets = self.iniintparams[4]
+        self.pt_ini_sum = np.sum(self.pt_ini) # this variable should be 0
+
+
     def ini(self,up_dict,xy_0={}):
         '''
         Find the steady state of the initialization problem:
@@ -457,6 +472,8 @@ class model:
                             self.p_f,
                             self.p_g,
                             self.p_fg)
+        
+        self.post_ini_checker()
         
         if self.iniintparams[2] < self.max_it-1:
             
@@ -623,27 +640,35 @@ class model:
         self.xy = xy
         self.z = z
            
-            
-    def save_run(self,file_name):
-        np.savez(file_name,Time=self.Time,
-             X=self.X,Y=self.Y,Z=self.Z,
-             x_list = self.x_list,
-             y_ini_list = self.y_ini_list,
-             y_run_list = self.y_run_list,
-             u_ini_list=self.u_ini_list,
-             u_run_list=self.u_run_list,  
-             z_list=self.outputs_list, 
-            )
+    def save_run(self, file_name = ''):
+
+        np.savez_compressed(file_name, Time = self.Time,
+                            X = self.X,
+                            Y = self.Y,
+                            Z = self.Z,
+                            params = self.p,
+                            u_run = self.u_run,
+                            u_ini = self.u_ini)
         
-    def load_run(self,file_name):
-        data = np.load(f'{file_name}.npz')
-        self.Time = data['Time']
-        self.X = data['X']
-        self.Y = data['Y']
-        self.Z = data['Z']
-        self.x_list = list(data['x_list'] )
-        self.y_run_list = list(data['y_run_list'] )
-        self.outputs_list = list(data['z_list'] )
+        return None            
+
+    def load_run(self, file_name = ''):
+
+        results = np.load(file_name)
+        self.Time = results['Time']
+        self.X = results['X']
+        self.Y = results['Y']
+        self.Z = results['Z']
+        self.p = results['params']
+        self.u_ini = results['u_ini']
+        self.u_run = results['u_run']
+
+        self.t = self.Time[-1]
+        self.xy[:self.N_x] = self.X[-1,:]
+        self.xy[self.N_x:] = self.Y[-1,:]
+        self.z = self.Z[-1,:]    
+        return None
+        
         
     def full_jacs_eval(self):
         N_x = self.N_x

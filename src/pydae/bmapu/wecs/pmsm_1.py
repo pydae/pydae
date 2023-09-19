@@ -646,19 +646,20 @@ if __name__ == '__main__':
     import sympy as sym
 
     data = {
-    "system":{"name":"smib","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},       
-    "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
-             {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}
-            ],
-    "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.05,"R_pu":0.01,"Bs_pu":1e-6,"S_mva":100.0}],
-    "wecs":[
-        {"type":"pmsm_1","bus":"1","S_n":1e6,
-            "H_t":4.0,"H_r":1.0, "w_tr":5.0, "d_tr":0.1,
-            "R_m":0.01,"L_m":0.05,"Phi_m":1.0,
-            "R_s":0.01,"X_s":0.05,
-            "K_pdc":1,"C_dc":0.5}],
-    "genapes":[{"bus":"2","S_n":1e9,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
-    }
+        "system":{"name":"wecs_pmsm_test","S_base":6e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},
+        "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":0.69},
+                    {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":0.69}
+                ],
+        "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.05,"R_pu":0.01,"Bs_pu":1e-6,"S_mva":100}],
+        "wecs":[
+            {"type":"pmsm_1","bus":"1","S_n":6e6,
+                "H_t":3.0769,"H_r":1.0, "w_tr":1.1519, "d_tr":0.01,
+                "R_m":0.050378,"L_m":0.1,"Phi_m":2.7171,
+                "R_s":0.01,"X_s":0.033,
+                "K_pdc":4.286e4,"C_dc":10}],
+        "genapes":[{"bus":"2","S_n":1e9,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
+        }
+
 
     grid = bmapu_builder.bmapu(data)
     #grid.checker()
@@ -675,6 +676,33 @@ if __name__ == '__main__':
     # for it in range(N):
     #     print(it,model.jac_ini[it,:])
 
-    model.ini({},'xy_0.json')
+    nu_w =11.6
+    omega_0 = np.clip(nu_w/13,0.4,1.2)
+    xy_0 = {
+        "V_1": 1.0,
+        "theta_1": 0.0,
+        "V_2": 1.0,
+        "theta_2": 0.0,
+        "omega_coi": 1.0,
+        "omega_2": 1.0,
+        "theta_tr_1": 0.0,
+        "omega_t_1": omega_0,
+        "omega_r_1": omega_0,
+        "xi_beta_1":1,
+        "beta_1":0.0,
+        "i_sr_1": 1,
+        "v_dc_1": 1.5,
+        "p_w_mppt_lpf_1":1.0,
+        "v_mq_1":1.0,
+        "v_tq_ref_1":1.0
+    }
+
+
+    params = {"nu_w_1":nu_w,"Nu_w_b_1":13,"Omega_t_b_1":1.0,"Omega_r_max_1":1.0,"K_mppt3_1":1,"T_mppt_1":10,
+            "K_p_beta_1":1,"K_i_beta_1":1.0,"T_beta_1":1.2,"p_ref_ext_1":0.0, "K_pdc_1":4.286e4, "C_dc_1":10,
+            "v_dc_ref_1":1.4, "K_ffdc_1":0, "R_s_1":0.01, "R_m_1":0.004}
+
+
+    model.ini(params,xy_0)
 
     model.report_x()

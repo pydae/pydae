@@ -360,7 +360,6 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
         // algebraic loop 
         for  (it = 0; it < max_it; it++)
         {
-
             f_run_eval(f,x,y,u,p,Dt);
             g_run_eval(g,x,y,u,p,Dt);
             sp_jac_trap_xy_eval(jac_trap,x,y,u,p,Dt); 
@@ -388,7 +387,6 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
                 }
             }
 
-
             flag = 1; // linear system solution
             solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag);
 
@@ -396,13 +394,10 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
             flag = 10;
             solve(pt,jac_trap, indptr, indices, N, fg,Dxy, flag); 
             }
-
             for (i = 0; i < (N_y+N_x); i++)
             {
-                xy[i] += Dxy[i];
-                
+                xy[i] += Dxy[i]; 
             }         
-
             for (i = 0; i < N_x; i++)
             {
                 x[i] = xy[i];
@@ -418,12 +413,8 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
                 norma += fg[i]*fg[i];
             } 
             if (norma < itol) {     
-                
-                break;
-                
+                break; 
             }
-
-
         }
     if (intparams[1] == 0)
     {
@@ -462,7 +453,6 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
 
     intparams[2] = it;
     dblparams[0] = t;
-
 
     return 0;
 }
