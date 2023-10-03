@@ -16,7 +16,7 @@ from pydae.bmapu.vsgs.vsgs import add_vsgs
 from pydae.bmapu.wecs.wecs import add_wecs
 from pydae.bmapu.pvs.pvs import add_pvs
 
-from pydae.bmapu.genapes.genapes import add_genapes
+from pydae.bmapu.sources.sources import add_sources
 
 import pydae.build_cffi as db
 
@@ -51,7 +51,7 @@ class bmapu:
 
     '''
 
-    def __init__(self,data_input=''):
+    def __init__(self,data_input='',testing=False):
         
         if type(data_input) == str:
             if 'http' in data_input:
@@ -97,6 +97,7 @@ class bmapu:
 
         self.uz_jacs = True     
         self.verbose = False   
+        self.testing = testing
                 
     def contruct_grid(self):
         
@@ -431,8 +432,8 @@ class bmapu:
             add_vscs(self)
         if 'vsgs' in self.data:
             add_vsgs(self)
-        if 'genapes' in  self.data:
-            add_genapes(self)
+        if 'sources' in  self.data:
+            add_sources(self)
         if 'wecs' in  self.data:
             add_wecs(self)
         if 'pvs' in  self.data:
@@ -484,6 +485,9 @@ class bmapu:
                 'u_run_dict':self.dae['u_run_dict'],
                 'u_ini_dict':self.dae['u_ini_dict'],
                 'h_dict':self.dae['h_dict']}
+        if self.testing:
+            self.sys_dict.update({'testing':True})
+
 
     def compile(self):
 
@@ -517,6 +521,9 @@ class bmapu:
         for item in self.data['genapes']:
             if item['K_delta'] > 0.0:
                 K_deltas_n += 1      
+        for item in self.data['sources']:
+            if item['type'] > 'vsource':
+                K_deltas_n += 1   
 
         if  K_deltas_n == 0:
             print('One generator must have K_delta > 0.0')

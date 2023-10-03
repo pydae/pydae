@@ -44,7 +44,7 @@ class dashboard():
              "I_sc":8,"V_oc":42.1,"I_mpp":3.56,"V_mpp":33.7,"N_s":72,
              "K_vt":-0.160,"K_it":0.065,"R_pv_s": 0.5602, "R_pv_sh": 1862, "K_d": 1.3433,
              "N_ms":25,"N_mp":250}],
-        "genapes":[{"bus":"2","S_n":100e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
+        "sources":[{"type":"genape", "bus":"2","S_n":100e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
         }
 
         data['pvs'][0].update(self.data_pv)
@@ -79,11 +79,11 @@ class dashboard():
         tab_2_0 = widgets.RadioButtons(
             options=['Manual', 'Power from MPPT', 'Power from speed control'],
             description='Mode:',    disabled=False)
-        self.sld_p_s = widgets.FloatSlider(description='p<sub>s</sub>*',min=0, max=1, step=0.1, value=0)
+        self.sld_p_s  = widgets.FloatSlider(description='p<sub>s</sub>*',min=0, max=1, step=0.1, value=0)
         self.sld_v_dc = widgets.FloatSlider(description='v<sub>dc</sub>*',min=0.8, max=2.0, step=0.1, value=1.2)
-        self.sld_q_s = widgets.FloatSlider(description='q<sub>s</sub>*',min=-1, max=1, step=0.1, value=0)
-        self.sld_i_d = widgets.FloatSlider(description='i<sub>d</sub>*',min=-1, max=1, step=0.1, value=0)
-        self.sld_i_q = widgets.FloatSlider(description='i<sub>q</sub>*',min=-0.1, max=0.1, step=0.1, value=0)
+        self.sld_q_s  = widgets.FloatSlider(description='q<sub>s</sub>*',min=-1, max=1, step=0.1, value=0)
+        self.sld_i_d  = widgets.FloatSlider(description='i<sub>d</sub>*',min=-1, max=1, step=0.1, value=0)
+        self.sld_i_q  = widgets.FloatSlider(description='i<sub>q</sub>*',min=-0.1, max=0.1, step=0.1, value=0)
 
         tab_2_1 = widgets.VBox([self.sld_p_s,
                                 ])
@@ -179,4 +179,5 @@ class dashboard():
 
         self.update(0)
         self.layout = widgets.VBox([self.html,self.tab])
+
         display(self.layout)

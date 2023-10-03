@@ -30,6 +30,8 @@ class dashboard():
         self.plot_V_max = self.data['V_oc']*1.2
         self.plot_P_max = self.data['V_mpp']*self.data['I_mpp']*1.2
         self.plot_I_max = self.data['I_sc']*1.2
+        plt.ioff()
+        plt.clf()
         
     def build(self):
 
@@ -73,7 +75,7 @@ class dashboard():
         self.V = np.arange(0,50,1.0)
         self.compute_curve(self.V)
 
-        fig,axes = plt.subplots(ncols=2,figsize=(6,3))
+        fig,axes = plt.subplots(ncols=2,figsize=(6,3));
 
         self.curve_vi = axes[0].plot(self.V,self.I, color=colors[0]);
         self.curve_vp = axes[1].plot(self.V,self.V*self.I, color=colors[1]);

@@ -566,383 +566,1130 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
 
 /************************************************************/
 
-void f_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void f_ini_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = p[11]*(x[1] - 1.0); 
-data[1] = (1.0/2.0)*(-p[10]*(x[1] - 1.0) - y[0]*(p[7]*y[0] + u[2]*sin(x[0] - u[3])) - y[1]*(p[7]*y[1] + u[2]*cos(x[0] - u[3])) + y[2])/p[9]; 
-data[2] = (-x[2] - y[0]*(-p[2] + p[1]) + u[0])/p[3]; 
-data[3] = (-x[3] + y[1]*(-p[5] + p[4]))/p[6]; 
+out[0] = -2.7777777777777776e-7*p[6]*y[3]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[1] = -x[0] + u[4];
+out[2] = x[2] - u[5];
+out[3] = -p[18]*x[3] - y[5] + 1;
+
+}
+void g_ini_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = y[0] - u[5];
+out[1] = y[1] - u[6];
+out[2] = p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2), 1.0)/pow(y[0], 2) + p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2))/y[0] + p[10] - p[3]*x[1] - p[2]*(-x[0] + u[4]) - y[2] + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+));
+out[3] = y[3]*y[4] - y[2];
+out[4] = p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3) - p[15]*y[3] - y[4];
+out[5] = 1.0 - y[5];
+out[6] = p[17]*x[3] + p[16]*(1 - y[5]) - y[6];
+
+}
+void f_run_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = -2.7777777777777776e-7*p[6]*y[3]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[1] = -x[0] + u[4];
+out[2] = x[2] - u[5];
+out[3] = -p[18]*x[3] - y[5] + 1;
+
+}
+void g_run_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = y[0] - u[5];
+out[1] = y[1] - u[6];
+out[2] = p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2), 1.0)/pow(y[0], 2) + p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2))/y[0] + p[10] - p[3]*x[1] - p[2]*(-x[0] + u[4]) - y[2] + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+));
+out[3] = y[3]*y[4] - y[2];
+out[4] = p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3) - p[15]*y[3] - y[4];
+out[5] = 1.0 - y[5];
+out[6] = p[17]*x[3] + p[16]*(1 - y[5]) - y[6];
+
+}
+void h_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = y[0];
+out[1] = p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2), 1.0)/pow(y[0], 2) + p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2))/y[0] + p[10];
+out[2] = sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0.0
+)), 2))/y[0];
+out[3] = x[2];
+
+}
+void de_jac_ini_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = -2.7777777777777776e-7*p[6]*y[3]*(p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2))/p[7];
+out[7] = -2.7777777777777776e-7*p[6]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[66] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] + p[2];
+out[67] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[3];
+out[70] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[84] = y[4];
+out[85] = y[3];
+out[88] = p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2);
 
 }
 
-void f_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_jac_ini_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = p[11]*(x[1] - 1.0); 
-data[1] = (1.0/2.0)*(-p[10]*(x[1] - 1.0) - y[0]*(p[7]*y[0] + u[2]*sin(x[0] - u[3])) - y[1]*(p[7]*y[1] + u[2]*cos(x[0] - u[3])) + u[1])/p[9]; 
-data[2] = (-x[2] - y[0]*(-p[2] + p[1]) + u[0])/p[3]; 
-data[3] = (-x[3] + y[1]*(-p[5] + p[4]))/p[6]; 
-
-}
-
-void g_ini_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = p[7]*y[1] + u[2]*cos(x[0] - u[3]) + p[2]*y[0] - x[2]; 
-data[1] = p[7]*y[0] + u[2]*sin(x[0] - u[3]) - p[5]*y[1] - x[3]; 
-data[2] = u[2]*y[0]*sin(x[0] - u[3]) + u[2]*y[1]*cos(x[0] - u[3]) - u[1]; 
-data[3] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]) - y[3]; 
+out[36] = -p[18];
+out[95] = -p[15];
+out[113] = p[17];
+out[119] = -p[16];
 
 }
 
-void g_run_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_jac_ini_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = p[7]*y[1] + u[2]*cos(x[0] - u[3]) + p[2]*y[0] - x[2]; 
-data[1] = p[7]*y[0] + u[2]*sin(x[0] - u[3]) - p[5]*y[1] - x[3]; 
-data[2] = u[2]*y[0]*sin(x[0] - u[3]) + u[2]*y[1]*cos(x[0] - u[3]) - y[2]; 
-data[3] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]) - y[3]; 
-
-}
-
-void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = y[0]*(p[7]*y[0] + u[2]*sin(x[0] - u[3])) + y[1]*(p[7]*y[1] + u[2]*cos(x[0] - u[3])); 
-data[1] = u[0]; 
-data[2] = u[1]; 
+out[11] = -1.0;
+out[24] = 1.0;
+out[42] = -1.0;
+out[48] = 1.0;
+out[60] = 1.0;
+out[72] = -1.0;
+out[83] = -1.0;
+out[96] = -1.0;
+out[108] = -1.0;
+out[120] = -1.0;
 
 }
 
-void de_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void sp_jac_ini_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[1] = p[11]; 
-data[9] = -1.0/2.0*p[10]/p[9]; 
-data[14] = (1.0/2.0)/p[9]; 
-data[18] = -1/p[3]; 
-data[20] = (p[2] - p[1])/p[3]; 
-data[27] = -1/p[6]; 
-data[29] = (-p[5] + p[4])/p[6]; 
-data[36] = p[2]; 
-data[37] = p[7]; 
-data[44] = p[7]; 
-data[45] = -p[5]; 
-
-}
-
-void de_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[8] = (1.0/2.0)*(-u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
-data[12] = (1.0/2.0)*(-2*p[7]*y[0] - u[2]*sin(x[0] - u[3]))/p[9]; 
-data[13] = (1.0/2.0)*(-2*p[7]*y[1] - u[2]*cos(x[0] - u[3]))/p[9]; 
-data[32] = -u[2]*sin(x[0] - u[3]); 
-data[40] = u[2]*cos(x[0] - u[3]); 
-data[48] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-data[52] = u[2]*sin(x[0] - u[3]); 
-data[53] = u[2]*cos(x[0] - u[3]); 
-data[56] = -u[2]*y[0]*sin(x[0] - u[3]) - u[2]*y[1]*cos(x[0] - u[3]); 
-data[60] = u[2]*cos(x[0] - u[3]); 
-data[61] = -u[2]*sin(x[0] - u[3]); 
-
-}
-
-void de_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[34] = -1; 
-data[43] = -1; 
-data[63] = -1; 
-
-}
-
-void sp_jac_ini_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = p[11]; 
-data[2] = -1.0/2.0*p[10]/p[9]; 
-data[5] = (1.0/2.0)/p[9]; 
-data[6] = -1/p[3]; 
-data[7] = (p[2] - p[1])/p[3]; 
-data[8] = -1/p[6]; 
-data[9] = (-p[5] + p[4])/p[6]; 
-data[12] = p[2]; 
-data[13] = p[7]; 
-data[16] = p[7]; 
-data[17] = -p[5]; 
+out[0] = -2.7777777777777776e-7*p[6]*y[3]*(p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2))/p[7];
+out[1] = -2.7777777777777776e-7*p[6]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[8] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] + p[2];
+out[9] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[3];
+out[10] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[13] = y[4];
+out[14] = y[3];
+out[15] = p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2);
 
 }
 
-void sp_jac_ini_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void sp_jac_ini_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[1] = (1.0/2.0)*(-u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
-data[3] = (1.0/2.0)*(-2*p[7]*y[0] - u[2]*sin(x[0] - u[3]))/p[9]; 
-data[4] = (1.0/2.0)*(-2*p[7]*y[1] - u[2]*cos(x[0] - u[3]))/p[9]; 
-data[10] = -u[2]*sin(x[0] - u[3]); 
-data[14] = u[2]*cos(x[0] - u[3]); 
-data[18] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-data[19] = u[2]*sin(x[0] - u[3]); 
-data[20] = u[2]*cos(x[0] - u[3]); 
-data[21] = -u[2]*y[0]*sin(x[0] - u[3]) - u[2]*y[1]*cos(x[0] - u[3]); 
-data[22] = u[2]*cos(x[0] - u[3]); 
-data[23] = -u[2]*sin(x[0] - u[3]); 
+out[4] = -p[18];
+out[16] = -p[15];
+out[19] = p[17];
+out[20] = -p[16];
 
 }
 
-void sp_jac_ini_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void sp_jac_ini_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[11] = -1; 
-data[15] = -1; 
-data[24] = -1; 
-
-}
-
-void de_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[1] = p[11]; 
-data[9] = -1.0/2.0*p[10]/p[9]; 
-data[18] = -1/p[3]; 
-data[20] = (p[2] - p[1])/p[3]; 
-data[27] = -1/p[6]; 
-data[29] = (-p[5] + p[4])/p[6]; 
-data[36] = p[2]; 
-data[37] = p[7]; 
-data[44] = p[7]; 
-data[45] = -p[5]; 
+out[2] = -1.0;
+out[3] = 1.0;
+out[5] = -1.0;
+out[6] = 1.0;
+out[7] = 1.0;
+out[11] = -1.0;
+out[12] = -1.0;
+out[17] = -1.0;
+out[18] = -1.0;
+out[21] = -1.0;
 
 }
 
-void de_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_jac_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[8] = (1.0/2.0)*(-u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
-data[12] = (1.0/2.0)*(-2*p[7]*y[0] - u[2]*sin(x[0] - u[3]))/p[9]; 
-data[13] = (1.0/2.0)*(-2*p[7]*y[1] - u[2]*cos(x[0] - u[3]))/p[9]; 
-data[32] = -u[2]*sin(x[0] - u[3]); 
-data[40] = u[2]*cos(x[0] - u[3]); 
-data[48] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-data[52] = u[2]*sin(x[0] - u[3]); 
-data[53] = u[2]*cos(x[0] - u[3]); 
-data[56] = -u[2]*y[0]*sin(x[0] - u[3]) - u[2]*y[1]*cos(x[0] - u[3]); 
-data[60] = u[2]*cos(x[0] - u[3]); 
-data[61] = -u[2]*sin(x[0] - u[3]); 
-
-}
-
-void de_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[34] = -1; 
-data[43] = -1; 
-data[54] = -1; 
-data[63] = -1; 
-
-}
-
-void sp_jac_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = p[11]; 
-data[2] = -1.0/2.0*p[10]/p[9]; 
-data[5] = -1/p[3]; 
-data[6] = (p[2] - p[1])/p[3]; 
-data[7] = -1/p[6]; 
-data[8] = (-p[5] + p[4])/p[6]; 
-data[11] = p[2]; 
-data[12] = p[7]; 
-data[15] = p[7]; 
-data[16] = -p[5]; 
-
-}
-
-void sp_jac_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[1] = (1.0/2.0)*(-u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
-data[3] = (1.0/2.0)*(-2*p[7]*y[0] - u[2]*sin(x[0] - u[3]))/p[9]; 
-data[4] = (1.0/2.0)*(-2*p[7]*y[1] - u[2]*cos(x[0] - u[3]))/p[9]; 
-data[9] = -u[2]*sin(x[0] - u[3]); 
-data[13] = u[2]*cos(x[0] - u[3]); 
-data[17] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-data[18] = u[2]*sin(x[0] - u[3]); 
-data[19] = u[2]*cos(x[0] - u[3]); 
-data[21] = -u[2]*y[0]*sin(x[0] - u[3]) - u[2]*y[1]*cos(x[0] - u[3]); 
-data[22] = u[2]*cos(x[0] - u[3]); 
-data[23] = -u[2]*sin(x[0] - u[3]); 
+out[0] = -2.7777777777777776e-7*p[6]*y[3]*(p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2))/p[7];
+out[7] = -2.7777777777777776e-7*p[6]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[66] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] + p[2];
+out[67] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[3];
+out[70] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[84] = y[4];
+out[85] = y[3];
+out[88] = p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2);
 
 }
 
-void sp_jac_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_jac_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[10] = -1; 
-data[14] = -1; 
-data[20] = -1; 
-data[24] = -1; 
-
-}
-
-void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[1] = -0.5*Dt*p[11]; 
-data[9] = 0.25*p[10]*Dt/p[9] + 1; 
-data[18] = 0.5*Dt/p[3] + 1; 
-data[20] = -0.5*Dt*(p[2] - p[1])/p[3]; 
-data[27] = 0.5*Dt/p[6] + 1; 
-data[29] = -0.5*Dt*(-p[5] + p[4])/p[6]; 
-data[36] = p[2]; 
-data[37] = p[7]; 
-data[44] = p[7]; 
-data[45] = -p[5]; 
+out[36] = -p[18];
+out[95] = -p[15];
+out[113] = p[17];
+out[119] = -p[16];
 
 }
 
-void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_jac_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[8] = -0.25*Dt*(-u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
-data[12] = -0.25*Dt*(-2*p[7]*y[0] - u[2]*sin(x[0] - u[3]))/p[9]; 
-data[13] = -0.25*Dt*(-2*p[7]*y[1] - u[2]*cos(x[0] - u[3]))/p[9]; 
-data[32] = -u[2]*sin(x[0] - u[3]); 
-data[40] = u[2]*cos(x[0] - u[3]); 
-data[48] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-data[52] = u[2]*sin(x[0] - u[3]); 
-data[53] = u[2]*cos(x[0] - u[3]); 
-data[56] = -u[2]*y[0]*sin(x[0] - u[3]) - u[2]*y[1]*cos(x[0] - u[3]); 
-data[60] = u[2]*cos(x[0] - u[3]); 
-data[61] = -u[2]*sin(x[0] - u[3]); 
-
-}
-
-void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = 1; 
-data[34] = -1; 
-data[43] = -1; 
-data[54] = -1; 
-data[63] = -1; 
+out[11] = -1.0;
+out[24] = 1.0;
+out[42] = -1.0;
+out[48] = 1.0;
+out[60] = 1.0;
+out[72] = -1.0;
+out[83] = -1.0;
+out[96] = -1.0;
+out[108] = -1.0;
+out[120] = -1.0;
 
 }
 
-void sp_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void sp_jac_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[1] = -0.5*Dt*p[11]; 
-data[3] = 0.25*p[10]*Dt/p[9] + 1; 
-data[6] = 0.5*Dt/p[3] + 1; 
-data[7] = -0.5*Dt*(p[2] - p[1])/p[3]; 
-data[8] = 0.5*Dt/p[6] + 1; 
-data[9] = -0.5*Dt*(-p[5] + p[4])/p[6]; 
-data[12] = p[2]; 
-data[13] = p[7]; 
-data[16] = p[7]; 
-data[17] = -p[5]; 
-
-}
-
-void sp_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[2] = -0.25*Dt*(-u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
-data[4] = -0.25*Dt*(-2*p[7]*y[0] - u[2]*sin(x[0] - u[3]))/p[9]; 
-data[5] = -0.25*Dt*(-2*p[7]*y[1] - u[2]*cos(x[0] - u[3]))/p[9]; 
-data[10] = -u[2]*sin(x[0] - u[3]); 
-data[14] = u[2]*cos(x[0] - u[3]); 
-data[18] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-data[19] = u[2]*sin(x[0] - u[3]); 
-data[20] = u[2]*cos(x[0] - u[3]); 
-data[22] = -u[2]*y[0]*sin(x[0] - u[3]) - u[2]*y[1]*cos(x[0] - u[3]); 
-data[23] = u[2]*cos(x[0] - u[3]); 
-data[24] = -u[2]*sin(x[0] - u[3]); 
-
-}
-
-void sp_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = 1; 
-data[11] = -1; 
-data[15] = -1; 
-data[21] = -1; 
-data[25] = -1; 
-
-}
-
-void sp_Fu_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[0] = (1.0/2.0)/p[9]; 
-data[3] = 1.0/p[3]; 
-
-}
-
-void sp_Fu_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
-data[1] = (1.0/2.0)*(-y[0]*sin(x[0] - u[3]) - y[1]*cos(x[0] - u[3]))/p[9]; 
-data[2] = (1.0/2.0)*(u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]))/p[9]; 
+out[0] = -2.7777777777777776e-7*p[6]*y[3]*(p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2))/p[7];
+out[1] = -2.7777777777777776e-7*p[6]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[8] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] + p[2];
+out[9] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[3];
+out[10] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[13] = y[4];
+out[14] = y[3];
+out[15] = p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2);
 
 }
 
-void sp_Fu_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void sp_jac_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[4] = -p[18];
+out[16] = -p[15];
+out[19] = p[17];
+out[20] = -p[16];
+
+}
+
+void sp_jac_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[2] = -1.0;
+out[3] = 1.0;
+out[5] = -1.0;
+out[6] = 1.0;
+out[7] = 1.0;
+out[11] = -1.0;
+out[12] = -1.0;
+out[17] = -1.0;
+out[18] = -1.0;
+out[21] = -1.0;
+
+}
+
+void de_jac_trap_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = 1.3888888888888888e-7*Dt*p[6]*y[3]*(p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2))/p[7] + 1.0;
+out[7] = 1.3888888888888888e-7*Dt*p[6]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[66] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] + p[2];
+out[67] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[3];
+out[70] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[84] = y[4];
+out[85] = y[3];
+out[88] = p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2);
+
+}
+
+void de_jac_trap_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[11] = 0.5*Dt;
+out[24] = 1.0 - 0.5*Dt;
+out[36] = 0.5*Dt*p[18] + 1.0;
+out[42] = 0.5*Dt;
+out[95] = -p[15];
+out[113] = p[17];
+out[119] = -p[16];
+
+}
+
+void de_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[12] = 1.0;
+out[48] = 1.0;
+out[60] = 1.0;
+out[72] = -1.0;
+out[83] = -1.0;
+out[96] = -1.0;
+out[108] = -1.0;
+out[120] = -1.0;
+
+}
+
+void sp_jac_trap_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = 1.3888888888888888e-7*Dt*p[6]*y[3]*(p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2))/p[7] + 1.0;
+out[1] = 1.3888888888888888e-7*Dt*p[6]*(p[11] + p[12]*x[0] + p[13]*pow(x[0], 2) + p[14]*pow(x[0], 3))/p[7];
+out[9] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] + p[2];
+out[10] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[3];
+out[11] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[14] = y[4];
+out[15] = y[3];
+out[16] = p[12] + 2.0*p[13]*x[0] + 3.0*p[14]*pow(x[0], 2);
+
+}
+
+void sp_jac_trap_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[2] = 0.5*Dt;
+out[4] = 1.0 - 0.5*Dt;
+out[5] = 0.5*Dt*p[18] + 1.0;
+out[6] = 0.5*Dt;
+out[17] = -p[15];
+out[20] = p[17];
+out[21] = -p[16];
+
+}
+
+void sp_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[3] = 1.0;
+out[7] = 1.0;
+out[8] = 1.0;
+out[12] = -1.0;
+out[13] = -1.0;
+out[18] = -1.0;
+out[19] = -1.0;
+out[22] = -1.0;
+
+}
+
+void de_Fu_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
 
 }
 
-void sp_Gu_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Fu_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
 
 }
 
-void sp_Gu_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Fu_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = cos(x[0] - u[3]); 
-data[1] = u[2]*sin(x[0] - u[3]); 
-data[2] = sin(x[0] - u[3]); 
-data[3] = -u[2]*cos(x[0] - u[3]); 
-data[4] = y[0]*sin(x[0] - u[3]) + y[1]*cos(x[0] - u[3]); 
-data[5] = -u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]); 
-data[6] = y[0]*cos(x[0] - u[3]) - y[1]*sin(x[0] - u[3]); 
-data[7] = u[2]*y[0]*sin(x[0] - u[3]) + u[2]*y[1]*cos(x[0] - u[3]); 
+out[11] = 1.0;
+out[19] = -1.0;
 
 }
 
-void sp_Gu_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Gu_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[16] = 2.0*p[8]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/pow(y[0], 2) + 1.0*p[9]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/y[0] + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+));
+out[17] = 2.0*p[8]*u[3]/pow(y[0], 2) + 1.0*p[9]*u[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)/y[0];
+out[18] = -2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[2];
+
+}
+
+void de_Gu_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
 
 }
 
-void sp_Hx_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Gu_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[5] = -1.0;
+out[13] = -1.0;
+
+}
+
+void de_Hx_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[4] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[5] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[8] = 1.0*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[9] = -1.0*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+
+}
+
+void de_Hx_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
 
 }
 
-void sp_Hx_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Hx_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = u[2]*y[0]*cos(x[0] - u[3]) - u[2]*y[1]*sin(x[0] - u[3]); 
-
-}
-
-void sp_Hx_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
+out[14] = 1.0;
 
 }
 
-void sp_Hy_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Hy_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[7] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[14] = -sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+
+}
+
+void de_Hy_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
 
 }
 
-void sp_Hy_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Hy_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = 2*p[7]*y[0] + u[2]*sin(x[0] - u[3]); 
-data[1] = 2*p[7]*y[1] + u[2]*cos(x[0] - u[3]); 
-
-}
-
-void sp_Hy_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
-
+out[0] = 1.0;
 
 }
 
-void sp_Hu_run_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Hu_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[9] = 2.0*p[8]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/pow(y[0], 2) + 1.0*p[9]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/y[0];
+out[10] = 2.0*p[8]*u[3]/pow(y[0], 2) + 1.0*p[9]*u[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)/y[0];
+out[11] = -2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[16] = 1.0*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/y[0];
+out[17] = 1.0*u[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)/y[0];
+out[18] = -1.0*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+
+}
+
+void de_Hu_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
 
 }
 
-void sp_Hu_run_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void de_Hu_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[0] = y[0]*sin(x[0] - u[3]) + y[1]*cos(x[0] - u[3]); 
-data[1] = -u[2]*y[0]*cos(x[0] - u[3]) + u[2]*y[1]*sin(x[0] - u[3]); 
 
 }
 
-void sp_Hu_run_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+void sp_Fu_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
 
-data[2] = 1; 
-data[3] = 1; 
+
+}
+
+void sp_Fu_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+
+}
+
+void sp_Fu_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = 1.0;
+out[1] = -1.0;
+
+}
+
+void sp_Gu_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[2] = 2.0*p[8]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/pow(y[0], 2) + 1.0*p[9]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/y[0] + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+));
+out[3] = 2.0*p[8]*u[3]/pow(y[0], 2) + 1.0*p[9]*u[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)/y[0];
+out[4] = -2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0] - p[2];
+
+}
+
+void sp_Gu_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+
+}
+
+void sp_Gu_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = -1.0;
+out[1] = -1.0;
+
+}
+
+void sp_Hx_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = 2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) + 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[1] = -2.0*p[8]*p[3]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[2] = 1.0*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[3] = -1.0*p[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+
+}
+
+void sp_Hx_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+
+}
+
+void sp_Hx_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[4] = 1.0;
+
+}
+
+void sp_Hy_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[1] = -2.0*p[8]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), 1.0)/pow(y[0], 3) - p[9]*sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+out[2] = -sqrt(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2))/pow(y[0], 2);
+
+}
+
+void sp_Hy_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+
+}
+
+void sp_Hy_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = 1.0;
+
+}
+
+void sp_Hu_run_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+out[0] = 2.0*p[8]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/pow(y[0], 2) + 1.0*p[9]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/y[0];
+out[1] = 2.0*p[8]*u[3]/pow(y[0], 2) + 1.0*p[9]*u[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)/y[0];
+out[2] = -2.0*p[8]*p[2]*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/pow(y[0], 2) - 1.0*p[9]*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+out[3] = 1.0*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))*(((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   1.0
+)
+: (
+   0
+))/y[0];
+out[4] = 1.0*u[3]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)/y[0];
+out[5] = -1.0*p[2]*pow(pow(u[3], 2) + pow(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)), 2), -0.5)*(-p[3]*x[1] - p[2]*(-x[0] + u[4]) + (((u[2] <= 0 || x[0] > p[4]) && (u[2] > 0 || x[0] < p[5]) && (x[0] > p[4] || x[0] < p[5])) ? (
+   u[2]
+)
+: (
+   0
+)))/y[0];
+
+}
+
+void sp_Hu_run_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
+
+}
+
+void sp_Hu_run_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt){
+
 
 }
 
@@ -961,6 +1708,1356 @@ static void *_cffi_types[] = {
 /*  7 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /*  8 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 0), // void
 };
+
+static void _cffi_d_de_Fu_run_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Fu_run_num_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Fu_run_num_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Fu_run_num_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Fu_run_num_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Fu_run_num_eval _cffi_d_de_Fu_run_num_eval
+#endif
+
+static void _cffi_d_de_Fu_run_up_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Fu_run_up_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Fu_run_up_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Fu_run_up_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Fu_run_up_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Fu_run_up_eval _cffi_d_de_Fu_run_up_eval
+#endif
+
+static void _cffi_d_de_Fu_run_xy_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Fu_run_xy_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Fu_run_xy_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Fu_run_xy_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Fu_run_xy_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Fu_run_xy_eval _cffi_d_de_Fu_run_xy_eval
+#endif
+
+static void _cffi_d_de_Gu_run_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Gu_run_num_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Gu_run_num_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Gu_run_num_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Gu_run_num_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Gu_run_num_eval _cffi_d_de_Gu_run_num_eval
+#endif
+
+static void _cffi_d_de_Gu_run_up_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Gu_run_up_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Gu_run_up_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Gu_run_up_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Gu_run_up_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Gu_run_up_eval _cffi_d_de_Gu_run_up_eval
+#endif
+
+static void _cffi_d_de_Gu_run_xy_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Gu_run_xy_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Gu_run_xy_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Gu_run_xy_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Gu_run_xy_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Gu_run_xy_eval _cffi_d_de_Gu_run_xy_eval
+#endif
+
+static void _cffi_d_de_Hu_run_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hu_run_num_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hu_run_num_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hu_run_num_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hu_run_num_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hu_run_num_eval _cffi_d_de_Hu_run_num_eval
+#endif
+
+static void _cffi_d_de_Hu_run_up_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hu_run_up_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hu_run_up_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hu_run_up_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hu_run_up_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hu_run_up_eval _cffi_d_de_Hu_run_up_eval
+#endif
+
+static void _cffi_d_de_Hu_run_xy_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hu_run_xy_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hu_run_xy_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hu_run_xy_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hu_run_xy_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hu_run_xy_eval _cffi_d_de_Hu_run_xy_eval
+#endif
+
+static void _cffi_d_de_Hx_run_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hx_run_num_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hx_run_num_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hx_run_num_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hx_run_num_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hx_run_num_eval _cffi_d_de_Hx_run_num_eval
+#endif
+
+static void _cffi_d_de_Hx_run_up_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hx_run_up_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hx_run_up_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hx_run_up_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hx_run_up_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hx_run_up_eval _cffi_d_de_Hx_run_up_eval
+#endif
+
+static void _cffi_d_de_Hx_run_xy_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hx_run_xy_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hx_run_xy_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hx_run_xy_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hx_run_xy_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hx_run_xy_eval _cffi_d_de_Hx_run_xy_eval
+#endif
+
+static void _cffi_d_de_Hy_run_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hy_run_num_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hy_run_num_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hy_run_num_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hy_run_num_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hy_run_num_eval _cffi_d_de_Hy_run_num_eval
+#endif
+
+static void _cffi_d_de_Hy_run_up_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hy_run_up_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hy_run_up_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hy_run_up_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hy_run_up_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hy_run_up_eval _cffi_d_de_Hy_run_up_eval
+#endif
+
+static void _cffi_d_de_Hy_run_xy_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_Hy_run_xy_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_Hy_run_xy_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_Hy_run_xy_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_Hy_run_xy_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_Hy_run_xy_eval _cffi_d_de_Hy_run_xy_eval
+#endif
 
 static void _cffi_d_de_jac_ini_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
 {
@@ -4383,6 +6480,21 @@ _cffi_f_sp_jac_trap_xy_eval(PyObject *self, PyObject *args)
 #endif
 
 static const struct _cffi_global_s _cffi_globals[] = {
+  { "de_Fu_run_num_eval", (void *)_cffi_f_de_Fu_run_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Fu_run_num_eval },
+  { "de_Fu_run_up_eval", (void *)_cffi_f_de_Fu_run_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Fu_run_up_eval },
+  { "de_Fu_run_xy_eval", (void *)_cffi_f_de_Fu_run_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Fu_run_xy_eval },
+  { "de_Gu_run_num_eval", (void *)_cffi_f_de_Gu_run_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Gu_run_num_eval },
+  { "de_Gu_run_up_eval", (void *)_cffi_f_de_Gu_run_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Gu_run_up_eval },
+  { "de_Gu_run_xy_eval", (void *)_cffi_f_de_Gu_run_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Gu_run_xy_eval },
+  { "de_Hu_run_num_eval", (void *)_cffi_f_de_Hu_run_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hu_run_num_eval },
+  { "de_Hu_run_up_eval", (void *)_cffi_f_de_Hu_run_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hu_run_up_eval },
+  { "de_Hu_run_xy_eval", (void *)_cffi_f_de_Hu_run_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hu_run_xy_eval },
+  { "de_Hx_run_num_eval", (void *)_cffi_f_de_Hx_run_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hx_run_num_eval },
+  { "de_Hx_run_up_eval", (void *)_cffi_f_de_Hx_run_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hx_run_up_eval },
+  { "de_Hx_run_xy_eval", (void *)_cffi_f_de_Hx_run_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hx_run_xy_eval },
+  { "de_Hy_run_num_eval", (void *)_cffi_f_de_Hy_run_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hy_run_num_eval },
+  { "de_Hy_run_up_eval", (void *)_cffi_f_de_Hy_run_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hy_run_up_eval },
+  { "de_Hy_run_xy_eval", (void *)_cffi_f_de_Hy_run_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_Hy_run_xy_eval },
   { "de_jac_ini_num_eval", (void *)_cffi_f_de_jac_ini_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_jac_ini_num_eval },
   { "de_jac_ini_up_eval", (void *)_cffi_f_de_jac_ini_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_jac_ini_up_eval },
   { "de_jac_ini_xy_eval", (void *)_cffi_f_de_jac_ini_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_jac_ini_xy_eval },
@@ -4430,7 +6542,7 @@ static const struct _cffi_type_context_s _cffi_type_context = {
   NULL,  /* no struct_unions */
   NULL,  /* no enums */
   NULL,  /* no typenames */
-  38,  /* num_globals */
+  53,  /* num_globals */
   0,  /* num_struct_unions */
   0,  /* num_enums */
   0,  /* num_typenames */
@@ -4445,7 +6557,7 @@ static const struct _cffi_type_context_s _cffi_type_context = {
 
 #ifdef PYPY_VERSION
 PyMODINIT_FUNC
-_cffi_pypyinit_dae1_cffi(const void *p[])
+_cffi_pypyinit_smib_bess_pq_cffi(const void *p[])
 {
     p[0] = (const void *)0x2601;
     p[1] = &_cffi_type_context;
@@ -4456,22 +6568,22 @@ _cffi_pypyinit_dae1_cffi(const void *p[])
 #  ifdef _MSC_VER
      PyMODINIT_FUNC
 #  if PY_MAJOR_VERSION >= 3
-     PyInit_dae1_cffi(void) { return NULL; }
+     PyInit_smib_bess_pq_cffi(void) { return NULL; }
 #  else
-     initdae1_cffi(void) { }
+     initsmib_bess_pq_cffi(void) { }
 #  endif
 #  endif
 #elif PY_MAJOR_VERSION >= 3
 PyMODINIT_FUNC
-PyInit_dae1_cffi(void)
+PyInit_smib_bess_pq_cffi(void)
 {
-  return _cffi_init("dae1_cffi", 0x2601, &_cffi_type_context);
+  return _cffi_init("smib_bess_pq_cffi", 0x2601, &_cffi_type_context);
 }
 #else
 PyMODINIT_FUNC
-initdae1_cffi(void)
+initsmib_bess_pq_cffi(void)
 {
-  _cffi_init("dae1_cffi", 0x2601, &_cffi_type_context);
+  _cffi_init("smib_bess_pq_cffi", 0x2601, &_cffi_type_context);
 }
 #endif
 

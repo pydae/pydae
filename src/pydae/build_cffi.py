@@ -617,12 +617,16 @@ class builder():
         class_template = class_template.replace('{inputs_run_values_list}', str([(sys['u_run_dict'][item]) for item in sys['u_run_dict']]))
         class_template = class_template.replace('{outputs_list}', str([str(item) for item in sys['h_dict']]))
 
+
         if 'enviroment' in sys:
             class_template = class_template.replace('{enviroment_name}',str(sys['enviroment']))
             class_template = class_template.replace('{dae_file_mode}',"'enviroment'")
         elif 'colab' in sys:
             class_template = class_template.replace('{enviroment_name}',str(sys['colab']))
-            class_template = class_template.replace('{dae_file_mode}',"'colab'")            
+            class_template = class_template.replace('{dae_file_mode}',"'colab'")      
+        elif 'testing' in sys:
+            class_template = class_template.replace('{enviroment_name}','no_enviroment')
+            class_template = class_template.replace('{dae_file_mode}',"'testing'")        
         else:
             class_template = class_template.replace('{enviroment_name}','no_enviroment')
             class_template = class_template.replace('{dae_file_mode}',"'local'")

@@ -32,7 +32,7 @@ class builder():
 
     def __init__(self,sys,verbose=False):
 
-        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.DEBUG)
+        logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
         self.verbose = verbose
         self.sys = sys

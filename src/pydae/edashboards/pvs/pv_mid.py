@@ -8,6 +8,7 @@ import cffi
 import numba.core.typing.cffi_utils as cffi_support
 from io import BytesIO
 import pkgutil
+import os
 
 dae_file_mode = 'local'
 
@@ -19,6 +20,8 @@ if dae_file_mode == 'enviroment':
     import envus.no_enviroment.pv_mid_cffi as jacs
 if dae_file_mode == 'colab':
     import pv_mid_cffi as jacs
+if dae_file_mode == 'testing':
+    from pydae.temp import pv_mid_cffi as jacs
     
 cffi_support.register_module(jacs)
 f_ini_eval = jacs.lib.f_ini_eval
@@ -76,9 +79,9 @@ exp = np.exp
 
 class model: 
 
-    def __init__(self): 
+    def __init__(self,matrices_folder='./build'): 
         
-        self.matrices_folder = 'build'
+        self.matrices_folder = matrices_folder
         
         self.dae_file_mode = 'local'
         self.t_end = 10.000000 
@@ -147,7 +150,7 @@ class model:
             fobj = BytesIO(pkgutil.get_data(__name__, f'./pv_mid_sp_jac_ini_num.npz'))
             self.sp_jac_ini = sspa.load_npz(fobj)
         else:
-            self.sp_jac_ini = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_sp_jac_ini_num.npz')
+            self.sp_jac_ini = sspa.load_npz(f'{self.matrices_folder}/pv_mid_sp_jac_ini_num.npz')
             
             
         self.jac_ini = self.sp_jac_ini.toarray()
@@ -169,7 +172,7 @@ class model:
             fobj = BytesIO(pkgutil.get_data(__name__, './pv_mid_sp_jac_run_num.npz'))
             self.sp_jac_run = sspa.load_npz(fobj)
         else:
-            self.sp_jac_run = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_sp_jac_run_num.npz')
+            self.sp_jac_run = sspa.load_npz(f'{self.matrices_folder}/pv_mid_sp_jac_run_num.npz')
         self.jac_run = self.sp_jac_run.toarray()            
            
         self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
@@ -190,7 +193,7 @@ class model:
             fobj = BytesIO(pkgutil.get_data(__name__, './pv_mid_sp_jac_trap_num.npz'))
             self.sp_jac_trap = sspa.load_npz(fobj)
         else:
-            self.sp_jac_trap = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_sp_jac_trap_num.npz')
+            self.sp_jac_trap = sspa.load_npz(f'{self.matrices_folder}/pv_mid_sp_jac_trap_num.npz')
             
 
         self.jac_trap = self.sp_jac_trap.toarray()
@@ -212,11 +215,11 @@ class model:
 
         self.lmax_it_ini,self.ltol_ini,self.ldamp_ini=50,1e-8,1.0
 
-        self.sp_Fu_run = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_Fu_run_num.npz')
-        self.sp_Gu_run = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_Gu_run_num.npz')
-        self.sp_Hx_run = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_Hx_run_num.npz')
-        self.sp_Hy_run = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_Hy_run_num.npz')
-        self.sp_Hu_run = sspa.load_npz(f'./{self.matrices_folder}/pv_mid_Hu_run_num.npz')        
+        self.sp_Fu_run = sspa.load_npz(f'{self.matrices_folder}/pv_mid_Fu_run_num.npz')
+        self.sp_Gu_run = sspa.load_npz(f'{self.matrices_folder}/pv_mid_Gu_run_num.npz')
+        self.sp_Hx_run = sspa.load_npz(f'{self.matrices_folder}/pv_mid_Hx_run_num.npz')
+        self.sp_Hy_run = sspa.load_npz(f'{self.matrices_folder}/pv_mid_Hy_run_num.npz')
+        self.sp_Hu_run = sspa.load_npz(f'{self.matrices_folder}/pv_mid_Hu_run_num.npz')        
         
         self.ss_solver = 2
         self.lsolver = 2

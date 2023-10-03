@@ -74,7 +74,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     V_oc_t = N_pv_s*V_oc * (1+K_vt/100.0*( temp_deg - T_stc_deg))
     V_mp_t = N_pv_s*V_mp * (1+K_vt/100.0*( temp_deg - T_stc_deg))
     I_sc_t = N_pv_p*I_sc*(1 + K_it/100*(temp_deg - T_stc_deg))
-    I_mp_t = N_pv_p*I_mp*(1 + K_it/100*(temp_deg - T_stc_deg))
+    #I_mp_t = N_pv_p*I_mp*(1 + K_it/100*(temp_deg - T_stc_deg))
     I_mp_i = I_sc_t*irrad/1000.0
 
     v_1,i_1 = V_mp_t,I_mp_i
@@ -138,8 +138,8 @@ def pv_dq(grid,name,bus_name,data_dict):
     v_sd = v_sD * cos(delta) - v_sQ * sin(delta)   
     v_sq = v_sD * sin(delta) + v_sQ * cos(delta)
 
-    v_m = sym.sqrt(v_sd**2 + v_sq**2)
-    lvrt = sym.Piecewise((0.0,v_m>=v_lvrt),(1.0,v_m<v_lvrt)) + lvrt_ext
+    v_sm = sym.sqrt(v_sd**2 + v_sq**2)
+    lvrt = sym.Piecewise((0.0,v_sm>=v_lvrt),(1.0,v_sm<v_lvrt)) + lvrt_ext
     p_s_ref = sym.Piecewise((p_s_ppc,p_s_ppc<p_mp),(p_mp,p_s_ppc>=p_mp))
     q_s_ref = q_s_ppc
 
@@ -153,8 +153,9 @@ def pv_dq(grid,name,bus_name,data_dict):
     #g_v_td_ref  = v_td_ref - R_s*i_sd_ref + X_s*i_sq_ref - v_sd  
     #g_v_tq_ref  = v_tq_ref - R_s*i_sq_ref - X_s*i_sd_ref - v_sq 
 
-    i_sd_ar_ref = i_sa_ref*v_sd/sym.sqrt(v_sd**2 + v_sq**2) + i_sr_ref*v_sq/sym.sqrt(v_sd**2 + v_sq**2) 
-    i_sq_ar_ref = i_sa_ref*v_sq/sym.sqrt(v_sd**2 + v_sq**2) - i_sr_ref*v_sd/sym.sqrt(v_sd**2 + v_sq**2)
+    v_sm = sym.sqrt(v_sd**2 + v_sq**2)
+    i_sd_ar_ref = (i_sa_ref*v_sd + i_sr_ref*v_sq)/v_sm 
+    i_sq_ar_ref = (i_sa_ref*v_sq - i_sr_ref*v_sd)/v_sm
 
     i_sd_pq_ref = (p_s_ref*v_sd + q_s_ref*v_sq)/(v_sd**2 + v_sq**2)
     i_sq_pq_ref = (p_s_ref*v_sq - q_s_ref*v_sd)/(v_sd**2 + v_sq**2)
