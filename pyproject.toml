@@ -46,4 +46,3 @@ testpaths = [
 [build-system]
 requires = ["flit_core >=2,<3"]
 build-backend = "flit_core.buildapi"
-

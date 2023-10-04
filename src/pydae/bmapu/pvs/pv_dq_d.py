@@ -133,8 +133,9 @@ def pv_dq_d(grid,name,bus_name,data_dict):
 
     x_p_lp1, x_p_lp2 = sym.symbols(f"x_p_lp1_{name},x_p_lp2_{name}", real=True)
     x_q_lp1, x_q_lp2 = sym.symbols(f"x_q_lp1_{name},x_q_lp2_{name}", real=True) 
-    T_lp1, T_lp2 = sym.symbols(f"T_lp1_{name},T_lp2_{name}", real=True) 
-    PRamp, QRamp, ramp_enable = sym.symbols(f"PRamp_{name},QRamp_{name},ramp_enable_{name}", real=True) 
+    T_lp1p, T_lp2p = sym.symbols(f"T_lp1p_{name},T_lp2p_{name}", real=True) 
+    T_lp1q, T_lp2q = sym.symbols(f"T_lp1q_{name},T_lp2q_{name}", real=True) 
+    PRampUp,PRampDown, QRampUp, QRampDown, ramp_enable = sym.symbols(f"PRampUp_{name},PRampDown_{name},QRampUp_{name},QRampDown_{name},ramp_enable_{name}", real=True) 
 
     ### parameters
     
@@ -154,18 +155,19 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     p_s_ref = sym.Piecewise((p_s_ppc_d,p_s_ppc_d<p_mp),(p_mp,p_s_ppc_d>=p_mp))
     q_s_ref = q_s_ppc_d
 
-    dx_p_lp1_nosat = ramp_enable/T_lp1*(p_s_ppc  - x_p_lp1)
-    dx_p_lp1 = sym.Piecewise((-PRamp,dx_p_lp1_nosat<-PRamp),(PRamp,dx_p_lp1_nosat>PRamp),(dx_p_lp1_nosat,True))
-    dx_p_lp2 = 1/T_lp2*(x_p_lp1 - x_p_lp2)
+    dx_p_lp1_nosat = ramp_enable/T_lp1p*(p_s_ppc  - x_p_lp1)
+    dx_p_lp1 = sym.Piecewise((PRampDown,dx_p_lp1_nosat<PRampDown),(PRampUp,dx_p_lp1_nosat>PRampUp),(dx_p_lp1_nosat,True))
+    dx_p_lp2 = 1/T_lp2p*(x_p_lp1 - x_p_lp2)
     
-    dx_q_lp1_nosat = ramp_enable/T_lp1*(q_s_ppc  - x_q_lp1)
-    dx_q_lp1 =sym.Piecewise((-QRamp,dx_q_lp1_nosat<-QRamp),(QRamp,dx_q_lp1_nosat>QRamp),(dx_q_lp1_nosat,True))
-    dx_q_lp2 = 1/T_lp2*(x_q_lp1 - x_q_lp2)
+    dx_q_lp1_nosat = ramp_enable/T_lp1q*(q_s_ppc  - x_q_lp1)
+    dx_q_lp1 =sym.Piecewise((QRampDown,dx_q_lp1_nosat<QRampDown),(QRampUp,dx_q_lp1_nosat>QRampUp),(dx_q_lp1_nosat,True))
+    dx_q_lp2 = 1/T_lp2q*(x_q_lp1 - x_q_lp2)
 
     ### dynamic equations            
     grid.dae['f'] += [dx_p_lp1,dx_p_lp2,dx_q_lp1,dx_q_lp2]
     grid.dae['x'] += [ x_p_lp1, x_p_lp2, x_q_lp1, x_q_lp2] 
     grid.dae['xy_0_dict'].update({f"x_p_lp1_{name}":1.5,f"x_p_lp2_{name}":1.5})
+    grid.dae['xy_0_dict'].update({f"x_q_lp1_{name}":0.0,f"x_q_lp2_{name}":0.0})
       
     ### algebraic equations   
     #g_i_sd_pq_ref  = i_sd_pq_ref*v_sd + i_sq_pq_ref*v_sq - p_s_ref  
@@ -220,8 +222,10 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     grid.dae['u_run_dict'].update({f'{str(i_sr_ref)}':0.0})
 
     grid.dae['params_dict'].update({f'{str(v_lvrt)}':0.8})
-    grid.dae['params_dict'].update({f'{str(T_lp1)}':0.1,f'{str(T_lp2)}':0.1})
-    grid.dae['params_dict'].update({f'{str(PRamp)}':2.5,f'{str(QRamp)}':2.5})
+    grid.dae['params_dict'].update({f'{str(T_lp1p)}':0.1,f'{str(T_lp2p)}':0.1})
+    grid.dae['params_dict'].update({f'{str(T_lp1q)}':0.1,f'{str(T_lp2q)}':0.1})
+    grid.dae['params_dict'].update({f'{str(PRampUp)}':2.5,f'{str(PRampDown)}':-2.5})
+    grid.dae['params_dict'].update({f'{str(QRampUp)}':2.5,f'{str(QRampDown)}':-2.5})
 
     ### outputs
     grid.dae['h_dict'].update({f"m_ref_{name}":m_ref})

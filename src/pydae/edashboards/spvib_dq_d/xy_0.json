@@ -8,5 +8,7 @@
     "v_dc_POI": 1.5,
     "x_p_lp1_POI": 1.5,
     "x_p_lp2_POI": 1.5,
+    "x_q_lp1_POI": 0.0,
+    "x_q_lp2_POI": 0.0,
     "p_s_POI": 0.5
 }
