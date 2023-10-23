@@ -50,7 +50,7 @@ def ac3ph4wgfpidq3(grid,vsc_data):
     # inputs
     e_ref_a_m,e_ref_b_m,e_ref_c_m = sym.symbols(f'e_ref_a_m_{name},e_ref_b_m_{name},e_ref_c_m_{name}', real=True)
     phi_ref_a,phi_ref_b,phi_ref_c = sym.symbols(f'phi_ref_a_{name},phi_ref_b_{name},phi_ref_c_{name}', real=True)
-
+    p_c = sym.Symbol(f'p_c_{name}', real=True) 
 
     # parameters
     S_n,U_n,H,K_f,T_f,K_sec,K_delta  = sym.symbols(f'S_n_{name},U_n_{name},H_{name},K_f_{name},T_f_{name},K_sec_{name},K_delta_{name}', real=True)
@@ -76,6 +76,7 @@ def ac3ph4wgfpidq3(grid,vsc_data):
     xi_p = sym.Symbol(f'xi_p_{name}', real=True)
     omega_f = sym.Symbol(f'omega_f_{name}', real=True)
     p_s_f = sym.Symbol(f'p_s_f_{name}', real=True) 
+
 
     # algebraic states
     v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'v_{name}_a_r,v_{name}_b_r,v_{name}_c_r,v_{name}_n_r,v_{name}_o_r', real=True)
@@ -103,7 +104,9 @@ def ac3ph4wgfpidq3(grid,vsc_data):
 
     # Controller 
 
-    s_s = 1/S_b*(v_sa * sym.conjugate(i_sa) + v_sb * sym.conjugate(i_sb) + v_sc * sym.conjugate(i_sc))
+    s_s = 1/S_b*(v_sa * sym.conjugate(i_sa) + 
+                 v_sb * sym.conjugate(i_sb) + 
+                 v_sc * sym.conjugate(i_sc))
     p_s = sym.re(s_s)
 
     
@@ -113,18 +116,15 @@ def ac3ph4wgfpidq3(grid,vsc_data):
 
     p_sec = K_sec*p_agc
 
-    p_m_ref = p_sec + p_pri
+    p_m_ref = p_sec + p_pri + p_c
 
     #error
     #epsilon_p = (p_m_ref - p_s);
     #error. Low pass filter or Notch filter
     epsilon_p = (p_m_ref - p_s_f)
 
-
     #omega VSG
     omega = K_p*(epsilon_p + xi_p/T_p) + 1.0; 
-
-    
 
     #derivatives
     dphi =  2.0*np.pi*50.0*(omega - omega_coi) - K_delta*phi
@@ -175,7 +175,7 @@ def ac3ph4wgfpidq3(grid,vsc_data):
     e_d_ref_c = (e_ref_c_i*cos(phi_vsg) + e_ref_c_r*sin(phi_vsg))
     e_q_ref_c = (e_ref_c_i*sin(phi_vsg) - e_ref_c_r*cos(phi_vsg))
 
-    #Voltage ath the VSC terminal phase a
+    #Voltage at the VSC terminal phase a
     v_t_d_a = -(i_sd_a*(R_v) - (X_v)*i_sq_a) + e_d_ref_a;  #pu
     v_t_q_a = -(i_sq_a*(R_v) + (X_v)*i_sd_a) + e_q_ref_a;  #pu
 
@@ -251,7 +251,8 @@ def ac3ph4wgfpidq3(grid,vsc_data):
     u_dict.update({f'e_ref_a_m_{name}':1.0,
                    f'e_ref_b_m_{name}':1.0,
                    f'e_ref_c_m_{name}':1.0,
-                   f'e_{name}_no_m':0.0})
+                   f'e_{name}_no_m':0.0,
+                   f'p_c_{name}':0.0})
     #u_dict.update({f'phi_{name}':0.0})
     u_dict.update({f'phi_ref_a_{name}': 0.0})
     u_dict.update({f'phi_ref_b_{name}':-2./3*np.pi})
@@ -290,8 +291,6 @@ def ac3ph4wgfpidq3(grid,vsc_data):
     s_pos = 3*v_szpn[1]*sym.conjugate(i_szpn[1])
     s_neg = 3*v_szpn[2]*sym.conjugate(i_szpn[2])
     s_zer = 3*v_szpn[0]*sym.conjugate(i_szpn[0])    
-    
-    
 
     f_list += [dphi,dxi_p,dp_s_f,domega_f]
     x_list += [ phi, xi_p, p_s_f, omega_f]
@@ -327,3 +326,35 @@ def ac3ph4wgfpidq3(grid,vsc_data):
     params_dict.update({f'K_delta_{name}':vsc_data['K_delta']})
     
     
+    
+def test():
+    import numpy as np
+    import sympy as sym
+    import json
+    from pydae.urisi.urisi_builder import urisi
+    import pydae.build_cffi as db
+
+    grid = urisi('ac3ph4wgfpidq3_ib.hjson')
+    grid.uz_jacs = True
+    grid.construct('temp')
+    grid.compile('temp')
+
+    import temp
+
+    model = temp.model()
+    # model.ini({'p_load_A2_a':20e3,'q_load_A2_a':-10e3,
+    #            'p_load_A2_b':20e3,'q_load_A2_b':-10e3,
+    #            'p_load_A2_c':20e3,'q_load_A2_c':-10e3,},'xy_0.json')
+    
+    model.ini({'p_c_A1':10e3},'xy_0.json')
+    
+    model.report_u()
+    model.report_x()
+    model.report_y()
+    model.report_z()
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()

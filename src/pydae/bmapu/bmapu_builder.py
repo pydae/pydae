@@ -15,7 +15,7 @@ from pydae.bmapu.vscs.vscs import add_vscs
 from pydae.bmapu.vsgs.vsgs import add_vsgs
 from pydae.bmapu.wecs.wecs import add_wecs
 from pydae.bmapu.pvs.pvs import add_pvs
-
+from pydae.bmapu.loads.loads import add_loads
 from pydae.bmapu.sources.sources import add_sources
 
 import pydae.build_cffi as db
@@ -76,12 +76,15 @@ class bmapu:
             self.data['shunts'] = []
         if not 'transformers' in self.data:
             self.data['transformers'] = []
+        if not 'loads' in self.data:
+            self.data['loads'] = []
 
         self.system = data['system']
         self.buses = data['buses']
         self.lines = data['lines']
         self.shunts = data['shunts']
         self.transformers = data['transformers']
+        self.loads = data['loads']
 
         self.x_grid = []
         self.f_grid = []
@@ -171,18 +174,18 @@ class bmapu:
                 self.params_grid.update({f'b_{line_name}':B})        
     
             self.params_grid.update({f'bs_{line_name}':0.0})
-            if 'Bs_pu' in line:
+            if 'B_pu' in line:
                 if 'S_mva' in line: S_line = 1e6*line['S_mva']
-                Bs = line['Bs_pu']*S_line/sys['S_base']  # in pu of the system base
-                bs = -Bs/2.0
+                Bs = line['B_pu']*S_line/sys['S_base']  # in pu of the system base
+                bs = Bs
                 self.params_grid[f'bs_{line_name}'] = bs
      
-            if 'Bs_km' in line:
+            if 'B_km' in line:
                 bus_idx = buses_list.index(line['bus_j'])
                 U_base = self.buses[bus_idx]['U_kV']*1000
                 Z_base = U_base**2/sys['S_base']
                 Y_base = 1.0/Z_base
-                Bs = line['Bs_km']*line['km']/Y_base # in pu of the system base
+                Bs = line['B_km']*line['km']/Y_base # in pu of the system base
                 bs = Bs 
                 self.params_grid[f'bs_{line_name}'] = bs
                 
@@ -226,7 +229,10 @@ class bmapu:
                 B = -X/(R**2+X**2)
                 self.params_grid.update({f"g_cc_{trafo_name}":G})
                 self.params_grid.update({f'b_cc_{trafo_name}':B})
-                self.params_grid.update({f'tap_{trafo_name}':1.0})
+                tap_m = 1.0
+                if 'tap_m' in trafo:
+                    tap_m = trafo['tap_m']
+                self.params_grid.update({f'tap_{trafo_name}':tap_m})
                 self.params_grid.update({f'ang_{trafo_name}':0.0})
 
     
@@ -438,6 +444,8 @@ class bmapu:
             add_wecs(self)
         if 'pvs' in  self.data:
             add_pvs(self)
+        if 'loads' in  self.data:
+            add_loads(self)
 
         #add_vsgs(grid)
         omega_coi = sym.Symbol("omega_coi", real=True)  
@@ -506,6 +514,7 @@ class bmapu:
         if not 'vscs' in self.data: self.data.update({'vscs':[]})
         if not 'vsgs' in self.data: self.data.update({'vsgs':[]})
         if not 'genapes' in self.data: self.data.update({'genapes':[]})
+        if not 'sources' in self.data: self.data.update({'sources':[]})
                                                          
                                                          
         K_deltas_n = 0

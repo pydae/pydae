@@ -14,26 +14,26 @@ from pydae.bmapu.avrs.ntsst4 import ntsst4
 from pydae.bmapu.avrs.ntsst1 import ntsst1
 from pydae.bmapu.avrs.kundur_tgr import kundur_tgr
 
-def add_avr(dae,syn_data,name):
+def add_avr(dae,syn_data,name,bus_name):
     
     if syn_data['avr']['type'] == 'sexs':
-        sexs(dae,syn_data,name)
+        sexs(dae,syn_data,name,bus_name)
 
     if syn_data['avr']['type'] == 'sexsq':
         sexsq(dae,syn_data,name)
 
     if syn_data['avr']['type'] == 'kundur':
-        kundur(dae,syn_data,name)
+        kundur(dae,syn_data,name,bus_name)
 
     if syn_data['avr']['type'] == 'avr_kundurq':
-        avr_kundurq(dae,syn_data,name)
+        avr_kundurq(dae,syn_data,name,bus_name)
 
     if syn_data['avr']['type'] == 'ntsst4':
         ntsst4(dae,syn_data,name)
 
     if syn_data['avr']['type'] == 'ntsst1':
-        ntsst1(dae,syn_data,name)
+        ntsst1(dae,syn_data,name,bus_name)
 
     if syn_data['avr']['type'] == 'kundur_tgr':
-        kundur_tgr(dae,syn_data,name)
+        kundur_tgr(dae,syn_data,name,bus_name)
         

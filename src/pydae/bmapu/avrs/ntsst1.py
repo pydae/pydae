@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def ntsst1(dae,syn_data,name):
+def ntsst1(dae,syn_data,name,bus_name):
     '''
 
     .. table:: Constants
@@ -25,7 +25,8 @@ def ntsst1(dae,syn_data,name):
 
     avr_data = syn_data['avr']
     
-    v_t = sym.Symbol(f"V_{name}", real=True)   
+    v_t = sym.Symbol(f"V_{bus_name}", real=True)  
+    v_r = sym.Symbol(f"v_r_{name}", real=True)   
     v_c = sym.Symbol(f"v_c_{name}", real=True)  
     x_cb  = sym.Symbol(f"x_cb_{name}", real=True)
     xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
@@ -47,14 +48,15 @@ def ntsst1(dae,syn_data,name):
     
     epsilon_v = v_ref - v_c 
     
+    dv_r = 1/T_r*(v_c - v_r)
     dx_cb = (v_1 - x_cb)/T_b;  
     z_cb  = (v_1 - x_cb)*T_c/T_b + x_cb 
     dxi_v = epsilon_v  # this integrator is added in pydae to force V = v_ref in the initialization
 
     g_v_f  =   K_a*z_cb - v_f 
     
-    dae['f'] += [dx_cb,dxi_v]
-    dae['x'] += [ x_cb, xi_v]
+    dae['f'] += [dv_r,dx_cb,dxi_v]
+    dae['x'] += [ v_r, x_cb, xi_v]
     dae['g'] += [g_v_f]
     dae['y_ini'] += [v_f] 
     dae['y_run'] += [v_f]  
@@ -71,7 +73,49 @@ def ntsst1(dae,syn_data,name):
     dae['u_ini_dict'].update({str(v_pss):0.0})
 
     dae['xy_0_dict'].update({str(v_f):2.0})
+    dae['xy_0_dict'].update({str(v_r):1.0})
     dae['xy_0_dict'].update({str(xi_v):10.0})
     dae['xy_0_dict'].update({str(x_cb):2.0})
 
     dae['h_dict'].update({str(v_ref):v_ref})  
+
+
+def test():
+    import numpy as np
+    import sympy as sym
+    import hjson
+    from pydae.bmapu.bmapu_builder import bmapu
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = bmapu('ntsst1.hjson')
+    grid.checker()
+    grid.uz_jacs = True
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+
+    v_ref_1 = 1.05
+    model.ini({'p_m_1':0.5,'v_ref_1':v_ref_1},'xy_0.json')
+
+    assert model.get_value('V_1') == pytest.approx(v_ref_1, rel=0.001)
+    # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
+
+    model.ini({'p_m_1':0.5,'v_ref_1':1.0},'xy_0.json')
+    model.run(1.0,{})
+    model.run(15.0,{'v_ref_1':1.05})
+    model.post()
+
+    import matplotlib.pyplot as plt
+
+    fig,axes = plt.subplots()
+    axes.plot(model.Time,model.get_values('V_1'))
+    fig.savefig('ntsst1_step.svg')
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()

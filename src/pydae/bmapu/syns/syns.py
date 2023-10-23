@@ -68,17 +68,17 @@ def add_syns(grid):
         v_pss = f'v_pss_{name}'
         
         if 'avr' in item:
-            add_avr(grid.dae,item,name)
+            add_avr(grid.dae,item,name,bus_name)
             grid.dae['u_ini_dict'].pop(str(v_f))
             grid.dae['u_run_dict'].pop(str(v_f))
             grid.dae['xy_0_dict'].update({str(v_f):1.5})
         if 'gov' in item:
-            add_gov(grid.dae,item,name)  
+            add_gov(grid.dae,item,name,bus_name)  
             grid.dae['u_ini_dict'].pop(str(p_m))
             grid.dae['u_run_dict'].pop(str(p_m))
             grid.dae['xy_0_dict'].update({str(p_m):0.5})
         if 'pss' in item:
-            add_pss(grid.dae,item,name)  
+            add_pss(grid.dae,item,name,bus_name)  
             grid.dae['u_ini_dict'].pop(str(v_pss))
             grid.dae['u_run_dict'].pop(str(v_pss))
             grid.dae['xy_0_dict'].update({str(v_pss):0.0})

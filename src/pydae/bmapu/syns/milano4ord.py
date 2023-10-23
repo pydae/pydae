@@ -48,7 +48,7 @@ def milano4ord(grid,name,bus_name,data_dict):
     D = sym.Symbol(f"D_{name}", real=True)
     R_a = sym.Symbol(f"R_a_{name}", real=True)
     K_delta = sym.Symbol(f"K_delta_{name}", real=True)
-    params_list = ['S_n','Omega_b','H','T1d0','T1q0','X_d','X_q','X1d','X1q','D','R_a','K_delta','K_sec']
+    params_list = ['S_n','H','T1d0','T1q0','X_d','X_q','X1d','X1q','D','R_a','K_delta','K_sec']
     
     # auxiliar
     v_d = V*sin(delta - theta) 
@@ -108,6 +108,11 @@ def milano4ord(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"v_f_{name}":v_f})
     grid.dae['h_dict'].update({f"p_m_{name}":p_m})
     
+    if 'F_n' in data_dict:
+        grid.dae['params_dict'].update({f"Omega_b_{name}":2*np.pi*data_dict['F_n']})
+    else:
+        grid.dae['params_dict'].update({f"Omega_b_{name}":data_dict['Omega_b']})
+
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]})
     

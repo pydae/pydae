@@ -9,6 +9,8 @@ from pydae.urisi.loads.loads import add_loads
 from pydae.urisi.lines.lines import lines_preprocess,add_lines,add_line_monitors
 from pydae.urisi.transformers.transformers import trafos_preprocess,add_trafos,add_trafo_monitors
 from pydae.urisi.shunts.shunts import add_shunts,shunts_preprocess
+from pydae.urisi.sources.sources import add_sources
+from pydae.urisi.ess.ess import add_ess
 
 import pydae.build_cffi as db
 from pydae.build_v2 import builder
@@ -209,12 +211,20 @@ class urisi:
 
     
         # voltages initial guess
+        phi_deg_default = -30.0
+        if 'phi_deg_default' in self.system:
+            phi_deg_default = self.system['phi_deg_default']
+        phi_default = np.deg2rad(phi_deg_default)
+        print(phi_default)
+
+
         for bus in self.buses:
             
             V_phg = bus['U_kV']*1000.0/np.sqrt(3)
+           
             if 'phi_deg_0' in bus:
-                phi_0 = np.deg2rad(-30 + bus['phi_deg_0'])
-            else: phi_0 = np.deg2rad(-30)
+                phi_0 = np.deg2rad(phi_default + bus['phi_deg_0'])
+            else: phi_0 = np.deg2rad(phi_deg_default)
 
             for node in [0,1,2,3]:
                 name = f"{bus['name']}_{node}"
@@ -248,7 +258,8 @@ class urisi:
         
         self.contruct_grid()          
 
-        add_loads(self)
+        if 'loads' in self.data:
+            add_loads(self)
 
         #if 'syns' in self.data:
         #    add_syns(self)
@@ -260,7 +271,15 @@ class urisi:
             add_genapes(self)
         #if 'wecs' in  self.data:
         #    add_wecs(self)
-    
+        if 'sources' in  self.data:
+            add_sources(self)
+        if 'pvs' in  self.data:
+            for item in self.data['pvs']:
+                add_pv(self)
+        if 'ess' in  self.data:
+            for item in self.data['ess']:
+                add_ess(self)
+                
         omega_coi = sym.Symbol("omega_coi", real=True)  
 
         # if self.omega_coi_denominator <1e-6:
@@ -280,10 +299,13 @@ class urisi:
         K_xif  = sym.Symbol("K_xif", real=True)
         u_freq   = sym.Symbol("u_freq", real=True)
         epsilon_freq = 1-omega_coi
+        
+        f_agc = [epsilon_freq - K_xif*xi_freq + u_freq]
+        x_agc = [ xi_freq]
+
         g_agc = [ -p_agc + K_p_agc*epsilon_freq + K_i_agc*xi_freq ]
         y_agc = [  p_agc]
-        x_agc = [ xi_freq]
-        f_agc = [epsilon_freq - K_xif*xi_freq + u_freq]
+        
 
         self.dae['g'] += g_agc
         self.dae['y_ini'] += y_agc

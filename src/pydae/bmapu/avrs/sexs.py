@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def sexs(dae,syn_data,name):
+def sexs(dae,syn_data,name,bus_name):
     '''
 
     .. table:: Constants
@@ -33,7 +33,7 @@ def sexs(dae,syn_data,name):
 
     avr_data = syn_data['avr']
     
-    v_t = sym.Symbol(f"V_{name}", real=True)   
+    v_t = sym.Symbol(f"V_{bus_name}", real=True)   
     v_c = sym.Symbol(f"v_c_{name}", real=True)  
     x_ab  = sym.Symbol(f"x_ab_{name}", real=True)
     x_e  = sym.Symbol(f"x_e_{name}", real=True)
@@ -205,7 +205,7 @@ def sexsq(dae,syn_data,name):
 
     avr_data = syn_data['avr']
     
-    v_t = sym.Symbol(f"V_{name}", real=True)   
+    v_t = sym.Symbol(f"V_{bus_name}", real=True)   
     q_g = sym.Symbol(f"q_g_{name}", real=True) 
     q = sym.Symbol(f"q_{name}", real=True)   
 
@@ -263,3 +263,55 @@ def sexsq(dae,syn_data,name):
     dae['params_dict'].update({str(K_qv):0.0})
 
     dae['xy_0_dict'].update({str(xi_vq):1})
+
+
+def test():
+    import numpy as np
+    import sympy as sym
+    import hjson
+    from pydae.bmapu.bmapu_builder import bmapu
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = bmapu('sexs.hjson')
+    grid.checker()
+    grid.uz_jacs = True
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+
+    v_ref_1 = 1.05
+    model.ini({'p_m_1':0.5,'v_ref_1':v_ref_1},'xy_0.json')
+
+    model.report_x()
+    model.report_y()
+
+    assert model.get_value('V_1') == pytest.approx(v_ref_1, rel=0.001)
+    # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
+
+    model.ini({'p_m_1':0.5,'v_ref_1':1.0},'xy_0.json')
+    model.run(1.0,{})
+    model.run(15.0,{'v_ref_1':1.05})
+    model.post()
+
+    import matplotlib.pyplot as plt
+
+    
+
+    fig,axes = plt.subplots()
+    axes.plot(model.Time,model.get_values('V_1'))
+    fig.savefig('sexs_step.svg')
+
+
+
+    # assert model.get_value('p_dc_A1') == pytest.approx(p_mp, rel=0.01)
+    # assert model.get_value('p_A2') == pytest.approx( -p_mp, rel=0.1)
+    # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()

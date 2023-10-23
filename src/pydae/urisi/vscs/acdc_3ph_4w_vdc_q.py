@@ -10,9 +10,9 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     bus_ac_name = vsc_data['bus_ac']
     bus_dc_name = vsc_data['bus_dc']  
     
-    a_value  = vsc_data['a']   
-    b_value  = vsc_data['b']   
-    c_value  = vsc_data['c']   
+    A_value  = vsc_data['A']   
+    B_value  = vsc_data['B']   
+    C_value  = vsc_data['C']   
     
     ### AC-side
     q_a,q_b,q_c = sym.symbols(f'q_vsc_a_{bus_ac_name},q_vsc_b_{bus_ac_name},q_vsc_c_{bus_ac_name}',real=True)
@@ -43,19 +43,19 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     v_dc = v_dc_ref
 
 
-    A_loss,B_loss,C_loss = sym.symbols(f'A_loss_{bus_ac_name},B_loss_{bus_ac_name},C_loss_{bus_ac_name}',real=True)
+    A_loss,B_loss,C_loss = sym.symbols(f'A_{bus_ac_name},B_{bus_ac_name},C_{bus_ac_name}',real=True)
     R_dc,K_dc,R_gdc = sym.symbols(f'R_dc_{bus_dc_name},K_dc_{bus_dc_name},R_gdc_{bus_dc_name}',real=True)
      
 
-    i_a_rms = sym.sqrt(i_a_r**2+i_a_i**2 + 0.01) 
-    i_b_rms = sym.sqrt(i_b_r**2+i_b_i**2+ 0.01) 
-    i_c_rms = sym.sqrt(i_c_r**2+i_c_i**2+ 0.01) 
-    i_n_rms = sym.sqrt(i_n_r**2+i_n_i**2+ 0.01) 
+    i_a_rms = sym.sqrt(i_a_r**2+i_a_i**2 + 0.001) 
+    i_b_rms = sym.sqrt(i_b_r**2+i_b_i**2 + 0.001) 
+    i_c_rms = sym.sqrt(i_c_r**2+i_c_i**2 + 0.001) 
+    i_n_rms = sym.sqrt(i_n_r**2+i_n_i**2 + 0.001) 
 
-    p_loss_a = A_loss + B_loss*i_a_rms + C_loss*i_a_rms*i_a_rms
-    p_loss_b = A_loss + B_loss*i_b_rms + C_loss*i_b_rms*i_b_rms
-    p_loss_c = A_loss + B_loss*i_c_rms + C_loss*i_c_rms*i_c_rms
-    p_loss_n = A_loss + B_loss*i_n_rms + C_loss*i_n_rms*i_n_rms
+    p_loss_a = A_loss*i_a_rms*i_a_rms + B_loss*i_a_rms + C_loss
+    p_loss_b = A_loss*i_b_rms*i_b_rms + B_loss*i_b_rms + C_loss
+    p_loss_c = A_loss*i_c_rms*i_c_rms + B_loss*i_c_rms + C_loss
+    p_loss_n = A_loss*i_n_rms*i_n_rms + B_loss*i_n_rms + C_loss
 
     v_a = v_a_r + 1j*v_a_i
     v_b = v_b_r + 1j*v_b_i
@@ -146,11 +146,11 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
 
     # current injections dc side
     idx_r,idx_i = grid.node2idx(f'{bus_dc_name}','a')
-    grid.dae['g'] [idx_r] += -i_pos 
+    grid.dae['g'] [idx_r] += -i_pos    
     grid.dae['g'] [idx_i] += v_posi/1e3
 
     idx_r,idx_i = grid.node2idx(f'{bus_dc_name}','b')
-    grid.dae['g'] [idx_r] += -i_neg 
+    grid.dae['g'] [idx_r] += -i_neg  
     grid.dae['g'] [idx_i] += v_negi/1e3  
 
     
@@ -163,7 +163,7 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
 
 
     #grid.dae['u'].pop(str(v_dc_a_r))
-    grid.dae['params_dict'].update({f'A_loss_{bus_ac_name}':a_value,f'B_loss_{bus_ac_name}':b_value,f'C_loss_{bus_ac_name}':c_value})
+    grid.dae['params_dict'].update({f'A_{bus_ac_name}':A_value,f'B_{bus_ac_name}':B_value,f'C_{bus_ac_name}':C_value})
     grid.dae['params_dict'].update({f'C_a_{bus_ac_name}':1/3,f'C_b_{bus_ac_name}':1/3,f'C_c_{bus_ac_name}':1/3})
     grid.dae['params_dict'].update({f'R_dc_{bus_dc_name}':1e-6})
     grid.dae['params_dict'].update({f'K_dc_{bus_dc_name}':1e-6})
@@ -174,3 +174,38 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     grid.dae['h_dict'].update({f'p_vsc_{bus_ac_name}':sym.re(s_a)+sym.re(s_b)+sym.re(s_c)+sym.re(s_n)})
     grid.dae['h_dict'].update({f'p_vsc_loss_{bus_ac_name}':(p_loss_a+p_loss_b+p_loss_c+p_loss_n)})
 
+def test():
+    import numpy as np
+    import sympy as sym
+    import json
+    from pydae.urisi.urisi_builder import urisi
+    import pydae.build_cffi as db
+
+    grid = urisi('acdc_3ph_4w_vdc_q.hjson')
+    grid.uz_jacs = True
+    grid.construct('temp')
+    grid.compile('temp')
+
+    import temp
+
+    S_n = 100e3
+    V_n = 400
+    I_n = S_n/V_n
+    Conduction_losses = 0.02*S_n # = A*I_n**2
+    lossses = 0.0
+    A = Conduction_losses/(I_n**2)/3*lossses
+    B = 1/3*lossses
+    C = 0.02*S_n/3*lossses
+    model = temp.model()
+    model.ini({'A_A1':A,'B_A1':B,'C_A1':C},'xy_0.json')
+    model.report_y()
+    model.report_z()
+    #model.save_xy_0('xy_1.json')
+    print(800**2/10)
+
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()

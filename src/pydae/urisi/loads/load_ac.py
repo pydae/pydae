@@ -118,3 +118,6 @@ def load_ac(grid,data):
         self.dae['u_run_dict'].update({f'b_load_{name}_{phase}':0})
 
     self.dae['params_dict'].update({f'K_abc_{name}':1.0})
+    self.dae['h_dict'].update({f'v_anm_{name}':v_anm})
+    self.dae['h_dict'].update({f'v_bnm_{name}':v_bnm})
+    self.dae['h_dict'].update({f'v_cnm_{name}':v_cnm})

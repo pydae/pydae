@@ -1,0 +1,53 @@
+{
+system:{S_base:1e6, K_p_agc:0.01, K_i_agc:0.01, K_xif:0.01}
+buses:[
+         {name: "A1",  pos_x:   0, pos_y:   0, units: "m", U_kV:20.0, N_nodes:3, phi_deg_0:30.0},
+         {name: "A2",  pos_x:  30, pos_y:   0, units: "m", U_kV:0.4},
+         {name: "D2",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.8, "acdc":"DC","nodes":[0,1]},
+         {name: "D3",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.8, "acdc":"DC","nodes":[0,1]},
+        ], 
+transformers:[
+        {bus_j: "A1",  bus_k: "A2",  S_n_kVA: 1000.0, U_j_kV:20, U_k_kV:0.4,
+         R_cc_pu: 0.01, "X_cc_pu":0.04, "connection": "Dyn11",   "conductors_j": 3, "conductors_k": 4,
+         monitor:true}
+       ],
+lines:[
+        { bus_j: "D2",  bus_k: "D3",  code: "UG1dc", m: 100.0, vsc_line:true, monitor:true, bus_j_nodes:[0,1], bus_k_nodes:[0,1]},
+        ],
+loads:[
+    #     { bus: "A2" , kVA: 0.0, pf: 0.85, type:"3P+N", model:"ZIP"},
+         { bus: "D2" , kW: 1.0, type :"DC", model :"ZIP"},
+    #     { bus: "D3" , kW: 1.0, type :"DC", model :"ZIP"},
+        ],
+shunts:[
+        {bus: "A2" , R:  3.0, X: 0.0, bus_nodes: [3,0]}
+         ],
+genapes:[
+       {type:"ac3ph3w_ideal", bus: "A1", S_n:100e3, U_n :20e3, R:0.01, X:0.1, R_n:0.01, X_n:0.1, R_ng:3.0,X_ng:0.0,K_p:0.1,K_agc:1.0,
+                     T_p:0.1,T_e:0.1,K_delta:0.001, T_c:0.1, Droop:0.05, T_v:0.1, K_f:1e-2, T_f:1e-2}
+           ],
+vscs:[
+        {bus_ac:  "A2", bus_dc:"D2", type:"acdc_3ph_4w_vdc_q",a:2.92,b:0.45,c:0.027},
+       ],
+line_codes:
+            {
+        UG1:
+            {R:[[ 0.211,  0.049,  0.049,  0.049],
+                [ 0.049,  0.211,  0.049,  0.049],
+                [ 0.049,  0.049,  0.211,  0.049],
+                [ 0.049,  0.049,  0.049,  0.211]],
+             X:[[ 0.747,  0.673,  0.651,  0.673],
+                [ 0.673,  0.747,  0.673,  0.651],
+                [ 0.651,  0.673,  0.747,  0.673],
+                [ 0.673,  0.651,  0.673,  0.747]], I_max:430.0
+            },
+       UG1dc:
+        {R:[[ 0.211,  0.0],
+            [ 0.0,  0.211]],
+         X:[[ 0.0,  0.0],
+            [ 0.0,  0.0]], I_max:430.0
+            }
+        }          
+ }    
+
+

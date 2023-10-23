@@ -354,7 +354,7 @@ class model:
         self.x = self.xy_ini[:self.N_x]
         self.xy[:self.N_x] = self.x
         self.xy[self.N_x:] = self.y_run
-        c_h_eval(self.z,self.x,self.y_run,self.u_ini,self.p,self.Dt)
+        c_h_eval(self.z,self.x,self.y_run,self.u_run,self.p,self.Dt)
         
 
         

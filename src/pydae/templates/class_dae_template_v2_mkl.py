@@ -491,9 +491,6 @@ class model:
         return self.ini_convergence
             
         
-
-
-    
     def dict2xy0(self,xy_0_dict):
     
         for item in xy_0_dict:

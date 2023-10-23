@@ -9,7 +9,7 @@ import numpy as np
 import sympy as sym
 
 
-def tgov1(dae,syn_data,name):
+def tgov1(dae,syn_data,name,bus_name):
     '''
     Governor TGOV1 like in PSS/E
     

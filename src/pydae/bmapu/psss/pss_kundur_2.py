@@ -9,7 +9,7 @@ import numpy as np
 import sympy as sym
 
 
-def pss_kundur_2(dae,syn_data,name):
+def pss_kundur_2(dae,syn_data,name,bus_name):
     '''
     PSS from Kundur's book1 
 

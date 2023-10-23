@@ -36,7 +36,7 @@ def pv_dq(grid,name,bus_name,data_dict):
     "vscs": [{"bus":bus_name,"type":"pv_pq",
                  "S_n":1e6,"U_n":400.0,"F_n":50.0,
                  "X_s":0.1,"R_s":0.01,"monitor":True,
-                 "I_sc":8,"V_oc":42.1,"I_mp":3.56,"V_mp":33.7,
+                 "I_sc":3.87,"V_oc":42.1,"I_mp":3.56,"V_mp":33.7,
                  "K_vt":-0.160,"K_it":0.065,
                  "N_pv_s":25,"N_pv_p":250}]
     
@@ -71,11 +71,11 @@ def pv_dq(grid,name,bus_name,data_dict):
 
     T_stc_deg = 25.0
 
-    V_oc_t = N_pv_s*V_oc * (1+K_vt/100.0*( temp_deg - T_stc_deg))
-    V_mp_t = N_pv_s*V_mp * (1+K_vt/100.0*( temp_deg - T_stc_deg))
-    I_sc_t = N_pv_p*I_sc*(1 + K_it/100*(temp_deg - T_stc_deg))
-    #I_mp_t = N_pv_p*I_mp*(1 + K_it/100*(temp_deg - T_stc_deg))
-    I_mp_i = I_sc_t*irrad/1000.0
+    V_oc_t = N_pv_s*V_oc * (1 + K_vt/100.0*(temp_deg - T_stc_deg))
+    V_mp_t = N_pv_s*V_mp * (1 + K_vt/100.0*(temp_deg - T_stc_deg))
+    I_sc_t = N_pv_p*I_sc * (1 + K_it/100.0*(temp_deg - T_stc_deg))
+    I_mp_t = N_pv_p*I_mp * (1 + K_it/100.0*(temp_deg - T_stc_deg))
+    I_mp_i = I_mp_t*irrad/1000.0
 
     v_1,i_1 = V_mp_t,I_mp_i
     v_2,i_2 = V_oc_t,0

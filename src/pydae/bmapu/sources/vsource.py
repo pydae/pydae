@@ -65,7 +65,7 @@ def vsource(grid,name,bus_name,data_dict):
     
     # dae 
 
-    H = 1e6
+    H = 1e15
     grid.H_total += H
     grid.omega_coi_numerator += H
     grid.omega_coi_denominator += H

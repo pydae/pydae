@@ -73,9 +73,6 @@ def ac3ph4wgfpi3(grid,vsc_data):
     De_ao_m,De_bo_m,De_co_m,De_no_m  = sym.symbols(f'De_ao_m_{name},De_bo_m_{name},De_co_m_{name},De_no_m_{name}', real=True)
 
 
-
-
-
     omega = sym.Symbol(f'omega_{name}', real=True)
     
     # algebraic states
@@ -96,7 +93,7 @@ def ac3ph4wgfpi3(grid,vsc_data):
 
     e_om_r,e_om_i = sym.symbols(f'e_{name}_om_r,e_{name}_om_i', real=True)
     
-    Z_sa = R_s + 1j*X_s
+    Z_sa = R_s + 1j*X_s 
     Z_sb = R_s + 1j*X_s
     Z_sc = R_s + 1j*X_s
     Z_sn = R_sn + 1j*X_sn
@@ -275,5 +272,79 @@ def ac3ph4wgfpi3(grid,vsc_data):
     HS_coi  = S_n
     omega_coi_i = S_n*omega
 
-    grid.omega_coi_numerator += omega_coi_i
+    grid.omega_coi_numerator += omega_coi_i 
     grid.omega_coi_denominator += HS_coi
+
+def test_ib():
+    '''
+    test grid former connected to infinite bus
+    '''
+    import numpy as np
+    import sympy as sym
+    import json
+    from pydae.urisi.urisi_builder import urisi
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = urisi('ac3ph4wgfpi3_ib.hjson')
+    grid.uz_jacs = True
+    grid.construct('temp')
+    grid.compile('temp')
+
+    import temp
+
+    model = temp.model()    
+    p_c = 0.5
+    model.ini({'p_c_A1':0.5},'xy_0.json')
+    
+    model.report_u()
+    model.report_x()
+    model.report_y()
+    model.report_z()
+
+    S_n = model.get_value('S_n_A1')
+    assert model.get_value('omega_A1')  == pytest.approx(1)
+    assert model.get_value('omega_coi') == pytest.approx(1)
+    assert model.get_value('p_vsc_A1_a') == pytest.approx(p_c*S_n/3, rel=0.05)
+    assert model.get_value('p_vsc_A1_b') == pytest.approx(p_c*S_n/3, rel=0.05)
+    assert model.get_value('p_vsc_A1_c') == pytest.approx(p_c*S_n/3, rel=0.05)
+    assert model.get_value('p_A2') == pytest.approx(-p_c*S_n, rel=0.05)
+
+def test_iso():
+    '''
+    test isolated grid former feeding a load
+    '''
+    import numpy as np
+    import sympy as sym
+    from pydae.urisi.urisi_builder import urisi
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = urisi('ac3ph4wgfpi3_iso.hjson')
+    grid.uz_jacs = True
+    grid.construct('temp')
+    grid.compile('temp')
+
+    import temp
+
+    model = temp.model()
+    p_load_ph =  50e3
+    q_load_ph = -20e3
+    model.ini({'p_load_A2_a':p_load_ph,'q_load_A2_a':q_load_ph,
+               'p_load_A2_b':p_load_ph,'q_load_A2_b':q_load_ph,
+               'p_load_A2_c':p_load_ph,'q_load_A2_c':q_load_ph,},'xy_0.json')
+
+    assert model.get_value('omega_A1')  == 1.0
+    assert model.get_value('omega_coi') == 1.0
+    assert model.get_value('p_vsc_A1_a') == pytest.approx(p_load_ph, rel=0.05)
+    assert model.get_value('p_vsc_A1_b') == pytest.approx(p_load_ph, rel=0.05)
+    assert model.get_value('p_vsc_A1_c') == pytest.approx(p_load_ph, rel=0.05)
+    assert model.get_value('q_vsc_A1_a') == pytest.approx(q_load_ph, rel=0.05)
+    assert model.get_value('q_vsc_A1_b') == pytest.approx(q_load_ph, rel=0.05)
+    assert model.get_value('q_vsc_A1_c') == pytest.approx(q_load_ph, rel=0.05)
+
+
+if __name__ == '__main__':
+
+    #development()
+    test_ib()

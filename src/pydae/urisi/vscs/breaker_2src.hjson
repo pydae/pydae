@@ -1,0 +1,45 @@
+{
+system:{S_base:1e6, K_p_agc:0.0, K_i_agc:0.0, K_xif:0.1}
+buses:[    
+         {name: "A1",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
+         {name: "A2",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
+         {name: "A3",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
+         {name: "A4",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
+        ], 
+lines:[
+        { bus_j: "A1",  bus_k: "A2",  code: "UG1", m: 20, vsc_line:true, monitor:true},
+        { bus_j: "A3",  bus_k: "A4",  code: "UG1", m: 20, vsc_line:true, monitor:true},
+        ],
+shunts:[
+        // {bus: "D2" , R:  1e6, X: 0.0, bus_nodes: [1]},
+        ],
+loads:[
+         { bus: "A2" , kVA: 100.0, pf: 0.85, type:"3P+N", model:"ZIP"},
+      ]
+sources:[
+        {bus: "A1", type:"ac3ph4w_ideal"},
+        {bus: "A4", type:"ac3ph4w_ideal"},
+        ],
+vscs:[
+     {"type":"breaker","bus_1":"A2","bus_2":"A3"}
+        ],
+line_codes:
+        {
+        UG1dc:
+                {R:[[ 0.211,  0.0],
+                [ 0.0,  0.211]],
+                X:[[ 0.0,  0.0],
+                [ 0.0,  0.0]], I_max:430.0
+                },
+        UG1:
+                {R:[[ 0.211,  0.049,  0.049,  0.049],
+                    [ 0.049,  0.211,  0.049,  0.049],
+                    [ 0.049,  0.049,  0.211,  0.049],
+                    [ 0.049,  0.049,  0.049,  0.211]],
+                X:[[ 0.747,  0.673,  0.651,  0.673],
+                   [ 0.673,  0.747,  0.673,  0.651],
+                   [ 0.651,  0.673,  0.747,  0.673],
+                   [ 0.673,  0.651,  0.673,  0.747]], I_max:200.0
+                }
+        }          
+ }    

@@ -149,7 +149,7 @@ class dashboard():
         self.export_text = ipywidgets.Textarea(
             value=' ',
             placeholder=' ',
-            description='String:',
+            description='Params.:',
             disabled=False)
         
         tab_refs = ipywidgets.HBox([ipywidgets.HBox([self.sld_p_ppc,self.sld_q_ppc])])

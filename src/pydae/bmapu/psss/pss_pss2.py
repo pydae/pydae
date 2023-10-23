@@ -9,7 +9,7 @@ import numpy as np
 import sympy as sym
 
 
-def pss_pss2(dae,syn_data,name):
+def pss_pss2(dae,syn_data,name,bus_name):
     '''
     PSS as IEEE PSS2
     'K_s3':1.0,'T_wo1':2.0,'T_wo2':2.0,'T_9': 0.1,'K_s1':17.069,'T_1': 0.28,'T_2':0.04,'T_3':0.28,'T_4':0.12,'T_wo3':2.0,'K_s2': 0.158,'T_7':2.0
