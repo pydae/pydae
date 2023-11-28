@@ -931,16 +931,16 @@ int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,do
         ffibuilder_run = FFI()
         ffibuilder_run.cdef('''
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int step3( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                         ''')
 #int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 
         ffibuilder_run.set_source(filename_run,
                             """
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int step3(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 """,
                             library_dirs = [mkl_lib_folder],
                             libraries=libraries,
@@ -1038,14 +1038,16 @@ int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indic
         ffibuilder_run = FFI()
         ffibuilder_run.cdef('''
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int step(int a);
+int step3(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                         ''')
 #int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 # , double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams)
         ffibuilder_run.set_source(filename_run,
                             """
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int step(int a);
+int step3(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
                             """,
                             library_dirs = [mkl_lib_folder],
                             libraries=['mkl_intel_lp64',
@@ -1372,16 +1374,16 @@ def test_mkl():
     from pydae.build_v2 import builder
     sys_dict = dae('temp') 
 
-    # b = builder(sys_dict,verbose=True)
-    # b.sparse = True
-    # b.mkl = True
-    # b.platform = 'Windows'
-    # b.dict2system()
-    # b.functions()
-    # b.jacobians()
-    # b.cwrite()
-    # b.template()
-    # b.compile_mkl()
+    b = builder(sys_dict,verbose=True)
+    b.sparse = True
+    b.mkl = True
+    b.platform = 'linux'
+    b.dict2system()
+    b.functions()
+    b.jacobians()
+    b.cwrite()
+    b.template()
+    b.compile_mkl()
 
     import temp 
 
@@ -1401,20 +1403,23 @@ def test_mkl():
     model.report_params()  # considered parameters
 
     model.ini({'f_x':0, 'theta':np.deg2rad(-5)},-1) # initilize the system with theta = -5º 
-    model.Dt = 0.01
-    model.run( 1.0, {})         # run until t=1s
-    model.run(20.0, {'f_x':0})  # release the pendulum by making the f_x force equal zero  
-    model.post();               # close the simulation 
+    model.Dt = 0.5
+    # model.run( 1.0, {})         # run until t=1s
+    # model.run(20.0, {'f_x':0})  # release the pendulum by making the f_x force equal zero  
+    #model.post();               # close the simulation 
 
-    time = model.Time                              # gets the simulated times
-    theta = np.rad2deg(model.get_values('theta'))  # gets the values for theta (and covert them from rad to deg)
+    # time = model.Time                              # gets the simulated times
+    # theta = np.rad2deg(model.get_values('theta'))  # gets the values for theta (and covert them from rad to deg)
 
-    print(time)
+    #print(model.get_values('theta'))
 
 
-    model.ini({'f_x':0, 'theta':np.deg2rad(-5)},-1) # initilize the system with theta = -5º 
-    model.Dt = 0.01
-    model.step(1.0,{})
+    # model.ini({'f_x':0, 'theta':np.deg2rad(-5)},-1) # initilize the system with theta = -5º 
+    # model.Dt = 0.01
+    
+    for t in np.arange(0,100000,0.5):
+        model.step(t,{'f_x':0})
+        print(f"t = {t:6.3f}, {model.get_value('theta'):7.4f}, it_max = {model.it_max}")
 
 
 

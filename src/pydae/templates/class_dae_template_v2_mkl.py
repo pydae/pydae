@@ -254,7 +254,55 @@ class model:
         self.xy = xy
         self.z = z
 
+    def step(self,t_end,up_dict):
 
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+            
+        t = self.t
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        z = self.z
+
+        pt = np.zeros(64,dtype=np.int32)
+        xy = self.xy
+        x = xy[:self.N_x]
+        y_run = xy[self.N_x:]
+
+        p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
+        p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
+        p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
+        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
+        p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
+        p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
+        p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
+        p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
+        p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
+        p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
+        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
+        p_X = solver_run.ffi.cast('double *', self.X.ctypes.data)
+        p_Y = solver_run.ffi.cast('double *', self.Y.ctypes.data)
+        p_Z = solver_run.ffi.cast('double *', self.Z.ctypes.data)
+        p_Time = solver_run.ffi.cast('double *', self.Time.ctypes.data)
+        p_its = solver_run.ffi.cast('int *', self.its.ctypes.data)
+        p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
+        N_x = self.N_x
+        N_y = self.N_y
+        max_it = self.max_it
+        itol = self.itol
+        itol = 1e-8
+
+        solver_run.lib.step3(self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams, p_Time, p_X, p_Y, p_Z, self.N_z, self.N_store)
+
+        self.t = self.rundblparams[0]
+        self.it = it
+        self.it_store = self.its[0]
+        self.xy = xy
+        self.z = z
+        self.it_max = self.runintparams[5]
+        
     def post(self):
         
         self.Time = self.Time[:self.its[0]].reshape(self.its[0],1)
@@ -590,52 +638,60 @@ class model:
         self.jac_u2z = Hxy_run @ sspa.linalg.spsolve(self.sp_jac_run,-FGu_run) + self.sp_Hu_run  
         
         
-    def step(self,t_end,up_dict):
-        for item in up_dict:
-            self.set_value(item,up_dict[item])
+    # def step(self,t_end,up_dict):
+    #     for item in up_dict:
+    #         self.set_value(item,up_dict[item])
 
-        t = self.t
-        p = self.p
-        it = self.it
-        it_store = self.it_store
-        xy = self.xy
-        u = self.u_run
-        z = self.z
+    #     t = self.t
+    #     p = self.p
+    #     it = self.it
+    #     it_store = self.it_store
+    #     xy = self.xy
+    #     u = self.u_run
+    #     z = self.z
 
-        pt = np.zeros(64,dtype=np.int32)
-        xy = self.xy
-        x = xy[:self.N_x]
-        y_run = xy[self.N_x:]
+    #     pt = np.zeros(64,dtype=np.int32)
+    #     xy = self.xy
+    #     x = xy[:self.N_x]
+    #     y_run = xy[self.N_x:]
 
-        p_pt =solver_run.ffi.cast('int *', pt.ctypes.data)
-        p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
-        p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
-        p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
-        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-        p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
-        p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
-        p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
-        p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
-        p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
-        p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
+    #     p_pt =solver_run.ffi.cast('int *', pt.ctypes.data)
+    #     p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
+    #     p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
+    #     p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
+    #     p_x = solver_run.ffi.cast('double *', x.ctypes.data)
+    #     p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
+    #     p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
+    #     p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
+    #     p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
+    #     p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
+    #     p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
+    #     p_x = solver_run.ffi.cast('double *', x.ctypes.data)
+    #     p_its = solver_run.ffi.cast('int *', self.its.ctypes.data)
+    #     p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
+    #     N_x = self.N_x
+    #     N_y = self.N_y
+    #     max_it = self.max_it
+    #     itol = self.itol
+    #     max_it = 5
+    #     itol = 1e-8
 
+    #     N_x = self.N_x
+    #     N_y = self.N_y
+    #     max_it = self.max_it
+    #     itol = self.itol
+    #     max_it = 5
+    #     itol = 1e-8
+    #     its = 0
 
-        p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
-        N_x = self.N_x
-        N_y = self.N_y
-        max_it = self.max_it
-        itol = self.itol
-        max_it = 5
-        itol = 1e-8
-        its = 0
+    # #   solver_run.lib.run( self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams, p_Time, p_X, p_Y, p_Z, self.N_z, self.N_store)
+    #     solver_run.lib.step(self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams)
 
-        solver_run.lib.step(p_pt, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,  p_u_run,      p_p,    N_x,    N_y, max_it, itol, its, self.Dt, p_z,p_dblparams, p_intparams)
-
-        self.t = t
-        self.it = it
-        self.it_store = it_store
-        self.xy = xy
-        self.z = z
+    #     self.t = t
+    #     self.it = it
+    #     self.it_store = it_store
+    #     self.xy = xy
+    #     self.z = z
            
     def save_run(self, file_name = ''):
 
