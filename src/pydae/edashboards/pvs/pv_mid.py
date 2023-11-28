@@ -97,7 +97,7 @@ class model:
         self.N_z = 18 
         self.N_store = 100000 
         self.params_list = ['S_base', 'g_1_2', 'b_1_2', 'bs_1_2', 'U_1_n', 'U_2_n', 'S_n_2', 'F_n_2', 'X_v_2', 'R_v_2', 'K_delta_2', 'K_alpha_2', 'K_rocov_2', 'S_n_1', 'N_ms_1', 'N_mp_1', 'I_sc_1', 'I_mpp_1', 'V_mpp_1', 'V_oc_1', 'N_s_1', 'K_vt_1', 'K_it_1', 'R_pv_s_1', 'R_pv_sh_1', 'K_d_1', 'K_pdc_1', 'R_s_1', 'X_s_1', 'C_dc_1', 'A_l_1', 'B_l_1', 'C_l_1', 'K_p_agc', 'K_i_agc', 'K_xif'] 
-        self.params_values_list  = [100000000.0, 0.0, -19.999999999999996, -0.0, 20000.0, 20000.0, 100000000.0, 50.0, 0.001, 0.0, 0.001, 1e-06, 1e-06, 1000000.0, 25, 250, 3.87, 3.56, 33.7, 42.1, 72, -0.16, 0.065, 0.5602, 1862, 1.3433, 100, 0.01, 0.05, 10.5, 0.005, 0.005, 0.005, 0.0, 0.0, 0.01] 
+        self.params_values_list  = [100000000.0, 0.0, -19.999999999999996, 0.0, 20000.0, 20000.0, 100000000.0, 50.0, 0.001, 0.0, 0.001, 1e-06, 1e-06, 1000000.0, 25, 250, 3.87, 3.56, 33.7, 42.1, 72, -0.16, 0.065, 0.5602, 1862, 1.3433, 100, 0.01, 0.05, 10.5, 0.005, 0.005, 0.005, 0.0, 0.0, 0.01] 
         self.inputs_ini_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'alpha_2', 'v_ref_2', 'omega_ref_2', 'delta_ref_2', 'phi_2', 'rocov_2', 'irrad_1', 'temp_deg_1', 'v_dc_ref_1', 'q_s_ref_1', 'mode_1', 'i_sd_i_ref_1', 'i_sq_i_ref_1', 'p_ppc_ref_1', 'q_ppc_ref_1', 'Dp_e_ref_1', 'u_dummy_1'] 
         self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0, 1000, 25, 1.2, 0.0, 2, 0, 0, 2, 0, 0.0, 0.0] 
         self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'alpha_2', 'v_ref_2', 'omega_ref_2', 'delta_ref_2', 'phi_2', 'rocov_2', 'irrad_1', 'temp_deg_1', 'v_dc_ref_1', 'q_s_ref_1', 'mode_1', 'i_sd_i_ref_1', 'i_sq_i_ref_1', 'p_ppc_ref_1', 'q_ppc_ref_1', 'Dp_e_ref_1', 'u_dummy_1'] 

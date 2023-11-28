@@ -218,10 +218,10 @@ class svg():
             
             if acdc == 'ac':
                 if V_pu < v_ac_min:
-                    self.post_data.update({'v_ac_min':{'bus':bus['bus'],'value':V_pu}})
+                    self.post_data.update({'v_ac_min':{'bus':bus['name'],'value':V_pu}})
                     v_ac_min = V_pu
                 if V_pu > v_ac_max:
-                    self.post_data.update({'v_ac_max':{'bus':bus['bus'],'value':V_pu}})
+                    self.post_data.update({'v_ac_max':{'bus':bus['name'],'value':V_pu}})
                     v_ac_max = V_pu   
 
     def set_tooltips_v2(self, output_file):
@@ -310,50 +310,51 @@ class svg():
 
                 line_elm.attrib['class'] = 'tooltip-trigger'
 
-        for trafo in s.grid_data['transformers']:
+        if 'transformers' in s.grid_data:
+            for trafo in s.grid_data['transformers']:
 
-            bus_j = trafo['bus_j']
-            bus_k = trafo['bus_k']
+                bus_j = trafo['bus_j']
+                bus_k = trafo['bus_k']
 
-            for wind in [1,2]:
-                trafo_id = f'trafo_{bus_j}_{bus_k}_{wind}'
+                for wind in [1,2]:
+                    trafo_id = f'trafo_{bus_j}_{bus_k}_{wind}'
 
-                trafo_svg =  s.root.findall(f".//*[@id='{trafo_id}']")
-                if len(trafo_svg)>0:
-                    trafo_elm = trafo_svg[0]
-                else:
-                    print(f'No trafo {trafo_id} found')
-                    continue
+                    trafo_svg =  s.root.findall(f".//*[@id='{trafo_id}']")
+                    if len(trafo_svg)>0:
+                        trafo_elm = trafo_svg[0]
+                    else:
+                        print(f'No trafo {trafo_id} found')
+                        continue
 
-                trafo_elm.attrib['data0'] = 'trafo'
+                    trafo_elm.attrib['data0'] = 'trafo'
 
 
-                z2a = {'0':'a','1':'b','2':'c','3':'n'}
-                string_1 = ''
-                for ph in ['0','1','2']:
-                    i_r_id = f'i_t_{bus_j}_{bus_k}_1_{ph}_r'
-                    i_i_id = f'i_t_{bus_j}_{bus_k}_1_{ph}_i'
-                    if i_r_id in grid.outputs_list:
-                        i_r,i_i =  grid.get_mvalue([i_r_id,i_i_id])
-                        i = i_r + 1j*i_i
-                        i_m = np.abs(i)  
-                        string_1 += f'{z2a[ph]}:  {i_m:0.2f}\t     '
+                    z2a = {'0':'a','1':'b','2':'c','3':'n'}
+                    string_1 = ''
+                    for ph in ['0','1','2']:
+                        i_r_id = f'i_t_{bus_j}_{bus_k}_1_{ph}_r'
+                        i_i_id = f'i_t_{bus_j}_{bus_k}_1_{ph}_i'
+                        if i_r_id in grid.outputs_list:
+                            i_r,i_i =  grid.get_mvalue([i_r_id,i_i_id])
+                            i = i_r + 1j*i_i
+                            i_m = np.abs(i)  
+                            string_1 += f'{z2a[ph]}:  {i_m:0.2f}\t     '
 
-                string_2 = ''
-                for ph in ['0','1','2','3']:
-                    i_r_id = f'i_t_{bus_j}_{bus_k}_2_{ph}_r'
-                    i_i_id = f'i_t_{bus_j}_{bus_k}_2_{ph}_i'
-                    if i_r_id in grid.outputs_list:
-                        i_r,i_i =  grid.get_mvalue([i_r_id,i_i_id])
-                        i = i_r + 1j*i_i
-                        i_m = np.abs(i)  
-                        string_2 += f'{z2a[ph]}: {i_m:0.2f}     '
+                    string_2 = ''
+                    for ph in ['0','1','2','3']:
+                        i_r_id = f'i_t_{bus_j}_{bus_k}_2_{ph}_r'
+                        i_i_id = f'i_t_{bus_j}_{bus_k}_2_{ph}_i'
+                        if i_r_id in grid.outputs_list:
+                            i_r,i_i =  grid.get_mvalue([i_r_id,i_i_id])
+                            i = i_r + 1j*i_i
+                            i_m = np.abs(i)  
+                            string_2 += f'{z2a[ph]}: {i_m:0.2f}     '
 
-                trafo_elm.attrib['data1'] = string_1 + ' A'
-                trafo_elm.attrib['data2'] = string_2 + ' A'
-                trafo_elm.attrib['data3'] = ''
-                trafo_elm.attrib['data4'] = ''
-            trafo_elm.attrib['class'] = 'tooltip-trigger'
+                    trafo_elm.attrib['data1'] = string_1 + ' A'
+                    trafo_elm.attrib['data2'] = string_2 + ' A'
+                    trafo_elm.attrib['data3'] = ''
+                    trafo_elm.attrib['data4'] = ''
+                trafo_elm.attrib['class'] = 'tooltip-trigger'
 
         if 'vscs' in self.grid_data:
             vscs_list = self.grid_data['vscs']
@@ -522,8 +523,12 @@ class svg():
             for ph in ['0','1','2','3']:
                 line_id = f'l_{bus_j}_{ph}_{bus_k}_{ph}'
                 if  f'i_{line_id}_r' in self.grid.outputs_list:
+                    if 'code' in line:
+                        I_max = self.grid_data["line_codes"][line['code']]['I_max']
+                    else:
+                        I_max = line['I_max']
+
                     
-                    I_max = self.grid_data["line_codes"][line['code']]['I_max']
                     i_r = self.grid.get_value(f'i_{line_id}_r') 
                     i_i = self.grid.get_value(f'i_{line_id}_i') 
                     i = i_r + 1j*i_i
@@ -589,7 +594,7 @@ class svg():
         grid = self.grid
         
         for bus in s.grid_data['buses']:
-            bus_id = bus['bus']
+            bus_id = bus['name']
             bus_elm_list = s.root.findall(f".//*[@id='{bus_id}']")
             if len(bus_elm_list) > 0:
                 bus_elm = bus_elm_list[0]
@@ -597,13 +602,13 @@ class svg():
                 print(f'SVG element {bus_id} not found')
                 continue
     
-            if f"v_{bus['bus']}_n_r" in grid.y_ini_list:
-                v_n_r,v_n_i = grid.get_mvalue([f"v_{bus['bus']}_n_r",f"v_{bus['bus']}_n_i"])
+            if f"v_{bus['name']}_n_r" in grid.y_ini_list:
+                v_n_r,v_n_i = grid.get_mvalue([f"v_{bus['name']}_n_r",f"v_{bus['name']}_n_i"])
                 v_n = v_n_r + 1j*v_n_i
             else:
                 v_n = 0.0
             for ph,da in zip(['a','b','c'],['data1','data2','data3']):
-                v_r,v_i =  grid.get_mvalue([f"v_{bus['bus']}_{ph}_r",f"v_{bus['bus']}_{ph}_i"])
+                v_r,v_i =  grid.get_mvalue([f"v_{bus['name']}_{ph}_r",f"v_{bus['name']}_{ph}_i"])
                 v = v_r + 1j*v_i
                 v_m = np.abs(v-v_n)
                 if 'acdc' in bus:
@@ -997,7 +1002,7 @@ class animatesvg():
         return self.mask
     
     
-def grid2svg(input_json,output_svg):
+def grid2svg(grid_data,output_svg):
     '''
     
 
@@ -1016,12 +1021,16 @@ def grid2svg(input_json,output_svg):
     '''
     
 
-    if type(input_json) == dict:
+    if type(grid_data) == dict:
         data = input_json
         
-    if type(input_json) == str:
-        json_data = open(input_json).read().replace("'",'"')
-        data = json.loads(json_data)
+    if type(grid_data) == str:
+        if os.path.splitext(grid_data)[1] == '.json':
+            with open(grid_data,'r') as fobj:
+                data = json.loads(fobj.read().replace("'",'"'))
+        if os.path.splitext(grid_data)[1] == '.hjson':
+            with open(grid_data,'r') as fobj:
+                data = hjson.loads(fobj.read().replace("'",'"'))
                 
                 
                 
@@ -1042,17 +1051,17 @@ def grid2svg(input_json,output_svg):
     for bus in buses:
         pos_x = (bus['pos_x']+offset_x)*scale_x
         pos_y = (offset_y-bus['pos_y'])*scale_y
-        bus2posxy.update({bus['bus']:{'pos_x':pos_x,'pos_y':pos_y}})
+        bus2posxy.update({bus['name']:{'pos_x':pos_x,'pos_y':pos_y}})
 
-        dwg.add(svgwrite.shapes.Rect(insert=(pos_x-2.5, pos_y-2.5), size=(15, 15),id = bus['bus']))
-        #dwg.add(dwg.text(bus['bus'], insert=(pos_x+3, pos_y-3), fill='black'))
-        dwg.add(dwg.text(bus['bus'], insert=(pos_x+5, pos_y-5), fill='black',id = f"{bus['bus']}_tt")) #,visibility='hidden'))
+        dwg.add(svgwrite.shapes.Rect(insert=(pos_x-2.5, pos_y-2.5), size=(15, 15),id = bus['name']))
+        #dwg.add(dwg.text(bus['name'], insert=(pos_x+3, pos_y-3), fill='black'))
+        dwg.add(dwg.text(bus['name'], insert=(pos_x+5, pos_y-5), fill='black',id = f"{bus['name']}_tt")) #,visibility='hidden'))
 
-        #a = svgwrite.animate.Set(href=f"{bus['bus']}_tt", attributeName="visibility",
+        #a = svgwrite.animate.Set(href=f"{bus['name']}_tt", attributeName="visibility",
                              #begin="hidden",
         #                     to="visible",
-        #                     begin=f"{bus['bus']}.mouseover",
-        #                     end=f"{bus['bus']}.mouseout")
+        #                     begin=f"{bus['name']}.mouseover",
+        #                     end=f"{bus['name']}.mouseout")
 
         #dwg.add(a)
 
@@ -1076,9 +1085,9 @@ def grid2svg(input_json,output_svg):
             Dh = 0.0
             vertical = False
 
-        for ph in ['a','b','c','n']:
+        for ph in ['0','1','2','3']:
             dwg.add(dwg.line(start=(x1+v, y1+h), end=(x2+v,y2+h), 
-                             stroke=svgwrite.rgb(10, 10, 16, '%'), id = f'l_{bus_j}_{bus_k}_{ph}',
+                             stroke=svgwrite.rgb(10, 10, 16, '%'), id = f'l_{bus_j}_{ph}_{bus_k}_{ph}',
                              stroke_width=2))
             v += Dv
             h += Dh

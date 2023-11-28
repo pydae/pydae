@@ -82,4 +82,45 @@ def add_syns(grid):
             grid.dae['u_ini_dict'].pop(str(v_pss))
             grid.dae['u_run_dict'].pop(str(v_pss))
             grid.dae['xy_0_dict'].update({str(v_pss):0.0})
+
+
+from pydae.utils import read_data
+
+def load_params(model,data_input):
+
+    data = read_data(data_input)
+
+    if 'syns' in data:
+        for syn_data in data['syns']:
+            name = syn_data['bus']
+            if 'name' in syn_data: name = syn_data['name']
+            for item in syn_data:
+                if item not in ['avr','pss','gov','bus']:
+                    model.set_value(f'{item}_{name}',syn_data[item])
+                if item == 'gov':
+                    for item_gov in syn_data['gov']:
+                        param_name = f'{item_gov}_{name}'
+                        if param_name in model.params_list:
+                            model.set_value(f'{item_gov}_{name}',syn_data['gov'][item_gov])
+
+    if 'vscs' in data:
+        for vsc_data in data['vscs']:
+            name = vsc_data['bus']
+            if 'name' in vsc_data: name = vsc_data['name']
+            for item in vsc_data:
+                if item in ['S_n']:
+                    model.set_value(f'{item}_{name}',vsc_data[item])
+
+    if 'buses' in data:
+        for bus_data in data['buses']:
+            name = bus_data['name']
+
+            for item in bus_data:
+                if item == 'P_W':
+                    model.set_value(f'P_{name}',bus_data[item])
+
+
+
+
+
         

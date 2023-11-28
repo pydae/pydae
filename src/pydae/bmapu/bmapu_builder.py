@@ -17,8 +17,9 @@ from pydae.bmapu.wecs.wecs import add_wecs
 from pydae.bmapu.pvs.pvs import add_pvs
 from pydae.bmapu.loads.loads import add_loads
 from pydae.bmapu.sources.sources import add_sources
-
+from pydae.bmapu.miscellaneous.miscellaneous import add_miscellaneous
 import pydae.build_cffi as db
+from pydae.build_v2 import builder
 
 import requests
 
@@ -446,6 +447,8 @@ class bmapu:
             add_pvs(self)
         if 'loads' in  self.data:
             add_loads(self)
+            
+        add_miscellaneous(self)
 
         #add_vsgs(grid)
         omega_coi = sym.Symbol("omega_coi", real=True)  
@@ -500,7 +503,20 @@ class bmapu:
     def compile(self):
 
         bldr = db.builder(self.sys_dict,verbose=self.verbose);
-        bldr.build()       
+        bldr.build()    
+
+    def compile_mkl(self, name):
+
+        b = builder(self.sys_dict,verbose=self.verbose)
+        b.sparse = True
+        b.mkl = True
+        b.uz_jacs = False
+        b.dict2system()
+        b.functions()
+        b.jacobians()
+        b.cwrite()
+        b.template()
+        b.compile_mkl()  
 
     def build(self, name =''):
         if name == '':

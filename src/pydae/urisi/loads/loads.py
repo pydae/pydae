@@ -8,6 +8,7 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 from pydae.urisi.loads.load_ac import load_ac
+from pydae.urisi.loads.load_ac_3w import load_ac_3w
 from pydae.urisi.loads.load_dc import load_dc
 
 
@@ -23,5 +24,7 @@ def add_loads(grid):
     for load in self.data['loads']:
         if load['type'] == '3P+N' and  load["model"] == 'ZIP':
             load_ac(grid,load)
+        if load['type'] == '3P' and  load["model"] == 'ZIP':
+            load_ac_3w(grid,load)
         if load['type'] == 'DC' and  load["model"] == 'ZIP':
             load_dc(grid,load)

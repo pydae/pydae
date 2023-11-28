@@ -255,7 +255,6 @@ def test():
     import pydae.build_cffi as db
 
     grid = urisi('ac_3ph_4w_l.hjson')
-    grid.uz_jacs = True
     grid.construct('temp')
     grid.compile('temp')
 

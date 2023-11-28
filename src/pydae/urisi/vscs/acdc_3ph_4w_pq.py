@@ -10,9 +10,9 @@ def acdc_3ph_4w_pq(grid,vsc_data):
     bus_ac_name = vsc_data['bus_ac']
     bus_dc_name = vsc_data['bus_dc']  
     
-    a_value  = vsc_data['a']   
-    b_value  = vsc_data['b']   
-    c_value  = vsc_data['c']   
+    a_value  = vsc_data['A']   
+    b_value  = vsc_data['B']   
+    c_value  = vsc_data['C']   
     
     ### AC-side
     p_a,p_b,p_c = sym.symbols(f'p_vsc_a_{bus_ac_name},p_vsc_b_{bus_ac_name},p_vsc_c_{bus_ac_name}',real=True)

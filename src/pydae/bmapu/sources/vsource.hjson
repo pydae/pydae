@@ -1,0 +1,6 @@
+{
+    "system":{"name":"smib","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":1e-6},       
+    "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+    "vscs":[{"type":"vsc_pq","bus":"1","p_in":0.5,"S_n":10e6,"K_delta":0.0}],
+    "sources":[{"type":"vsource","bus":"1"}]
+    }

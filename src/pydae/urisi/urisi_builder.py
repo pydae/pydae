@@ -342,8 +342,16 @@ class urisi:
 
     def compile(self, name):
 
-        bldr = db.builder(self.sys_dict,verbose=self.verbose);
-        bldr.build()       
+        bldr = builder(self.sys_dict,verbose=self.verbose);
+        bldr.sparse = False
+        bldr.mkl = False
+        bldr.uz_jacs = False
+        bldr.dict2system()
+        bldr.functions()
+        bldr.jacobians()
+        bldr.cwrite()
+        bldr.template()
+        bldr.compile()  
 
     def compile_mkl(self, name):
 

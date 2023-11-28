@@ -96,7 +96,7 @@ class model:
         self.N_y = 44 
         self.N_z = 39 
         self.N_store = 100000 
-        self.params_list = ['X_A1_s', 'R_A1_s', 'X_A1_sn', 'R_A1_sn', 'X_A1_ng', 'R_A1_ng', 'A_loss_A1', 'B_loss_A1', 'C_loss_A1', 'X_v_A1', 'R_v_A1', 'S_n_A1', 'U_n_A1', 'T_e_A1', 'T_c_A1', 'T_v_A1', 'Droop_A1', 'H_A1', 'D_A1', 'K_agc_A1', 'K_delta_A1', 'K_qp_A1', 'K_qi_A1', 'K_soc_A1', 'X_s_A2', 'R_s_A2', 'X_sn_A2', 'R_sn_A2', 'X_ng_A2', 'R_ng_A2', 'K_p_agc', 'K_i_agc', 'K_xif'] 
+        self.params_list = ['X_s_A1', 'R_s_A1', 'X_sn_A1', 'R_sn_A1', 'X_ng_A1', 'R_ng_A1', 'A_loss_A1', 'B_loss_A1', 'C_loss_A1', 'X_v_A1', 'R_v_A1', 'S_n_A1', 'U_n_A1', 'T_e_A1', 'T_c_A1', 'T_v_A1', 'Droop_A1', 'H_A1', 'D_A1', 'K_agc_A1', 'K_delta_A1', 'K_qp_A1', 'K_qi_A1', 'K_soc_A1', 'X_s_A2', 'R_s_A2', 'X_sn_A2', 'R_sn_A2', 'X_ng_A2', 'R_ng_A2', 'K_p_agc', 'K_i_agc', 'K_xif'] 
         self.params_values_list  = [0.05, 0.01, 0.1, 0.01, 3, 0.01, 0.015999999999999997, 1.0, 333.3333333333333, 0.1, 0, 100000, 400, 0.1, 0.1, 0.1, 0.05, 5, 0.1, 0, 0, 0.01, 0.01, 1.0, 0.0001, 0.0, 0.0001, 0.0, 0.0001, 0.0001, 0, 0, 0.1] 
         self.inputs_ini_list = ['v_tn_r_A1', 'v_tn_i_A1', 'e_ao_m_A1', 'e_bo_m_A1', 'e_co_m_A1', 'e_no_m_A1', 'v_ra_A1', 'v_rb_A1', 'v_rc_A1', 'v_rn_A1', 'phi_a_A1', 'phi_b_A1', 'phi_c_A1', 'phi_n_A1', 'p_c_A1', 'omega_A1_ref', 'q_ref_A1', 'p_soc_A1', 'v_dc_A1', 'e_ao_m_A2', 'e_bo_m_A2', 'e_co_m_A2', 'e_no_m_A2', 'phi_A2', 'u_freq'] 
         self.inputs_ini_values_list  = [0.0, 0.0, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 800.0, 230.94010767585033, 230.94010767585033, 230.94010767585033, 0.0, 0.0, 0.0] 

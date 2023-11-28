@@ -135,3 +135,50 @@ def milano4ord(grid,name,bus_name,data_dict):
     q_var = q_g * S_n
 
     return p_W,q_var
+
+
+def test():
+    import numpy as np
+    import sympy as sym
+    import hjson
+    from pydae.bmapu.bmapu_builder import bmapu
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = bmapu('milano4ord.hjson')
+    grid.checker()
+    grid.uz_jacs = True
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+
+    v_ref_1 = 1.05
+    model.ini({'p_m_1':0.5,'v_ref_1':v_ref_1},'xy_0.json')
+
+    # assert model.get_value('V_1') == pytest.approx(v_ref_1, rel=0.001)
+
+    model.run(1.0,{})
+    model.run(1.1,{'b_shunt_1':-500})
+    #model.run(2.0,{'b_shunt_1':0})
+
+    model.post()
+    # # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
+
+    # model.ini({'p_m_1':0.5,'v_ref_1':1.0},'xy_0.json')
+    # model.run(1.0,{})
+    # model.run(15.0,{'v_ref_1':1.05})
+    # model.post()
+
+    import matplotlib.pyplot as plt
+
+    fig,axes = plt.subplots()
+    axes.plot(model.Time,model.get_values('V_1'))
+    fig.savefig('milano4ord_fault.svg')
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()

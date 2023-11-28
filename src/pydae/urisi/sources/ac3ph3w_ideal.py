@@ -4,7 +4,7 @@ import sympy as sym
 
 def ac3ph3w_ideal(grid,vsc_data):
     '''
-    VSC with 3 phase and 4 wire working in open loop as a grid former.
+    VSC with 3 phase and 3 wire working in open loop as a grid former.
     
     '''
 
@@ -31,8 +31,7 @@ def ac3ph3w_ideal(grid,vsc_data):
     phi =  sym.Symbol(f'phi_{name}', real=True)
 
     # parameters
-    R_s,R_sn,R_ng = sym.symbols(f'R_{name}_s,R_{name}_sn,R_{name}_ng', real=True)
-    X_s,X_sn,X_ng = sym.symbols(f'X_{name}_s,X_{name}_sn,X_{name}_ng', real=True)
+    R_s,X_s = sym.symbols(f'R_{name}_s,X_{name}_s', real=True)
 
     # dynamical states
 
@@ -108,9 +107,6 @@ def ac3ph3w_ideal(grid,vsc_data):
 
 
     params_dict.update({f'X_{name}_s':vsc_data['X'],f'R_{name}_s':vsc_data['R']})
-    params_dict.update({f'X_{name}_sn':vsc_data['X_n'],f'R_{name}_sn':vsc_data['R_n']})
-    params_dict.update({f'X_{name}_ng':vsc_data['X_ng'],f'R_{name}_ng':vsc_data['R_ng']})
-
     grid.dae['h_dict'].update({f'p_{name}':sym.re(s_total)})
     grid.dae['h_dict'].update({f'q_{name}':sym.im(s_total)})
     

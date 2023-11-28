@@ -793,7 +793,10 @@ class builder():
             class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2_mkl.py").decode().replace('\r\n','\n') 
         else:
             class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2.py").decode().replace('\r\n','\n') 
-
+            if self.uz_jacs:
+                uz_jacs_template = pkgutil.get_data(__name__, "templates/uz_jacs_v2.py").decode().replace('\r\n','\n') 
+                class_template += uz_jacs_template
+                
         class_template = class_template.replace('{name}',str(name))
         class_template = class_template.replace('{u2z_jacobians}',self.string_u2z)
         class_template = class_template.replace('{u2z_comment}',self.u2z_comment)
@@ -1327,65 +1330,94 @@ def sym2xyup_mp(sys,full_list,inirun):
 
 
 
+def test_numba():
 
+    from pydae.models.pendulum.dae import dae
+    from pydae.build_v2 import builder
 
-if __name__ == '__main__':
-    from pydae.bmapu import bmapu_builder
+    sys_dict = dae('temp') 
 
-    N = 10
-    M = 10
-    S_pv_mva = 1.0
-
-    data = {
-        "system":{"name":f"pv_{M}_{N}","S_base":100e6,"K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},
-        "buses":[
-            {"name":"POI_MV","P_W":0.0,"Q_var":0.0,"U_kV":20.0},
-            {"name":   "POI","P_W":0.0,"Q_var":0.0,"U_kV":132.0},
-            {"name":  "GRID","P_W":0.0,"Q_var":0.0,"U_kV":132.0}
-        ],
-        "lines":[
-            {"bus_j":"POI_MV","bus_k": "POI","X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":120},
-            {"bus_j":   "POI","bus_k":"GRID","X_pu":0.02,"R_pu":0.0,"Bs_pu":0.0,"S_mva":120, 'sym':True, 'monitor':True}
-            ],
-        "pvs":[],
-        "genapes":[{
-            "bus":"GRID","S_n":1000e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,
-            "K_delta":0.001,"K_alpha":1e-6}]
-        }
-
-    for i_m in range(1,M+1):
-        name_j = "POI_MV"
-        for i_n in range(1,N+1):
-            name = f"{i_m}".zfill(2) + f"{i_n}".zfill(2)
-            name_k = 'MV' + name
-
-            data['buses'].append({"name":f"LV{name}","P_W":0.0,"Q_var":0.0,"U_kV":0.4})
-            data['buses'].append({"name":f"MV{name}","P_W":0.0,"Q_var":0.0,"U_kV":20.0})
-
-            data['lines'].append({"bus_j":f"LV{name}","bus_k":f"MV{name}","X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":1.2*S_pv_mva,"monitor":False})
-            data['lines'].append({"bus_j":f"{name_k}","bus_k":f"{name_j}","X_pu":0.02,"R_pu":0.0,"Bs_pu":0.0,"S_mva":1.2*S_pv_mva*(N-i_n+1),"monitor":False})
-            name_j = name_k
-            data['pvs'].append({"bus":f"LV{name}","type":"pv_dq","S_n":S_pv_mva*1e6,"U_n":400.0,"F_n":50.0,"X_s":0.1,"R_s":0.01,"monitor":False,
-                                "I_sc":8,"V_oc":42.1,"I_mp":3.56,"V_mp":33.7,"K_vt":-0.160,"K_it":0.065,"N_pv_s":25,"N_pv_p":250})
-        
-
-
-    grid = bmapu_builder.bmapu(data)
-    grid.construct(f'pv_{M}_{N}')
-
-    grid.uz_jacs = False
-    grid.verbose = True
-
-
-    
-
-    b = builder(grid.sys_dict,verbose=True)
+    b = builder(sys_dict,verbose=True)
     b.sparse = True
-    b.mkl = True
-    b.uz_jacs = False
+    b.mkl = False
+    b.uz_jacs = True
     b.dict2system()
     b.functions()
     b.jacobians()
     b.cwrite()
-    #b.template()
-    #b.compile()
+    b.template()
+    b.compile()
+
+    import temp 
+
+    model = temp.model()
+
+    M = 30.0  # mass of the bob (kg)
+    L = 5.21  # length of the pendulum (m)
+    model.ini({'M':M,'L':L,           # parameters setting
+            'theta':np.deg2rad(0)  # initial desired angle = 0º
+            },-1)                  # here -1 means that -1 is considered as initial gess for
+                                    # dynamic and algebraic states
+
+    model.report_x()  # obtained dynamic states
+    model.report_y()  # obtained algebraic states
+    model.report_z()  # obtained outputs
+    model.report_u()  # obtained algebraic states (theta is both state and output; f_x is both input and output)
+    model.report_params()  # considered parameters
+
+
+def test_mkl():
+
+    from pydae.models.pendulum.dae import dae
+    from pydae.build_v2 import builder
+    sys_dict = dae('temp') 
+
+    # b = builder(sys_dict,verbose=True)
+    # b.sparse = True
+    # b.mkl = True
+    # b.platform = 'Windows'
+    # b.dict2system()
+    # b.functions()
+    # b.jacobians()
+    # b.cwrite()
+    # b.template()
+    # b.compile_mkl()
+
+    import temp 
+
+    model = temp.model()
+
+    M = 30.0  # mass of the bob (kg)
+    L = 5.21  # length of the pendulum (m)
+    model.ini({'M':M,'L':L,           # parameters setting
+            'theta':np.deg2rad(0)  # initial desired angle = 0º
+            },-1)                  # here -1 means that -1 is considered as initial gess for
+                                    # dynamic and algebraic states
+
+    model.report_x()  # obtained dynamic states
+    model.report_y()  # obtained algebraic states
+    model.report_z()  # obtained outputs
+    model.report_u()  # obtained algebraic states (theta is both state and output; f_x is both input and output)
+    model.report_params()  # considered parameters
+
+    model.ini({'f_x':0, 'theta':np.deg2rad(-5)},-1) # initilize the system with theta = -5º 
+    model.Dt = 0.01
+    model.run( 1.0, {})         # run until t=1s
+    model.run(20.0, {'f_x':0})  # release the pendulum by making the f_x force equal zero  
+    model.post();               # close the simulation 
+
+    time = model.Time                              # gets the simulated times
+    theta = np.rad2deg(model.get_values('theta'))  # gets the values for theta (and covert them from rad to deg)
+
+    print(time)
+
+
+    model.ini({'f_x':0, 'theta':np.deg2rad(-5)},-1) # initilize the system with theta = -5º 
+    model.Dt = 0.01
+    model.step(1.0,{})
+
+
+
+if __name__ == "__main__":
+
+    test_mkl()

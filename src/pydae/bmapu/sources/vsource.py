@@ -93,25 +93,46 @@ def vsource(grid,name,bus_name,data_dict):
     # outputs
 
 
-if __name__=='__main__':
+def test_mkl():
 
+    import numpy as np
     from pydae.bmapu import bmapu_builder
+    from pydae.build_v2 import builder
+    from pydae.utils import read_data
+    import json
 
-    data = {
-    "system":{"name":"smib","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":1e-6},       
-    "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
-    "vscs":[{"type":"vsc_pq","bus":"1","p_in":0.5,"S_n":10e6,"K_delta":0.0}],
-    "sources":[{"type":"vsource","bus":"1"}]
-    }
-    
-    grid = bmapu_builder.bmapu(data)
-    grid.checker()
-    grid.verbose = True 
-    grid.build('smib_vsc_pq_inf')
+    grid = bmapu_builder.bmapu('vsource.hjson')
+    grid.construct(f'temp')
+    grid.compile_mkl('temp')
 
-    import smib_vsc_pq_inf
+    import temp
 
-    model = smib_vsc_pq_inf.model()
+    model = temp.model()
     model.ini({},'xy_0.json')
     model.report_y()
+
+
+def test():
+
+    from pydae.bmapu import bmapu_builder
+    
+    grid = bmapu_builder.bmapu('vsource.hjson')
+    grid.checker()
+    grid.verbose = True 
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+    model.ini({},'xy_0.json')
+    model.report_y()
+
+
+ 
+if __name__=='__main__':
+    test_mkl()
+
+
+
+
 

@@ -70,15 +70,37 @@ def lines_preprocess(self):
 
     for line in self.lines:
         
-        if 'X' in self.data['line_codes'][line['code']]:
-            R_primitive_matrix = np.array(self.data['line_codes'][line['code']]['R'])
-            X_primitive_matrix = np.array(self.data['line_codes'][line['code']]['X'])
-            Z_primitive_matrix = R_primitive_matrix + 1j*X_primitive_matrix
-            Y_primitive_matrix = np.linalg.inv(Z_primitive_matrix*line['m']/1000)
-            line.update({'Y_primitive':Y_primitive_matrix}) 
-            
-            N_branches = Y_primitive_matrix.shape[0]
-            line.update({'N_branches':N_branches}) 
+        if 'code' in line:
+            if 'X' in self.data['line_codes'][line['code']]:
+                R_primitive_matrix = np.array(self.data['line_codes'][line['code']]['R'])
+                X_primitive_matrix = np.array(self.data['line_codes'][line['code']]['X'])
+                Z_primitive_matrix = R_primitive_matrix + 1j*X_primitive_matrix
+                Y_primitive_matrix = np.linalg.inv(Z_primitive_matrix*line['m']/1000)
+                line.update({'Y_primitive':Y_primitive_matrix}) 
+                
+                N_branches = Y_primitive_matrix.shape[0]
+                line.update({'N_branches':N_branches}) 
+        else:
+            if 'X' in line:
+                N_branches = 4
+                if 'N_branches' in line: N_branches = line['N_branches']
+                R_primitive_matrix = np.eye(N_branches)*line['R']
+                X_primitive_matrix = np.eye(N_branches)*line['X']
+                Z_primitive_matrix = R_primitive_matrix + 1j*X_primitive_matrix
+                Y_primitive_matrix = np.linalg.inv(Z_primitive_matrix)
+                line.update({'Y_primitive':Y_primitive_matrix}) 
+                line.update({'N_branches':N_branches})                 
+            if 'X_km' in line:
+                N_branches = 4
+                if 'km' in line:
+                    line.update({'m':line['km']*1000})
+                if 'N_branches' in line: N_branches = line['N_branches']
+                R_primitive_matrix = np.eye(N_branches)*line['R_km']*line['m']/1000
+                X_primitive_matrix = np.eye(N_branches)*line['X_km']*line['m']/1000
+                Z_primitive_matrix = R_primitive_matrix + 1j*X_primitive_matrix
+                Y_primitive_matrix = np.linalg.inv(Z_primitive_matrix)
+                line.update({'Y_primitive':Y_primitive_matrix}) 
+                line.update({'N_branches':N_branches})   
 
         if not 'sym' in line:
             line.update({'sym':False})
