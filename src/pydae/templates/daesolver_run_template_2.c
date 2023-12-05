@@ -325,6 +325,7 @@ int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
     mkl_verbose(0);
     int i;
     double norma;
+    double norm_max;
     int N;
     int flag;
     int it = 0;
@@ -408,11 +409,14 @@ int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indi
             } 
 
             norma = 0.0;
+            norm_max = 0.0;
             for (i = 0; i < (N_y+N_x); i++)
             {
-                norma += fg[i]*fg[i];
+                norma = fg[i]*fg[i];
+                if(norma>norm_max)
+                {norm_max = norma;}
             } 
-            if (norma < itol) {     
+            if (norm_max < itol) {     
                 break; 
             }
         }
@@ -462,6 +466,7 @@ int step3( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *in
     mkl_verbose(0);
     int i;
     double norma;
+    double norm_max;
     int N;
     int flag;
     int it = 0;
@@ -546,11 +551,14 @@ int step3( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *in
             } 
 
             norma = 0.0;
+            norm_max = 0.0;
             for (i = 0; i < (N_y+N_x); i++)
             {
-                norma += fg[i]*fg[i];
+                norma = fg[i]*fg[i];
+                if(norma>norm_max)
+                {norm_max = norma;}
             } 
-            if (norma < itol) {     
+            if (norm_max < itol) {     
                 break; 
             }
         }
