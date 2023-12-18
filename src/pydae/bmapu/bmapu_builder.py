@@ -175,18 +175,18 @@ class bmapu:
                 self.params_grid.update({f'b_{line_name}':B})        
     
             self.params_grid.update({f'bs_{line_name}':0.0})
-            if 'B_pu' in line:
+            if 'Bs_pu' in line:
                 if 'S_mva' in line: S_line = 1e6*line['S_mva']
-                Bs = line['B_pu']*S_line/sys['S_base']  # in pu of the system base
+                Bs = line['Bs_pu']*S_line/sys['S_base']  # in pu of the system base
                 bs = Bs
                 self.params_grid[f'bs_{line_name}'] = bs
      
-            if 'B_km' in line:
+            if 'Bs_km' in line:
                 bus_idx = buses_list.index(line['bus_j'])
                 U_base = self.buses[bus_idx]['U_kV']*1000
                 Z_base = U_base**2/sys['S_base']
                 Y_base = 1.0/Z_base
-                Bs = line['B_km']*line['km']/Y_base # in pu of the system base
+                Bs = line['Bs_km']*line['km']/Y_base # in pu of the system base
                 bs = Bs 
                 self.params_grid[f'bs_{line_name}'] = bs
                 
@@ -484,6 +484,9 @@ class bmapu:
 
          
         with open('xy_0.json','w') as fobj:
+            fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
+
+        with open(f'{name}_xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
 
         self.sys_dict = {'name':name,'uz_jacs':self.uz_jacs,

@@ -15,6 +15,9 @@ from pydae.bmapu.vscs.bess_pq  import bess_pq
 from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
 from pydae.bmapu.vsc_models.vsc_models import add_model
 
+from pydae.bmapu.vscs.vsc_acgf_dcp import vsc_acgf_dcp
+from pydae.bmapu.vscs.vsc_acq_dcgf import vsc_acq_dcgf
+
 def add_vscs(grid):
 
     buses = grid.data['buses']
@@ -24,60 +27,89 @@ def add_vscs(grid):
 
         data_dict = item
         
-        bus_name = item['bus']
-        
-        if 'name' in item:
-            name = item['name']
-        else:
-            name = bus_name
+        if 'bus' in data_dict:   # single bus VSC
+            bus_name = item['bus']
             
-        for gen_id in range(100):
-            if name not in grid.generators_id_list:
-                grid.generators_id_list += [name]
-                break
+            if 'name' in item:
+                name = item['name']
             else:
-                name = name + f'_{gen_id}'
+                name = bus_name
                 
-        item['name'] = name
+            for gen_id in range(100):
+                if name not in grid.generators_id_list:
+                    grid.generators_id_list += [name]
+                    break
+                else:
+                    name = name + f'_{gen_id}'
+                    
+            item['name'] = name
 
-        if item['type'] == 'vsc_pq':                    
-            p_W, q_var = vsc_pq(grid,name,bus_name,data_dict)
-        if item['type'] == 'vsc_l':                    
-            p_W, q_var = vsc_l(grid,name,bus_name,data_dict)
-        if item['type'] == 'vsc_lcl_uc':                    
-            p_W, q_var = vsc_lcl_uc(grid,name,bus_name,data_dict)
-        if item['type'] == 'bess_pq':                    
-            p_W, q_var = bess_pq(grid,name,bus_name,data_dict)
-
-
-
-
-        # grid power injection
-        idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
-        if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
-        buses[idx_bus]['idx_powers'] += 1
-
-        S_base = sym.Symbol('S_base', real = True)
-        grid.dae['g'][idx_bus*2]   += -p_W/S_base
-        grid.dae['g'][idx_bus*2+1] += -q_var/S_base
+            if item['type'] == 'vsc_pq':                    
+                p_W, q_var = vsc_pq(grid,name,bus_name,data_dict)
+            if item['type'] == 'vsc_l':                    
+                p_W, q_var = vsc_l(grid,name,bus_name,data_dict)
+            if item['type'] == 'vsc_lcl_uc':                    
+                p_W, q_var = vsc_lcl_uc(grid,name,bus_name,data_dict)
+            if item['type'] == 'bess_pq':                    
+                p_W, q_var = bess_pq(grid,name,bus_name,data_dict)
 
 
-        ## Add controlers and models
-        m = f'm_{name}'
-        theta_t = f'theta_t_{name}'
-        
-        if 'ctrl' in item:
-            add_ctrl(grid,name,bus_name,data_dict)
-            grid.dae['u_ini_dict'].pop(str(m))
-            grid.dae['u_run_dict'].pop(str(m))
-            grid.dae['u_ini_dict'].pop(str(theta_t))
-            grid.dae['u_run_dict'].pop(str(theta_t))
-            grid.dae['xy_0_dict'].update({str(m):0.8})
-            grid.dae['xy_0_dict'].update({str(theta_t):0.0})
 
 
-        if 'models' in item:
-            add_model(grid,name,bus_name,data_dict)
-            grid.dae['u_ini_dict'].pop(str(v_f))
-            grid.dae['u_run_dict'].pop(str(v_f))
-            grid.dae['xy_0_dict'].update({str(v_f):1.5})
+            # grid power injection
+            idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
+            if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
+            buses[idx_bus]['idx_powers'] += 1
+
+            S_base = sym.Symbol('S_base', real = True)
+            grid.dae['g'][idx_bus*2]   += -p_W/S_base
+            grid.dae['g'][idx_bus*2+1] += -q_var/S_base
+
+
+            ## Add controlers and models
+            m = f'm_{name}'
+            theta_t = f'theta_t_{name}'
+            
+            if 'ctrl' in item:
+                add_ctrl(grid,name,bus_name,data_dict)
+                grid.dae['u_ini_dict'].pop(str(m))
+                grid.dae['u_run_dict'].pop(str(m))
+                grid.dae['u_ini_dict'].pop(str(theta_t))
+                grid.dae['u_run_dict'].pop(str(theta_t))
+                grid.dae['xy_0_dict'].update({str(m):0.8})
+                grid.dae['xy_0_dict'].update({str(theta_t):0.0})
+
+
+            if 'models' in item:
+                add_model(grid,name,bus_name,data_dict)
+                grid.dae['u_ini_dict'].pop(str(v_f))
+                grid.dae['u_run_dict'].pop(str(v_f))
+                grid.dae['xy_0_dict'].update({str(v_f):1.5})
+
+        if 'bus_ac' in data_dict:  # more than one bus VSC
+
+            bus_dc = item['bus_dc']
+            bus_ac = item['bus_ac']
+            
+            if 'name' in item:
+                name = item['name']
+            else:
+                name = f'{bus_dc}_{bus_ac}'
+                    
+            item['name'] = name
+
+            if item['type'] == 'vsc_acgf_dcp':    # AC side Grid-Former               
+                p_W_j, q_var_j,p_W_k, q_var_k = vsc_acgf_dcp(grid,name,bus_dc,bus_ac,data_dict)
+            if item['type'] == 'vsc_acq_dcgf':    # DC side Grid-Former               
+                p_W_j, q_var_j,p_W_k, q_var_k = vsc_acq_dcgf(grid,name,bus_dc,bus_ac,data_dict)
+
+            # grid power injection
+            idx_bus_dc = buses_list.index(bus_dc) # get the number of the bus j
+            S_base = sym.Symbol('S_base', real = True)
+            grid.dae['g'][idx_bus_dc*2]   += -p_W_j/S_base
+            grid.dae['g'][idx_bus_dc*2+1] += -q_var_j/S_base
+
+            idx_bus_ac = buses_list.index(bus_ac) # get the number of the bus k
+            S_base = sym.Symbol('S_base', real = True)
+            grid.dae['g'][idx_bus_ac*2]   += -p_W_k/S_base
+            grid.dae['g'][idx_bus_ac*2+1] += -q_var_k/S_base
