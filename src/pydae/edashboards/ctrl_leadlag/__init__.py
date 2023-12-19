@@ -1,0 +1,1 @@
+from pydae.edashboards.smib_avr.smib_avr_module import dashboard
