@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def ntsieeeg1(dae,data,name):
+def ntsieeeg1(dae,syn_data,name,bus_name):
     '''
 
     .. table:: Constants
@@ -27,7 +27,7 @@ def ntsieeeg1(dae,data,name):
  "K_2":0,"K_4":0,"K_6":0,"K_8":0,"U_0":0.5, "U_c":-0.5,"p_c":0.1}
     '''
 
-    data = data['gov']
+    data = syn_data['gov']
     
     omega = sym.Symbol(f"omega_{name}", real=True)   
 
@@ -68,12 +68,13 @@ def ntsieeeg1(dae,data,name):
 
     y_g_nosat = x_3
     y_g = sym.Piecewise((P_max,y_g_nosat > P_max),(P_min,y_g_nosat < P_min),(y_g_nosat,True))
+    # y_g = y_g_nosat
 
     u_3 = K*Domega + p_c - y_g + K_sec*p_agc
     u_g = sym.Piecewise((U_c,u_3/T_3<U_c),(U_0,u_3/T_3>U_0),(u_3/T_3,True))
     u_awu = K_awu*(y_g - y_g_nosat)
 
-    dx_3 = u_g + u_awu 
+    dx_3 = u_g + u_awu
     dx_4 = 1/T_4*(y_g - x_4)
     dx_5 = 1/T_5*(x_4 - x_5)
     dx_6 = 1/T_6*(x_5 - x_6)
@@ -106,7 +107,7 @@ def ntsieeeg1(dae,data,name):
     dae['params_dict'].update({str(U_c):data['U_c']})
     dae['params_dict'].update({str(P_max):data['P_max']})
     dae['params_dict'].update({str(P_min):data['P_min']})
-    dae['params_dict'].update({str(K_awu):100.0}) 
+    dae['params_dict'].update({str(K_awu):1000.0}) 
 
     p_c_ini = data['p_c']
 
@@ -119,6 +120,48 @@ def ntsieeeg1(dae,data,name):
     dae['xy_0_dict'].update({str(x_6):p_c_ini})
     dae['xy_0_dict'].update({str(p_m):p_c_ini})    
 
+
+def test():
+    import numpy as np
+    import sympy as sym
+    import hjson
+    from pydae.bmapu.bmapu_builder import bmapu
+    import pydae.build_cffi as db
+    import matplotlib.pyplot as plt
+    import pytest
+
+    grid = bmapu('ieeeg1.hjson')
+    grid.checker()
+    grid.uz_jacs = True
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+
+    model.ini({'P_2':-80e6},'xy_0.json')
+    model.ini({})
+    model.report_x()
+    model.report_y()
+    model.report_z()
+
+    model.Dt = 0.01
+
+    model.run(10.0,{})
+    model.run(20.0,{'P_2':-100e6})
+    model.post();
+
+    fig,axes = plt.subplots()
+    axes.plot(model.Time,model.get_values('omega_coi'))
+    fig.savefig('ieeeg1.svg')
+
+
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()
 
 
 

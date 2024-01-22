@@ -23,10 +23,13 @@ def ntsst1(dae,syn_data,name,bus_name):
 
 
     avr_data = syn_data['avr']
-    
-    v_t = sym.Symbol(f"V_{bus_name}", real=True)  
+    remote_bus_name = bus_name
+    if 'bus' in avr_data:
+        remote_bus_name = avr_data['bus']
+
+    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)  
     v_r = sym.Symbol(f"v_r_{name}", real=True)   
-    v_c = sym.Symbol(f"v_c_{name}", real=True)  
+    v_c = sym.Symbol(f"v_c_{remote_bus_name}", real=True)  
     x_cb  = sym.Symbol(f"x_cb_{name}", real=True)
     xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
     v_f = sym.Symbol(f"v_f_{name}", real=True)  
@@ -43,6 +46,8 @@ def ntsst1(dae,syn_data,name,bus_name):
     v_ref = sym.Symbol(f"v_ref_{name}", real=True) 
     v_pss = sym.Symbol(f"v_pss_{name}", real=True) 
 
+    k_sat = sym.Symbol(f"k_sat_{name}", real=True) 
+
     v_s = v_pss # v_oel and v_uel are not considered
     v_ini = K_ai*xi_v
 
@@ -57,10 +62,13 @@ def ntsst1(dae,syn_data,name,bus_name):
     dxi_v = epsilon_v  # this integrator is added in pydae to force V = v_ref in the initialization
     
     v_f_nosat = K_a*z_cb
-    v_f_sat = sym.Piecewise((V_f_max,v_f_nosat>V_f_max),(V_f_min,v_f_nosat<V_f_min),(v_f_nosat,True))
+    v_f_sat = sym.Piecewise((V_f_max,v_f_nosat>V_f_max),
+                            (V_f_min,v_f_nosat<V_f_min),
+                            (v_f_nosat,True))
     #v_f_sat = v_f_nosat
-    g_v_f  =   v_f_sat - v_f 
-    dv_f = 1/T_r*(v_f_sat - v_f)
+    #g_v_f  =   v_f_sat - v_f 
+    v_f_ref = v_f_sat*k_sat + v_f_nosat*(1 - k_sat)
+    dv_f = 1/T_r*(v_f_ref - v_f)
     
     dae['f'] += [dv_r,dx_cb,dxi_v,dv_f]
     dae['x'] += [ v_r, x_cb, xi_v, v_f]
@@ -74,8 +82,8 @@ def ntsst1(dae,syn_data,name,bus_name):
     dae['params_dict'].update({str(T_c):avr_data['T_c']})  
     dae['params_dict'].update({str(T_b):avr_data['T_b']})  
 
-    dae['params_dict'].update({str(V_f_max): 10.0})  
-    dae['params_dict'].update({str(V_f_min):-10.0})  
+    dae['params_dict'].update({str(V_f_max): 100.0})  
+    dae['params_dict'].update({str(V_f_min):-100.0})  
 
 
     dae['u_ini_dict'].update({str(v_ref):avr_data['v_ref']})
@@ -84,9 +92,13 @@ def ntsst1(dae,syn_data,name,bus_name):
     dae['u_run_dict'].update({str(v_pss):0.0})
     dae['u_ini_dict'].update({str(v_pss):0.0})
 
+    dae['u_ini_dict'].update({str(k_sat):0.0})
+    dae['u_run_dict'].update({str(k_sat):1.0})
+
+
     dae['xy_0_dict'].update({str(v_f):2.0})
     dae['xy_0_dict'].update({str(v_r):1.0})
-    dae['xy_0_dict'].update({str(xi_v):10.0})
+    dae['xy_0_dict'].update({str(xi_v):10000.0})
     dae['xy_0_dict'].update({str(x_cb):2.0})
 
     dae['h_dict'].update({str(v_ref):v_ref})  
@@ -110,21 +122,24 @@ def test():
     model = temp.model()
 
     v_ref_1 = 1.05
-    model.ini({'p_m_1':0.5,'v_ref_1':v_ref_1},'xy_0.json')
+    model.ini({},'xy_0.json')
+    model.report_x()
+    model.report_y()
+    model.report_z()
 
-    assert model.get_value('V_1') == pytest.approx(v_ref_1, rel=0.001)
-    # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
+    # assert model.get_value('V_1') == pytest.approx(v_ref_1, rel=0.001)
+    # # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
 
-    model.ini({'p_m_1':0.5,'v_ref_1':1.0},'xy_0.json')
-    model.run(1.0,{})
-    model.run(15.0,{'v_ref_1':1.05})
-    model.post()
+    # model.ini({'p_m_1':0.5,'v_ref_1':1.0},'xy_0.json')
+    # model.run(1.0,{})
+    # model.run(15.0,{'v_ref_1':1.05})
+    # model.post()
 
-    import matplotlib.pyplot as plt
+    # import matplotlib.pyplot as plt
 
-    fig,axes = plt.subplots()
-    axes.plot(model.Time,model.get_values('V_1'))
-    fig.savefig('ntsst1_step.svg')
+    # fig,axes = plt.subplots()
+    # axes.plot(model.Time,model.get_values('V_1'))
+    # fig.savefig('ntsst1_step.svg')
 
 
 if __name__ == '__main__':

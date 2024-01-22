@@ -160,7 +160,7 @@ class dashboard():
 
         self.line_u.set_data(model.Time, model.get_values('u'))
         self.line_z.set_data(model.Time, model.get_values('z'))
-        self.fig.canvas.draw_idle()
+
 
 
     def show(self):

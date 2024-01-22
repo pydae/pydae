@@ -31,13 +31,16 @@ def add_vscs(grid):
 
     for item in grid.data['vscs']:
 
-        name = item['bus']
+        if 'bus' in item:
+            name = item['bus']
+            bus_name = item['bus']
+        if 'bus_ac' in item:
+            name = item['bus_ac'] 
+            bus_name = item['bus_ac']           
         if 'name' in item:
             name = item['name']
 
-
-        bus_name = item['bus']
-
+        
 
         if item['type'] == 'ac_3ph_4w_l':
             ac_3ph_4w_l(grid,item)
@@ -69,7 +72,8 @@ def add_vscs(grid):
         if 'pv' in item:         
             add_pv(grid,item['pv'],name,bus_name)  
         if 'vsc_ctrl' in item:  
-            add_vsc_ctrl(grid,item['vsc_ctrl'],name,bus_name)  
+            vsc_data = item
+            add_vsc_ctrl(grid,vsc_data,item['vsc_ctrl'],name,bus_name)  
 
     if 'vsgs' in grid.data:     
         for item in grid.data['vsgs']:    

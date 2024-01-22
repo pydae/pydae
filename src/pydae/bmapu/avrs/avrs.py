@@ -29,7 +29,7 @@ def add_avr(dae,syn_data,name,bus_name):
         avr_kundurq(dae,syn_data,name,bus_name)
 
     if syn_data['avr']['type'] == 'ntsst4':
-        ntsst4(dae,syn_data,name)
+        ntsst4(dae,syn_data,name,bus_name)
 
     if syn_data['avr']['type'] == 'ntsst1':
         ntsst1(dae,syn_data,name,bus_name)

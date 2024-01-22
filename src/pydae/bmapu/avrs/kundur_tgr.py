@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def kundur_tgr(dae,syn_data,name):
+def kundur_tgr(dae,syn_data,name,bus_name):
     '''
         "avr":{"type":"kundur_tgr","K_a":200,"T_r":0.01,"T_a":1,"T_b":10,"v_ref":1.0}
        

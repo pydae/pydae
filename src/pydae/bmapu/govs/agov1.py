@@ -9,7 +9,7 @@ import numpy as np
 import sympy as sym
 
 
-def agov1(dae,syn_data,name):
+def agov1(dae,syn_data,name,bus_name):
     '''
     Governor AGOV1 
     

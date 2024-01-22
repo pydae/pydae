@@ -103,6 +103,8 @@ def bess_pq(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"i_s_{name}":i_s})
     grid.dae['h_dict'].update({f"e_{name}":e})
     grid.dae['h_dict'].update({f"i_dc_{name}":i_dc})
+    grid.dae['h_dict'].update({f"p_s_{name}":p_s})    
+    grid.dae['h_dict'].update({f"q_s_{name}":q_s})
 
     # parameters  
     grid.dae['params_dict'].update({f"{K_p}":1e-6}) 

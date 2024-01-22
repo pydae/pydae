@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def ntsst4(dae,syn_data,name):
+def ntsst4(dae,syn_data,name,bus_name):
     '''
 
     .. table:: Constants
@@ -28,9 +28,12 @@ def ntsst4(dae,syn_data,name):
     '''
 
     avr_data = syn_data['avr']
+    remote_bus_name = bus_name
+    if 'bus' in avr_data:
+        remote_bus_name = avr_data['bus']
     
-    v_t = sym.Symbol(f"V_{name}", real=True)   
-    v_c = sym.Symbol(f"v_c_{name}", real=True)  
+    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)   
+    v_c = sym.Symbol(f"v_c_{remote_bus_name}", real=True)  
     xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
     x_a   = sym.Symbol(f"x_a_{name}", real=True)
     xi_m  = sym.Symbol(f"xi_m_{name}", real=True)
@@ -97,3 +100,33 @@ def ntsst4(dae,syn_data,name):
     dae['xy_0_dict'].update({str(x_a):1.0})
     dae['xy_0_dict'].update({str(xi_m):1.0})
     
+def test():
+    import numpy as np
+    import sympy as sym
+    import hjson
+    from pydae.bmapu.bmapu_builder import bmapu
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = bmapu('ntsst4.hjson')
+    grid.checker()
+    grid.uz_jacs = True
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+
+    v_ref_1 = 1.0
+    model.ini({},'xy_0.json')
+
+    model.report_x()
+    model.report_y()
+
+    assert model.get_value('V_2') == pytest.approx(v_ref_1, rel=0.001)
+
+
+if __name__ == '__main__':
+
+    #development()
+    test()

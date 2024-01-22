@@ -134,6 +134,8 @@ class builder():
         Gy_run = sym_jac(g,y_run)
         logging.debug('computing jacobians Fu_run,Gu_run')
         Fu_run = sym_jac(f,u_run)
+        print('build_v2.py, line 137  g',g)
+        print('build_v2.py, line 137  u_run',u_run)
         Gu_run = sym_jac(g,u_run)
 
         if self.inirun: # do not compute ini jacobians if ini system is equal to run system
@@ -226,13 +228,21 @@ class builder():
         if len(self.sys['g_list']) == 0:
             print('system without algebraic equations, adding dummy algebraic equation')
             y_dummy,u_dummy = sym.symbols('y_dummy,u_dummy')
+            y_dummy2,u_dummy2 = sym.symbols('y_dummy2,u_dummy2')
             
-            self.sys['g_list'] = [u_dummy-y_dummy]
-            self.sys['y_ini_list'] = ['y_dummy']
-            self.sys['y_run_list'] = ['y_dummy']
+            self.sys['g_list'] += [u_dummy-y_dummy]
+            self.sys['g_list'] += [u_dummy2-y_dummy2]
+
+            self.sys['y_ini_list'] += ['y_dummy']
+            self.sys['y_run_list'] += ['y_dummy']
             self.sys['u_ini_dict'].update({'u_dummy':1.0})
             self.sys['u_run_dict'].update({'u_dummy':1.0})
-            
+
+            self.sys['y_ini_list'] += ['y_dummy2']
+            self.sys['y_run_list'] += ['y_dummy2']
+            self.sys['u_ini_dict'].update({'u_dummy2':1.0})
+            self.sys['u_run_dict'].update({'u_dummy2':1.0})
+
         y_ini_set = set(self.sys['y_ini_list'])
         contains_duplicates = len(self.sys['y_ini_list']) != len(y_ini_set)
         if contains_duplicates:

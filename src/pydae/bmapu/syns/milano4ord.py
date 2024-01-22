@@ -48,6 +48,7 @@ def milano4ord(grid,name,bus_name,data_dict):
     D = sym.Symbol(f"D_{name}", real=True)
     R_a = sym.Symbol(f"R_a_{name}", real=True)
     K_delta = sym.Symbol(f"K_delta_{name}", real=True)
+    K_sat = sym.Symbol(f"K_sat_{name}", real=True)
     params_list = ['S_n','H','T1d0','T1q0','X_d','X_q','X1d','X1q','D','R_a','K_delta','K_sec']
     
     # auxiliar
@@ -59,7 +60,7 @@ def milano4ord(grid,name,bus_name,data_dict):
     # dynamic equations            
     ddelta = Omega_b*(omega - omega_s) - K_delta*delta
     domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
-    de1q = 1/T1d0*(-e1q - (X_d - X1d)*i_d + v_f)
+    de1q = 1/T1d0*(-e1q*K_sat - (X_d - X1d)*i_d + v_f)
     de1d = 1/T1q0*(-e1d + (X_q - X1q)*i_q)
 
     # algebraic equations   
@@ -116,6 +117,8 @@ def milano4ord(grid,name,bus_name,data_dict):
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]})
     
+    grid.dae['params_dict'].update({f"K_sat_{name}":1.0})
+
     # if 'avr' in syn_data:
     #     add_avr(grid.dae,syn_data)
     #     grid.dae['u_ini_dict'].pop(str(v_f))

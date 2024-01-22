@@ -20,3 +20,18 @@ def read_data(data_input=''):
         data = data_input
 
     return data
+
+
+def save_json(data,file='json_out.json'):
+
+    # Writing dictionary to a JSON file
+    with open(file, 'w') as fobj:
+        json.dump(data, fobj)
+
+def save_hjson(data,file='json_out.json'):
+    import hjson
+
+    # Writing dictionary to a JSON file
+    with open(file, 'w') as fobj:
+        hjson.dump(data, fobj)
+        
