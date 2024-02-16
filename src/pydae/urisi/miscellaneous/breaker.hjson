@@ -20,9 +20,7 @@ sources:[
         {bus: "A1", type:"ac3ph4w_ideal"},
         {bus: "A4", type:"ac3ph4w_ideal"},
         ],
-vscs:[
-     {"type":"breaker","bus_1":"A2","bus_2":"A3"}
-        ],
+breakers:[{"bus_1":"A2","bus_2":"A3"}]
 line_codes:
         {
         UG1dc:

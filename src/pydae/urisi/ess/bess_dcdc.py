@@ -157,7 +157,7 @@ def bess_dcdc(grid,data):
   
 
     p_ref = sym.Piecewise((p_r_ref,(p_r_ref <=0.0) & (soc<soc_max)),
-                        (p_r_ref,(p_r_ref > 0.0) & (soc>soc_min)),
+                          (p_r_ref,(p_r_ref > 0.0) & (soc>soc_min)),
                         (0.0,True)) + p_soc
     
     v_l = v_dc

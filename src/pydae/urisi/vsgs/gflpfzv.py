@@ -9,7 +9,7 @@ def gflpfzv(grid,data,name,bus_name):
     omega_coi = sym.Symbol('omega_coi',real=True)
 
     # parameters
-    S_n,U_n = sym.symbols(f'S_n_{name},U_n_{name}', real=True)
+    S_n,U_n,S_base = sym.symbols(f'S_n_{name},U_n_{name},S_base', real=True)
     T_e = sym.Symbol(f'H_{name}', real=True)
     K_f = sym.Symbol(f'K_f_{name}', real=True)
     T_f = sym.Symbol(f'T_f_{name}', real=True)
@@ -25,6 +25,7 @@ def gflpfzv(grid,data,name,bus_name):
     R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
     K_delta = sym.Symbol(f"K_delta_{name}", real=True) 
     K_soc = sym.Symbol(f"K_soc_{name}", real=True) 
+    T_pfr = sym.Symbol(f"T_pfr_{name}", real=True) 
 
     ## inputs
     omega_ref = sym.Symbol(f'omega_{name}_ref', real=True)
@@ -54,6 +55,7 @@ def gflpfzv(grid,data,name,bus_name):
     xi_p = sym.Symbol(f'xi_p_{name}', real=True)
     xi_q = sym.Symbol(f'xi_q_{name}', real=True)
     p_ef = sym.Symbol(f'p_ef_{name}', real=True)
+    p_pfr = sym.Symbol(f'p_pfr_{name}', real=True)
     De_ao_m,De_bo_m,De_co_m,De_no_m  = sym.symbols(f'De_ao_m_{name},De_bo_m_{name},De_co_m_{name},De_no_m_{name}', real=True)
     omega = sym.Symbol(f'omega_{name}', real=True)
     
@@ -143,16 +145,17 @@ def gflpfzv(grid,data,name,bus_name):
     dxi_q = K_qaw*epsilon_q - (1-K_qaw)*xi_q - 1e-6*xi_q
     dp_ef = 1/T_e*(p_pos/S_n - p_ef)
     dp_cf = 1/T_c*(p_c - p_cf)
+    dp_pfr = 1/T_pfr*(1/Droop*(omega - omega_ref) - p_pfr)
     dDe_ao_m = 1/T_v*(v_ra + De_q - De_ao_m)
     dDe_bo_m = 1/T_v*(v_rb + De_q - De_bo_m)
     dDe_co_m = 1/T_v*(v_rc + De_q - De_co_m)
     dDe_no_m = 1/T_v*(v_rn - De_no_m)
 
-    grid.dae['f'] += [dphi,domega,dxi_q,dp_ef,dp_cf,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m] #,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m]
-    grid.dae['x'] += [ phi, omega,  xi_q, p_ef, p_cf, De_ao_m, De_bo_m, De_co_m, De_no_m] #, De_ao_m, De_bo_m, De_co_m, De_no_m]
+    grid.dae['f'] += [dphi,domega,dxi_q,dp_ef,dp_cf, dp_pfr,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m] #,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m]
+    grid.dae['x'] += [ phi, omega,  xi_q, p_ef, p_cf, p_pfr, De_ao_m, De_bo_m, De_co_m, De_no_m] #, De_ao_m, De_bo_m, De_co_m, De_no_m]
     
     ## algebraic equations   
-    g_p_m  = -p_m + p_cf + p_r - 1/Droop*(omega - omega_ref) + K_soc*p_soc
+    g_p_m  = -p_m + p_cf + p_r - p_pfr + K_soc*p_soc
     eq_v_ta_cplx =  e_ao_cplx - i_sa*Z_va - v_ta   # v_sa = v_sag
     eq_v_tb_cplx =  e_bo_cplx - i_sb*Z_vb - v_tb
     eq_v_tc_cplx =  e_co_cplx - i_sc*Z_vc - v_tc
@@ -243,6 +246,8 @@ def gflpfzv(grid,data,name,bus_name):
     grid.dae['params_dict'].update({f'K_qp_{name}':data['K_qp']})
     grid.dae['params_dict'].update({f'K_qi_{name}':data['K_qi']})
     grid.dae['params_dict'].update({f'K_soc_{name}':1.0})
+    grid.dae['params_dict'].update({f'T_pfr_{name}':data['T_pfr']})
+    
     
 
     grid.dae['h_dict'].update({f'p_pos_{name}':sym.re(s_pos),

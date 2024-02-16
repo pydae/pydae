@@ -55,7 +55,7 @@ def vsource(grid,name,bus_name,data_dict):
     # auxiliar
 
     # dynamic equations            
-    grid.dae['f'] += [V_dummy - v_ref]
+    grid.dae['f'] += [v_ref - V_dummy]
     grid.dae['x'] += [V_dummy]
 
     # algebraic equations   

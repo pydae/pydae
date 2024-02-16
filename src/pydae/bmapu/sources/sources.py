@@ -36,9 +36,8 @@ def add_sources(grid):
                     
             item['name'] = name
                                 
-
-            p_W, q_var = genape_inf(grid,name,bus_name,data_dict)
-
+            print(f'sources.py, genape_inf added')
+            p_W,q_var =  genape_inf(grid,name,bus_name,data_dict)
             # grid power injection
             idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
             if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
@@ -69,8 +68,7 @@ def add_sources(grid):
             item['name'] = name
                                 
 
-            vsource(grid,name,bus_name,data_dict)
-
+            vsource(grid,name,bus_name,data_dict) # do not return p_W,q_var (it removes voltage and angle)
 
 
         

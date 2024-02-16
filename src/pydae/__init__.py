@@ -7,5 +7,5 @@ Differential Algebraic Equations in Python
 
 """
 
-__version__ = "0.51.2"
+__version__ = "0.51.3"
  

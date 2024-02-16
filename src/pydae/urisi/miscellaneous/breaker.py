@@ -2,7 +2,7 @@
 import numpy as np
 import sympy as sym
 
-def breaker(grid,data):
+def add_breakers(grid,data):
     '''
     VSC with 3 phase and 4 wire with a PI-VSG with PFR and Q control.
          
@@ -124,7 +124,7 @@ def test_ib_2src():
     import pydae.build_cffi as db
     import pytest
 
-    grid = urisi('breaker_2src.hjson')
+    grid = urisi('breaker.hjson')
     grid.uz_jacs = True
     grid.construct('temp')
     grid.compile('temp')

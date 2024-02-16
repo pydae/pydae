@@ -153,3 +153,28 @@ def genape_inf(grid,name,bus_name,data_dict):
     q_var = q_s * S_n
 
     return p_W,q_var
+
+
+def test_build():
+
+    from pydae.bmapu import bmapu_builder
+    
+    grid = bmapu_builder.bmapu('genape.hjson')
+    grid.checker()
+    grid.verbose = True 
+    grid.build('temp')
+
+def test_ini():
+
+    import temp
+
+    model = temp.model()
+    model.ini({},'xy_0.json')
+    model.report_x()
+    model.report_y()
+
+
+ 
+if __name__=='__main__':
+    test_build()
+    test_ini()

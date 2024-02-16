@@ -11,6 +11,7 @@ from pydae.urisi.transformers.transformers import trafos_preprocess,add_trafos,a
 from pydae.urisi.shunts.shunts import add_shunts,shunts_preprocess
 from pydae.urisi.sources.sources import add_sources
 from pydae.urisi.ess.ess import add_ess
+from pydae.urisi.miscellaneous.breaker import add_breakers
 
 import pydae.build_cffi as db
 from pydae.build_v2 import builder
@@ -278,8 +279,10 @@ class urisi:
                 add_pv(self)
         if 'ess' in  self.data:
             for item in self.data['ess']:
-                add_ess(self)
-                
+                add_ess(self,item)
+        if 'breakers' in  self.data:
+            for item in self.data['breakers']:
+                add_breakers(self,item)                
         omega_coi = sym.Symbol("omega_coi", real=True)  
 
         # if self.omega_coi_denominator <1e-6:

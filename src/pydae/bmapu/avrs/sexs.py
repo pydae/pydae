@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def sexs(dae,syn_data,name,bus_name):
+def sexs(dae,data,name,bus_name):
     '''
 
     .. table:: Constants
@@ -31,10 +31,14 @@ def sexs(dae,syn_data,name,bus_name):
 
     '''
 
-    avr_data = syn_data['avr']
+    avr_data = data['avr']
+    remote_bus_name = bus_name
+    if 'bus' in avr_data:
+        remote_bus_name = avr_data['bus']
     
-    v_t = sym.Symbol(f"V_{bus_name}", real=True)   
-    v_c = sym.Symbol(f"v_c_{name}", real=True)  
+    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)   
+    v_c = sym.Symbol(f"v_c_{remote_bus_name}", real=True)  
+    
     x_ab  = sym.Symbol(f"x_ab_{name}", real=True)
     x_e  = sym.Symbol(f"x_e_{name}", real=True)
     xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
@@ -95,7 +99,7 @@ def sexs(dae,syn_data,name,bus_name):
     dae['xy_0_dict'].update({str(x_e):0.0})
     dae['xy_0_dict'].update({str(v_f):1.0})    
     
-def sexsq(dae,syn_data,name):
+def sexsq(dae,data,name):
     '''
 
     **Auxiliar equations**
@@ -203,7 +207,7 @@ def sexsq(dae,syn_data,name):
      '''
 
 
-    avr_data = syn_data['avr']
+    avr_data = data['avr']
     
     v_t = sym.Symbol(f"V_{bus_name}", real=True)   
     q_g = sym.Symbol(f"q_g_{name}", real=True) 

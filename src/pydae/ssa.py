@@ -123,12 +123,12 @@ def eval_A_ini(system):
     return A
 
 
-def damp_report(system, sparse=False):
+def damp_report(model, sparse=False, tol_part=0.2):
     
     if sparse:
-        eig,eigv = np.linalg.eig(system.A.toarray())
+        eig,eigv = np.linalg.eig(model.A.toarray())
     else:      
-        eig,eigv = np.linalg.eig(system.A)
+        eig,eigv = np.linalg.eig(model.A)
         
     omegas = eig.imag
     sigmas = eig.real
@@ -144,6 +144,10 @@ def damp_report(system, sparse=False):
     string += f' Damp'.ljust(10, ' ') 
     string += '\n'
 
+    participation_matrix = np.abs(participation(model).values)
+    x_array = np.array(model.x_list)
+
+    states_participation = []
     N_x = len(eig)
     for it in range(N_x):
         r = eig[it].real
@@ -156,13 +160,23 @@ def damp_report(system, sparse=False):
 
         string += '\n'
         #'\t{i:0.4f}\t{freqs[it]:0.3f}\t{zetas[it]:0.4f}\n'
+
     
+        # idx_participation = np.argmax(participation_matrix[:,it])
+        # states_participation += [model.x_list[idx_participation]]
+
+        #participation_matrix = np.abs(ssa.participation(model).values)
+        
+        # #idx_participation = participation_matrix[:,it] > 0.5
+        max_part = np.max(np.abs(participation_matrix)[:,it])
+        states_participation += [x_array[participation_matrix[:,it]>(max_part-tol_part)]]
+
     columns = ['Real','Imag','Freq.','Damp']     
     modes = [f'Mode {it+1}' for it in range(N_x)]
-    eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas},index=modes)
+    eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas, 'Participation':states_participation},index=modes)
     
-    system.eigvalues = eig
-    system.eigvectors = eigv
+    model.eigvalues = eig
+    model.eigvectors = eigv
     return eig_df
  
 def damp(A, sparse=False):
@@ -329,7 +343,7 @@ def lqr(A,B,Q,R):
 
 
 
-def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig='', mark='o', color=''):
+def plot_eig(eigenvalues, x_min='',x_max='',y_min='',y_max='', fig='', mark='o', color='', label=''):
     ''''
     Creates a matplotlib figure from a numpy array of eigenvalues.
 

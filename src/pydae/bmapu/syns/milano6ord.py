@@ -7,28 +7,11 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
+import pydae.ssa as ssa
 
-def pai6(grid,name,bus_name,data_dict):
+def milano6ord(grid,name,bus_name,data_dict):
     """
-    # auxiliar
-
-    .. math::
-        v_d = V*sin(delta - theta) 
-        v_q = V*cos(delta - theta) 
-        p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q)     
-        omega_s = omega_coi
-                
-    # dynamic equations            
-    ddelta = Omega_b*(omega - omega_s) - K_delta*delta
-    domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
-    de1q = 1/T1d0*(-e1q - (X_d - X1d)*i_d + v_f)
-    de1d = 1/T1q0*(-e1d + (X_q - X1q)*i_q)
-
-    # algebraic equations   
-    0  = v_q + R_a*i_q + X1d*i_d - e1q
-    0 = v_d + R_a*i_d - X1q*i_q - e1d
-    0 = i_d*v_d + i_q*v_q - p_g  
-    0 = i_d*v_q - i_q*v_d - q_g 
+    Model of order 6 as in PSAT Manual 2008
     
     """
 
@@ -47,8 +30,8 @@ def pai6(grid,name,bus_name,data_dict):
     omega = sym.Symbol(f"omega_{name}", real=True)
     e1q = sym.Symbol(f"e1q_{name}", real=True)
     e1d = sym.Symbol(f"e1d_{name}", real=True)
-    psi2d = sym.Symbol(f"psi2d_{name}", real=True)
-    psi2q = sym.Symbol(f"psi2q_{name}", real=True)
+    e2d = sym.Symbol(f"e2d_{name}", real=True)
+    e2q = sym.Symbol(f"e2q_{name}", real=True)
 
     # algebraic states
     i_d = sym.Symbol(f"i_d_{name}", real=True)
@@ -64,6 +47,7 @@ def pai6(grid,name,bus_name,data_dict):
     T1q0 = sym.Symbol(f"T1q0_{name}", real=True)
     T2d0 = sym.Symbol(f"T2d0_{name}", real=True)
     T2q0 = sym.Symbol(f"T2q0_{name}", real=True)
+    T_AA = sym.Symbol(f"T_AA_{name}", real=True)
     X_l = sym.Symbol(f"X_l_{name}", real=True)
     X_d = sym.Symbol(f"X_d_{name}", real=True)
     X_q = sym.Symbol(f"X_q_{name}", real=True)
@@ -74,6 +58,8 @@ def pai6(grid,name,bus_name,data_dict):
     D = sym.Symbol(f"D_{name}", real=True)
     R_a = sym.Symbol(f"R_a_{name}", real=True)
     K_delta = sym.Symbol(f"K_delta_{name}", real=True)
+    K_sat = sym.Symbol(f"K_sat_{name}", real=True)
+
     params_list = ['S_n','Omega_b','H','T1d0','T1q0','T2d0','T2q0']
     params_list+= ['X_l','X_d','X_q','X1d','X1q','X2d','X2q','D','R_a','K_delta','K_sec']
     
@@ -83,35 +69,25 @@ def pai6(grid,name,bus_name,data_dict):
     p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q)     
 
     omega_s = omega_coi
-
-    gamma_d1 = (X2d - X_l)/(X1d - X_l)
-    gamma_q1 = (X2q - X_l)/(X1q - X_l)
-    gamma_d2 = (1.0 - gamma_d1)/(X1d - X_l)
-    gamma_q2 = (1.0 - gamma_q1)/(X1q - X_l)
-
-    psi_d = -(X2d*i_d - gamma_d1*e1q - (1-gamma_d1)*psi2d)
-    psi_q = -(X2q*i_q + gamma_q1*e1d - (1-gamma_q1)*psi2q)
+    f_s_e1q = K_sat*e1q
 
     # dynamic equations            
     ddelta = Omega_b*(omega - omega_s) - K_delta*delta
     domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
-    de1q = (-e1q - (X_d - X1d)*(i_d - gamma_d2*psi2d - (1-gamma_d1)*i_d + gamma_d2*e1q)+v_f)/T1d0
-    de1d = (-e1d + (X_q - X1q)*(i_q - gamma_q2*psi2q - (1-gamma_q1)*i_q - gamma_q2*e1d))/T1q0
-    dpsi2d = (-psi2d + e1q - (X1d-X_l)*i_d)/T2d0
-    dpsi2q = (-psi2q - e1d - (X1q-X_l)*i_q)/T2q0
-
-    # esto esta bien gamma_d2*e1d? se cambia a  gamma_q2*e1d
-
+    de1q = (-f_s_e1q - (X_d - X1d - T2d0/T1d0*X2d/X1d * (X_d - X1d))*i_d + (1 - T_AA/T1d0)*v_f)/T1d0
+    de1d = (-e1d + (X_q - X1q - T2q0/T1q0*X2q/X1q * (X_q - X1q))*i_q)/T1q0
+    de2q = (-e2q + e1q - (X1d-X2d + T2d0/T1d0*X2d/X1d*(X_d - X1d))*i_d + T_AA/T1d0 * v_f)/T2d0
+    de2d = (-e2d + e1d + (X1q-X2q + T2q0/T1q0*X2q/X1q*(X_q - X1q))*i_q)/T2q0
 
     # algebraic equations   
-    g_i_q  = R_a*i_d + omega*psi_q + v_d
-    g_i_d  = R_a*i_q - omega*psi_d + v_q
+    g_i_d  = v_q + R_a*i_q - e2q + (X2d - X_l)*i_d
+    g_i_q  = v_d + R_a*i_d - e2d - (X2q - X_l)*i_q
     g_p_g  = i_d*v_d + i_q*v_q - p_g  
     g_q_g  = i_d*v_q - i_q*v_d - q_g 
     
     # dae 
-    f_syn = [ddelta,domega,de1q,de1d,dpsi2d,dpsi2q]
-    x_syn = [ delta, omega, e1q, e1d, psi2d, psi2q]
+    f_syn = [ddelta,domega,de1q,de1d,de2q,de2d]
+    x_syn = [ delta, omega, e1q, e1d, e2q, e2d]
     g_syn = [g_i_d,g_i_q,g_p_g,g_q_g]
     y_syn = [  i_d,  i_q,  p_g,  q_g]
     
@@ -129,44 +105,62 @@ def pai6(grid,name,bus_name,data_dict):
         grid.dae['u_ini_dict'].update({f'{v_f}':{data_dict['v_f']}})
         grid.dae['u_run_dict'].update({f'{v_f}':{data_dict['v_f']}})
     else:
-        grid.dae['u_ini_dict'].update({f'{v_f}':1.0})
-        grid.dae['u_run_dict'].update({f'{v_f}':1.0})
+        grid.dae['u_ini_dict'].update({f'{v_f}':1.5})
+        grid.dae['u_run_dict'].update({f'{v_f}':1.5})
 
     if 'p_m' in data_dict:
         grid.dae['u_ini_dict'].update({f'{p_m}':{data_dict['p_m']}})
         grid.dae['u_run_dict'].update({f'{p_m}':{data_dict['p_m']}})
     else:
-        grid.dae['u_ini_dict'].update({f'{p_m}':1.0})
-        grid.dae['u_run_dict'].update({f'{p_m}':1.0})
+        grid.dae['u_ini_dict'].update({f'{p_m}':0.5})
+        grid.dae['u_run_dict'].update({f'{p_m}':0.5})
 
     grid.dae['xy_0_dict'].update({str(omega):1.0})
     grid.dae['xy_0_dict'].update({str(e1q):1.0})
+    grid.dae['xy_0_dict'].update({str(e2q):1.0})
    
     # outputs
     grid.dae['h_dict'].update({f"p_e_{name}":p_e})
+    grid.dae['h_dict'].update({f"v_f_{name}":v_f})
 
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]})
 
-    # for item in params_list:       
-    #     grid.dae['params_dict'].update({f"{item}_{name}":syn_data[item]})
-    
-    # if 'avr' in syn_data:
-    #     add_avr(grid.dae,syn_data)
-    #     grid.dae['u_ini_dict'].pop(str(v_f))
-    #     grid.dae['u_run_dict'].pop(str(v_f))
-    #     grid.dae['xy_0_dict'].update({str(v_f):1.5})
+    grid.dae['params_dict'].update({f"{T_AA}":0.0})
+    grid.dae['params_dict'].update({f"{K_sat}":1.0})
 
-    # if 'gov' in syn_data:
-    #     add_gov(grid.dae,syn_data)  
-    #     grid.dae['u_ini_dict'].pop(str(p_m))
-    #     grid.dae['u_run_dict'].pop(str(p_m))
-    #     grid.dae['xy_0_dict'].update({str(p_m):0.5})
-
-    # if 'pss' in syn_data:
-    #     add_pss(grid.dae,syn_data)  
 
     p_W   = p_g * S_n
     q_var = q_g * S_n
 
     return p_W,q_var
+
+
+
+def test():
+
+    import numpy as np
+    import sympy as sym
+    import hjson
+    from pydae.bmapu import bmapu_builder
+    import pydae.build_cffi as db
+    import pytest
+
+    grid = bmapu_builder.bmapu('milano6ord.hjson')
+    grid.uz_jacs = True
+    grid.verbose = True
+    grid.build('temp')
+
+    import temp
+
+    model = temp.model()
+    
+    model.ini({'v_f_1':2,'p_m_1':1},'xy_0.json')
+
+    model.report_x()
+    model.report_y()
+
+if __name__ == '__main__':
+
+    test()
+ 

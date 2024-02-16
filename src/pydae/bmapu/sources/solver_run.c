@@ -568,8 +568,8 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
 
 
 int solve(int * pt, double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
-int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt, double *z, double *dblparams, int *intparams);
-int run(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int step3(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
+int run( int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *x,double *y,double *xy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int * its, double Dt, double *z, double *dblparams, int *intparams, double * Time, double * X, double * Y, double * Z, int N_z, int N_store);
 
 
 /************************************************************/
@@ -613,28 +613,6 @@ static void *_cffi_types[] = {
 /* 35 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
 /* 36 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
 /* 37 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 38 */ _CFFI_OP(_CFFI_OP_FUNCTION, 5), // int()(int *, double, double, double *, int *, int *, double *, double *, double *, double *, double *, int, int, int, double, int, double, double *, double *, int *)
-/* 39 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
-/* 40 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 14),
-/* 41 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 14),
-/* 42 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 43 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
-/* 44 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
-/* 45 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 46 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 47 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 48 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 49 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 50 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
-/* 51 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
-/* 52 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
-/* 53 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 14),
-/* 54 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
-/* 55 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 14),
-/* 56 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 57 */ _CFFI_OP(_CFFI_OP_NOOP, 2),
-/* 58 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
-/* 59 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 };
 
 static int _cffi_d_run(int * x0, double x1, double x2, double * x3, int * x4, int * x5, double * x6, double * x7, double * x8, double * x9, double * x10, int x11, int x12, int x13, double x14, int * x15, double x16, double * x17, double * x18, int * x19, double * x20, double * x21, double * x22, double * x23, int x24, int x25)
@@ -1018,13 +996,13 @@ _cffi_f_solve(PyObject *self, PyObject *args)
 #  define _cffi_f_solve _cffi_d_solve
 #endif
 
-static int _cffi_d_step(int * x0, double x1, double x2, double * x3, int * x4, int * x5, double * x6, double * x7, double * x8, double * x9, double * x10, int x11, int x12, int x13, double x14, int x15, double x16, double * x17, double * x18, int * x19)
+static int _cffi_d_step3(int * x0, double x1, double x2, double * x3, int * x4, int * x5, double * x6, double * x7, double * x8, double * x9, double * x10, int x11, int x12, int x13, double x14, int * x15, double x16, double * x17, double * x18, int * x19, double * x20, double * x21, double * x22, double * x23, int x24, int x25)
 {
-  return step(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19);
+  return step3(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25);
 }
 #ifndef PYPY_VERSION
 static PyObject *
-_cffi_f_step(PyObject *self, PyObject *args)
+_cffi_f_step3(PyObject *self, PyObject *args)
 {
   int * x0;
   double x1;
@@ -1041,11 +1019,17 @@ _cffi_f_step(PyObject *self, PyObject *args)
   int x12;
   int x13;
   double x14;
-  int x15;
+  int * x15;
   double x16;
   double * x17;
   double * x18;
   int * x19;
+  double * x20;
+  double * x21;
+  double * x22;
+  double * x23;
+  int x24;
+  int x25;
   Py_ssize_t datasize;
   struct _cffi_freeme_s *large_args_free = NULL;
   int result;
@@ -1070,8 +1054,14 @@ _cffi_f_step(PyObject *self, PyObject *args)
   PyObject *arg17;
   PyObject *arg18;
   PyObject *arg19;
+  PyObject *arg20;
+  PyObject *arg21;
+  PyObject *arg22;
+  PyObject *arg23;
+  PyObject *arg24;
+  PyObject *arg25;
 
-  if (!PyArg_UnpackTuple(args, "step", 20, 20, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16, &arg17, &arg18, &arg19))
+  if (!PyArg_UnpackTuple(args, "step3", 26, 26, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7, &arg8, &arg9, &arg10, &arg11, &arg12, &arg13, &arg14, &arg15, &arg16, &arg17, &arg18, &arg19, &arg20, &arg21, &arg22, &arg23, &arg24, &arg25))
     return NULL;
 
   datasize = _cffi_prepare_pointer_call_argument(
@@ -1179,9 +1169,14 @@ _cffi_f_step(PyObject *self, PyObject *args)
   if (x14 == (double)-1 && PyErr_Occurred())
     return NULL;
 
-  x15 = _cffi_to_c_int(arg15, int);
-  if (x15 == (int)-1 && PyErr_Occurred())
-    return NULL;
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg15, (char **)&x15);
+  if (datasize != 0) {
+    x15 = ((size_t)datasize) <= 640 ? (int *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg15, (char **)&x15,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
 
   x16 = (double)_cffi_to_c_double(arg16);
   if (x16 == (double)-1 && PyErr_Occurred())
@@ -1214,9 +1209,53 @@ _cffi_f_step(PyObject *self, PyObject *args)
       return NULL;
   }
 
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(2), arg20, (char **)&x20);
+  if (datasize != 0) {
+    x20 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(2), arg20, (char **)&x20,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(2), arg21, (char **)&x21);
+  if (datasize != 0) {
+    x21 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(2), arg21, (char **)&x21,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(2), arg22, (char **)&x22);
+  if (datasize != 0) {
+    x22 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(2), arg22, (char **)&x22,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(2), arg23, (char **)&x23);
+  if (datasize != 0) {
+    x23 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(2), arg23, (char **)&x23,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x24 = _cffi_to_c_int(arg24, int);
+  if (x24 == (int)-1 && PyErr_Occurred())
+    return NULL;
+
+  x25 = _cffi_to_c_int(arg25, int);
+  if (x25 == (int)-1 && PyErr_Occurred())
+    return NULL;
+
   Py_BEGIN_ALLOW_THREADS
   _cffi_restore_errno();
-  { result = step(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19); }
+  { result = step3(x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22, x23, x24, x25); }
   _cffi_save_errno();
   Py_END_ALLOW_THREADS
 
@@ -1226,13 +1265,13 @@ _cffi_f_step(PyObject *self, PyObject *args)
   return pyresult;
 }
 #else
-#  define _cffi_f_step _cffi_d_step
+#  define _cffi_f_step3 _cffi_d_step3
 #endif
 
 static const struct _cffi_global_s _cffi_globals[] = {
   { "run", (void *)_cffi_f_run, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 10), (void *)_cffi_d_run },
   { "solve", (void *)_cffi_f_solve, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_solve },
-  { "step", (void *)_cffi_f_step, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 38), (void *)_cffi_d_step },
+  { "step3", (void *)_cffi_f_step3, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 10), (void *)_cffi_d_step3 },
 };
 
 static const struct _cffi_type_context_s _cffi_type_context = {
@@ -1247,7 +1286,7 @@ static const struct _cffi_type_context_s _cffi_type_context = {
   0,  /* num_enums */
   0,  /* num_typenames */
   NULL,  /* no includes */
-  60,  /* num_types */
+  38,  /* num_types */
   0,  /* flags */
 };
 

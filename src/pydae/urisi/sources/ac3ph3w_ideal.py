@@ -112,8 +112,8 @@ def ac3ph3w_ideal(grid,vsc_data):
     
     grid.dae['xy_0_dict'].update({'omega':1.0})
 
-    HS_coi  = 1.0
-    omega_coi_i = 1.0
+    HS_coi  = 1.0e9
+    omega_coi_i = 1.0e9
 
     grid.omega_coi_numerator += omega_coi_i
     grid.omega_coi_denominator += HS_coi

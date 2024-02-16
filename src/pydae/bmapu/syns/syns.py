@@ -10,7 +10,9 @@ import sympy as sym
 
 from pydae.bmapu.syns.milano2ord import milano2ord
 from pydae.bmapu.syns.milano4ord import milano4ord
-from pydae.bmapu.syns.milano6ord import pai6
+from pydae.bmapu.syns.milano6ord import milano6ord
+
+from pydae.bmapu.syns.pai6ord import pai6
 
 from pydae.bmapu.avrs.avrs import add_avr
 from pydae.bmapu.govs.govs import add_gov
@@ -45,6 +47,8 @@ def add_syns(grid):
         if 'type' in item:
             if item['type'] == 'pai6':
                 p_W, q_var = pai6(grid,name,bus_name,data_dict)
+            elif item['type'] == 'milano6ord':
+                p_W, q_var = milano6ord(grid,name,bus_name,data_dict)
             elif item['type'] == 'milano4':
                 p_W, q_var = milano4ord(grid,name,bus_name,data_dict)
             elif item['type'] == 'milano2':

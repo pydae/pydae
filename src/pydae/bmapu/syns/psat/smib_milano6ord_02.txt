@@ -1,0 +1,54 @@
+EIGENVALUE REPORT
+ 
+P S A T  2.1.11
+ 
+Author:  Federico Milano, (c) 2002-2019
+e-mail:  federico.milano@ucd.ie
+website: faraday1.ucd.ie/psat.html
+ 
+File:  C:\Users\jmmau\workspace\pydae\src\pydae\bmapu\syns\psat\smib_milano6ord.mdl
+Date:  30-Jan-2024 20:42:22
+
+
+STATE MATRIX EIGENVALUES
+
+Eigevalue      Most Associated States      Real part      Imag. Part     Pseudo-Freq.   Frequency      
+
+Eig As #1      e2d_Syn_1                  -57.4158        0              0              0             
+Eig As #2      e2q_Syn_1                  -56.0851        0              0              0             
+Eig As #3      delta_Syn_1, omega_Syn_1   -2.1463         5.4218         0.86291        0.92806       
+Eig As #4      omega_Syn_1, delta_Syn_1   -2.1463        -5.4218         0.86291        0.92806       
+Eig As #5      e1d_Syn_1                  -2.1428         0              0              0             
+Eig As #6      e1q_Syn_1                  -0.81363        0              0              0             
+
+PARTICIPATION FACTORS (Euclidean norm)
+
+               delta_Syn_1    omega_Syn_1    e1q_Syn_1      e1d_Syn_1      e2q_Syn_1      
+
+Eig As #1      0.00976        0.00976        0.00099        0.05989        0.06979       
+Eig As #2      0.00087        0.00087        0.01185        0.00613        0.89359       
+Eig As #3      0.35521        0.35521        0.00125        0.23262        0.00026       
+Eig As #4      0.35521        0.35521        0.00125        0.23262        0.00026       
+Eig As #5      0.11985        0.11985        0.02265        0.72477        0.00047       
+Eig As #6      0.00692        0.00692        0.91548        0.05774        0.01107       
+
+PARTICIPATION FACTORS (Euclidean norm)
+
+               e2d_Syn_1      
+
+Eig As #1      0.8498        
+Eig As #2      0.0867        
+Eig As #3      0.05546       
+Eig As #4      0.05546       
+Eig As #5      0.0124        
+Eig As #6      0.00187       
+
+STATISTICS
+
+DYNAMIC ORDER                 6             
+# OF EIGS WITH Re(mu) < 0     6             
+# OF EIGS WITH Re(mu) > 0     0             
+# OF REAL EIGS                4             
+# OF COMPLEX PAIRS            1             
+# OF ZERO EIGS                0             
+

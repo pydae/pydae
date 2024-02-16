@@ -17,7 +17,6 @@ from pydae.urisi.vscs.dcdc_gfh import dcdc_gfh
 from pydae.urisi.vscs.dcdc_ph import dcdc_ph
 from pydae.urisi.vscs.ac_3ph_4w_pq import ac_3ph_4w_pq
 from pydae.urisi.vscs.ac_3ph_4w import ac_3ph_4w
-from pydae.urisi.vscs.breaker import breaker
 from pydae.urisi.vsgs.vsgs import add_vsg
 from pydae.urisi.ess.ess import add_ess
 from pydae.urisi.pvs.pvs import add_pv
@@ -62,8 +61,6 @@ def add_vscs(grid):
             ac_3ph_4w_pq(grid,item)
         if item['type'] == 'ac_3ph_4w': 
             ac_3ph_4w(grid,item)
-        if item['type'] == 'breaker': 
-            breaker(grid,item)
 
         if 'vsg' in item:         
             add_vsg(grid,item['vsg'],name,bus_name)  

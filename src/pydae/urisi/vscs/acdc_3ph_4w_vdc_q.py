@@ -9,6 +9,7 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     
     bus_ac_name = vsc_data['bus_ac']
     bus_dc_name = vsc_data['bus_dc']  
+    name = bus_ac_name
     
     A_value  = vsc_data['A']   
     B_value  = vsc_data['B']   
@@ -20,6 +21,7 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     p_ac,q_ac,p_dc,p_loss = sym.symbols(f'p_vsc_{bus_ac_name},q_vsc_{bus_ac_name},p_vsc_{bus_dc_name},p_vsc_loss_{bus_ac_name}',real=True)
     p_a_d,p_b_d,p_c_d,p_n_d = sym.symbols(f'p_a_d_{bus_ac_name},p_b_d_{bus_ac_name},p_c_d_{bus_ac_name},p_n_d_{bus_ac_name}',real=True)
     C_a,C_b,C_c = sym.symbols(f'C_a_{bus_ac_name},C_b_{bus_ac_name},C_c_{bus_ac_name}',real=True)
+    K_droop = sym.symbols(f'K_droop_{name}',real=True)
    
     #### AC voltages:
     v_a_r,v_b_r,v_c_r,v_n_r = sym.symbols(f'V_{bus_ac_name}_0_r,V_{bus_ac_name}_1_r,V_{bus_ac_name}_2_r,V_{bus_ac_name}_3_r', real=True)
@@ -40,7 +42,7 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
 
     v_dc_ref  = sym.Symbol(f'v_dc_{bus_dc_name}_ref', real = True) 
 
-    v_dc = v_dc_ref
+    v_dc = v_dc_ref - K_droop*p_dc
 
 
     A_loss,B_loss,C_loss = sym.symbols(f'A_{bus_ac_name},B_{bus_ac_name},C_{bus_ac_name}',real=True)
@@ -168,6 +170,9 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     grid.dae['params_dict'].update({f'R_dc_{bus_dc_name}':1e-6})
     grid.dae['params_dict'].update({f'K_dc_{bus_dc_name}':1e-6})
     grid.dae['params_dict'].update({f'R_gdc_{bus_dc_name}':3.0})    
+    grid.dae['params_dict'].update({f'{K_droop}':0.0})    
+
+    
 
     grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':1.0})
     

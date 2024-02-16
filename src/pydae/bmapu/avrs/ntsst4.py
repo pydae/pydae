@@ -9,7 +9,7 @@ Created on Thu August 10 23:52:55 2022
 import sympy as sym
 
 
-def ntsst4(dae,syn_data,name,bus_name):
+def ntsst4(dae,data,name,bus_name):
     '''
 
     .. table:: Constants
@@ -27,7 +27,7 @@ def ntsst4(dae,syn_data,name,bus_name):
 
     '''
 
-    avr_data = syn_data['avr']
+    avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']

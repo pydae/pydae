@@ -1341,6 +1341,36 @@ def sym2xyup_mp(sys,full_list,inirun):
     logging.debug('end full_list update with xyup and tipo')
 
 
+def build_numba(sys_dict,verbose=False):
+
+    b = builder(sys_dict,verbose=verbose)
+    b.sparse = True
+    b.mkl = False
+    b.uz_jacs = True
+    b.dict2system()
+    b.functions()
+    b.jacobians()
+    b.cwrite()
+    b.template()
+    b.compile()
+
+def build_mkl(sys_dict,verbose=False,platform='windows'):
+    '''
+    
+    sys_dict: dictionary with the DAE system
+    platform: "windows", "linux" 
+    '''
+
+    b = builder(sys_dict,verbose=True)
+    b.sparse = True
+    b.mkl = True
+    b.platform = platform
+    b.dict2system()
+    b.functions()
+    b.jacobians()
+    b.cwrite()
+    b.template()
+    b.compile_mkl()
 
 def test_numba():
 
@@ -1350,7 +1380,7 @@ def test_numba():
     sys_dict = dae('temp') 
 
     b = builder(sys_dict,verbose=True)
-    b.sparse = True
+    b.sparse = False
     b.mkl = False
     b.uz_jacs = True
     b.dict2system()
