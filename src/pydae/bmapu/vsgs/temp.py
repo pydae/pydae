@@ -97,11 +97,11 @@ class model:
         self.N_z = 10 
         self.N_store = 100000 
         self.params_list = ['S_base', 'g_1_2', 'b_1_2', 'bs_1_2', 'U_1_n', 'U_2_n', 'S_n_1', 'F_n_1', 'T_1', 'F_1', 'D_s_1', 'H_1', 'K_1', 'R_v_1', 'X_v_1', 'K_g_1', 'T_q_1', 'K_q_1', 'K_p_v_1', 'K_i_v_1', 'K_delta_1', 'S_n_2', 'F_n_2', 'X_v_2', 'R_v_2', 'K_delta_2', 'K_alpha_2', 'K_rocov_2', 'K_p_agc', 'K_i_agc', 'K_xif'] 
-        self.params_values_list  = [100000000.0, 0.0, -9.999999999999998, 0.0, 20000.0, 20000.0, 100000000.0, 50, 0.152, 0.0019, 0, 5, 0.1382, 0.0, 0.2, 1047.2, 0.1, 20.0, 1e-06, 1e-06, 0, 10000000000.0, 50.0, 0.1, 0.0, 1e-06, 1e-06, 1e-06, 0.0, 0.001, 1e-06] 
+        self.params_values_list  = [100000000, 0.0, -9.999999999999998, 0.0, 20000, 20000, 100000000, 50, 0.152, 0.0019, 0, 5, 0.1382, 0, 0.2, 1047.2, 0.1, 20, 1e-06, 1e-06, 0, 10000000000.0, 50, 0.1, 0, 1e-06, 1e-06, 1e-06, 0, 1e-06, 1e-06] 
         self.inputs_ini_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'p_l_1', 'q_l_1', 'p_r_1', 'q_r_1', 'v_ref_1', 'alpha_2', 'v_ref_2', 'omega_ref_2', 'delta_ref_2', 'phi_2', 'rocov_2'] 
-        self.inputs_ini_values_list  = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
+        self.inputs_ini_values_list  = [0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
         self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'p_l_1', 'q_l_1', 'p_r_1', 'q_r_1', 'v_ref_1', 'alpha_2', 'v_ref_2', 'omega_ref_2', 'delta_ref_2', 'phi_2', 'rocov_2'] 
-        self.inputs_run_values_list = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
+        self.inputs_run_values_list = [0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
         self.outputs_list = ['V_1', 'V_2', 'omega_v_1', 'p_ref_1', 'q_ref_1', 'v_ref_1', 'i_sd_1', 'i_sq_1', 'alpha_2', 'Dv_2'] 
         self.x_list = ['delta_1', 'x_v_1', 'x_w_1', 'e_qm_1', 'xi_v_1', 'delta_2', 'Domega_2', 'Dv_2', 'xi_freq'] 
         self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'i_d_ref_1', 'i_q_ref_1', 'p_1', 'q_1', 'e_qv_1', 'omega_2', 'i_d_2', 'i_q_2', 'p_s_2', 'q_s_2', 'omega_coi', 'p_agc'] 

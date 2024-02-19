@@ -1,0 +1,20 @@
+{
+system:{name:"milano4ord",S_base:100e6, K_p_agc:0.0,K_i_agc:0.0, K_xif:0.01},       
+buses:[{name:"1", P_W:0.0,Q_var:0.0,U_kV:20.0},
+       {name:"2", P_W:0.0,Q_var:0.0,U_kV:20.0}
+        ],
+lines:[{bus_j:"1", bus_k:"2", X_pu:0.05,R_pu:0.01,Bs_pu:1e-6,S_mva:200}],
+shunts: [{bus:"1", X_pu:1e6, R_pu:0.0, S_mva:100}],
+syns:[
+      {bus:"1",S_n:200e6, K_delta:0.0,
+         X_d:1.8,X1d:0.3, T1d0:8.0,    
+         X_q:1.7,X1q:0.55,T1q0:0.4,  
+         R_a:0.01,X_l: 0.2, 
+         H:5.0,D:0.0,
+         Omega_b:314.1592653589793,omega_s:1.0,K_sec:0.0,
+      //avr:{type:"ntsst1",T_r:0.1,K_a:200.0,T_a:0.015,T_b:10.0,T_c:1.0,v_ref:1.0}
+      avr:{type:"ntsst1",T_r:0.1,K_a:200.0,T_a:0.1,T_b:1.0,T_c:1.0,v_ref:1.0}
+      }
+      ],
+"sources":[{"type":"vsource","bus":"2"}]
+}
