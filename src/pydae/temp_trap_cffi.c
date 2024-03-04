@@ -566,27 +566,342 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
 
 /************************************************************/
 
+void de_jac_trap_up_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+
+data[2] = -0.5*Dt; 
+data[9] = -0.5*Dt; 
+data[14] = 0.5*Dt*p[3]/p[2] + 1; 
+data[21] = 0.5*Dt*p[3]/p[2] + 1; 
+
+}
+
+void de_jac_trap_xy_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+
+data[12] = 1.0*Dt*y[0]/p[2]; 
+data[16] = 1.0*Dt*x[0]/p[2]; 
+data[19] = 1.0*Dt*y[0]/p[2]; 
+data[22] = 1.0*Dt*x[1]/p[2]; 
+data[24] = 2*x[0]; 
+data[25] = 2*x[1]; 
+data[30] = -x[1]/(pow(x[0], 2) + pow(x[1], 2)); 
+data[31] = x[0]/(pow(x[0], 2) + pow(x[1], 2)); 
+
+}
+
+void de_jac_trap_num_eval(double *data,double *x,double *y,double *u,double *p,double Dt){
+
+data[0] = 1; 
+data[7] = 1; 
+data[28] = -9.9999999999999995e-7; 
+data[35] = -1; 
+
+}
+
 
 
 /************************************************************/
 
 static void *_cffi_types[] = {
-  0
+/*  0 */ _CFFI_OP(_CFFI_OP_FUNCTION, 8), // void()(double *, double *, double *, double *, double *, double)
+/*  1 */ _CFFI_OP(_CFFI_OP_POINTER, 6), // double *
+/*  2 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
+/*  3 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
+/*  4 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
+/*  5 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
+/*  6 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 14), // double
+/*  7 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/*  8 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 0), // void
+};
+
+static void _cffi_d_de_jac_trap_num_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_jac_trap_num_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_jac_trap_num_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_jac_trap_num_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_jac_trap_num_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_jac_trap_num_eval _cffi_d_de_jac_trap_num_eval
+#endif
+
+static void _cffi_d_de_jac_trap_up_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_jac_trap_up_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_jac_trap_up_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_jac_trap_up_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_jac_trap_up_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_jac_trap_up_eval _cffi_d_de_jac_trap_up_eval
+#endif
+
+static void _cffi_d_de_jac_trap_xy_eval(double * x0, double * x1, double * x2, double * x3, double * x4, double x5)
+{
+  de_jac_trap_xy_eval(x0, x1, x2, x3, x4, x5);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_de_jac_trap_xy_eval(PyObject *self, PyObject *args)
+{
+  double * x0;
+  double * x1;
+  double * x2;
+  double * x3;
+  double * x4;
+  double x5;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+
+  if (!PyArg_UnpackTuple(args, "de_jac_trap_xy_eval", 6, 6, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(1), arg4, (char **)&x4);
+  if (datasize != 0) {
+    x4 = ((size_t)datasize) <= 640 ? (double *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(1), arg4, (char **)&x4,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x5 = (double)_cffi_to_c_double(arg5);
+  if (x5 == (double)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { de_jac_trap_xy_eval(x0, x1, x2, x3, x4, x5); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+#else
+#  define _cffi_f_de_jac_trap_xy_eval _cffi_d_de_jac_trap_xy_eval
+#endif
+
+static const struct _cffi_global_s _cffi_globals[] = {
+  { "de_jac_trap_num_eval", (void *)_cffi_f_de_jac_trap_num_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_jac_trap_num_eval },
+  { "de_jac_trap_up_eval", (void *)_cffi_f_de_jac_trap_up_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_jac_trap_up_eval },
+  { "de_jac_trap_xy_eval", (void *)_cffi_f_de_jac_trap_xy_eval, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 0), (void *)_cffi_d_de_jac_trap_xy_eval },
 };
 
 static const struct _cffi_type_context_s _cffi_type_context = {
   _cffi_types,
-  NULL,  /* no globals */
+  _cffi_globals,
   NULL,  /* no fields */
   NULL,  /* no struct_unions */
   NULL,  /* no enums */
   NULL,  /* no typenames */
-  0,  /* num_globals */
+  3,  /* num_globals */
   0,  /* num_struct_unions */
   0,  /* num_enums */
   0,  /* num_typenames */
   NULL,  /* no includes */
-  0,  /* num_types */
+  9,  /* num_types */
   0,  /* flags */
 };
 

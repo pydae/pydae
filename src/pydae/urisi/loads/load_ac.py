@@ -107,23 +107,29 @@ def load_ac(grid,data):
 
     p_load_N,q_load_N = 0.0,0.0
     if 'kVA' in data:
-        S_N = data['kVA']*1000
-        pf_N = data['pf']
+        if isinstance(data['kVA'], float) or isinstance(data['kVA'],int):
+            S_N = np.array([data['kVA']]*3)*1000.0
+            pf_N = np.array([data['pf']]*3)
+        else: 
+            S_N = np.array(data['kVA'])*1000.0
+            pf_N = np.array(data['pf'])
         p_load_N = S_N*np.abs(pf_N)
         q_load_N = np.sqrt(S_N**2 - p_load_N**2)*np.sign(pf_N)
     if 'kW' in data:
         p_load_N =  data['kW']*1000
         q_load_N =  data['kvar']*1000
 
+    it = 0
     for phase in ['a','b','c']:
-        self.dae['u_ini_dict'].update({f'p_load_{name}_{phase}':p_load_N/3})
-        self.dae['u_ini_dict'].update({f'q_load_{name}_{phase}':q_load_N/3})
-        self.dae['u_run_dict'].update({f'p_load_{name}_{phase}':p_load_N/3})
-        self.dae['u_run_dict'].update({f'q_load_{name}_{phase}':q_load_N/3})
+        self.dae['u_ini_dict'].update({f'p_load_{name}_{phase}':p_load_N[it]/3})
+        self.dae['u_ini_dict'].update({f'q_load_{name}_{phase}':q_load_N[it]/3})
+        self.dae['u_run_dict'].update({f'p_load_{name}_{phase}':p_load_N[it]/3})
+        self.dae['u_run_dict'].update({f'q_load_{name}_{phase}':q_load_N[it]/3})
         self.dae['u_ini_dict'].update({f'g_load_{name}_{phase}':0.0})
         self.dae['u_ini_dict'].update({f'b_load_{name}_{phase}':0.0})
         self.dae['u_run_dict'].update({f'g_load_{name}_{phase}':0.0})
         self.dae['u_run_dict'].update({f'b_load_{name}_{phase}':0.0})
+        it += 1
 
     self.dae['params_dict'].update({f'K_abc_{name}':1.0})
     self.dae['h_dict'].update({f'v_anm_{name}':v_anm})

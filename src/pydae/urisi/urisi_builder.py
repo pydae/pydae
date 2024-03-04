@@ -14,7 +14,7 @@ from pydae.urisi.ess.ess import add_ess
 from pydae.urisi.miscellaneous.breaker import add_breakers
 
 import pydae.build_cffi as db
-from pydae.build_v2 import builder
+from pydae.build_v2 import build_numba,build_mkl
 
 import requests
 
@@ -216,7 +216,6 @@ class urisi:
         if 'phi_deg_default' in self.system:
             phi_deg_default = self.system['phi_deg_default']
         phi_default = np.deg2rad(phi_deg_default)
-        print(phi_default)
 
 
         for bus in self.buses:
@@ -343,34 +342,34 @@ class urisi:
 
         self.sys_dict = sys_dict 
 
-    def compile(self, name):
+    def compile_numba(self, name):
 
-        bldr = builder(self.sys_dict,verbose=self.verbose);
-        bldr.sparse = False
-        bldr.mkl = False
-        bldr.uz_jacs = False
-        bldr.dict2system()
-        bldr.functions()
-        bldr.jacobians()
-        bldr.cwrite()
-        bldr.template()
-        bldr.compile()  
+        build_numba(self.sys_dict,verbose=self.verbose) 
 
     def compile_mkl(self, name):
 
-        b = builder(self.sys_dict,verbose=self.verbose)
-        b.sparse = True
-        b.mkl = True
-        b.uz_jacs = self.uz_jacs
-        b.dict2system()
-        b.functions()
-        b.jacobians()
-        b.cwrite()
-        b.template()
-        b.compile_mkl()  
+        b = build_mkl(self.sys_dict,verbose=self.verbose)
+        # b.sparse = True
+        # b.mkl = True
+        # b.uz_jacs = self.uz_jacs
+        # b.dict2system()
+        # b.functions()
+        # b.jacobians()
+        # b.cwrite()
+        # b.template()
+        # b.compile_mkl()  
 
     def build(self, name=''):
         if name == '':
             print('Error: name is not provided.')
         self.construct(name)    
-        self.compile(name)  
+        self.compile_numba(name)  
+
+    def build_mkl(self, name=''):
+        if name == '':
+            print('Error: name is not provided.')
+        self.construct(name)  
+        self.uz_jacs = False  
+        self.compile_mkl(name)  
+
+    

@@ -1,26 +1,61 @@
 import numpy as np
+import numba
+import scipy.optimize as sopt
 import scipy.sparse as sspa
+from scipy.sparse.linalg import spsolve,spilu,splu
+from numba import cuda
 import cffi
-import solver_ini,solver_run
+import numba.core.typing.cffi_utils as cffi_support
+from io import BytesIO
+import pkgutil
 
 dae_file_mode = 'local'
 
 ffi = cffi.FFI()
 
+if dae_file_mode == 'local':
+    import temp_ini_cffi as jacs_ini
+    import temp_run_cffi as jacs_run
+    import temp_trap_cffi as jacs_trap
+
+if dae_file_mode == 'enviroment':
+    import envus.no_enviroment.temp_cffi as jacs
+if dae_file_mode == 'colab':
+    import temp_cffi as jacs
+    
+cffi_support.register_module(jacs_ini)
+cffi_support.register_module(jacs_run)
+cffi_support.register_module(jacs_trap)
+
+f_ini_eval = jacs_ini.lib.f_ini_eval
+g_ini_eval = jacs_ini.lib.g_ini_eval
+f_run_eval = jacs_run.lib.f_run_eval
+g_run_eval = jacs_run.lib.g_run_eval
+h_eval  = jacs_ini.lib.h_eval
+
 sparse = False
 
+de_jac_ini_xy_eval = jacs_ini.lib.de_jac_ini_xy_eval
+de_jac_ini_up_eval = jacs_ini.lib.de_jac_ini_up_eval
+de_jac_ini_num_eval = jacs_ini.lib.de_jac_ini_num_eval
 
 if sparse:
     sp_jac_ini_xy_eval = jacs.lib.sp_jac_ini_xy_eval
     sp_jac_ini_up_eval = jacs.lib.sp_jac_ini_up_eval
     sp_jac_ini_num_eval = jacs.lib.sp_jac_ini_num_eval
 
+de_jac_run_xy_eval = jacs_run.lib.de_jac_run_xy_eval
+de_jac_run_up_eval = jacs_run.lib.de_jac_run_up_eval
+de_jac_run_num_eval = jacs_run.lib.de_jac_run_num_eval
 
 if sparse:
     sp_jac_run_xy_eval = jacs.lib.sp_jac_run_xy_eval
     sp_jac_run_up_eval = jacs.lib.sp_jac_run_up_eval
     sp_jac_run_num_eval = jacs.lib.sp_jac_run_num_eval
 
+de_jac_trap_xy_eval= jacs_trap.lib.de_jac_trap_xy_eval            
+de_jac_trap_up_eval= jacs_trap.lib.de_jac_trap_up_eval        
+de_jac_trap_num_eval= jacs_trap.lib.de_jac_trap_num_eval
 
 if sparse:
     sp_jac_trap_xy_eval= jacs.lib.sp_jac_trap_xy_eval            
@@ -46,7 +81,7 @@ class model:
     def __init__(self): 
         
         self.matrices_folder = 'build'
-        self.sparse = True
+        self.sparse = False
         self.dae_file_mode = 'local'
         self.t_end = 10.000000 
         self.Dt = 0.0010000 
@@ -105,25 +140,83 @@ class model:
         self.u_run = np.array(self.u_run_values_list,dtype=np.float64)
  
         ## jac_ini
+        self.jac_ini = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         if self.sparse:
-            self.sp_jac_ini_indices, self.sp_jac_ini_indptr, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
-            self.sp_jac_ini_indices = np.array(self.sp_jac_ini_indices,dtype=np.int32)    
-            self.sp_jac_ini_indptr = np.array(self.sp_jac_ini_indptr,dtype=np.int32)    
-            self.sp_jac_ini_data = np.array(self.sp_jac_ini_indices,dtype=np.float64)            
+            self.sp_jac_ini_ia, self.sp_jac_ini_ja, self.sp_jac_ini_nia, self.sp_jac_ini_nja = sp_jac_ini_vectors()
+            data = np.array(self.sp_jac_ini_ia,dtype=np.float64)
+        #self.sp_jac_ini = sspa.csr_matrix((data, self.sp_jac_ini_ia, self.sp_jac_ini_ja), shape=(self.sp_jac_ini_nia,self.sp_jac_ini_nja))
+           
+        if self.dae_file_mode == 'enviroment':
+            fobj = BytesIO(pkgutil.get_data(__name__, f'./temp_sp_jac_ini_num.npz'))
+            self.sp_jac_ini = sspa.load_npz(fobj)
+        else:
+            self.sp_jac_ini = sspa.load_npz(f'./{self.matrices_folder}/temp_sp_jac_ini_num.npz')
+            
+            
+        self.jac_ini = self.sp_jac_ini.toarray()
+
+        #self.J_ini_d = np.array(self.sp_jac_ini_ia)*0.0
+        #self.J_ini_i = np.array(self.sp_jac_ini_ia)
+        #self.J_ini_p = np.array(self.sp_jac_ini_ja)
+        de_jac_ini_eval(self.jac_ini,x,y,self.u_ini,self.p,self.Dt)
+        if self.sparse:
+            sp_jac_ini_eval(self.sp_jac_ini.data,x,y,self.u_ini,self.p,self.Dt) 
+            self.fill_factor_ini,self.drop_tol_ini,self.drop_rule_ini = 100,1e-10,'basic'       
+
 
         ## jac_run
+        self.jac_run = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
         if self.sparse:
-            self.sp_jac_run_indices, self.sp_jac_run_indptr, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
-            self.sp_jac_run_indices = np.array(self.sp_jac_run_indices,dtype=np.int32)    
-            self.sp_jac_run_indptr = np.array(self.sp_jac_run_indptr,dtype=np.int32)    
-            self.sp_jac_run_data = np.array(self.sp_jac_run_indices,dtype=np.float64)
+            self.sp_jac_run_ia, self.sp_jac_run_ja, self.sp_jac_run_nia, self.sp_jac_run_nja = sp_jac_run_vectors()
+            data = np.array(self.sp_jac_run_ia,dtype=np.float64)
 
-        ## jac_trap
+        if self.dae_file_mode == 'enviroment':
+            fobj = BytesIO(pkgutil.get_data(__name__, './temp_sp_jac_run_num.npz'))
+            self.sp_jac_run = sspa.load_npz(fobj)
+        else:
+            self.sp_jac_run = sspa.load_npz(f'./{self.matrices_folder}/temp_sp_jac_run_num.npz')
+        self.jac_run = self.sp_jac_run.toarray()            
+
+        if self.sparse:           
+            self.J_run_d = np.array(self.sp_jac_run_ia)*0.0
+            self.J_run_i = np.array(self.sp_jac_run_ia)
+            self.J_run_p = np.array(self.sp_jac_run_ja)
+        de_jac_run_eval(self.jac_run,x,y,self.u_run,self.p,self.Dt)
+
         if self.sparse:
-            self.sp_jac_trap_indices, self.sp_jac_trap_indptr, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
-            self.sp_jac_trap_indices = np.array(self.sp_jac_trap_indices,dtype=np.int32)    
-            self.sp_jac_trap_indptr = np.array(self.sp_jac_trap_indptr,dtype=np.int32)    
-            self.sp_jac_trap_data = np.array(self.sp_jac_trap_indices,dtype=np.float64)
+            sp_jac_run_eval(self.J_run_d,x,y,self.u_run,self.p,self.Dt)
+        
+        ## jac_trap
+        self.jac_trap = np.zeros((self.N_x+self.N_y,self.N_x+self.N_y))
+
+        if self.sparse:
+
+            self.sp_jac_trap_ia, self.sp_jac_trap_ja, self.sp_jac_trap_nia, self.sp_jac_trap_nja = sp_jac_trap_vectors()
+            data = np.array(self.sp_jac_trap_ia,dtype=np.float64)
+            #self.sp_jac_trap = sspa.csr_matrix((data, self.sp_jac_trap_ia, self.sp_jac_trap_ja), shape=(self.sp_jac_trap_nia,self.sp_jac_trap_nja))
+        
+        
+
+        if self.dae_file_mode == 'enviroment':
+            fobj = BytesIO(pkgutil.get_data(__name__, './temp_sp_jac_trap_num.npz'))
+            self.sp_jac_trap = sspa.load_npz(fobj)
+        else:
+            self.sp_jac_trap = sspa.load_npz(f'./{self.matrices_folder}/temp_sp_jac_trap_num.npz')
+            
+
+        self.jac_trap = self.sp_jac_trap.toarray()
+        
+        #self.J_trap_d = np.array(self.sp_jac_trap_ia)*0.0
+        #self.J_trap_i = np.array(self.sp_jac_trap_ia)
+        #self.J_trap_p = np.array(self.sp_jac_trap_ja)
+        de_jac_trap_eval(self.jac_trap,x,y,self.u_run,self.p,self.Dt)
+        if self.sparse:
+            sp_jac_trap_eval(self.sp_jac_trap.data,x,y,self.u_run,self.p,self.Dt)
+            self.fill_factor_trap,self.drop_tol_trap,self.drop_rule_trap = 100,1e-10,'basic' 
+    
+
+        
+
         
         self.max_it,self.itol,self.store = 50,1e-8,1 
         self.lmax_it,self.ltol,self.ldamp= 50,1e-8,1.0
@@ -139,178 +232,110 @@ class model:
         
         self.ss_solver = 2
         self.lsolver = 2
-
-        # ini initialization
-        self.inidblparams = np.zeros(10,dtype=np.float64)
-        self.iniintparams = np.zeros(10,dtype=np.int32)
-
-        # run initialization
-        self.rundblparams = np.zeros(10,dtype=np.float64)
-        self.runintparams = np.zeros(10,dtype=np.int32)
-
-        self.xy = self.xy_0
-        self.pt_ini = np.zeros(64,dtype=np.int32)
-        xy = self.xy
-        x = xy[:self.N_x]
-        y_ini = xy[self.N_x:]
-        Dxy = np.zeros((self.N_x+self.N_y),dtype=np.float64)
+ 
         
-        self.f = np.zeros((self.N_x),dtype=np.float64)
-        self.g = np.zeros((self.N_y),dtype=np.float64)
-        self.fg = np.zeros((self.N_x+self.N_y),dtype=np.float64)
 
 
-        self.p_pt_ini =solver_ini.ffi.cast('int *', self.pt_ini.ctypes.data)
-        self.p_sp_jac_ini = solver_ini.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
-        self.p_indptr = solver_ini.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
-        self.p_indices = solver_ini.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
-        self.p_x = solver_ini.ffi.cast('double *', x.ctypes.data)
-        self.p_y_ini = solver_ini.ffi.cast('double *', y_ini.ctypes.data)
-        self.p_xy = solver_ini.ffi.cast('double *', self.xy.ctypes.data)
-        self.p_Dxy = solver_ini.ffi.cast('double *', Dxy.ctypes.data)
-        self.p_u_ini = solver_ini.ffi.cast('double *', self.u_ini.ctypes.data)
-        self.p_p = solver_ini.ffi.cast('double *', self.p.ctypes.data)
-        self.p_z = solver_ini.ffi.cast('double *', self.z.ctypes.data)
-        self.p_inidblparams = solver_ini.ffi.cast('double *', self.inidblparams.ctypes.data)
-        self.p_iniintparams = solver_ini.ffi.cast('int *', self.iniintparams.ctypes.data)
-        self.p_f = solver_ini.ffi.cast('double *', self.f.ctypes.data)
-        self.p_g = solver_ini.ffi.cast('double *', self.g.ctypes.data)
-        self.p_fg = solver_ini.ffi.cast('double *', self.fg.ctypes.data)
 
-        self.pt_run = np.zeros(64,dtype=np.int32)
+        
+    def update(self):
 
-        self.p_pt_run =solver_ini.ffi.cast('int *', self.pt_run.ctypes.data)
+        self.Time = np.zeros(self.N_store)
+        self.X = np.zeros((self.N_store,self.N_x))
+        self.Y = np.zeros((self.N_store,self.N_y))
+        self.Z = np.zeros((self.N_store,self.N_z))
+        self.iters = np.zeros(self.N_store)
+        
+    def ss_ini(self):
 
-        self.X = np.zeros((100_000*self.N_x))
-        self.Y = np.zeros((100_000*self.N_y))
-        self.Z = np.zeros((100_000*self.N_z))
-        self.Time = np.zeros((100_000))
-        self.its = np.array([0],dtype=np.int32)
-
-    # def update(self):
-
-    #     self.Time = np.zeros(self.N_store)
-    #     self.X = np.zeros((self.N_store,self.N_x))
-    #     self.Y = np.zeros((self.N_store,self.N_y))
-    #     self.Z = np.zeros((self.N_store,self.N_z))
-    #     self.iters = np.zeros(self.N_store)
+        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,self.jac_ini,self.N_x,self.N_y)
+        self.xy_ini = xy_ini
+        self.N_iters = it
+        
+        return xy_ini
     
+    # def ini(self,up_dict,xy_0={}):
+
+    #     for item in up_dict:
+    #         self.set_value(item,up_dict[item])
+            
+    #     self.xy_ini = self.ss_ini()
+    #     self.ini2run()
+    #     jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+    #     jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+        
     def jac_run_eval(self):
         de_jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p,self.Dt)
       
-    def post_run_checker(self):
-
-        self.N_iters = self.runintparams[2]  # number of iterations done
-        self.N_mkl_factorizations = self.runintparams[3]
-        self.N_mkl_resets = self.runintparams[4]
-        self.pt_run_sum = np.sum(self.pt_run) # this variable should be 0
-
+    
     def run(self,t_end,up_dict):
-
         for item in up_dict:
             self.set_value(item,up_dict[item])
             
         t = self.t
+        p = self.p
         it = self.it
         it_store = self.it_store
         xy = self.xy
         u = self.u_run
         z = self.z
-
-        pt = np.zeros(64,dtype=np.int32)
-        xy = self.xy
-        x = xy[:self.N_x]
-        y_run = xy[self.N_x:]
-
-        p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
-        p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
-        p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
-        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-        p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
-        p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
-        p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
-        p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
-        p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
-        p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
-        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-        p_X = solver_run.ffi.cast('double *', self.X.ctypes.data)
-        p_Y = solver_run.ffi.cast('double *', self.Y.ctypes.data)
-        p_Z = solver_run.ffi.cast('double *', self.Z.ctypes.data)
-        p_Time = solver_run.ffi.cast('double *', self.Time.ctypes.data)
-        p_its = solver_run.ffi.cast('int *', self.its.ctypes.data)
-        p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
-        N_x = self.N_x
-        N_y = self.N_y
-        max_it = self.max_it
-        itol = self.itol
-        max_it = 5
-        itol = 1e-8
-
-        solver_run.lib.run(self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams, p_Time, p_X, p_Y, p_Z, self.N_z, self.N_store)
-
-
-        self.t = self.rundblparams[0]
+        
+        t,it,it_store,xy = daesolver(t,t_end,it,it_store,xy,u,p,z,
+                                  self.jac_trap,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  max_it=self.max_it,itol=self.itol,store=self.store)
+        
+        self.t = t
         self.it = it
-        self.it_store = self.its[0]
+        self.it_store = it_store
         self.xy = xy
         self.z = z
-
-    def step(self,t_end,up_dict):
-
+ 
+    def runsp(self,t_end,up_dict):
         for item in up_dict:
             self.set_value(item,up_dict[item])
             
         t = self.t
+        p = self.p
         it = self.it
         it_store = self.it_store
         xy = self.xy
         u = self.u_run
-        z = self.z
-
-        pt = np.zeros(64,dtype=np.int32)
-        xy = self.xy
-        x = xy[:self.N_x]
-        y_run = xy[self.N_x:]
-
-        p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
-        p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
-        p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
-        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-        p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
-        p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
-        p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
-        p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
-        p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
-        p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
-        p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-        p_X = solver_run.ffi.cast('double *', self.X.ctypes.data)
-        p_Y = solver_run.ffi.cast('double *', self.Y.ctypes.data)
-        p_Z = solver_run.ffi.cast('double *', self.Z.ctypes.data)
-        p_Time = solver_run.ffi.cast('double *', self.Time.ctypes.data)
-        p_its = solver_run.ffi.cast('int *', self.its.ctypes.data)
-        p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
-        N_x = self.N_x
-        N_y = self.N_y
-        max_it = self.max_it
-        itol = self.itol
-        itol = 1e-8
-
-        solver_run.lib.step3(self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams, p_Time, p_X, p_Y, p_Z, self.N_z, self.N_store)
-
-        self.t = self.rundblparams[0]
+        
+        t,it,it_store,xy = daesolver_sp(t,t_end,it,it_store,xy,u,p,
+                                  self.sp_jac_trap,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  max_it=50,itol=1e-8,store=1)
+        
+        self.t = t
         self.it = it
-        self.it_store = self.its[0]
+        self.it_store = it_store
         self.xy = xy
-        self.z = z
-        self.it_max = self.runintparams[5]
         
     def post(self):
         
-        self.Time = self.Time[:self.its[0]].reshape(self.its[0],1)
-        self.X = self.X[:self.its[0]*self.N_x].reshape(self.its[0],self.N_x)
-        self.Y = self.Y[:self.its[0]*self.N_y].reshape(self.its[0],self.N_y)
-        self.Z = self.Z[:self.its[0]*self.N_z].reshape(self.its[0],self.N_z)
-
+        self.Time = self.Time[:self.it_store]
+        self.X = self.X[:self.it_store]
+        self.Y = self.Y[:self.it_store]
+        self.Z = self.Z[:self.it_store]
         
     def ini2run(self):
         
@@ -329,8 +354,11 @@ class model:
         
         self.x = self.xy_ini[:self.N_x]
         self.xy[:self.N_x] = self.x
-        self.xy[self.N_x:] = self.y_run        
+        self.xy[self.N_x:] = self.y_run
+        c_h_eval(self.z,self.x,self.y_run,self.u_run,self.p,self.Dt)
+        
 
+        
     def get_value(self,name):
         
         if name in self.inputs_run_list:
@@ -419,16 +447,7 @@ class model:
     def report_params(self,value_format='5.2f'):
         for item in self.params_list:
             print(f'{item:5s} ={self.get_value(item):{value_format}}')
-
-
-    def post_ini_checker(self):
-
-        self.N_iters = self.iniintparams[2]  # number of iterations done
-        self.N_mkl_factorizations = self.iniintparams[3]
-        self.N_mkl_resets = self.iniintparams[4]
-        self.pt_ini_sum = np.sum(self.pt_ini) # this variable should be 0
-
-
+            
     def ini(self,up_dict,xy_0={}):
         '''
         Find the steady state of the initialization problem:
@@ -475,71 +494,30 @@ class model:
         if type(xy_0) == float or type(xy_0) == int:
             self.xy_0 = np.ones(self.N_x+self.N_y,dtype=np.float64)*xy_0
 
-        self.f = np.zeros((self.N_x),dtype=np.float64)
-        self.g = np.zeros((self.N_y),dtype=np.float64)
-        self.fg = np.zeros((self.N_x+self.N_y),dtype=np.float64)
-
-        xy = self.xy_0
-        x = xy[:self.N_x]
-        y_ini = xy[self.N_x:]
-        Dxy = np.zeros((self.N_x+self.N_y),dtype=np.float64)
-        self.p_pt_ini =solver_ini.ffi.cast('int *', self.pt_ini.ctypes.data)
-        self.p_sp_jac_ini = solver_ini.ffi.cast('double *', self.sp_jac_ini_data.ctypes.data)
-        self.p_indptr = solver_ini.ffi.cast('int *', self.sp_jac_ini_indptr.ctypes.data)
-        self.p_indices = solver_ini.ffi.cast('int *', self.sp_jac_ini_indices.ctypes.data)
-        self.p_x = solver_ini.ffi.cast('double *', x.ctypes.data)
-        self.p_y_ini = solver_ini.ffi.cast('double *', y_ini.ctypes.data)
-        self.p_xy = solver_ini.ffi.cast('double *', self.xy.ctypes.data)
-        self.p_Dxy = solver_ini.ffi.cast('double *', Dxy.ctypes.data)
-        self.p_u_ini = solver_ini.ffi.cast('double *', self.u_ini.ctypes.data)
-        self.p_p = solver_ini.ffi.cast('double *', self.p.ctypes.data)
-        self.p_z = solver_ini.ffi.cast('double *', self.z.ctypes.data)
-        self.p_inidblparams = solver_ini.ffi.cast('double *', self.inidblparams.ctypes.data)
-        self.p_iniintparams = solver_ini.ffi.cast('int *', self.iniintparams.ctypes.data)
-        self.p_f = solver_ini.ffi.cast('double *', self.f.ctypes.data)
-        self.p_g = solver_ini.ffi.cast('double *', self.g.ctypes.data)
-        self.p_fg = solver_ini.ffi.cast('double *', self.fg.ctypes.data)
-
-
-        solver_ini.lib.ini(self.p_pt_ini,
-                            self.p_sp_jac_ini,
-                            self.p_indptr,
-                            self.p_indices,
-                            self.p_x,
-                            self.p_y_ini,
-                            self.p_xy,
-                            self.p_Dxy,
-                            self.p_u_ini,
-                            self.p_p,
-                            self.N_x,
-                            self.N_y,
-                            self.max_it,
-                            self.itol,
-                            self.p_z,
-                            self.p_inidblparams,
-                            self.p_iniintparams,
-                            self.p_f,
-                            self.p_g,
-                            self.p_fg)
+        xy_ini,it = sstate(self.xy_0,self.u_ini,self.p,
+                           self.jac_ini,
+                           self.N_x,self.N_y,
+                           max_it=self.max_it,tol=self.itol)
         
-        self.post_ini_checker()
-        
-        if self.iniintparams[2] < self.max_it-1:
+        if it < self.max_it-1:
             
-            self.xy_ini = self.xy
-            self.N_iters = self.iniintparams[2]
+            self.xy_ini = xy_ini
+            self.N_iters = it
 
             self.ini2run()
             
             self.ini_convergence = True
             
-        if self.iniintparams[2] >= self.max_it-1:
+        if it >= self.max_it-1:
             print(f'Maximum number of iterations (max_it = {self.max_it}) reached without convergence.')
             self.ini_convergence = False
             
         return self.ini_convergence
             
         
+
+
+    
     def dict2xy0(self,xy_0_dict):
     
         for item in xy_0_dict:
@@ -603,6 +581,150 @@ class model:
         with open(file_name,'w') as fobj:
             fobj.write(inputs_ini_dict_str)
 
+    def eval_preconditioner_ini(self):
+    
+        sp_jac_ini_eval(self.sp_jac_ini.data,self.x,self.y_run,self.u_run,self.p,self.Dt)
+    
+        csc_sp_jac_ini = sspa.csc_matrix(self.sp_jac_ini)
+        P_slu = spilu(csc_sp_jac_ini,
+                  fill_factor=self.fill_factor_ini,
+                  drop_tol=self.drop_tol_ini,
+                  drop_rule = self.drop_rule_ini)
+    
+        self.P_slu = P_slu
+        P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu)   
+        self.P_d = P_d
+        self.P_i = P_i
+        self.P_p = P_p
+    
+        self.perm_r = perm_r
+        self.perm_c = perm_c
+            
+    
+    def eval_preconditioner_trap(self):
+    
+        sp_jac_trap_eval(self.sp_jac_trap.data,self.x,self.y_run,self.u_run,self.p,self.Dt)
+    
+        #self.sp_jac_trap.data = self.J_trap_d 
+        
+        csc_sp_jac_trap = sspa.csc_matrix(self.sp_jac_trap)
+
+
+        P_slu_trap = spilu(csc_sp_jac_trap,
+                          fill_factor=self.fill_factor_trap,
+                          drop_tol=self.drop_tol_trap,
+                          drop_rule = self.drop_rule_trap)
+    
+        self.P_slu_trap = P_slu_trap
+        P_d,P_i,P_p,perm_r,perm_c = slu2pydae(P_slu_trap)   
+        self.P_trap_d = P_d
+        self.P_trap_i = P_i
+        self.P_trap_p = P_p
+    
+        self.perm_trap_r = perm_r
+        self.perm_trap_c = perm_c
+        
+    def sprun(self,t_end,up_dict):
+        
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+    
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        z = self.z
+        self.iparams_run = np.zeros(10,dtype=np.float64)
+    
+        t,it,it_store,xy = spdaesolver(t,t_end,it,it_store,xy,u,p,z,
+                                  self.sp_jac_trap.data,self.sp_jac_trap.indices,self.sp_jac_trap.indptr,
+                                  self.P_trap_d,self.P_trap_i,self.P_trap_p,self.perm_trap_r,self.perm_trap_c,
+                                  self.Time,
+                                  self.X,
+                                  self.Y,
+                                  self.Z,
+                                  self.iters,
+                                  self.Dt,
+                                  self.N_x,
+                                  self.N_y,
+                                  self.N_z,
+                                  self.decimation,
+                                  self.iparams_run,
+                                  max_it=self.max_it,itol=self.max_it,store=self.store,
+                                  lmax_it=self.lmax_it,ltol=self.ltol,ldamp=self.ldamp,mode=self.mode,
+                                  lsolver = self.lsolver)
+    
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+        self.z = z
+
+            
+    def spini(self,up_dict,xy_0={}):
+    
+        self.it = 0
+        self.it_store = 0
+        self.t = 0.0
+    
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
+    
+        if type(xy_0) == dict:
+            xy_0_dict = xy_0
+            self.dict2xy0(xy_0_dict)
+    
+        if type(xy_0) == str:
+            if xy_0 == 'eval':
+                N_x = self.N_x
+                self.xy_0_new = np.copy(self.xy_0)*0
+                xy0_eval(self.xy_0_new[:N_x],self.xy_0_new[N_x:],self.u_ini,self.p)
+                self.xy_0_evaluated = np.copy(self.xy_0_new)
+                self.xy_0 = np.copy(self.xy_0_new)
+            else:
+                self.load_xy_0(file_name = xy_0)
+
+        self.xy_ini = self.spss_ini()
+
+
+        if self.N_iters < self.max_it:
+            
+            self.ini2run()           
+            self.ini_convergence = True
+            
+        if self.N_iters >= self.max_it:
+            print(f'Maximum number of iterations (max_it = {self.max_it}) reached without convergence.')
+            self.ini_convergence = False
+            
+        #jac_run_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+        #jac_run_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
+        
+        return self.ini_convergence
+
+        
+    def spss_ini(self):
+        J_d,J_i,J_p = csr2pydae(self.sp_jac_ini)
+        
+        xy_ini,it,iparams = spsstate(self.xy,self.u_ini,self.p,
+                 self.sp_jac_ini.data,self.sp_jac_ini.indices,self.sp_jac_ini.indptr,
+                 self.P_d,self.P_i,self.P_p,self.perm_r,self.perm_c,
+                 self.N_x,self.N_y,
+                 max_it=self.max_it,tol=self.itol,
+                 lmax_it=self.lmax_it_ini,
+                 ltol=self.ltol_ini,
+                 ldamp=self.ldamp,solver=self.ss_solver)
+
+ 
+        self.xy_ini = xy_ini
+        self.N_iters = it
+        self.iparams = iparams
+    
+        return xy_ini
+
+    #def import_cffi(self):
+        
 
     def eval_jac_u2z(self):
 
@@ -639,90 +761,55 @@ class model:
         self.jac_u2z = Hxy_run @ sspa.linalg.spsolve(self.sp_jac_run,-FGu_run) + self.sp_Hu_run  
         
         
-    # def step(self,t_end,up_dict):
-    #     for item in up_dict:
-    #         self.set_value(item,up_dict[item])
+    def step(self,t_end,up_dict):
+        for item in up_dict:
+            self.set_value(item,up_dict[item])
 
-    #     t = self.t
-    #     p = self.p
-    #     it = self.it
-    #     it_store = self.it_store
-    #     xy = self.xy
-    #     u = self.u_run
-    #     z = self.z
+        t = self.t
+        p = self.p
+        it = self.it
+        it_store = self.it_store
+        xy = self.xy
+        u = self.u_run
+        z = self.z
 
-    #     pt = np.zeros(64,dtype=np.int32)
-    #     xy = self.xy
-    #     x = xy[:self.N_x]
-    #     y_run = xy[self.N_x:]
+        t,it,xy = daestep(t,t_end,it,
+                          xy,u,p,z,
+                          self.jac_trap,
+                          self.iters,
+                          self.Dt,
+                          self.N_x,
+                          self.N_y,
+                          self.N_z,
+                          max_it=self.max_it,itol=self.itol,store=self.store)
 
-    #     p_pt =solver_run.ffi.cast('int *', pt.ctypes.data)
-    #     p_sp_jac_trap = solver_run.ffi.cast('double *', self.sp_jac_trap_data.ctypes.data)
-    #     p_indptr = solver_run.ffi.cast('int *', self.sp_jac_trap_indptr.ctypes.data)
-    #     p_indices = solver_run.ffi.cast('int *', self.sp_jac_trap_indices.ctypes.data)
-    #     p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-    #     p_y_run = solver_run.ffi.cast('double *', y_run.ctypes.data)
-    #     p_xy = solver_run.ffi.cast('double *', self.xy.ctypes.data)
-    #     p_u_run = solver_run.ffi.cast('double *', self.u_run.ctypes.data)
-    #     p_z = solver_run.ffi.cast('double *', self.z.ctypes.data)
-    #     p_dblparams = solver_run.ffi.cast('double *', self.rundblparams.ctypes.data)
-    #     p_intparams = solver_run.ffi.cast('int *', self.runintparams.ctypes.data)
-    #     p_x = solver_run.ffi.cast('double *', x.ctypes.data)
-    #     p_its = solver_run.ffi.cast('int *', self.its.ctypes.data)
-    #     p_p = solver_run.ffi.cast('double *', self.p.ctypes.data)
-    #     N_x = self.N_x
-    #     N_y = self.N_y
-    #     max_it = self.max_it
-    #     itol = self.itol
-    #     max_it = 5
-    #     itol = 1e-8
-
-    #     N_x = self.N_x
-    #     N_y = self.N_y
-    #     max_it = self.max_it
-    #     itol = self.itol
-    #     max_it = 5
-    #     itol = 1e-8
-    #     its = 0
-
-    # #   solver_run.lib.run( self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams, p_Time, p_X, p_Y, p_Z, self.N_z, self.N_store)
-    #     solver_run.lib.step(self.p_pt_run, t, t_end,p_sp_jac_trap, p_indptr,p_indices,p_x,p_y_run,p_xy,p_u_run,p_p,N_x,N_y, max_it, itol, p_its, self.Dt, p_z,p_dblparams, p_intparams)
-
-    #     self.t = t
-    #     self.it = it
-    #     self.it_store = it_store
-    #     self.xy = xy
-    #     self.z = z
+        self.t = t
+        self.it = it
+        self.it_store = it_store
+        self.xy = xy
+        self.z = z
            
-    def save_run(self, file_name = ''):
-
-        np.savez_compressed(file_name, Time = self.Time,
-                            X = self.X,
-                            Y = self.Y,
-                            Z = self.Z,
-                            params = self.p,
-                            u_run = self.u_run,
-                            u_ini = self.u_ini)
+            
+    def save_run(self,file_name):
+        np.savez(file_name,Time=self.Time,
+             X=self.X,Y=self.Y,Z=self.Z,
+             x_list = self.x_list,
+             y_ini_list = self.y_ini_list,
+             y_run_list = self.y_run_list,
+             u_ini_list=self.u_ini_list,
+             u_run_list=self.u_run_list,  
+             z_list=self.outputs_list, 
+            )
         
-        return None            
-
-    def load_run(self, file_name = ''):
-
-        results = np.load(file_name)
-        self.Time = results['Time']
-        self.X = results['X']
-        self.Y = results['Y']
-        self.Z = results['Z']
-        self.p = results['params']
-        self.u_ini = results['u_ini']
-        self.u_run = results['u_run']
-
-        self.t = self.Time[-1]
-        self.xy[:self.N_x] = self.X[-1,:]
-        self.xy[self.N_x:] = self.Y[-1,:]
-        self.z = self.Z[-1,:]    
-        return None
-        
+    def load_run(self,file_name):
+        data = np.load(f'{file_name}.npz')
+        self.Time = data['Time']
+        self.X = data['X']
+        self.Y = data['Y']
+        self.Z = data['Z']
+        self.x_list = list(data['x_list'] )
+        self.y_run_list = list(data['y_run_list'] )
+        self.outputs_list = list(data['z_list'] )
         
     def full_jacs_eval(self):
         N_x = self.N_x
@@ -758,6 +845,955 @@ class model:
         self.Hx = sp_Hx
         self.Hy = sp_Hy
         self.Hu = sp_Hu
+
+
+@numba.njit() 
+def daestep(t,t_end,it,xy,u,p,z,jac_trap,iters,Dt,N_x,N_y,N_z,max_it=50,itol=1e-8,store=1): 
+
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    #h = np.zeros((N_z),dtype=np.float64)
+    
+    f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    z_ptr=ffi.from_buffer(np.ascontiguousarray(z))
+    x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    jac_trap_ptr=ffi.from_buffer(np.ascontiguousarray(jac_trap))
+    
+    #de_jac_trap_num_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
+    de_jac_trap_up_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    
+    if it == 0:
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        it_store = 0  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+
+            x += Dxy_i[:N_x]
+            y += Dxy_i[N_x:] 
+            
+            #print(Dxy_i)
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+    return t,it,xy
+
+
+def daesolver_sp(t,t_end,it,it_store,xy,u,p,sp_jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    h = np.zeros((N_z),dtype=np.float64)
+    sp_jac_trap_eval_up(sp_jac_trap.data,x,y,u,p,Dt,xyup=1)
+    
+    if it == 0:
+        f_run_eval(f,x,y,u,p)
+        h_eval(h,x,y,u,p)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = h  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f,x,y,u,p)
+        g_run_eval(g,x,y,u,p)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f,x,y,u,p)
+            g_run_eval(g,x,y,u,p)
+            sp_jac_trap_eval(sp_jac_trap.data,x,y,u,p,Dt,xyup=1)            
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = spsolve(sp_jac_trap,-fg_i) 
+
+            x = x + Dxy_i[:N_x]
+            y = y + Dxy_i[N_x:]              
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(h,x,y,u,p)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = h
+                iters[it_store+1] = iti
+                it_store += 1 
+
+    return t,it,it_store,xy
+
+
+
+
+@numba.njit()
+def sprichardson(A_d,A_i,A_p,b,P_d,P_i,P_p,perm_r,perm_c,x,iparams,damp=1.0,max_it=100,tol=1e-3):
+    N_A = A_p.shape[0]-1
+    f = np.zeros(N_A)
+    for it in range(max_it):
+        spMvmul(N_A,A_d,A_i,A_p,x,f) 
+        f -= b                          # A@x-b
+        x = x - damp*splu_solve(P_d,P_i,P_p,perm_r,perm_c,f)   
+        if np.linalg.norm(f,2) < tol: break
+    iparams[0] = it
+    return x
+    
+@numba.njit()
+def spconjgradm(A_d,A_i,A_p,b,P_d,P_i,P_p,perm_r,perm_c,x,iparams,max_it=100,tol=1e-3, damp=None):
+    """
+    A function to solve [A]{x} = {b} linear equation system with the 
+    preconditioned conjugate gradient method.
+    More at: http://en.wikipedia.org/wiki/Conjugate_gradient_method
+    ========== Parameters ==========
+    A_d,A_i,A_p : sparse matrix 
+        components in CRS form A_d = A_crs.data, A_i = A_crs.indices, A_p = A_crs.indptr.
+    b : vector
+        The right hand side (RHS) vector of the system.
+    x : vector
+        The starting guess for the solution.
+    P_d,P_i,P_p,perm_r,perm_c: preconditioner LU matrix
+        components in scipy.spilu form P_d,P_i,P_p,perm_r,perm_c = slu2pydae(M)
+        with M = scipy.sparse.linalg.spilu(A_csc) 
+
+    """  
+    N   = len(b)
+    Ax  = np.zeros(N)
+    Ap  = np.zeros(N)
+    App = np.zeros(N)
+    pAp = np.zeros(N)
+    z   = np.zeros(N)
+    
+    spMvmul(N,A_d,A_i,A_p,x,Ax)
+    r = -(Ax - b)
+    z = splu_solve(P_d,P_i,P_p,perm_r,perm_c,r) #z = M.solve(r)
+    p = z
+    zsold = 0.0
+    for it in range(N):  # zsold = np.dot(np.transpose(z), z)
+        zsold += z[it]*z[it]
+    for i in range(max_it):
+        spMvmul(N,A_d,A_i,A_p,p,App)  # #App = np.dot(A, p)
+        Ap = splu_solve(P_d,P_i,P_p,perm_r,perm_c,App) #Ap = M.solve(App)
+        pAp = 0.0
+        for it in range(N):
+            pAp += p[it]*Ap[it]
+
+        alpha = zsold / pAp
+        x = x + alpha*p
+        z = z - alpha*Ap
+        zz = 0.0
+        for it in range(N):  # z.T@z
+            zz += z[it]*z[it]
+        zsnew = zz
+        if np.sqrt(zsnew) < tol:
+            break
+            
+        p = z + (zsnew/zsold)*p
+        zsold = zsnew
+    iparams[0] = i
+
+    return x
+
+
+@numba.njit()
+def spsstate(xy,u,p,
+             J_d,J_i,J_p,
+             P_d,P_i,P_p,perm_r,perm_c,
+             N_x,N_y,
+             max_it=50,tol=1e-8,
+             lmax_it=20,ltol=1e-8,ldamp=1.0, solver=2):
+    
+   
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    iparams = np.array([0],dtype=np.int64)    
+    
+    f_c_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_c_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+    J_d_ptr=ffi.from_buffer(np.ascontiguousarray(J_d))
+
+    #sp_jac_ini_num_eval(J_d_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+    sp_jac_ini_up_eval(J_d_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+    
+    #sp_jac_ini_eval_up(J_d,x,y,u,p,0.0)
+
+    Dxy = np.zeros(N_x + N_y)
+    for it in range(max_it):
+        
+        x = xy[:N_x]
+        y = xy[N_x:]   
+       
+        sp_jac_ini_xy_eval(J_d_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+
+        
+        f_ini_eval(f_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        g_ini_eval(g_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        
+        #f_ini_eval(f,x,y,u,p)
+        #g_ini_eval(g,x,y,u,p)
+        
+        fg[:N_x] = f
+        fg[N_x:] = g
+        
+        if solver==1:
+               
+            Dxy = sprichardson(J_d,J_i,J_p,-fg,P_d,P_i,P_p,perm_r,perm_c,Dxy,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+   
+        if solver==2:
+            
+            Dxy = spconjgradm(J_d,J_i,J_p,-fg,P_d,P_i,P_p,perm_r,perm_c,Dxy,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+            
+        xy += Dxy
+        #if np.max(np.abs(fg))<tol: break
+        if np.linalg.norm(fg,np.inf)<tol: break
+
+    return xy,it,iparams
+
+
+    
+@numba.njit() 
+def daesolver(t,t_end,it,it_store,xy,u,p,z,jac_trap,T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,max_it=50,itol=1e-8,store=1): 
+
+
+    fg = np.zeros((N_x+N_y,1),dtype=np.float64)
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    #h = np.zeros((N_z),dtype=np.float64)
+    
+    f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    z_ptr=ffi.from_buffer(np.ascontiguousarray(z))
+    x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    jac_trap_ptr=ffi.from_buffer(np.ascontiguousarray(jac_trap))
+    
+    #de_jac_trap_num_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
+    de_jac_trap_up_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    
+    if it == 0:
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = z  
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            de_jac_trap_xy_eval(jac_trap_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+
+            x += Dxy_i[:N_x]
+            y += Dxy_i[N_x:] 
+            
+            #print(Dxy_i)
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = z
+                iters[it_store+1] = iti
+                it_store += 1 
+
+    return t,it,it_store,xy
+    
+@numba.njit() 
+def spdaesolver(t,t_end,it,it_store,xy,u,p,z,
+                J_d,J_i,J_p,
+                P_d,P_i,P_p,perm_r,perm_c,
+                T,X,Y,Z,iters,Dt,N_x,N_y,N_z,decimation,
+                iparams,
+                max_it=50,itol=1e-8,store=1,
+                lmax_it=20,ltol=1e-4,ldamp=1.0,mode=0,lsolver=2):
+
+    fg_i = np.zeros((N_x+N_y),dtype=np.float64)
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+    z = np.zeros((N_z),dtype=np.float64)
+    Dxy_i_0 = np.zeros(N_x+N_y,dtype=np.float64) 
+    f_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    z_ptr=ffi.from_buffer(np.ascontiguousarray(z))
+    x_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    J_d_ptr=ffi.from_buffer(np.ascontiguousarray(J_d))
+    
+    #sp_jac_trap_num_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)    
+    sp_jac_trap_up_eval( J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    sp_jac_trap_xy_eval( J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+    
+    if it == 0:
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        it_store = 0  
+        T[0] = t 
+        X[0,:] = x  
+        Y[0,:] = y  
+        Z[0,:] = z 
+
+    while t<t_end: 
+        it += 1
+        t += Dt
+
+        f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+
+        x_0 = np.copy(x) 
+        y_0 = np.copy(y) 
+        f_0 = np.copy(f) 
+        g_0 = np.copy(g) 
+            
+        for iti in range(max_it):
+            f_run_eval(f_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            g_run_eval(g_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+            sp_jac_trap_xy_eval(J_d_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt) 
+
+            f_n_i = x - x_0 - 0.5*Dt*(f+f_0) 
+
+            fg_i[:N_x] = f_n_i
+            fg_i[N_x:] = g
+            
+            #Dxy_i = np.linalg.solve(-jac_trap,fg_i) 
+            if lsolver == 1:
+                Dxy_i = sprichardson(J_d,J_i,J_p,-fg_i,P_d,P_i,P_p,perm_r,perm_c,
+                                     Dxy_i_0,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)
+            if lsolver == 2:
+                Dxy_i = spconjgradm(J_d,J_i,J_p,-fg_i,P_d,P_i,P_p,perm_r,perm_c,
+                                     Dxy_i_0,iparams,damp=ldamp,max_it=lmax_it,tol=ltol)                
+
+            x += Dxy_i[:N_x]
+            y += Dxy_i[N_x:] 
+            
+            #print(Dxy_i)
+
+            # iteration stop
+            max_relative = 0.0
+            for it_var in range(N_x+N_y):
+                abs_value = np.abs(xy[it_var])
+                if abs_value < 0.001:
+                    abs_value = 0.001
+                relative_error = np.abs(Dxy_i[it_var])/abs_value
+
+                if relative_error > max_relative: max_relative = relative_error
+
+            if max_relative<itol:
+                break
+                
+        h_eval(z_ptr,x_ptr,y_ptr,u_ptr,p_ptr,Dt)
+        xy[:N_x] = x
+        xy[N_x:] = y
+        
+        # store in channels 
+        if store == 1:
+            if it >= it_store*decimation: 
+                T[it_store+1] = t 
+                X[it_store+1,:] = x 
+                Y[it_store+1,:] = y
+                Z[it_store+1,:] = z
+                iters[it_store+1] = iti
+                it_store += 1 
+
+    return t,it,it_store,xy
+
+
+@cuda.jit()
+def ode_solve(x,u,p,f_run,u_idxs,z_i,z,sim):
+
+    N_i,N_j,N_x,N_z,Dt = sim
+
+    # index of thread on GPU:
+    i = cuda.grid(1)
+
+    if i < x.size:
+        for j in range(N_j):
+            f_run_eval(f_run[i,:],x[i,:],u[i,u_idxs[j],:],p[i,:])
+            for k in range(N_x):
+              x[i,k] +=  Dt*f_run[i,k]
+
+            # outputs in time range
+            #z[i,j] = u[i,idxs[j],0]
+            z[i,j] = x[i,1]
+        h_eval(z_i[i,:],x[i,:],u[i,u_idxs[j],:],p[i,:])
+        
+def csr2pydae(A_csr):
+    '''
+    From scipy CSR to the three vectors:
+    
+    - data
+    - indices
+    - indptr
+    
+    '''
+    
+    A_d = A_csr.data
+    A_i = A_csr.indices
+    A_p = A_csr.indptr
+    
+    return A_d,A_i,A_p
+    
+def slu2pydae(P_slu):
+    '''
+    From SupderLU matrix to the three vectors:
+    
+    - data
+    - indices
+    - indptr
+    
+    and the premutation vectors:
+    
+    - perm_r
+    - perm_c
+    
+    '''
+    N = P_slu.shape[0]
+    #P_slu_full = P_slu.L.A - sspa.eye(N,format='csr') + P_slu.U.A
+    P_slu_full = P_slu.L - sspa.eye(N,format='csc') + P_slu.U
+    perm_r = P_slu.perm_r
+    perm_c = P_slu.perm_c
+    P_csr = sspa.csr_matrix(P_slu_full)
+    
+    P_d = P_csr.data
+    P_i = P_csr.indices
+    P_p = P_csr.indptr
+    
+    return P_d,P_i,P_p,perm_r,perm_c
+
+@numba.njit(cache=True)
+def spMvmul(N,A_data,A_indices,A_indptr,x,y):
+    '''
+    y = A @ x
+    
+    with A in sparse CRS form
+    '''
+    #y = np.zeros(x.shape[0])
+    for i in range(N):
+        y[i] = 0.0
+        for j in range(A_indptr[i],A_indptr[i + 1]):
+            y[i] = y[i] + A_data[j]*x[A_indices[j]]
+            
+            
+@numba.njit(cache=True)
+def splu_solve(LU_d,LU_i,LU_p,perm_r,perm_c,b):
+    N = len(b)
+    y = np.zeros(N)
+    x = np.zeros(N)
+    z = np.zeros(N)
+    bp = np.zeros(N)
+    
+    for i in range(N): 
+        bp[perm_r[i]] = b[i]
+        
+    for i in range(N): 
+        y[i] = bp[i]
+        for j in range(LU_p[i],LU_p[i+1]):
+            if LU_i[j]>i-1: break
+            y[i] -= LU_d[j] * y[LU_i[j]]
+
+    for i in range(N-1,-1,-1): #(int i = N - 1; i >= 0; i--) 
+        z[i] = y[i]
+        den = 0.0
+        for j in range(LU_p[i],LU_p[i+1]): #(int k = i + 1; k < N; k++)
+            if LU_i[j] > i:
+                z[i] -= LU_d[j] * z[LU_i[j]]
+            if LU_i[j] == i: den = LU_d[j]
+        z[i] = z[i]/den
+ 
+    for i in range(N):
+        x[i] = z[perm_c[i]]
+        
+    return x
+
+
+
+@numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
+def de_jac_ini_eval(de_jac_ini,x,y,u,p,Dt):   
+    '''
+    Computes the dense full initialization jacobian:
+    
+    jac_ini = [[Fx_ini, Fy_ini],
+               [Gx_ini, Gy_ini]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_ini : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+        
+    with N = N_x+N_y
+ 
+    Returns
+    -------
+    
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+    
+    de_jac_ini_ptr=ffi.from_buffer(np.ascontiguousarray(de_jac_ini))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    de_jac_ini_num_eval(de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_ini_up_eval( de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_ini_xy_eval( de_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return de_jac_ini
+
+@numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
+def de_jac_run_eval(de_jac_run,x,y,u,p,Dt):   
+    '''
+    Computes the dense full initialization jacobian:
+    
+    jac_run = [[Fx_run, Fy_run],
+               [Gx_run, Gy_run]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_run : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+        
+    with N = N_x+N_y
+ 
+    Returns
+    -------
+    
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+    
+    de_jac_run_ptr=ffi.from_buffer(np.ascontiguousarray(de_jac_run))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    de_jac_run_num_eval(de_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_run_up_eval( de_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_run_xy_eval( de_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return de_jac_run
+
+@numba.njit("float64[:,:](float64[:,:],float64[:],float64[:],float64[:],float64[:],float64)")
+def de_jac_trap_eval(de_jac_trap,x,y,u,p,Dt):   
+    '''
+    Computes the dense full trapezoidal jacobian:
+    
+    jac_trap = [[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],
+                [             Gx_run,         Gy_run]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_trap : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (run problem).
+    u : (N_u,) array_like
+        Vector with inputs (run problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+ 
+    Returns
+    -------
+    
+    de_jac_trap : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+        
+    de_jac_trap_ptr = ffi.from_buffer(np.ascontiguousarray(de_jac_trap))
+    x_c_ptr = ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr = ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr = ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr = ffi.from_buffer(np.ascontiguousarray(p))
+
+    de_jac_trap_num_eval(de_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_trap_up_eval( de_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    de_jac_trap_xy_eval( de_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return de_jac_trap
+
+
+# @numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+# def sp_jac_run_eval(sp_jac_run,x,y,u,p,Dt):   
+#     '''
+#     Computes the sparse full trapezoidal jacobian:
+    
+#     jac_trap = [[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],
+#                 [             Gx_run,         Gy_run]]
+                
+#     for the given x,y,u,p vectors and Dt time increment.
+    
+#     Parameters
+#     ----------
+#     sp_jac_trap : (Nnz,) array_like
+#                   Input data.
+#     x : (N_x,) array_like
+#         Vector with dynamical states.
+#     y : (N_y,) array_like
+#         Vector with algebraic states (run problem).
+#     u : (N_u,) array_like
+#         Vector with inputs (run problem). 
+#     p : (N_p,) array_like
+#         Vector with parameters. 
+        
+#     with Nnz the number of non-zeros elements in the jacobian.
+ 
+#     Returns
+#     -------
+    
+#     sp_jac_trap : (Nnz,) array_like
+#                   Updated matrix.    
+    
+#     '''        
+#     sp_jac_run_ptr=ffi.from_buffer(np.ascontiguousarray(sp_jac_run))
+#     x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+#     y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+#     u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+#     p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+#     sp_jac_run_num_eval( sp_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+#     sp_jac_run_up_eval( sp_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+#     sp_jac_run_xy_eval( sp_jac_run_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+#     return sp_jac_run
+
+# @numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+# def sp_jac_trap_eval(sp_jac_trap,x,y,u,p,Dt):   
+#     '''
+#     Computes the sparse full trapezoidal jacobian:
+    
+#     jac_trap = [[eye - 0.5*Dt*Fx_run, -0.5*Dt*Fy_run],
+#                 [             Gx_run,         Gy_run]]
+                
+#     for the given x,y,u,p vectors and Dt time increment.
+    
+#     Parameters
+#     ----------
+#     sp_jac_trap : (Nnz,) array_like
+#                   Input data.
+#     x : (N_x,) array_like
+#         Vector with dynamical states.
+#     y : (N_y,) array_like
+#         Vector with algebraic states (run problem).
+#     u : (N_u,) array_like
+#         Vector with inputs (run problem). 
+#     p : (N_p,) array_like
+#         Vector with parameters. 
+        
+#     with Nnz the number of non-zeros elements in the jacobian.
+ 
+#     Returns
+#     -------
+    
+#     sp_jac_trap : (Nnz,) array_like
+#                   Updated matrix.    
+    
+#     '''        
+#     sp_jac_trap_ptr=ffi.from_buffer(np.ascontiguousarray(sp_jac_trap))
+#     x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+#     y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+#     u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+#     p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+#     sp_jac_trap_num_eval(sp_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+#     sp_jac_trap_up_eval( sp_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+#     sp_jac_trap_xy_eval( sp_jac_trap_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+#     return sp_jac_trap
+
+# @numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+# def sp_jac_ini_eval(sp_jac_ini,x,y,u,p,Dt):   
+#     '''
+#     Computes the SPARSE full initialization jacobian:
+    
+#     jac_ini = [[Fx_ini, Fy_ini],
+#                [Gx_ini, Gy_ini]]
+                
+#     for the given x,y,u,p vectors and Dt time increment.
+    
+#     Parameters
+#     ----------
+#     de_jac_ini : (N, N) array_like
+#                   Input data.
+#     x : (N_x,) array_like
+#         Vector with dynamical states.
+#     y : (N_y,) array_like
+#         Vector with algebraic states (ini problem).
+#     u : (N_u,) array_like
+#         Vector with inputs (ini problem). 
+#     p : (N_p,) array_like
+#         Vector with parameters. 
+        
+#     with N = N_x+N_y
+ 
+#     Returns
+#     -------
+    
+#     de_jac_ini : (N, N) array_like
+#                   Updated matrix.    
+    
+#     '''
+    
+#     sp_jac_ini_ptr=ffi.from_buffer(np.ascontiguousarray(sp_jac_ini))
+#     x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+#     y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+#     u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+#     p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+#     sp_jac_ini_num_eval(sp_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+#     sp_jac_ini_up_eval( sp_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+#     sp_jac_ini_xy_eval( sp_jac_ini_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+#     return sp_jac_ini
+
+
+@numba.njit()
+def sstate(xy,u,p,jac_ini_ss,N_x,N_y,max_it=50,tol=1e-8):
+    
+    x = xy[:N_x]
+    y = xy[N_x:]
+    fg = np.zeros((N_x+N_y,),dtype=np.float64)
+    f = fg[:N_x]
+    g = fg[N_x:]
+
+    f_c_ptr=ffi.from_buffer(np.ascontiguousarray(f))
+    g_c_ptr=ffi.from_buffer(np.ascontiguousarray(g))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+    jac_ini_ss_ptr=ffi.from_buffer(np.ascontiguousarray(jac_ini_ss))
+
+    #de_jac_ini_num_eval(jac_ini_ss_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+    de_jac_ini_up_eval(jac_ini_ss_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+
+    for it in range(max_it):
+        de_jac_ini_xy_eval(jac_ini_ss_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        f_ini_eval(f_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        g_ini_eval(g_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,1.0)
+        fg[:N_x] = f
+        fg[N_x:] = g
+        xy += np.linalg.solve(jac_ini_ss,-fg)
+        if np.max(np.abs(fg))<tol: break
+
+    return xy,it
+
+
+@numba.njit("float64[:](float64[:],float64[:],float64[:],float64[:],float64[:],float64)")
+def c_h_eval(z,x,y,u,p,Dt):   
+    '''
+    Computes the SPARSE full initialization jacobian:
+    
+    jac_ini = [[Fx_ini, Fy_ini],
+               [Gx_ini, Gy_ini]]
+                
+    for the given x,y,u,p vectors and Dt time increment.
+    
+    Parameters
+    ----------
+    de_jac_ini : (N, N) array_like
+                  Input data.
+    x : (N_x,) array_like
+        Vector with dynamical states.
+    y : (N_y,) array_like
+        Vector with algebraic states (ini problem).
+    u : (N_u,) array_like
+        Vector with inputs (ini problem). 
+    p : (N_p,) array_like
+        Vector with parameters. 
+        
+    with N = N_x+N_y
+ 
+    Returns
+    -------
+    
+    de_jac_ini : (N, N) array_like
+                  Updated matrix.    
+    
+    '''
+    
+    z_c_ptr=ffi.from_buffer(np.ascontiguousarray(z))
+    x_c_ptr=ffi.from_buffer(np.ascontiguousarray(x))
+    y_c_ptr=ffi.from_buffer(np.ascontiguousarray(y))
+    u_c_ptr=ffi.from_buffer(np.ascontiguousarray(u))
+    p_c_ptr=ffi.from_buffer(np.ascontiguousarray(p))
+
+    h_eval(z_c_ptr,x_c_ptr,y_c_ptr,u_c_ptr,p_c_ptr,Dt)
+    
+    return z
+
+
 
 
 

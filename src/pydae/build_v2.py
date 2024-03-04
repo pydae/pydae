@@ -134,8 +134,8 @@ class builder():
         Gy_run = sym_jac(g,y_run)
         logging.debug('computing jacobians Fu_run,Gu_run')
         Fu_run = sym_jac(f,u_run)
-        print('build_v2.py, line 137  g',g)
-        print('build_v2.py, line 137  u_run',u_run)
+        # print('build_v2.py, line 137  g',g)
+        # print('build_v2.py, line 137  u_run',u_run)
         Gu_run = sym_jac(g,u_run)
 
         if self.inirun: # do not compute ini jacobians if ini system is equal to run system
@@ -1344,9 +1344,9 @@ def sym2xyup_mp(sys,full_list,inirun):
 def build_numba(sys_dict,verbose=False):
 
     b = builder(sys_dict,verbose=verbose)
-    b.sparse = True
+    b.sparse = False
     b.mkl = False
-    b.uz_jacs = True
+    b.uz_jacs = False
     b.dict2system()
     b.functions()
     b.jacobians()
@@ -1354,16 +1354,17 @@ def build_numba(sys_dict,verbose=False):
     b.template()
     b.compile()
 
-def build_mkl(sys_dict,verbose=False,platform='windows'):
+def build_mkl(sys_dict,verbose=False,platform='Windows'):
     '''
     
     sys_dict: dictionary with the DAE system
-    platform: "windows", "linux" 
+    platform: "Windows", "linux" 
     '''
 
     b = builder(sys_dict,verbose=True)
     b.sparse = True
     b.mkl = True
+    b.uz_jacs = False
     b.platform = platform
     b.dict2system()
     b.functions()
@@ -1382,7 +1383,7 @@ def test_numba():
     b = builder(sys_dict,verbose=True)
     b.sparse = False
     b.mkl = False
-    b.uz_jacs = True
+    b.uz_jacs = False
     b.dict2system()
     b.functions()
     b.jacobians()
@@ -1406,6 +1407,11 @@ def test_numba():
     model.report_z()  # obtained outputs
     model.report_u()  # obtained algebraic states (theta is both state and output; f_x is both input and output)
     model.report_params()  # considered parameters
+
+    from pydae import ssa
+
+    ssa.A_eval(model)
+    ssa.damp_report(model)
 
 
 def test_mkl():
