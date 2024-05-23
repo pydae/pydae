@@ -212,7 +212,7 @@ class designer:
         G_comps = omegas*0.0+0j
 
         for it, item in enumerate(omegas):
-            G_plants[it] = self.plant_eval(omegas[it])[0]
+            G_plants[it] = self.plant_eval(omegas[it]) 
             G_psss[it] = self.pss_1wo_2ll(self.x, omegas[it])
 
         G_comps = G_plants * G_psss
@@ -228,7 +228,7 @@ class designer:
 
 
         for it, item in enumerate(self.freqs):
-            G_plants = self.plant_eval(2*np.pi*self.freqs[it])[0]
+            G_plants = self.plant_eval(2*np.pi*self.freqs[it]) 
             G_psss = self.pss_1wo_2ll(self.x, 2*np.pi*self.freqs[it])
             G_comps = G_plants * G_psss
 
