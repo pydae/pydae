@@ -64,8 +64,8 @@ def milano4ord(grid,name,bus_name,data_dict):
     de1d = 1/T1q0*(-e1d + (X_q - X1q)*i_q)
 
     # algebraic equations   
-    g_i_d  = v_q + R_a*i_q + X1d*i_d - e1q
-    g_i_q  = v_d + R_a*i_d - X1q*i_q - e1d
+    g_i_d  = e1q - R_a*i_q - X1d*i_d - v_q
+    g_i_q  = e1d - R_a*i_d + X1q*i_q - v_d 
     g_p_g  = i_d*v_d + i_q*v_q - p_g  
     g_q_g  = i_d*v_q - i_q*v_d - q_g 
     
@@ -139,6 +139,34 @@ def milano4ord(grid,name,bus_name,data_dict):
 
     return p_W,q_var
 
+def sym_devs():
+
+    name = '_'
+
+    v_d = sym.Symbol(f"v_d_{name}", real=True)
+    v_q = sym.Symbol(f"v_q_{name}", real=True)  
+
+    # dynamic states
+    e1q = sym.Symbol(f"e1q_{name}", real=True)
+    e1d = sym.Symbol(f"e1d_{name}", real=True)
+
+    # algebraic states
+    i_d = sym.Symbol(f"i_d_{name}", real=True)
+    i_q = sym.Symbol(f"i_q_{name}", real=True)            
+
+
+    # parameters
+    X1d = sym.Symbol(f"X1d_{name}", real=True)
+    X1q = sym.Symbol(f"X1q_{name}", real=True)
+    R_a = sym.Symbol(f"R_a_{name}", real=True)
+
+    g_i_d  = v_q + R_a*i_q + X1d*i_d - e1q
+    g_i_q  = v_d + R_a*i_d - X1q*i_q - e1d
+
+    res = sym.solve([g_i_d,g_i_q],[i_d,i_q])
+
+    print(res)
+
 
 def test():
     import numpy as np
@@ -183,5 +211,5 @@ def test():
 
 if __name__ == '__main__':
 
-    #development()
-    test()
+    sym_devs()
+    #test()

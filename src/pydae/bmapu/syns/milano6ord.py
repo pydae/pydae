@@ -122,6 +122,8 @@ def milano6ord(grid,name,bus_name,data_dict):
     # outputs
     grid.dae['h_dict'].update({f"p_e_{name}":p_e})
     grid.dae['h_dict'].update({f"v_f_{name}":v_f})
+    grid.dae['h_dict'].update({f"v_d_{name}":v_d})
+    grid.dae['h_dict'].update({f"v_q_{name}":v_q})
 
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]})

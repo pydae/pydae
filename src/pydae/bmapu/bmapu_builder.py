@@ -18,6 +18,7 @@ from pydae.bmapu.pvs.pvs import add_pvs
 from pydae.bmapu.loads.loads import add_loads
 from pydae.bmapu.sources.sources import add_sources
 from pydae.bmapu.miscellaneous.miscellaneous import add_miscellaneous
+from pydae.bmapu.pods.pods import add_pods
 import pydae.build_cffi as db
 from pydae.build_v2 import builder
 
@@ -447,7 +448,9 @@ class bmapu:
             add_pvs(self)
         if 'loads' in  self.data:
             add_loads(self)
-            
+        if 'pods' in  self.data:
+            add_pods(self)
+
         add_miscellaneous(self)
 
         #add_vsgs(grid)
