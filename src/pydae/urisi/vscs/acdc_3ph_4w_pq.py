@@ -156,4 +156,6 @@ def acdc_3ph_4w_pq(grid,vsc_data):
 
     grid.dae['h_dict'].update({f'p_vsc_loss_{bus_ac_name}':(p_loss_total)})
     grid.dae['h_dict'].update({f'v_dc_{bus_dc_name}':v_dc})
+    grid.dae['h_dict'].update({f'v_anm_{bus_ac_name}':sym.Abs(v_a - v_n)})
+    
 
