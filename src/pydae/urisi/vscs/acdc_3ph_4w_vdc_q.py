@@ -54,10 +54,10 @@ def acdc_3ph_4w_vdc_q(grid,vsc_data):
     i_c_rms = sym.sqrt(i_c_r**2+i_c_i**2 + 0.001) 
     i_n_rms = sym.sqrt(i_n_r**2+i_n_i**2 + 0.001) 
 
-    p_loss_a = A_loss*i_a_rms*i_a_rms + B_loss*i_a_rms + C_loss
-    p_loss_b = A_loss*i_b_rms*i_b_rms + B_loss*i_b_rms + C_loss
-    p_loss_c = A_loss*i_c_rms*i_c_rms + B_loss*i_c_rms + C_loss
-    p_loss_n = A_loss*i_n_rms*i_n_rms + B_loss*i_n_rms + C_loss
+    p_loss_a = A_loss + B_loss*i_a_rms + C_loss*i_a_rms*i_a_rms
+    p_loss_b = A_loss + B_loss*i_b_rms + C_loss*i_b_rms*i_b_rms
+    p_loss_c = A_loss + B_loss*i_c_rms + C_loss*i_c_rms*i_c_rms
+    p_loss_n = A_loss + B_loss*i_n_rms + C_loss*i_n_rms*i_n_rms
 
     v_a = v_a_r + 1j*v_a_i
     v_b = v_b_r + 1j*v_b_i

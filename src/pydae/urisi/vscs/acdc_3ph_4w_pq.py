@@ -149,7 +149,11 @@ def acdc_3ph_4w_pq(grid,vsc_data):
 
     grid.dae['xy_0_dict'].update({f'v_{bus_dc_name}_a_r':800.0,f'v_{bus_dc_name}_n_r':1.0})
     
-    grid.dae['h_dict'].update({f'p_vsc_{bus_ac_name}':sym.re(s_a)+sym.re(s_b)+sym.re(s_c)+sym.re(s_n)})
+    s_ac = s_a+s_b+s_c+s_n
+    grid.dae['h_dict'].update({f'p_vsc_{bus_ac_name}':sym.re(s_ac)})
+    grid.dae['h_dict'].update({f'q_vsc_{bus_ac_name}':sym.im(s_ac)})
+    grid.dae['h_dict'].update({f's_vsc_{bus_ac_name}':sym.Abs(s_ac)})
+
     grid.dae['h_dict'].update({f'p_vsc_loss_{bus_ac_name}':(p_loss_total)})
     grid.dae['h_dict'].update({f'v_dc_{bus_dc_name}':v_dc})
 
