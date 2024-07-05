@@ -220,27 +220,45 @@ class urisi:
 
         for bus in self.buses:
             
-            V_phg = bus['U_kV']*1000.0/np.sqrt(3)
-           
-            if 'phi_deg_0' in bus:
-                phi_0 = np.deg2rad(phi_default + bus['phi_deg_0'])
-            else: phi_0 = np.deg2rad(phi_deg_default)
+            if not 'acdc' in bus:
+                bus.update({'acdc':'AC'})
+            
+            if bus['acdc'] == 'AC':
+                V_phg = bus['U_kV']*1000.0/np.sqrt(3)
+            
+                if 'phi_deg_0' in bus:
+                    phi_0 = np.deg2rad(phi_default + bus['phi_deg_0'])
+                else: phi_0 = np.deg2rad(phi_deg_default)
 
-            for node in [0,1,2,3]:
+                for node in [0,1,2,3]:
+                    name = f"{bus['name']}_{node}"
+                    if node == 0:
+                        phi = phi_0
+                        V_ini = V_phg*np.exp(1j*phi)
+                    if node == 1:
+                        phi = phi_0 - 2/3*np.pi
+                        V_ini = V_phg*np.exp(1j*phi)
+                    if node == 2:
+                        phi = phi_0 + 2/3*np.pi
+                        V_ini = V_phg*np.exp(1j*phi)
+                    if node == 3:
+                        V_ini = 0.0
+            
+                    self.dae['xy_0_dict'].update({f'V_{name}_r':V_ini.real,f'V_{name}_i':V_ini.imag})
+            
+            if bus['acdc'] == 'DC':
+
+                if not 'nodes' in bus:
+                    bus.update({'nodes':[0,1]})
+
+                V_dc = bus['U_kV']*1000.0
+
+                node = bus['nodes'][0]
                 name = f"{bus['name']}_{node}"
-                if node == 0:
-                    phi = phi_0
-                    V_ini = V_phg*np.exp(1j*phi)
-                if node == 1:
-                    phi = phi_0 - 2/3*np.pi
-                    V_ini = V_phg*np.exp(1j*phi)
-                if node == 2:
-                    phi = phi_0 + 2/3*np.pi
-                    V_ini = V_phg*np.exp(1j*phi)
-                if node == 3:
-                    V_ini = 0.0
-        
-                self.dae['xy_0_dict'].update({f'V_{name}_r':V_ini.real,f'V_{name}_i':V_ini.imag})
+                self.dae['xy_0_dict'].update({f'V_{name}_r':V_dc/2,f'V_{name}_i':0.0})
+                node = bus['nodes'][1]
+                name = f"{bus['name']}_{node}"
+                self.dae['xy_0_dict'].update({f'V_{name}_r':-V_dc/2,f'V_{name}_i':0.0})
 
 
     def node2idx(self,bus,phase):

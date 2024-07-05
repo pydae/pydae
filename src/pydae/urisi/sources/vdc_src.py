@@ -32,10 +32,10 @@ def vdc_src(grid,data):
     # current injections dc LV side
     idx_hp_r,idx_hp_i = grid.node2idx(f'{name}','a')
     idx_hn_r,idx_hn_i = grid.node2idx(f'{name}','b')
-    grid.dae['g'] [idx_hp_r] += -i_hp 
-    grid.dae['g'] [idx_hn_r] += -i_hn
-    grid.dae['g'] [idx_hp_i] += -v_hp_i/1e3
-    grid.dae['g'] [idx_hn_i] += -v_hn_i/1e3
+    grid.dae['g'][idx_hp_r] += -i_hp 
+    grid.dae['g'][idx_hn_r] += -i_hn
+    grid.dae['g'][idx_hp_i] += -v_hp_i
+    grid.dae['g'][idx_hn_i] += -v_hn_i
 
     v_ref = 800.0
     if "v_ref" in data:
@@ -44,7 +44,7 @@ def vdc_src(grid,data):
     grid.dae['u_ini_dict'].update({f'v_ref_{name}':v_ref}) 
     grid.dae['u_run_dict'].update({f'v_ref_{name}':v_ref}) 
    
-    grid.dae['params_dict'].update({f'R_h_{name}':1e-4})    
+    grid.dae['params_dict'].update({f'R_h_{name}':1e-5})    
     grid.dae['params_dict'].update({f'R_g_{name}':3})   
     grid.dae['h_dict'].update({f'p_h_{name}':p_h})   
 

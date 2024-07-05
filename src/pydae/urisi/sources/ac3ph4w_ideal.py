@@ -38,8 +38,8 @@ def ac3ph4w_ideal(grid,data):
 
     
     # algebraic states
-    i_sa_r,i_sb_r,i_sc_r,i_sn_r,i_ng_r = sym.symbols(f'i_vsc_{name}_a_r,i_vsc_{name}_b_r,i_vsc_{name}_c_r,i_vsc_{name}_n_r,i_vsc_{name}_ng_r', real=True)
-    i_sa_i,i_sb_i,i_sc_i,i_sn_i,i_ng_i = sym.symbols(f'i_vsc_{name}_a_i,i_vsc_{name}_b_i,i_vsc_{name}_c_i,i_vsc_{name}_n_i,i_vsc_{name}_ng_i', real=True)
+    i_sa_r,i_sb_r,i_sc_r,i_sn_r,i_ng_r = sym.symbols(f'i_vsrc_{name}_a_r,i_vsrc_{name}_b_r,i_vsrc_{name}_c_r,i_vsrc_{name}_n_r,i_vsrc_{name}_ng_r', real=True)
+    i_sa_i,i_sb_i,i_sc_i,i_sn_i,i_ng_i = sym.symbols(f'i_vsrc_{name}_a_i,i_vsrc_{name}_b_i,i_vsrc_{name}_c_i,i_vsrc_{name}_n_i,i_vsrc_{name}_ng_i', real=True)
     
     Z_sa = R_s + 1j*X_s
     Z_sb = R_s + 1j*X_s
@@ -99,14 +99,14 @@ def ac3ph4w_ideal(grid,data):
     #y_ini_str = [str(item) for item in y_list]
 
     for ph in ['a','b','c','n']:
-        i_s_r = sym.Symbol(f'i_vsc_{name}_{ph}_r', real=True)
-        i_s_i = sym.Symbol(f'i_vsc_{name}_{ph}_i', real=True)  
+        i_s_r = sym.Symbol(f'i_vsrc_{name}_{ph}_r', real=True)
+        i_s_i = sym.Symbol(f'i_vsrc_{name}_{ph}_i', real=True)  
         idx_r,idx_i = grid.node2idx(name,ph)
         grid.dae['g'] [idx_r] += -i_s_r
         grid.dae['g'] [idx_i] += -i_s_i
         i_s = i_s_r + 1j*i_s_i
         i_s_m = np.abs(i_s)
-        h_dict.update({f'i_vsc_{name}_{ph}_m':i_s_m})
+        h_dict.update({f'i_vsrc_{name}_{ph}_m':i_s_m})
 
     V_1 = 400/np.sqrt(3)
 
@@ -115,12 +115,12 @@ def ac3ph4w_ideal(grid,data):
     u_ini_dict.update({f'phi_{name}':0.0})
     u_run_dict.update({f'phi_{name}':0.0})
 
-    X_s_N = 0.0001
+    X_s_N = 1e-4
     R_s_N = 0.0
-    X_sn_N = 0.0001
+    X_sn_N = 1e-4
     R_sn_N = 0.0
-    X_ng_N = 0.0001
-    R_ng_N = 0.0001
+    X_ng_N = 1e-4
+    R_ng_N = 1e-4
     
     if 'X_s' in data: X_s_N = data['X_s']  
     if 'R_s' in data: R_s_N = data['R_s']  
