@@ -14,9 +14,21 @@ import svgwrite
 import os
 import hjson
 
+import requests
+
 class svg():
     
     def __init__(self,input_file):
+
+        if type(input_file) == str:
+            if 'http' in input_file:
+                url = input_file
+                resp = requests.get(url)
+                input_file = 'svg_from_url.svg'
+                with open('svg_from_url.svg','w') as fobj:
+                    fobj.write(resp.text)
+
+
         ET.register_namespace("","http://www.w3.org/2000/svg")
         ET.register_namespace("inkscape","http://www.inkscape.org/namespaces/inkscape")
         ET.register_namespace("sodipodi","http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd") 
