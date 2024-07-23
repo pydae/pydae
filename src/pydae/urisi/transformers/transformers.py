@@ -10,10 +10,21 @@ import numpy as np
 import sympy as sym
 import difflib
 
+from pydae.urisi.transformers.Dyn11 import add_Dyn11
+
+
+
 def add_trafos(self):
 
 
     for trafo in self.transformers:
+
+        if trafo['connection'] == 'Dyn11':
+            add_Dyn11(self,trafo)
+        else: 
+            add_trafo(self,trafo)
+
+def add_trafo(self, trafo):
 
         G_primitive = trafo['Y_primitive'].real
         B_primitive = trafo['Y_primitive'].imag
@@ -38,6 +49,45 @@ def add_trafos(self):
             row = self.it_branch
             self.A[row,col] = 1
             self.it_branch +=1  
+
+
+
+def add_trafo_symbolic(self,trafo):
+
+        bus_j_name = trafo['bus_j']
+        bus_k_name = trafo['bus_k']
+        trafo_name = f'{bus_j_name}_{bus_k_name}'
+
+        tap_a,tap_b,tap_c = sym.symbols(f'tap_a,tap_b,tap_c', real =True)
+        tap_a_name,tap_b_name,tap_c_name = sym.symbols(f'tap_a_{trafo_name},tap_b_{trafo_name},tap_c_{trafo_name}', real =True)
+
+        G_primitive = sym.re(trafo['Y_primitive']).subs(tap_a,tap_a_name).subs(tap_b,tap_b_name).subs(tap_c,tap_c_name)
+        B_primitive = sym.im(trafo['Y_primitive']).subs(tap_a,tap_a_name).subs(tap_b,tap_b_name).subs(tap_c,tap_c_name)
+
+        rl = self.it_branch
+        rh = self.it_branch + trafo['N_branches']
+        self.G_primitive[rl:rh,rl:rh] = G_primitive
+        self.B_primitive[rl:rh,rl:rh] = B_primitive
+
+
+        for item in trafo['bus_j_nodes']: # the list of nodes '[<bus>.<node>.<node>...]' is created 
+            node_j = f"{trafo['bus_j']}.{item}"
+            col = self.nodes_list.index(node_j)
+            row = self.it_branch
+
+            self.A[row,col] = 1
+            self.it_branch +=1  
+
+        for item in  trafo['bus_k_nodes']: # the list of nodes '[<bus>.<node>.<node>...]' is created 
+            node_k = f"{trafo['bus_k']}.{item}"
+            col = self.nodes_list.index(node_k)
+            row = self.it_branch
+            self.A[row,col] = 1
+            self.it_branch +=1  
+        
+        self.dae['u_ini_dict'].update({str(tap_a_name):1.0,str(tap_b_name):1.0,str(tap_c_name):1.0})
+        self.dae['u_run_dict'].update({str(tap_a_name):1.0,str(tap_b_name):1.0,str(tap_c_name):1.0})
+
 
 def add_trafo_monitors(self):
 
@@ -100,7 +150,7 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
     
     '''
 
-    connections_list = ['Dyn1', 'Yy_3wires','Dyn5','Dyn11','Ygd5_3w','Ygd1_3w','Ygd11_3w','ZigZag','Dyg11_3w','Ynd11']
+    connections_list = ['Dyn1', 'Yy_3wires','Dyn5','Dyn11','Dyn11t','Ygd5_3w','Ygd1_3w','Ygd11_3w','ZigZag','Dyg11_3w','Ynd11']
 
     if connection not in connections_list:
         closest_connection = difflib.get_close_matches(connection, connections_list)
@@ -244,6 +294,7 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
         nodes_k = [0,1,2,3]  
 
     if connection=='Dyn11':
+
         z_a = Z_cc*1.0**2/S_n*3
         z_b = Z_cc*1.0**2/S_n*3
         z_c = Z_cc*1.0**2/S_n*3
@@ -259,7 +310,7 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
         N_row_a = np.hstack((N_a,np.zeros((4,4))))
         N_row_b = np.hstack((np.zeros((4,2)),N_a,np.zeros((4,2))))
         N_row_c = np.hstack((np.zeros((4,4)),N_a))
-        
+
         N = np.vstack((N_row_a,N_row_b,N_row_c))
 
         B = np.array([[ 1, 0, 0],
@@ -271,6 +322,66 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
     
         Y_1 = B @ np.linalg.inv(Z_B) @ B.T
         Y_w = N @ Y_1 @ N.T
+        A_trafo = np.zeros((7,12))
+
+        A_trafo[0,1] = 1.0
+        A_trafo[0,4] = 1.0
+        A_trafo[1,5] = 1.0
+        A_trafo[1,8] = 1.0
+        A_trafo[2,0] = 1.0
+        A_trafo[2,9] = 1.0
+
+        A_trafo[3,3] = 1.0
+        A_trafo[4,7] = 1.0
+        A_trafo[5,11] = 1.0
+        
+        A_trafo[6,2] = 1.0
+        A_trafo[6,6] = 1.0
+        A_trafo[6,10] = 1.0
+
+        nodes_j = [0,1,2]
+        nodes_k = [0,1,2,3]  
+
+    if connection=='Dyn11t':
+
+        tap_a,tap_b,tap_c = sym.symbols('tap_a,tap_b,tap_c', real = True)
+
+
+        z_a = Z_cc*1.0**2/S_n*3
+        z_b = Z_cc*1.0**2/S_n*3
+        z_c = Z_cc*1.0**2/S_n*3
+        U_1 = U_1n
+        U_2 = U_2n/np.sqrt(3)
+        Z_B = np.array([[z_a, 0.0, 0.0],
+                        [0.0, z_b, 0.0],
+                        [0.0, 0.0, z_c],])                             
+        N_a = np.array([[ 1/(U_1*tap_a),     0],
+                        [-1/(U_1*tap_a),     0],
+                        [     0, 1/U_2],
+                        [     0,-1/U_2]])  
+        N_b = np.array([[ 1/(U_1*tap_b),     0],
+                        [-1/(U_1*tap_b),     0],
+                        [     0, 1/U_2],
+                        [     0,-1/U_2]])   
+        N_c = np.array([[ 1/(U_1*tap_c),     0],
+                        [-1/(U_1*tap_c),     0],
+                        [     0, 1/U_2],
+                        [     0,-1/U_2]])            
+        N_row_a = np.hstack((N_a,np.zeros((4,4))))
+        N_row_b = np.hstack((np.zeros((4,2)),N_b,np.zeros((4,2))))
+        N_row_c = np.hstack((np.zeros((4,4)),N_c))
+
+        N = np.vstack((N_row_a,N_row_b,N_row_c))
+
+        B = np.array([[ 1, 0, 0],
+                      [-1, 0, 0],
+                      [ 0, 1, 0],
+                      [ 0,-1, 0],
+                      [ 0, 0, 1],
+                      [ 0, 0,-1]])
+    
+        Y_1 = B @ np.linalg.inv(Z_B) @ B.T
+        Y_w = sym.simplify(sym.Matrix(N @ Y_1 @ N.T))
         A_trafo = np.zeros((7,12))
 
         A_trafo[0,1] = 1.0
@@ -632,14 +743,17 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
         nodes_j = [0,1,2,3]
         nodes_k = [0,1,2]   
 
-    Y_prim = A_trafo @ Y_w @ A_trafo.T
+    if connection in ['Dyn11t']:
+        Y_prim = sym.simplify(sym.Matrix(A_trafo @ Y_w @ A_trafo.T))
+    else:
+        Y_prim = A_trafo @ Y_w @ A_trafo.T
+
 
 
     
     return Y_prim,nodes_j,nodes_k
 
-if __name__ == "__main__":
 
-    S_n,U_1n,U_2n,Z_cc = 1e6,20e3,400,0.1
-    Y_prim,nodes_j,nodes_k = trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyn11')
-    print(Y_prim.shape)
+    # S_n,U_1n,U_2n,Z_cc = 1e6,20e3,400,0.1
+    # Y_prim,nodes_j,nodes_k = trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyn11t')
+    # print(Y_prim)
