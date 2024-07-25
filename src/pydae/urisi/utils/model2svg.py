@@ -19,6 +19,7 @@ class model2svg(svg):
         self.set_buses_title()
         self.set_lines_title()
         self.set_transformers_title()
+        self.set_sources_title()
 
         self.set_lines_currents_colors()
         self.set_buses_voltages_colors()
@@ -53,27 +54,42 @@ class model2svg(svg):
                 U_base = bus['U_kV']*1000
                 V_base = U_base/np.sqrt(3)
                 string = 'Voltages and powers:\n'
+                p_total = 0.0
+                q_total = 0.0
                 for phn in ['an','bn','cn','ng']:
                     V = get_v(self.model,bus_name,f'V_{phn}_m')
                     V_pu = V/V_base
 
                     p = 0.0
                     q = 0.0
+
                     if bus_name in load_buses:
                         ph = phn[0]
                         if  not ph == 'n':
                             p = self.model.get_value(f'p_load_{bus_name}_{ph}')
                             q = self.model.get_value(f'q_load_{bus_name}_{ph}')
 
+                            p_total += p
+                            q_total += q
+
                     if not phn == 'ng':  
                         if q < 0.0:    
-                            string += f"V{phn} = {V:7.1f} V ({V_pu:4.2f} pu), S{phn} = {p/1e3:5.1f} - {np.abs(q)/1e3:5.1f}j kVA \n"
+                            string += f"V{phn} = {V:7.1f} V ({V_pu:4.2f} pu), S{phn[0]} = {p/1e3:5.1f} - {np.abs(q)/1e3:5.1f}j kVA \n"
                         else:
-                            string += f"V{phn} = {V:7.1f} V ({V_pu:4.2f} pu), S{phn} = {p/1e3:5.1f} + {np.abs(q)/1e3:5.1f}j kVA \n"
+                            string += f"V{phn} = {V:7.1f} V ({V_pu:4.2f} pu), S{phn[0]} = {p/1e3:5.1f} + {np.abs(q)/1e3:5.1f}j kVA \n"
 
                     else:
-                        string += f"V{phn} = {V:7.1f} V ({V_pu:4.2f} pu)\n"
-    
+                        string += f"V{phn} = {V:7.1f} V ({V_pu:4.2f} pu), St = {p_total/1e3:5.1f} + {np.abs(q_total)/1e3:5.1f}j kVA \n"
+
+                v_m_array = get_v(self.model,bus_name,'V_abcn_m')
+                v_m_min = np.min(v_m_array)
+                v_m_max = np.max(v_m_array)
+                max_dev = v_m_max - v_m_min
+                v_avg = np.sum(v_m_array)/3
+                unbalance = max_dev/v_avg
+                string += f"voltage unbalance = {unbalance*100:5.2f} %\n"
+
+
             if bus['N_nodes'] == 3:
                 bus_name = bus['name']
                 U_base = bus['U_kV']*1000
@@ -212,3 +228,27 @@ class model2svg(svg):
             string += f"\t\t\t  In = {np.abs(I_2_n):6.1f} A \n"
 
             self.set_title(f'trafo_{bus_j}_{bus_k}_g',string) 
+
+
+    def set_sources_title(self):
+
+        for src in self.grid_data['sources']:
+            bus = src['bus']
+
+            I_a = self.model.get_value(f'i_vsc_{bus}_a_m')
+            I_b = self.model.get_value(f'i_vsc_{bus}_a_m')
+            I_c = self.model.get_value(f'i_vsc_{bus}_a_m')
+
+            p = self.model.get_value(f'p_{bus}')
+            q = self.model.get_value(f'q_{bus}')
+
+            string = 'Currents:\n'
+            string += f"Ia = {I_a:6.1f} A \n"
+            string += f"Ib = {I_b:6.1f} A \n"
+            string += f"Ic = {I_c:6.1f} A \n"
+            string += 'Powers:\n'
+            string += f"p = {p/1e3:6.1f} kW\n"
+            string += f"q = {q/1e3:6.1f} kvar \n"
+
+
+            self.set_title(f'src_{bus}',string) 

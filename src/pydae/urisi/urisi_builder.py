@@ -70,7 +70,7 @@ class urisi:
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
 
-        self.uz_jacs = True     
+        self.uz_jacs = False     
         self.verbose = False 
 
         self.omega_coi_numerator = 0.0
