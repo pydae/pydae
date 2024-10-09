@@ -81,12 +81,13 @@ class svg():
         elm_list = self.root.findall(f".//*[@id='{id}']")
         if len(elm_list) > 0:
             elm = elm_list[0]
+            title_element = ET.Element("title")
+            title_element.text = string
+            elm.append(title_element)
         else:
-            print(f'SVG element {bus_id} not found')
+            print(f'SVG element {id} not found')
 
-        title_element = ET.Element("title")
-        title_element.text = string
-        elm.append(title_element)
+
 
             
     def set_rect_style(self,object_id,new_style):

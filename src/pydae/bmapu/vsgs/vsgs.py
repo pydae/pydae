@@ -14,6 +14,7 @@ from pydae.bmapu.vsgs.uvsg_mid import uvsg_mid
 from pydae.bmapu.vsgs.uvsg_high import uvsg_high
 from pydae.bmapu.vsgs.olives_vsg import olives_vsg
 from pydae.bmapu.vsgs.leon_evsg import leon_evsg
+from pydae.bmapu.vsgs.regfm_b1 import regfm_b1
 
 
 def add_vsgs(grid):
@@ -34,6 +35,7 @@ def add_vsgs(grid):
         if item['type'] == 'leon_gvsg': p_W, q_var = leon_gvsg(grid,name,bus_name,data_dict)
         if item['type'] == 'leon_vsg_ll': p_W, q_var = leon_vsg_ll(grid,name,bus_name,data_dict)      
         if item['type'] == 'leon_evsg': p_W, q_var = leon_evsg(grid,name,bus_name,data_dict)      
+        if item['type'] == 'regfm_b1': p_W, q_var = regfm_b1(grid,name,bus_name,data_dict)      
 
         # grid power injection
         idx_bus = grid.buses_list.index(data_dict['bus']) # get the number of the bus where the syn is connected

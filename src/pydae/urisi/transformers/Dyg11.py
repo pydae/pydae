@@ -2,9 +2,9 @@ import numpy as np
 import sympy as sym
 
 
-def add_Dyn11(grid,trafo):
+def add_Dyg11(grid,trafo):
     '''
-    Transformer model for type Dyn11 connection as defined in:
+    Transformer model for type Dyg11 connection as defined in:
 
     Álvaro Rodríguez del Nozal, Esther Romero-Ramos and Ángel Luis Trigo-García, 
     Accurate Assessment of Decoupled OLTC Transformers to Optimize the Operation of Low-Voltage Networks
@@ -12,7 +12,7 @@ def add_Dyn11(grid,trafo):
 
     {"bus_j": "MV0",  "bus_k": "I01",  "S_n_kVA": 100, "U_j_kV":20, "U_k_kV":0.4,
      "R_cc_pu": 0.01, "X_cc_pu":0.04, "R_fe_pu": 1000, "X_mu_pu":100, 
-     "connection": "Dyn11",   "conductors_j": 3, "conductors_k": 4,
+     "connection": "Dyg11",   "conductors_j": 3, "conductors_k": 4,
      "monitor":true}
     
     '''
@@ -32,25 +32,14 @@ def add_Dyn11(grid,trafo):
     I = sym.I
 
     # Transformer Y primitive
-    Y_prim = sym.Matrix([[2*I*B_m + 2*I*B_t + 2*G_m + 2*G_t, -I*B_m - I*B_t - G_m - G_t, -I*B_m - I*B_t - G_m - G_t, -Ratio_a*(I*B_t + G_t), 0, Ratio_c*(I*B_t + G_t), (Ratio_a - Ratio_c)*(I*B_t + G_t)], 
-                         [-I*B_m - I*B_t - G_m - G_t, 2*I*B_m + 2*I*B_t + 2*G_m + 2*G_t, -I*B_m - I*B_t - G_m - G_t, Ratio_a*(I*B_t + G_t), -Ratio_b*(I*B_t + G_t), 0, (-Ratio_a + Ratio_b)*(I*B_t + G_t)], 
-                         [-I*B_m - I*B_t - G_m - G_t, -I*B_m - I*B_t - G_m - G_t, 2*I*B_m + 2*I*B_t + 2*G_m + 2*G_t, 0, Ratio_b*(I*B_t + G_t), -Ratio_c*(I*B_t + G_t), (-Ratio_b + Ratio_c)*(I*B_t + G_t)], 
-                         [-Ratio_a*(I*B_t + G_t), Ratio_a*(I*B_t + G_t), 0, Ratio_a**2*(I*B_t + G_t), 0, 0, Ratio_a**2*(-I*B_t - G_t)], 
-                         [0, -Ratio_b*(I*B_t + G_t), Ratio_b*(I*B_t + G_t), 0, Ratio_b**2*(I*B_t + G_t), 0, Ratio_b**2*(-I*B_t - G_t)], 
-                         [Ratio_c*(I*B_t + G_t), 0, -Ratio_c*(I*B_t + G_t), 0, 0, Ratio_c**2*(I*B_t + G_t), Ratio_c**2*(-I*B_t - G_t)], 
-                         [(Ratio_a - Ratio_c)*(I*B_t + G_t), (-Ratio_a + Ratio_b)*(I*B_t + G_t), (-Ratio_b + Ratio_c)*(I*B_t + G_t), Ratio_a**2*(-I*B_t - G_t), Ratio_b**2*(-I*B_t - G_t), Ratio_c**2*(-I*B_t - G_t), (R_g*(I*B_t + G_t)*(Ratio_a**2 + Ratio_b**2 + Ratio_c**2) + 1)/R_g]])
-    
-    Y_prim = Y_prim.subs(Ratio_a,Ratio_a*Ratio)
-    Y_prim = Y_prim.subs(Ratio_b,Ratio_b*Ratio)
-    Y_prim = Y_prim.subs(Ratio_c,Ratio_c*Ratio)
+    G_primitive = sym.Matrix([[2*G_t, -G_t, -G_t, -G_t*Ratio, 0, G_t*Ratio], [-G_t, 2*G_t, -G_t, G_t*Ratio, -G_t*Ratio, 0], [-G_t, -G_t, 2*G_t, 0, G_t*Ratio, -G_t*Ratio], [-G_t*Ratio, G_t*Ratio, 0, Ratio**2*(6*B_t**2*G_t*R_g**2*Ratio**4 + B_t**2*R_g*Ratio**2 + 6*G_t**3*R_g**2*Ratio**4 + 5*G_t**2*R_g*Ratio**2 + G_t)/(9*B_t**2*R_g**2*Ratio**4 + 9*G_t**2*R_g**2*Ratio**4 + 6*G_t*R_g*Ratio**2 + 1), R_g*Ratio**4*(-6*B_t**2*G_t*R_g*Ratio**2 + (B_t**2 - G_t**2)*(3*G_t*R_g*Ratio**2 + 1))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), R_g*Ratio**4*(-6*B_t**2*G_t*R_g*Ratio**2 + (B_t**2 - G_t**2)*(3*G_t*R_g*Ratio**2 + 1))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2)], [0, -G_t*Ratio, G_t*Ratio, R_g*Ratio**4*(-6*B_t**2*G_t*R_g*Ratio**2 + (B_t**2 - G_t**2)*(3*G_t*R_g*Ratio**2 + 1))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), Ratio**2*(6*B_t**2*G_t*R_g**2*Ratio**4 + B_t**2*R_g*Ratio**2 + 6*G_t**3*R_g**2*Ratio**4 + 5*G_t**2*R_g*Ratio**2 + G_t)/(9*B_t**2*R_g**2*Ratio**4 + 9*G_t**2*R_g**2*Ratio**4 + 6*G_t*R_g*Ratio**2 + 1), R_g*Ratio**4*(-6*B_t**2*G_t*R_g*Ratio**2 + (B_t**2 - G_t**2)*(3*G_t*R_g*Ratio**2 + 1))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2)], [G_t*Ratio, 0, -G_t*Ratio, R_g*Ratio**4*(-6*B_t**2*G_t*R_g*Ratio**2 + (B_t**2 - G_t**2)*(3*G_t*R_g*Ratio**2 + 1))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), R_g*Ratio**4*(-6*B_t**2*G_t*R_g*Ratio**2 + (B_t**2 - G_t**2)*(3*G_t*R_g*Ratio**2 + 1))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), Ratio**2*(6*B_t**2*G_t*R_g**2*Ratio**4 + B_t**2*R_g*Ratio**2 + 6*G_t**3*R_g**2*Ratio**4 + 5*G_t**2*R_g*Ratio**2 + G_t)/(9*B_t**2*R_g**2*Ratio**4 + 9*G_t**2*R_g**2*Ratio**4 + 6*G_t*R_g*Ratio**2 + 1)]])
+    B_primitive = sym.Matrix([[2*B_t, -B_t, -B_t, -B_t*Ratio, 0, B_t*Ratio], [-B_t, 2*B_t, -B_t, B_t*Ratio, -B_t*Ratio, 0], [-B_t, -B_t, 2*B_t, 0, B_t*Ratio, -B_t*Ratio], [-B_t*Ratio, B_t*Ratio, 0, B_t*Ratio**2*(6*B_t**2*R_g**2*Ratio**4 + 6*G_t**2*R_g**2*Ratio**4 + 4*G_t*R_g*Ratio**2 + 1)/(9*B_t**2*R_g**2*Ratio**4 + 9*G_t**2*R_g**2*Ratio**4 + 6*G_t*R_g*Ratio**2 + 1), B_t*R_g*Ratio**4*(-2*G_t*(3*G_t*R_g*Ratio**2 + 1) - 3*R_g*Ratio**2*(B_t**2 - G_t**2))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), B_t*R_g*Ratio**4*(-2*G_t*(3*G_t*R_g*Ratio**2 + 1) - 3*R_g*Ratio**2*(B_t**2 - G_t**2))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2)], [0, -B_t*Ratio, B_t*Ratio, B_t*R_g*Ratio**4*(-2*G_t*(3*G_t*R_g*Ratio**2 + 1) - 3*R_g*Ratio**2*(B_t**2 - G_t**2))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), B_t*Ratio**2*(6*B_t**2*R_g**2*Ratio**4 + 6*G_t**2*R_g**2*Ratio**4 + 4*G_t*R_g*Ratio**2 + 1)/(9*B_t**2*R_g**2*Ratio**4 + 9*G_t**2*R_g**2*Ratio**4 + 6*G_t*R_g*Ratio**2 + 1), B_t*R_g*Ratio**4*(-2*G_t*(3*G_t*R_g*Ratio**2 + 1) - 3*R_g*Ratio**2*(B_t**2 - G_t**2))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2)], [B_t*Ratio, 0, -B_t*Ratio, B_t*R_g*Ratio**4*(-2*G_t*(3*G_t*R_g*Ratio**2 + 1) - 3*R_g*Ratio**2*(B_t**2 - G_t**2))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), B_t*R_g*Ratio**4*(-2*G_t*(3*G_t*R_g*Ratio**2 + 1) - 3*R_g*Ratio**2*(B_t**2 - G_t**2))/(9*B_t**2*R_g**2*Ratio**4 + (3*G_t*R_g*Ratio**2 + 1)**2), B_t*Ratio**2*(6*B_t**2*R_g**2*Ratio**4 + 6*G_t**2*R_g**2*Ratio**4 + 4*G_t*R_g*Ratio**2 + 1)/(9*B_t**2*R_g**2*Ratio**4 + 9*G_t**2*R_g**2*Ratio**4 + 6*G_t*R_g*Ratio**2 + 1)]])
 
-    # Conductance and subseptance primitive
-    G_primitive = sym.re(Y_prim)
-    B_primitive = sym.im(Y_prim)
-
+    Y_prim = G_primitive + I*B_primitive
+   
     # default nodes
     nodes_j = [0,1,2]
-    nodes_k = [0,1,2,3]  
+    nodes_k = [0,1,2]  
 
     # from trafo primitive to system global primitive
     rl = grid.it_branch
@@ -120,7 +109,7 @@ def add_Dyn11(grid,trafo):
 
 
 
-def dev_Dyn11():
+def dev_Dyg11():
     '''
     I1 = U1_to_I1 * U1
     U1 = N*UA
@@ -168,7 +157,7 @@ def dev_Dyn11():
                     [-1,  0,  1,  0,  0,  0,  0], # 5
                     [ 0,  0,  0,  0,  0,  1, -1]  # 6
     ])
-    
+
     Y_prim = N.T @ U1_to_I1 @ N
     Y_prim[-1,-1] += 1/R_g
     Y_prim = sym.simplify(Y_prim)
@@ -176,28 +165,27 @@ def dev_Dyn11():
     sym.pprint(Y_prim)    
 
 
-def test_Dyn11_build():
+def test_Dyg11_build():
     from pydae.urisi.urisi_builder import urisi
 
 
-    grid = urisi('Dyn11.json')
+    grid = urisi('Dyg11.json')
     grid.uz_jacs = False
     grid.build('cigre_eu_lv_ind')
 
-def test_Dyn11_ini():
+def test_Dyg11_ini():
     from pydae.urisi.utils import report_v
     import cigre_eu_lv_ind
     model = cigre_eu_lv_ind.model()
-    model.ini({'Ratio_a_MV0_I01':1.0,'Ratio_b_MV0_I01':1.0,'Ratio_c_MV0_I01':1.0,
-               'R_g_MV0_I01':1000},'xy_0.json')
+    model.ini({'Ratio_MV0_I01':110/20*np.sqrt(3)},'xy_0.json')
     model.report_y()
-    report_v(model,'Dyn11.json')
+    report_v(model,'Dyg11.json')
     model.report_z()
 
 
 if __name__ == "__main__":
 
-    test_Dyn11_build()
-    test_Dyn11_ini()
+    test_Dyg11_build()
+    test_Dyg11_ini()
 
-    #print(dev_Dyn11())
+    #print(dev_Dyg11())

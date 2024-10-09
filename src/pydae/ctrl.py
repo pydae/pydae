@@ -337,7 +337,22 @@ def lead_design(angle,omega, verbose=False):
         print(f'Gain at omega: {np.abs(G_omega)}')
     
     return T_1,T_2
+
+def d2c(A_d,B_d,C_d,D_d,Dt):
+    '''
+    Convert model from discrete (ZOH) to continuous time
     
+    '''
+
+    lam, phi = np.linalg.eig(A_d)
+    A_c = (np.linalg.solve(phi.T, (phi * (np.log(lam) / Dt)).T).T).real
+    I = np.eye(A_d.shape[0])
+    B_c = np.linalg.solve(A_d - I, A_c @ B_d)
+    C_c = C_d.copy()
+    D_c = D_d.copy()
+    
+    return A_c,B_c,C_c,D_c
+   
      
 def reduce(model):
     '''

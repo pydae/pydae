@@ -4,6 +4,7 @@ import ipywidgets as widgets
 import pydae.svg_tools as st 
 import pydae.build_cffi as db
 from pydae.bmapu.pvs.utils.pv_builder import pv_model
+import re
 
 plt.style.use('https://raw.githubusercontent.com/pydae/pydae/master/src/pydae/edashboards/presentation.mplstyle')
 colors = plt.rcParams['axes.prop_cycle'].by_key()['color']

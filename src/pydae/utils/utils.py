@@ -26,7 +26,7 @@ def save_json(data,file='json_out.json'):
 
     # Writing dictionary to a JSON file
     with open(file, 'w') as fobj:
-        json.dump(data, fobj)
+        json.dump(data, fobj, indent=2)
 
 def save_hjson(data,file='json_out.json'):
     import hjson

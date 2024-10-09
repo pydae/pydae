@@ -7,7 +7,7 @@ import hjson
 
 class model2svg(svg):
 
-    def __init__(self, model, grid_data, svg_file):
+    def __init__(self, model, grid_data, svg_file, oneline=False):
 
         super().__init__(svg_file)
         self.model = model
@@ -15,6 +15,8 @@ class model2svg(svg):
 
         self.V_min_pu = 0.95
         self.V_max_pu = 1.05
+
+        self.oneline = oneline
 
         self.set_buses_title()
         self.set_lines_title()
@@ -107,16 +109,27 @@ class model2svg(svg):
             bus_j = line['bus_j']
             bus_k = line['bus_k']
 
+            if not "N_branches" in line: line.update({"N_branches":4})
+
+            phases = ['a','b','c','n'] 
+            if line['N_branches'] == 3:
+                phases = ['a','b','c'] 
+
+
             string = 'Currents:\n'
-            for it,ph in enumerate(['a','b','c','n']):
+            for it,ph in enumerate(phases):
 
                 line_name = f'l_{bus_j}_{it}_{bus_k}_{it}'
                 I = get_i(self.model,bus_j,bus_k,type=f'I_{ph}_m')
                 string += f"I{ph} = {I:6.1f} A\n"
 
-            for it,ph in enumerate(['a','b','c','n']):  
-                line_name = f'l_{bus_j}_{it}_{bus_k}_{it}'
+            if self.oneline:
+                line_name = f'l_{bus_j}_{bus_k}'
                 self.set_title(line_name,string) 
+            else:
+                for it,ph in enumerate(phases):  
+                    line_name = f'l_{bus_j}_{it}_{bus_k}_{it}'
+                    self.set_title(line_name,string) 
 
     def set_lines_currents_colors(self):
         
@@ -147,6 +160,34 @@ class model2svg(svg):
                     if i_abs < 1e-3: continue
                     i_sat = np.clip((i_abs/I_max)**2*255,0,255)
                     self.set_color('line',line_id,(int(i_sat),0,0))
+
+            i_maxima = 0.0
+            for ph in ['0','1','2']:
+                line_id = f'l_{bus_j}_{ph}_{bus_k}_{ph}'
+                if  f'i_{line_id}_r' in self.model.outputs_list:
+                    if 'code' in line:
+                        I_max = self.grid_data["line_codes"][line['code']]['I_max']
+                    else:
+                        I_max = line['I_max']
+
+                    i_r = self.model.get_value(f'i_{line_id}_r') 
+                    i_i = self.model.get_value(f'i_{line_id}_i') 
+                    i = i_r + 1j*i_i
+                    i_abs = np.abs(i)
+
+                    if i_abs>i_maxima: i_maxima = i_abs
+                    
+
+                    if i_abs < 1e-3: continue
+                    i_sat = np.clip((i_abs/I_max)**2*255,0,255)
+
+                    if not self.oneline:
+                        self.set_color('line',line_id,(int(i_sat),0,0))
+
+                if self.oneline:
+                    i_sat = np.clip((i_maxima/I_max)**2*255,0,255)
+                    self.set_color('line',f'l_{bus_j}_{bus_k}',(int(i_sat),0,0))
+                    self.set_color('path',f'l_{bus_j}_{bus_k}',(int(i_sat),0,0))
 
     def set_buses_voltages_colors(self):
         
@@ -192,9 +233,12 @@ class model2svg(svg):
                 if U_pu < 1:
                     blue = np.clip(255*((U_pu - 1)/(self.V_min_pu - 1))**2,0,255)
                     self.set_color('rect',f'{bus["name"]}',(0,0,int(blue)))  
+                    self.set_color('path',f'{bus["name"]}',(0,0,int(blue)))  
+
                 if U_pu > 1:
                     red  = np.clip(255*((U_pu - 1)/(self.V_max_pu - 1))**2,0,255)
                     self.set_color('rect',f'{bus["name"]}',(int(red),0,0)) 
+                    self.set_color('path',f'{bus["name"]}',(int(red),0,0)) 
                 
 
                 # if acdc == 'ac':
@@ -220,14 +264,18 @@ class model2svg(svg):
             I_2_a = self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_0_r') + 1j*self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_0_i')
             I_2_b = self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_1_r') + 1j*self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_1_i')
             I_2_c = self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_2_r') + 1j*self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_2_i')
-            I_2_n = self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_3_r') + 1j*self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_3_i')
+
+            if 'n' in trafo['connection']:
+                I_2_n = self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_3_r') + 1j*self.model.get_value(f'i_t_{bus_j}_{bus_k}_2_3_i')
+            else:
+                I_2_n = 0.0
 
             string += f"Ia = {np.abs(I_1_a):6.1f} A\tIa = {np.abs(I_2_a):6.1f} A \n"
             string += f"Ib = {np.abs(I_1_b):6.1f} A\tIb = {np.abs(I_2_b):6.1f} A \n"
             string += f"Ic = {np.abs(I_1_c):6.1f} A\tIc = {np.abs(I_2_c):6.1f} A \n"
             string += f"\t\t\t  In = {np.abs(I_2_n):6.1f} A \n"
 
-            self.set_title(f'trafo_{bus_j}_{bus_k}_g',string) 
+            self.set_title(f'trafo_{bus_j}_{bus_k}',string) 
 
 
     def set_sources_title(self):

@@ -274,3 +274,41 @@ def change_line_fast(p,lines_idxs,line_codes_idx,lengths_km,codes_g_primitives,c
 
         p[ini_idx:  end_idx:2] = codes_g_primitives[line_code_idx]/length_km
         p[ini_idx+1:end_idx:2] = codes_b_primitives[line_code_idx]/length_km
+
+
+
+if __name__ == '__main__':
+
+    data  = {
+    "system":{"S_base":1e6, "K_p_agc":0.01, "K_i_agc":0.01, "K_xif":0.01},
+    "buses": [{"name":"01","U_kV":20.0, "N_nodes":3},{"name":"02","U_kV":20.0, "N_nodes":3},{"name":"03","U_kV":20.0, "N_nodes":3},
+            {"name":"04","U_kV":20.0, "N_nodes":3},{"name":"05","U_kV":20.0, "N_nodes":3},
+            {"name":"06","U_kV":20.0, "N_nodes":3},{"name":"07","U_kV":20.0, "N_nodes":3},{"name":"08","U_kV":20.0, "N_nodes":3},
+            {"name":"09","U_kV":20.0, "N_nodes":3},{"name":"10","U_kV":20.0, "N_nodes":3},{"name":"11","U_kV":20.0, "N_nodes":3}],
+    "lines":     [  
+                    {"bus_j":"01", "bus_k":"02", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":2.82, "N_branches":3},
+                    {"bus_j":"02", "bus_k":"03", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":4.42, "N_branches":3},
+                    {"bus_j":"03", "bus_k":"04", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":0.61, "N_branches":3},
+                    {"bus_j":"03", "bus_k":"08", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":1.30, "N_branches":3},
+                    {"bus_j":"04", "bus_k":"05", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":0.56, "N_branches":3},
+                    {"bus_j":"05", "bus_k":"06", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":1.54, "N_branches":3},
+                    {"bus_j":"06", "bus_k":"07", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":0.24, "N_branches":3},
+                    {"bus_j":"07", "bus_k":"08", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":1.67, "N_branches":3},
+                    {"bus_j":"08", "bus_k":"09", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":0.32, "N_branches":3},
+                    {"bus_j":"09", "bus_k":"10", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":0.77, "N_branches":3},
+                    {"bus_j":"10", "bus_k":"11", "R_km":0.501, "X_km":0.716, "B_muS_km":47.493, "km":0.33, "N_branches":3},
+                ],
+    "loads" : [
+            #{"bus": "12", "kVA":0e3, "pf": 0.95, "T_i":0.01,"I_max":1200},
+            #{"bus": "13", "kVA":0e3, "pf": 0.95, "T_i":0.01,"I_max":1200},
+            #{"bus": "14", "kVA":0e3, "pf": 0.95, "T_i":0.01,"I_max":1200}
+            ],
+    "sources":[
+        {"type":"ac3ph3w_ideal", "bus": "01", "S_n":100e3, "U_n" :20e3, "R":0.01, "X":0.1}
+            ]}
+
+    from pydae.urisi.urisi_builder import urisi
+
+    grid = urisi(data)
+    grid.uz_jacs = False
+    grid.build('temp')

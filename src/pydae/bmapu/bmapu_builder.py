@@ -530,6 +530,12 @@ class bmapu:
         self.construct(name)    
         self.compile()  
 
+    def build_mkl_win(self, name =''):
+        if name == '':
+            print('Error: name is not provided.')
+        self.construct(name)    
+        self.compile_mkl(name)
+
     def checker(self):
         
         if not 'syns' in self.data: self.data.update({'syns':[]})

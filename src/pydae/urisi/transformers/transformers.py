@@ -11,6 +11,7 @@ import sympy as sym
 import difflib
 
 from pydae.urisi.transformers.Dyn11 import add_Dyn11
+from pydae.urisi.transformers.Dyg11 import add_Dyg11
 
 
 
@@ -21,6 +22,8 @@ def add_trafos(self):
 
         if trafo['connection'] == 'Dyn11':
             add_Dyn11(self,trafo)
+        elif trafo['connection'] == 'Dyg11':
+            add_Dyg11(self,trafo)
         else: 
             add_trafo(self,trafo)
 
@@ -150,7 +153,7 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
     
     '''
 
-    connections_list = ['Dyn1', 'Yy_3wires','Dyn5','Dyn11','Dyn11t','Ygd5_3w','Ygd1_3w','Ygd11_3w','ZigZag','Dyg11_3w','Ynd11']
+    connections_list = ['Dyn1', 'Yy_3wires','Dyn5','Dyn11','Dyn11t','Ygd5_3w','Ygd1_3w','Ygd11_3w','ZigZag','Dyg11_3w','Dyg11','Ynd11']
 
     if connection not in connections_list:
         closest_connection = difflib.get_close_matches(connection, connections_list)
@@ -613,7 +616,7 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
         
 
         
-    if connection=='Dyg11_3w':   
+    if connection=='Dyg11':   
         z_a = 3*Z_cc*1.0**2/S_n
         z_b = 3*Z_cc*1.0**2/S_n
         z_c = 3*Z_cc*1.0**2/S_n
@@ -654,6 +657,9 @@ def trafo_yprim(S_n,U_1n,U_2n,Z_cc,connection='Dyg11'):
         A_trafo[4,7] = 1.0
         A_trafo[5,11] = 1.0
         
+        nodes_j = [0,1,2]
+        nodes_k = [0,1,2]  
+
 #    if connection=='Dyg11_3w':
 #        z_a = Z_cc*1.0**2/S_n
 #        z_b = Z_cc*1.0**2/S_n
