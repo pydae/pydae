@@ -7,10 +7,9 @@ def ctrl_3ph_4w_droop(grid,vsc_data,ctrl_data,name,bus_name):
     bus_dc = vsc_data['bus_dc']
 
     buses_names = [bus['name'] for bus in grid.data['buses']]
-    idx = buses_names.index(bus_ac)
-    U_ac_b = grid.data['buses'][idx]['U_kV']*1e3
-    idx = buses_names.index(bus_dc)
-    V_dc_b = grid.data['buses'][idx]['U_kV']*1e3
+
+    U_ac_b = sym.Symbol(f'U_ac_b_{bus_ac}', real = True)
+    V_dc_b = sym.Symbol(f'V_dc_b_{bus_dc}', real = True)
 
 
     V_phn = []
@@ -44,7 +43,7 @@ def ctrl_3ph_4w_droop(grid,vsc_data,ctrl_data,name,bus_name):
 
     V_ac_b = U_ac_b/np.sqrt(3)
 
-    v_dc_pu = v_dc/800.0
+    v_dc_pu = v_dc/V_dc_b
     p_ac_a = K_acdc*K_acdc_a*(v_dc_pu - V_phn[0]/V_ac_b) + p_vsc_a_ref
     p_ac_b = K_acdc*K_acdc_b*(v_dc_pu - V_phn[1]/V_ac_b) + p_vsc_b_ref
     p_ac_c = K_acdc*K_acdc_c*(v_dc_pu - V_phn[2]/V_ac_b) + p_vsc_c_ref
@@ -65,7 +64,15 @@ def ctrl_3ph_4w_droop(grid,vsc_data,ctrl_data,name,bus_name):
     grid.dae['params_dict'].update({f'K_acdc_a_{bus_ac}':1.0})
     grid.dae['params_dict'].update({f'K_acdc_b_{bus_ac}':1.0})
     grid.dae['params_dict'].update({f'K_acdc_c_{bus_ac}':1.0})
-            
+
+    idx = buses_names.index(bus_ac)
+    U_ac_b = grid.data['buses'][idx]['U_kV']*1e3
+    idx = buses_names.index(bus_dc)
+    V_dc_b = grid.data['buses'][idx]['U_kV']*1e3
+
+    grid.dae['params_dict'].update({f'U_ac_b_{bus_ac}':U_ac_b})
+    grid.dae['params_dict'].update({f'V_dc_b_{bus_dc}':V_dc_b})
+
     grid.dae['u_ini_dict'].pop(f'p_vsc_a_{bus_ac}')
     grid.dae['u_ini_dict'].pop(f'p_vsc_b_{bus_ac}')
     grid.dae['u_ini_dict'].pop(f'p_vsc_c_{bus_ac}')

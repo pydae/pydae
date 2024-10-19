@@ -25,7 +25,7 @@ def ac3ph3w_ideal(grid,vsc_data):
     name = vsc_data['bus']
 
     # inputs
-    e_ao_m,e_bo_m,e_co_m,e_no_m = sym.symbols(f'e_ao_m_{name},e_bo_m_{name},e_co_m_{name},e_no_m_{name}', real=True)
+    e_ao_m,e_bo_m,e_co_m,e_no_m,v_pu = sym.symbols(f'e_ao_m_{name},e_bo_m_{name},e_co_m_{name},e_no_m_{name},v_pu_{name}', real=True)
     v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'V_{name}_0_r,V_{name}_1_r,V_{name}_2_r,V_{name}_3_r,v_{name}_o_r', real=True)
     v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'V_{name}_0_i,V_{name}_1_i,V_{name}_2_i,V_{name}_3_i,v_{name}_o_i', real=True)
     phi =  sym.Symbol(f'phi_{name}', real=True)
@@ -58,12 +58,12 @@ def ac3ph3w_ideal(grid,vsc_data):
 
     s_total = s_a + s_b + s_c
     
-    e_a_r = (e_ao_m)*sym.cos(phi) 
-    e_a_i = (e_ao_m)*sym.sin(phi) 
-    e_b_r = (e_bo_m)*sym.cos(phi-2/3*np.pi) 
-    e_b_i = (e_bo_m)*sym.sin(phi-2/3*np.pi) 
-    e_c_r = (e_co_m)*sym.cos(phi-4/3*np.pi) 
-    e_c_i = (e_co_m)*sym.sin(phi-4/3*np.pi) 
+    e_a_r = (v_pu*e_ao_m)*sym.cos(phi) 
+    e_a_i = (v_pu*e_ao_m)*sym.sin(phi) 
+    e_b_r = (v_pu*e_bo_m)*sym.cos(phi-2/3*np.pi) 
+    e_b_i = (v_pu*e_bo_m)*sym.sin(phi-2/3*np.pi) 
+    e_c_r = (v_pu*e_co_m)*sym.cos(phi-4/3*np.pi) 
+    e_c_i = (v_pu*e_co_m)*sym.sin(phi-4/3*np.pi) 
 
     e_a_cplx = e_a_r + 1j*e_a_i
     e_b_cplx = e_b_r + 1j*e_b_i
@@ -101,6 +101,13 @@ def ac3ph3w_ideal(grid,vsc_data):
 
     u_ini_dict.update({f'e_ao_m_{name}':V_1,f'e_bo_m_{name}':V_1,f'e_co_m_{name}':V_1})
     u_run_dict.update({f'e_ao_m_{name}':V_1,f'e_bo_m_{name}':V_1,f'e_co_m_{name}':V_1})
+
+    v_pu = 1.0
+    if 'v_pu' in vsc_data:
+        v_pu = vsc_data['v_pu']
+    u_ini_dict.update({f'v_pu_{name}':v_pu})
+    u_run_dict.update({f'v_pu_{name}':v_pu})
+
     u_ini_dict.update({f'phi_{name}':0.0})
     u_run_dict.update({f'phi_{name}':0.0})
 
