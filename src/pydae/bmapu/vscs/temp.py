@@ -92,21 +92,21 @@ class model:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 4
-        self.N_y = 21 
-        self.N_z = 20 
+        self.N_x = 8
+        self.N_y = 14 
+        self.N_z = 10 
         self.N_store = 100000 
-        self.params_list = ['S_base', 'g_WFM_WFH', 'b_WFM_WFH', 'bs_WFM_WFH', 'g_WFD_GRD', 'b_WFD_GRD', 'bs_WFD_GRD', 'U_WFM_n', 'U_WFH_n', 'U_WFD_n', 'U_GRD_n', 'U_GRI_n', 'S_n_WFD_WFH', 'R_s_WFD_WFH', 'X_s_WFD_WFH', 'Losses_p_WFD_WFH', 'Losses_s_WFD_WFH', 'S_n_GRD_GRI', 'R_d_GRD_GRI', 'X_d_GRD_GRI', 'Losses_p_GRD_GRI', 'Losses_s_GRD_GRI', 'S_n_GRI', 'F_n_GRI', 'X_v_GRI', 'R_v_GRI', 'K_delta_GRI', 'K_alpha_GRI', 'K_rocov_GRI', 'K_p_agc', 'K_i_agc', 'K_xif'] 
-        self.params_values_list  = [1000000000, 0.0, -19.999999999999996, 2e-06, 170.0357142857143, -0.0, 0.0, 33000, 400000, 690000, 690000, 400000, 2000000000, 0.0001, 0, 0.015, 0.01, 2000000000, 0.0001, 0, 0.015, 0.01, 100000000000.0, 50, 0.001, 0, 0.001, 1e-06, 1e-06, 0, 0, 1e-06] 
-        self.inputs_ini_list = ['P_WFM', 'Q_WFM', 'P_WFH', 'Q_WFH', 'P_WFD', 'Q_WFD', 'P_GRD', 'Q_GRD', 'P_GRI', 'Q_GRI', 'V_t_m_WFH', 'theta_t_WFH', 'V_t_m_GRD', 'q_s_ref_GRI', 'alpha_GRI', 'v_ref_GRI', 'omega_ref_GRI', 'delta_ref_GRI', 'phi_GRI', 'rocov_GRI'] 
-        self.inputs_ini_values_list  = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 0.0, 1.0, 0.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
-        self.inputs_run_list = ['P_WFM', 'Q_WFM', 'P_WFH', 'Q_WFH', 'P_WFD', 'Q_WFD', 'P_GRD', 'Q_GRD', 'P_GRI', 'Q_GRI', 'V_t_m_WFH', 'theta_t_WFH', 'V_t_m_GRD', 'q_s_ref_GRI', 'alpha_GRI', 'v_ref_GRI', 'omega_ref_GRI', 'delta_ref_GRI', 'phi_GRI', 'rocov_GRI'] 
-        self.inputs_run_values_list = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0, 0.0, 1.0, 0.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
-        self.outputs_list = ['V_WFM', 'V_WFH', 'V_WFD', 'V_GRD', 'V_GRI', 'p_line_WFM_WFH', 'q_line_WFM_WFH', 'p_line_WFH_WFM', 'q_line_WFH_WFM', 'p_line_WFD_GRD', 'q_line_WFD_GRD', 'p_line_GRD_WFD', 'q_line_GRD_WFD', 'i_s_m_WFD_WFH', 'V_t_m_WFD_WFH', 'p_dc_WFD_WFH', 'i_d_GRD_GRI', 'V_t_m_GRD_GRI', 'alpha_GRI', 'Dv_GRI'] 
-        self.x_list = ['delta_GRI', 'Domega_GRI', 'Dv_GRI', 'xi_freq'] 
-        self.y_run_list = ['V_WFM', 'theta_WFM', 'V_WFH', 'theta_WFH', 'V_WFD', 'theta_WFD', 'V_GRD', 'theta_GRD', 'V_GRI', 'theta_GRI', 'i_s_r_WFH', 'i_s_i_WFH', 'i_d_r_GRD', 'i_d_i_GRD', 'omega_GRI', 'i_d_GRI', 'i_q_GRI', 'p_s_GRI', 'q_s_GRI', 'omega_coi', 'p_agc'] 
+        self.params_list = ['S_base', 'g_1_2', 'b_1_2', 'bs_1_2', 'U_1_n', 'U_2_n', 'S_n_1', 'K_pfr_1', 'K_h_1', 'K_qv_1', 'K_p_pll_1', 'K_i_pll_1', 'T_pll_1', 'K_theta_pll_1', 'S_n_2', 'F_n_2', 'X_v_2', 'R_v_2', 'K_delta_2', 'K_alpha_2', 'K_rocov_2', 'K_p_agc', 'K_i_agc', 'K_xif'] 
+        self.params_values_list  = [100000000, 0.0, -19.999999999999996, 0.0, 20000, 20000, 1000000, 0.0, 0.0, 0.0, 180, 3200, 0.02, 1.0, 100000000, 50, 0.01, 0, 0.01, 0.01, 1e-06, 0, 0, 1e-06] 
+        self.inputs_ini_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'p_in_1', 'Dp_r_1', 'Dq_r_1', 'v_ref_1', 'alpha_2', 'v_ref_2', 'omega_ref_2', 'delta_ref_2', 'phi_2', 'rocov_2'] 
+        self.inputs_ini_values_list  = [0, 0, 0, 0, 0.8, 0.0, 0.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
+        self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'p_in_1', 'Dp_r_1', 'Dq_r_1', 'v_ref_1', 'alpha_2', 'v_ref_2', 'omega_ref_2', 'delta_ref_2', 'phi_2', 'rocov_2'] 
+        self.inputs_run_values_list = [0, 0, 0, 0, 0.8, 0.0, 0.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0, 0.0] 
+        self.outputs_list = ['V_1', 'V_2', 'p_in_1', 'Dp_r_1', 'Dq_r_1', 'omega_pll_1', 'omega_pll_f_1', 'rocof_pll_1', 'alpha_2', 'Dv_2'] 
+        self.x_list = ['theta_pll_1', 'xi_pll_1', 'omega_pll_f_1', 'rocof_pll_f_1', 'delta_2', 'Domega_2', 'Dv_2', 'xi_freq'] 
+        self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'p_out_1', 'q_out_1', 'rocof_pll_1', 'omega_2', 'i_d_2', 'i_q_2', 'p_s_2', 'q_s_2', 'omega_coi', 'p_agc'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['V_WFM', 'theta_WFM', 'V_WFH', 'theta_WFH', 'V_WFD', 'theta_WFD', 'V_GRD', 'theta_GRD', 'V_GRI', 'theta_GRI', 'i_s_r_WFH', 'i_s_i_WFH', 'i_d_r_GRD', 'i_d_i_GRD', 'omega_GRI', 'i_d_GRI', 'i_q_GRI', 'p_s_GRI', 'q_s_GRI', 'omega_coi', 'p_agc'] 
+        self.y_ini_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'p_out_1', 'q_out_1', 'rocof_pll_1', 'omega_2', 'i_d_2', 'i_q_2', 'p_s_2', 'q_s_2', 'omega_coi', 'p_agc'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -333,7 +333,7 @@ class model:
         ## y_ini to y_run
         self.y_ini = self.xy_ini[self.N_x:]
         self.y_run = np.copy(self.y_ini)
-        self.u_run = np.copy(self.u_ini)
+        #self.u_run = np.copy(self.u_ini)
         
         ## y_ini to u_run
         for item in self.yini2urun:
@@ -1928,24 +1928,24 @@ def sp_H_jacs_run_eval(H_x,H_y,H_u,x,y,u,p,Dt):
 
 def sp_jac_ini_vectors():
 
-    sp_jac_ini_ia = [0, 18, 23, 1, 2, 3, 23, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7, 14, 15, 4, 5, 6, 7, 14, 15, 6, 7, 8, 9, 10, 11, 14, 15, 8, 9, 10, 11, 8, 9, 10, 11, 16, 17, 8, 9, 10, 11, 16, 17, 10, 11, 16, 17, 21, 22, 6, 7, 14, 15, 6, 7, 14, 15, 10, 11, 16, 10, 11, 17, 1, 18, 0, 12, 13, 19, 20, 0, 2, 12, 13, 19, 20, 0, 12, 13, 19, 20, 21, 0, 12, 13, 19, 20, 22, 18, 23, 3, 23, 24]
-    sp_jac_ini_ja = [0, 3, 4, 5, 7, 11, 15, 21, 27, 35, 39, 45, 51, 56, 57, 61, 65, 68, 71, 73, 78, 84, 90, 96, 98, 101]
-    sp_jac_ini_nia = 25
-    sp_jac_ini_nja = 25
+    sp_jac_ini_ia = [0, 1, 8, 9, 20, 0, 8, 9, 0, 1, 2, 8, 9, 3, 14, 4, 15, 20, 5, 6, 7, 20, 8, 9, 10, 11, 12, 8, 9, 10, 11, 13, 8, 9, 10, 11, 18, 8, 9, 10, 11, 19, 2, 3, 12, 2, 3, 8, 13, 0, 1, 2, 8, 9, 14, 5, 15, 4, 10, 11, 16, 17, 4, 6, 10, 11, 16, 17, 4, 10, 11, 16, 17, 18, 4, 10, 11, 16, 17, 19, 15, 20, 7, 20, 21]
+    sp_jac_ini_ja = [0, 5, 8, 13, 15, 18, 19, 20, 22, 27, 32, 37, 42, 45, 49, 55, 57, 62, 68, 74, 80, 82, 85]
+    sp_jac_ini_nia = 22
+    sp_jac_ini_nja = 22
     return sp_jac_ini_ia, sp_jac_ini_ja, sp_jac_ini_nia, sp_jac_ini_nja 
 
 def sp_jac_run_vectors():
 
-    sp_jac_run_ia = [0, 18, 23, 1, 2, 3, 23, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7, 14, 15, 4, 5, 6, 7, 14, 15, 6, 7, 8, 9, 10, 11, 14, 15, 8, 9, 10, 11, 8, 9, 10, 11, 16, 17, 8, 9, 10, 11, 16, 17, 10, 11, 16, 17, 21, 22, 6, 7, 14, 15, 6, 7, 14, 15, 10, 11, 16, 10, 11, 17, 1, 18, 0, 12, 13, 19, 20, 0, 2, 12, 13, 19, 20, 0, 12, 13, 19, 20, 21, 0, 12, 13, 19, 20, 22, 18, 23, 3, 23, 24]
-    sp_jac_run_ja = [0, 3, 4, 5, 7, 11, 15, 21, 27, 35, 39, 45, 51, 56, 57, 61, 65, 68, 71, 73, 78, 84, 90, 96, 98, 101]
-    sp_jac_run_nia = 25
-    sp_jac_run_nja = 25
+    sp_jac_run_ia = [0, 1, 8, 9, 20, 0, 8, 9, 0, 1, 2, 8, 9, 3, 14, 4, 15, 20, 5, 6, 7, 20, 8, 9, 10, 11, 12, 8, 9, 10, 11, 13, 8, 9, 10, 11, 18, 8, 9, 10, 11, 19, 2, 3, 12, 2, 3, 8, 13, 0, 1, 2, 8, 9, 14, 5, 15, 4, 10, 11, 16, 17, 4, 6, 10, 11, 16, 17, 4, 10, 11, 16, 17, 18, 4, 10, 11, 16, 17, 19, 15, 20, 7, 20, 21]
+    sp_jac_run_ja = [0, 5, 8, 13, 15, 18, 19, 20, 22, 27, 32, 37, 42, 45, 49, 55, 57, 62, 68, 74, 80, 82, 85]
+    sp_jac_run_nia = 22
+    sp_jac_run_nja = 22
     return sp_jac_run_ia, sp_jac_run_ja, sp_jac_run_nia, sp_jac_run_nja 
 
 def sp_jac_trap_vectors():
 
-    sp_jac_trap_ia = [0, 18, 23, 1, 2, 3, 23, 4, 5, 6, 7, 4, 5, 6, 7, 4, 5, 6, 7, 14, 15, 4, 5, 6, 7, 14, 15, 6, 7, 8, 9, 10, 11, 14, 15, 8, 9, 10, 11, 8, 9, 10, 11, 16, 17, 8, 9, 10, 11, 16, 17, 10, 11, 16, 17, 21, 22, 6, 7, 14, 15, 6, 7, 14, 15, 10, 11, 16, 10, 11, 17, 1, 18, 0, 12, 13, 19, 20, 0, 2, 12, 13, 19, 20, 0, 12, 13, 19, 20, 21, 0, 12, 13, 19, 20, 22, 18, 23, 3, 23, 24]
-    sp_jac_trap_ja = [0, 3, 4, 5, 7, 11, 15, 21, 27, 35, 39, 45, 51, 56, 57, 61, 65, 68, 71, 73, 78, 84, 90, 96, 98, 101]
-    sp_jac_trap_nia = 25
-    sp_jac_trap_nja = 25
+    sp_jac_trap_ia = [0, 1, 8, 9, 20, 0, 1, 8, 9, 0, 1, 2, 8, 9, 3, 14, 4, 15, 20, 5, 6, 7, 20, 8, 9, 10, 11, 12, 8, 9, 10, 11, 13, 8, 9, 10, 11, 18, 8, 9, 10, 11, 19, 2, 3, 12, 2, 3, 8, 13, 0, 1, 2, 8, 9, 14, 5, 15, 4, 10, 11, 16, 17, 4, 6, 10, 11, 16, 17, 4, 10, 11, 16, 17, 18, 4, 10, 11, 16, 17, 19, 15, 20, 7, 20, 21]
+    sp_jac_trap_ja = [0, 5, 9, 14, 16, 19, 20, 21, 23, 28, 33, 38, 43, 46, 50, 56, 58, 63, 69, 75, 81, 83, 86]
+    sp_jac_trap_nia = 22
+    sp_jac_trap_nja = 22
     return sp_jac_trap_ia, sp_jac_trap_ja, sp_jac_trap_nia, sp_jac_trap_nja 

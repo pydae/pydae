@@ -10,6 +10,7 @@ import sympy as sym
 
 def add_pll(grid,data):
     """
+    Implements a Phase-Lock Loop that can be used from other devices  
 
     "plls":[{bus:"1","K_p_pll": 180, "K_i_pll": 3200, "T_pll": 0.02}]
     """
@@ -30,10 +31,10 @@ def add_pll(grid,data):
 
     # PLL
     # dynamic states
-    theta_pll,xi_pll,omega_pll_f = sym.symbols(f'theta_pll_{name},xi_pll_{name},omega_pll_f_{name}', real=True)
+    theta_pll,xi_pll,omega_pll_f, rocof_pll_f = sym.symbols(f'theta_pll_{name},xi_pll_{name},omega_pll_f_{name}, rocof_pll_f_{name}', real=True)
 
     # algebraic statate
-    rocof = sym.symbols(f'rocof_{name}', real=True)
+    rocof_pll = sym.symbols(f'rocof_pll_{name}', real=True)
 
 
     # parameters
@@ -50,15 +51,15 @@ def add_pll(grid,data):
     dtheta_pll = 2*np.pi*50*(omega_pll - omega_coi)*K_theta_pll 
     dxi_pll = v_sd_pll 
     domega_pll_f = 1/T_pll*(omega_pll - omega_pll_f)
-    
-    eq_rocof = rocof - domega_pll_f
+    drocof_pll_f = 1/T_pll*(rocof_pll - rocof_pll_f)
+    eq_rocof = rocof_pll - domega_pll_f
 
 
-    grid.dae['f'] += [dtheta_pll,dxi_pll,domega_pll_f]
-    grid.dae['x'] += [ theta_pll, xi_pll, omega_pll_f]
+    grid.dae['f'] += [dtheta_pll,dxi_pll,domega_pll_f, drocof_pll_f]
+    grid.dae['x'] += [ theta_pll, xi_pll, omega_pll_f,  rocof_pll_f]
     grid.dae['g'] += [eq_rocof]
-    grid.dae['y_ini'] += [rocof]  
-    grid.dae['y_run'] += [rocof] 
+    grid.dae['y_ini'] += [rocof_pll]  
+    grid.dae['y_run'] += [rocof_pll] 
     grid.dae['params_dict'].update({f'K_p_pll_{name}':data['K_p_pll']})
     grid.dae['params_dict'].update({f'K_i_pll_{name}':data['K_i_pll']})
     grid.dae['params_dict'].update({f'T_pll_{name}':data['T_pll']}) 
@@ -66,7 +67,7 @@ def add_pll(grid,data):
 
     grid.dae['h_dict'].update({f"omega_pll_{name}":omega_pll})
     grid.dae['h_dict'].update({f"omega_pll_f_{name}":omega_pll_f})
-    grid.dae['h_dict'].update({f"rocof_{name}":rocof})
+    grid.dae['h_dict'].update({f"rocof_pll_{name}":rocof_pll})
 
 def test():
     import numpy as np

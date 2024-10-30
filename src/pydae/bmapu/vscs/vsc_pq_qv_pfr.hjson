@@ -1,0 +1,9 @@
+{
+"system":{"name":"temp","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":1e-6},       
+"buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}, 
+         {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+"lines":[{bus_j:"1", bus_k:"2", X_pu: 0.05, R_pu:0.0, S_mva:100.0}],
+"vscs":[{"type":"pq_qv_pfr","bus":"1","S_n":1e6, "p_in":0.8,
+         "pll":{bus:"1","K_p_pll": 180, "K_i_pll": 3200, "T_pll": 0.02}}],
+"sources":[{"type":"genape","bus":"2","S_n":100e6,"F_n":50,"X_v":0.01,"R_v":0.0,"K_delta":0.01,"K_alpha":0.01}]
+}

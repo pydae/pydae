@@ -101,7 +101,7 @@ def milano4ord(grid,name,bus_name,data_dict):
 
     grid.dae['xy_0_dict'].update({str(omega):1.0})
     grid.dae['xy_0_dict'].update({str(e1q):1.0})
-    grid.dae['xy_0_dict'].update({str(i_q):0.5})
+    grid.dae['xy_0_dict'].update({str(i_q):1.0})
 
     
     # outputs
