@@ -82,8 +82,9 @@ def genape_inf(grid,name,bus_name,data_dict):
     params_list = ['S_n','F_n','X_v','R_v','K_delta','K_alpha']
     
     # auxiliar
-    v_d = V*sin(delta + phi - theta) 
-    v_q = V*cos(delta + phi - theta) 
+    theta_v = delta + phi 
+    v_d = V*sin(theta_v - theta) 
+    v_q = V*cos(theta_v - theta) 
     Omega_b = 2*np.pi*F_n
     omega_s = omega_coi
     e_dv = 0  
@@ -143,6 +144,7 @@ def genape_inf(grid,name,bus_name,data_dict):
     # outputs
     grid.dae['h_dict'].update({f"alpha_{name}":alpha})
     grid.dae['h_dict'].update({f"Dv_{name}":Dv})
+    grid.dae['h_dict'].update({f"theta_v_{name}":theta_v})
     
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
@@ -153,6 +155,45 @@ def genape_inf(grid,name,bus_name,data_dict):
     q_var = q_s * S_n
 
     return p_W,q_var
+
+def development():
+    bus_name = '1'
+    name = bus_name
+
+    # inputs
+    V_r = sym.Symbol(f"V_r_{bus_name}", real=True)
+    V_i = sym.Symbol(f"V_i_{bus_name}", real=True)
+    V_vr = sym.Symbol(f"V_vr_{name}", real=True)
+    V_vi = sym.Symbol(f"V_vi_{name}", real=True)
+
+    V = V_r + sym.I*V_i
+    V_v = V_vr + sym.I*V_vi
+
+    # dynamic states
+    delta = sym.Symbol(f"delta_{name}", real=True)
+    omega = sym.Symbol(f"omega_{name}", real=True)
+    Domega = sym.Symbol(f"Domega_{name}", real=True)
+    Dv = sym.Symbol(f"Dv_{name}", real=True)
+
+    # algebraic states
+    i_d = sym.Symbol(f"i_d_{name}", real=True)
+    i_q = sym.Symbol(f"i_q_{name}", real=True)            
+    p_s = sym.Symbol(f"p_s_{name}", real=True)
+    q_s = sym.Symbol(f"q_s_{name}", real=True)
+    
+    # parameters
+    S_n = sym.Symbol(f"S_n_{name}", real=True)
+    F_n = sym.Symbol(f"F_n_{name}", real=True)            
+    X_v = sym.Symbol(f"X_v_{name}", real=True)
+    R_v = sym.Symbol(f"R_v_{name}", real=True)
+
+    Z_v = R_v + sym.I*X_v
+
+    I = (V - V_v)/Z_v
+
+    S = sym.expand(sym.simplify(V*np.conjugate(I)))
+
+    print(sym.simplify((sym.re(S))))
 
 
 def test_build():
@@ -176,5 +217,6 @@ def test_ini():
 
  
 if __name__=='__main__':
-    test_build()
-    test_ini()
+    development()
+    # test_build()
+    # test_ini()

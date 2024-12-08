@@ -10,7 +10,17 @@ import numpy as np
 from cycler import cycler
 import matplotlib.pyplot as plt
 
-def set_style(plt):
+def set_style(plt, style='article'):
+
+    if style == 'article':
+        colors = set_style_article(plt)
+
+    if style == 'web':
+        colors = set_style_web(plt)
+
+    return colors
+
+def set_style_article(plt):
 
     plt.rcParams['axes.prop_cycle'] = cycler('color', ['#d9524f', '#5cb85c', '#337ab7', '#f0ad4e', '#5bc0de','#5e4485'])
     #cycler('color',['#d9524f', '5cb85c', '337ab7', 'f0ad4e', '5bc0de','5e4485']) # jmcolo 
@@ -29,6 +39,25 @@ def set_style(plt):
 
     return colors
 
+def set_style_web(plt):
+
+    plt.rcParams['axes.prop_cycle'] = cycler('color', ['#d9524f', '#5cb85c', '#337ab7', '#f0ad4e', '#5bc0de','#5e4485'])
+    #cycler('color',['#d9524f', '5cb85c', '337ab7', 'f0ad4e', '5bc0de','5e4485']) # jmcolo 
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    # Set default figure size
+    plt.rcParams['figure.figsize'] = (4.5, 3.2)
+    #plt.rcParams['figure.dpi'] : 600
+    plt.rcParams['lines.linewidth'] = 1.5
+
+    # Font sizes
+    plt.rcParams['font.size'] =  8
+    plt.rcParams['font.family'] = 'sans'
+    plt.rcParams['font.serif'] = 'Arial'
+    plt.rcParams['mathtext.fontset'] = 'cm' #'stix'
+    #plt.rcParams['text.usetex'] = True
+    plt.rcParams['legend.handlelength'] = 1.
+
+    return colors
 
 def plot(model,layout,file_name=''):
     '''

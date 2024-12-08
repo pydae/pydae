@@ -76,7 +76,7 @@ def bess_pq(grid,name,bus_name,data_dict):
     p_loss = A_loss*i_s**2 + B_loss*i_s + C_loss
 
     # dynamic equations    
-    dsoc = 1/H*(-i_dc*e)   
+    dsoc = 1/(H)*(-i_dc*e)   
     dxi_soc = epsilon     
 
     # algebraic equations   
@@ -151,7 +151,7 @@ def test():
     from pydae.bmapu import bmapu_builder
     import pytest
 
-    grid = bmapu_builder.bmapu('bess_pq.hjson')
+    grid = bmapu_builder.bmapu('bess_pq_Hithium.hjson')
     #grid.checker()
     grid.verbose = False 
     grid.build('temp')
