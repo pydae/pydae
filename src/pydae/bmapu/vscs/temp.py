@@ -92,18 +92,18 @@ class model:
         self.Dt_min = 0.001000 
         self.solvern = 5 
         self.imax = 100 
-        self.N_x = 4
+        self.N_x = 6
         self.N_y = 7 
-        self.N_z = 8 
+        self.N_z = 12 
         self.N_store = 100000 
-        self.params_list = ['S_base', 'U_1_n', 'K_p_1', 'K_i_1', 'soc_min_1', 'soc_max_1', 'S_n_1', 'E_kWh_1', 'A_loss_1', 'B_loss_1', 'C_loss_1', 'R_bat_1', 'K_p_agc', 'K_i_agc', 'K_xif'] 
-        self.params_values_list  = [100000000, 20000, 1e-06, 1e-06, 0.0, 1.0, 2500000, 5016.98, 0.0001, 0.0, 0.0001, 0.0, 0, 0, 1e-06] 
-        self.inputs_ini_list = ['P_1', 'Q_1', 'p_s_ref_1', 'q_s_ref_1', 'soc_ref_1', 'v_ref_1_0', 'theta_ref_1_0'] 
+        self.params_list = ['S_base', 'U_1_n', 'K_p_1', 'K_i_1', 'soc_min_1', 'soc_max_1', 'S_n_1', 'E_kWh_1', 'A_loss_1', 'B_loss_1', 'C_loss_1', 'R_bat_1', 'A_00_1', 'A_01_1', 'A_10_1', 'A_11_1', 'B_00_1', 'B_01_1', 'B_10_1', 'B_11_1', 'C_00_1', 'C_01_1', 'C_10_1', 'C_11_1', 'D_00_1', 'D_01_1', 'D_10_1', 'D_11_1', 'K_p_agc', 'K_i_agc', 'K_xif'] 
+        self.params_values_list  = [100000000, 20000, 1e-06, 1e-06, 0.0, 1.0, 2500000, 5016.98, 0.0001, 0.0, 0.0001, 0.0, -10, 0, 0, -10, 10, 0, 0, 10, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1e-06] 
+        self.inputs_ini_list = ['P_1', 'Q_1', 'p_s_ppc_1', 'q_s_ppc_1', 'soc_ref_1', 'v_ref_1_0', 'theta_ref_1_0'] 
         self.inputs_ini_values_list  = [0, 0, 0.0, 0.0, 0.5, 1.0, 0.0] 
-        self.inputs_run_list = ['P_1', 'Q_1', 'p_s_ref_1', 'q_s_ref_1', 'soc_ref_1', 'v_ref_1_0', 'theta_ref_1_0'] 
+        self.inputs_run_list = ['P_1', 'Q_1', 'p_s_ppc_1', 'q_s_ppc_1', 'soc_ref_1', 'v_ref_1_0', 'theta_ref_1_0'] 
         self.inputs_run_values_list = [0, 0, 0.0, 0.0, 0.5, 1.0, 0.0] 
-        self.outputs_list = ['V_1', 'p_loss_1', 'i_s_1', 'e_1', 'i_dc_1', 'p_s_1', 'q_s_1', 'V_dummy_1_0'] 
-        self.x_list = ['soc_1', 'xi_soc_1', 'V_dummy_1_0', 'xi_freq'] 
+        self.outputs_list = ['V_1', 'p_loss_1', 'i_s_1', 'e_1', 'i_dc_1', 'p_s_1', 'q_s_1', 'p_s_ref_1', 'q_s_ref_1', 'p_s_ppc_1', 'q_s_ppc_1', 'V_dummy_1_0'] 
+        self.x_list = ['soc_1', 'xi_soc_1', 'x_0_1', 'x_1_1', 'V_dummy_1_0', 'xi_freq'] 
         self.y_run_list = ['V_1', 'theta_1', 'p_dc_1', 'i_dc_1', 'v_dc_1', 'omega_coi', 'p_agc'] 
         self.xy_list = self.x_list + self.y_run_list 
         self.y_ini_list = ['V_1', 'theta_1', 'p_dc_1', 'i_dc_1', 'v_dc_1', 'omega_coi', 'p_agc'] 
@@ -1928,24 +1928,24 @@ def sp_H_jacs_run_eval(H_x,H_y,H_u,x,y,u,p,Dt):
 
 def sp_jac_ini_vectors():
 
-    sp_jac_ini_ia = [0, 7, 0, 2, 3, 9, 4, 5, 0, 1, 4, 6, 6, 7, 8, 0, 7, 8, 9, 3, 9, 10]
-    sp_jac_ini_ja = [0, 2, 3, 4, 6, 7, 8, 12, 15, 18, 19, 22]
-    sp_jac_ini_nia = 11
-    sp_jac_ini_nja = 11
+    sp_jac_ini_ia = [0, 9, 0, 2, 3, 2, 3, 4, 5, 11, 6, 7, 0, 1, 2, 3, 6, 8, 8, 9, 10, 0, 9, 10, 11, 5, 11, 12]
+    sp_jac_ini_ja = [0, 2, 3, 5, 7, 8, 10, 11, 12, 18, 21, 24, 25, 28]
+    sp_jac_ini_nia = 13
+    sp_jac_ini_nja = 13
     return sp_jac_ini_ia, sp_jac_ini_ja, sp_jac_ini_nia, sp_jac_ini_nja 
 
 def sp_jac_run_vectors():
 
-    sp_jac_run_ia = [0, 7, 0, 2, 3, 9, 4, 5, 0, 1, 4, 6, 6, 7, 8, 0, 7, 8, 9, 3, 9, 10]
-    sp_jac_run_ja = [0, 2, 3, 4, 6, 7, 8, 12, 15, 18, 19, 22]
-    sp_jac_run_nia = 11
-    sp_jac_run_nja = 11
+    sp_jac_run_ia = [0, 9, 0, 2, 3, 2, 3, 4, 5, 11, 6, 7, 0, 1, 2, 3, 6, 8, 8, 9, 10, 0, 9, 10, 11, 5, 11, 12]
+    sp_jac_run_ja = [0, 2, 3, 5, 7, 8, 10, 11, 12, 18, 21, 24, 25, 28]
+    sp_jac_run_nia = 13
+    sp_jac_run_nja = 13
     return sp_jac_run_ia, sp_jac_run_ja, sp_jac_run_nia, sp_jac_run_nja 
 
 def sp_jac_trap_vectors():
 
-    sp_jac_trap_ia = [0, 7, 0, 1, 2, 3, 9, 4, 5, 0, 1, 4, 6, 6, 7, 8, 0, 7, 8, 9, 3, 9, 10]
-    sp_jac_trap_ja = [0, 2, 4, 5, 7, 8, 9, 13, 16, 19, 20, 23]
-    sp_jac_trap_nia = 11
-    sp_jac_trap_nja = 11
+    sp_jac_trap_ia = [0, 9, 0, 1, 2, 3, 2, 3, 4, 5, 11, 6, 7, 0, 1, 2, 3, 6, 8, 8, 9, 10, 0, 9, 10, 11, 5, 11, 12]
+    sp_jac_trap_ja = [0, 2, 4, 6, 8, 9, 11, 12, 13, 19, 22, 25, 26, 29]
+    sp_jac_trap_nia = 13
+    sp_jac_trap_nja = 13
     return sp_jac_trap_ia, sp_jac_trap_ja, sp_jac_trap_nia, sp_jac_trap_nja 

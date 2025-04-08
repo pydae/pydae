@@ -16,6 +16,7 @@ from sympy.matrices.sparsetools import _doktocsr
 from sympy import SparseMatrix
 from sympy.codegen.ast import Assignment
 from scipy.sparse import csr_matrix,save_npz
+from pydae import custom_functions
 import os
 
 
@@ -650,9 +651,6 @@ class builder():
         if self.verbose: print(f'sys2num (time: {time.time()-t_0:0.3f})')                 
             
 
-
-
-
     def sym2xyup(self,string,sys,inirun):
         i = 0
         for item in sys['x']:
@@ -697,7 +695,6 @@ class builder():
         self.defs = defs
         self.source = source
         return defs,source
-            
             
                     
     def sym2rhs(self,data,indices,indptr,shape,sys,inirun):
@@ -1022,15 +1019,22 @@ class builder():
         ## C sources ##############################################################
         if self.verbose: print(f'writting full source (time: {time.time()-t_0:0.3f} s)')   
         
-        defs = defs_f_ini + defs_g_ini 
+        defs_custom, sources_custom = custom_functions.load()
+
+        defs = ''
+        defs += defs_custom
+        defs += defs_f_ini + defs_g_ini 
         defs += defs_f_run + defs_g_run  
         defs += defs_h  
         defs += defs_de_ini + defs_sp_ini 
         defs += defs_de_run + defs_sp_run 
         defs += defs_de_trap + defs_sp_trap 
         defs += defs_de_uz + defs_sp_uz
-            
-        source = source_f_ini + source_g_ini 
+        
+
+        source = ''
+        source += sources_custom
+        source += source_f_ini + source_g_ini 
         source += source_f_run + source_g_run
         source += source_h
         source += source_de_ini + source_sp_ini 
@@ -1054,7 +1058,7 @@ class builder():
         defs = self.defs
         source = self.source
         module_name = self.name + '_cffi'
-        
+    
         ffi = cffi.FFI()
         ffi.cdef(defs, override=True)
         ffi.set_source(module_name=module_name,source=source)
@@ -1071,6 +1075,7 @@ class builder():
             defs = f.read()
         with open(f'./build/source_{name}_cffi.c', 'r') as f:
             source = f.read()
+
             
         ffi.cdef(defs, override=True)
         ffi.set_source(module_name=f"{name}",source=source)

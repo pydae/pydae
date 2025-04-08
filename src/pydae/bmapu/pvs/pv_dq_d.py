@@ -222,10 +222,10 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     grid.dae['u_run_dict'].update({f'{str(i_sr_ref)}':0.0})
 
     grid.dae['params_dict'].update({f'{str(v_lvrt)}':0.8})
-    grid.dae['params_dict'].update({f'{str(T_lp1p)}':0.1,f'{str(T_lp2p)}':0.1})
-    grid.dae['params_dict'].update({f'{str(T_lp1q)}':0.1,f'{str(T_lp2q)}':0.1})
-    grid.dae['params_dict'].update({f'{str(PRampUp)}':2.5,f'{str(PRampDown)}':-2.5})
-    grid.dae['params_dict'].update({f'{str(QRampUp)}':2.5,f'{str(QRampDown)}':-2.5})
+    grid.dae['params_dict'].update({f'{str(T_lp1p)}':0.02,f'{str(T_lp2p)}':0.02})
+    grid.dae['params_dict'].update({f'{str(T_lp1q)}':0.02,f'{str(T_lp2q)}':0.02})
+    grid.dae['params_dict'].update({f'{str(PRampUp)}':5.0,f'{str(PRampDown)}':-5.0})
+    grid.dae['params_dict'].update({f'{str(QRampUp)}':5.0,f'{str(QRampDown)}':-5.0})
 
     ### outputs
     grid.dae['h_dict'].update({f"m_ref_{name}":m_ref})
@@ -306,6 +306,7 @@ def pv_dq_d(grid,name,bus_name,data_dict):
 
     if 'monitor' in data_dict:
         if data_dict['monitor'] == True:
+            print('writting outputs')
             
             grid.dae['h_dict'].update({f"v_dc_v_{name}":v_dc*V_dc_b})
             grid.dae['h_dict'].update({f"v_ac_v_{name}":v_t_m*U_n})
@@ -384,7 +385,7 @@ if __name__ == "__main__":
              {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}
             ],
     "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":10000.0}],
-    "genapes":[{"bus":"2","S_n":10000e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
+    "sources":[{"type":"genape","bus":"2","S_n":10000e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
     }
 
     grid = bmapu_builder.bmapu(data)

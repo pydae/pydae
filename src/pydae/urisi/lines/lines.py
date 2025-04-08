@@ -276,6 +276,27 @@ def change_line_fast(p,lines_idxs,line_codes_idx,lengths_km,codes_g_primitives,c
         p[ini_idx+1:end_idx:2] = codes_b_primitives[line_code_idx]/length_km
 
 
+def Z1Z0_to_primitive_matrix(R1, X1, R0, X0):
+    # Impedance values as complex numbers
+    Z1 = R1 + 1j * X1  # Positive sequence impedance
+    Z0 = R0 + 1j * X0  # Zero sequence impedance
+    
+    # Mutual impedance approximation (assuming equal for all wires)
+    Z_mut = (Z0 - Z1) / 3  # Mutual impedance between phases
+
+    # Create the 3x3 primitive matrix
+    Z = np.array([
+        [Z1, Z_mut, Z_mut],    # Phase A
+        [Z_mut, Z1, Z_mut],    # Phase B
+        [Z_mut, Z_mut, Z1]     # Phase C
+    ])
+
+    return Z
+
+
+
+
+
 
 if __name__ == '__main__':
 

@@ -70,6 +70,8 @@ exp = np.exp
 class model: 
 
     def __init__(self,matrices_folder='./build'): 
+
+        array = np.array
         
         self.matrices_folder = matrices_folder
         

@@ -11,6 +11,7 @@ from pydae.bmapu.vscs.vsc_pq import vsc_pq
 from pydae.bmapu.vscs.vsc_l  import vsc_l
 from pydae.bmapu.vscs.vsc_lcl_uc  import vsc_lcl_uc
 from pydae.bmapu.vscs.bess_pq  import bess_pq
+from pydae.bmapu.vscs.bess_pq_ss import bess_pq_ss
 
 from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
 from pydae.bmapu.vsc_models.vsc_models import add_model
@@ -62,6 +63,8 @@ def add_vscs(grid):
                 p_W, q_var = vsc_pq_qv_pfr(grid,name,bus_name,data_dict)
                 if 'pll' in item:
                     add_pll(grid,item['pll'])              
+            if item['type'] == 'bess_pq_ss':                    
+                p_W, q_var = bess_pq_ss(grid,name,bus_name,data_dict)
 
             # grid power injection
             idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected

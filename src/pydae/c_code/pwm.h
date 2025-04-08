@@ -1,0 +1,1 @@
+double PWM(double t, double eta, double freq, double T_l);

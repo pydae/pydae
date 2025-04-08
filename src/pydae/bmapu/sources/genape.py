@@ -65,10 +65,8 @@ def genape(grid,name,bus_name,data_dict):
     Dv = sym.Symbol(f"Dv_{name}", real=True)
 
     # algebraic states
-    i_d = sym.Symbol(f"i_d_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)            
-    p_s = sym.Symbol(f"p_s_{name}", real=True)
-    q_s = sym.Symbol(f"q_s_{name}", real=True)
+
+
     
     # parameters
     S_n = sym.Symbol(f"S_n_{name}", real=True)
