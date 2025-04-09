@@ -79,10 +79,10 @@ def bess_pq_ss(grid,name,bus_name,data_dict):
                   [0.0, 0.0]])
 
     if 'A' in data_dict:
-        A = np.array(data_dict['A'])
-        B = np.array(data_dict['B'])
-        C = np.array(data_dict['C'])
-        D = np.array(data_dict['D'])
+        A = np.array(data_dict['A_pq'])
+        B = np.array(data_dict['B_pq'])
+        C = np.array(data_dict['C_pq'])
+        D = np.array(data_dict['D_pq'])
 
     sys = ss_num2sym(f'{name}',A,B,C,D)
     print(sys)

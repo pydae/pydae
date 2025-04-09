@@ -80,6 +80,8 @@ exp = np.exp
 class model: 
 
     def __init__(self,matrices_folder='./build'): 
+
+        array = np.array
         
         self.matrices_folder = matrices_folder
         
@@ -97,7 +99,7 @@ class model:
         self.N_z = 12 
         self.N_store = 100000 
         self.params_list = ['S_base', 'U_1_n', 'K_p_1', 'K_i_1', 'soc_min_1', 'soc_max_1', 'S_n_1', 'E_kWh_1', 'A_loss_1', 'B_loss_1', 'C_loss_1', 'R_bat_1', 'A_00_1', 'A_01_1', 'A_10_1', 'A_11_1', 'B_00_1', 'B_01_1', 'B_10_1', 'B_11_1', 'C_00_1', 'C_01_1', 'C_10_1', 'C_11_1', 'D_00_1', 'D_01_1', 'D_10_1', 'D_11_1', 'K_p_agc', 'K_i_agc', 'K_xif'] 
-        self.params_values_list  = [100000000, 20000, 1e-06, 1e-06, 0.0, 1.0, 2500000, 5016.98, 0.0001, 0.0, 0.0001, 0.0, -10, 0, 0, -10, 10, 0, 0, 10, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1e-06] 
+        self.params_values_list  = [100000000, 20000, 1e-06, 1e-06, 0.0, 1.0, 2500000, 5016.98, 0.0001, 0.0, 0.0001, 0.0, -10.0, 0.0, 0.0, -10.0, 10.0, 0.0, 0.0, 10.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0, 0, 1e-06] 
         self.inputs_ini_list = ['P_1', 'Q_1', 'p_s_ppc_1', 'q_s_ppc_1', 'soc_ref_1', 'v_ref_1_0', 'theta_ref_1_0'] 
         self.inputs_ini_values_list  = [0, 0, 0.0, 0.0, 0.5, 1.0, 0.0] 
         self.inputs_run_list = ['P_1', 'Q_1', 'p_s_ppc_1', 'q_s_ppc_1', 'soc_ref_1', 'v_ref_1_0', 'theta_ref_1_0'] 
