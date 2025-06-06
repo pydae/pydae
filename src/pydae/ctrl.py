@@ -313,20 +313,35 @@ def pi_design(a,b,zeta,omega):
     return K_p,K_i
 
 def lead_design(angle,omega, verbose=False):
-    '''
-    Desing lead lag compensator: G = (T_1*s + 1)/(T_2*s + 1)
-    
-    alpha = (1+np.sin(angle))/(1-np.sin(angle))
-    
-    T_2 = 1/(omega*np.sqrt(alpha))
-    T_1 = alpha*T_2
-    
+    """
+    Design a lead compensator of the form G(s) = (T1*s + 1)/(T2*s + 1) to achieve a desired phase lead.
 
-    G_ll = ctrl.tf([T_1,1],[T_2,1])
+    Parameters:
+    ----------
+    angle : float
+        Desired phase lead in radians (must be between 0 and π/2).
+    omega : float
+        Frequency (rad/s) at which the phase lead is to be applied.
+    verbose : bool, optional
+        If True, prints the magnitude of the compensator gain at the specified frequency.
 
-    ctrl.bode_plot(G_ll);
-    
-    '''
+    Returns:
+    -------
+    T1 : float
+        Zero time constant of the lead compensator.
+    T2 : float
+        Pole time constant of the lead compensator.
+
+    Notes:
+    -----
+    - The compensator is designed such that its phase lead peaks at the given frequency `omega`.
+    - The ratio of T1 to T2 (alpha) is computed from the desired phase lead using the formula:
+          alpha = (1 + sin(angle)) / (1 - sin(angle))
+
+    Example:
+    --------
+    T1, T2 = lead_design(np.pi/6, 10, verbose=True)
+    """
     
     alpha = (1+np.sin(angle))/(1-np.sin(angle))
     T_2 = 1/(omega*np.sqrt(alpha))

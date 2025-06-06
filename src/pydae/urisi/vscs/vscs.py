@@ -21,6 +21,8 @@ from pydae.urisi.vsgs.vsgs import add_vsg
 from pydae.urisi.ess.ess import add_ess
 from pydae.urisi.pvs.pvs import add_pv
 from pydae.urisi.vsc_ctrls.vsc_ctrls import  add_vsc_ctrl
+from pydae.urisi.vscs.ac_3ph_4w_gfpizv import  ac_3ph_4w_gfpizv
+
 
 
 def add_vscs(grid):
@@ -61,6 +63,8 @@ def add_vscs(grid):
             ac_3ph_4w_pq(grid,item)
         if item['type'] == 'ac_3ph_4w': 
             ac_3ph_4w(grid,item)
+        if item['type'] == 'ac_3ph_4w_gfpizv': 
+            ac_3ph_4w_gfpizv(grid,item)
 
         if 'vsg' in item:         
             add_vsg(grid,item['vsg'],name,bus_name)  

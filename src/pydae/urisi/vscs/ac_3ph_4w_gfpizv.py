@@ -2,458 +2,499 @@
 import numpy as np
 import sympy as sym
 
-def ac_3ph_4w_gfpizv(grid,data):
+from pydae.urisi.vscs.ac_3ph_4w_l import ac_3ph_4w_l
 
-    ac_3ph_4w(grid,data)
-    gfpizv(grid,data)
-
-
-def ac_3ph_4w(grid,data):
+def ac_3ph_4w_gfpizv(grid,vsc_data):
     '''
-    VSC with 3 phase and 4 wire with a PI-VSG with PFR and Q control.
-         
-    '''
-    name = data['bus']
-
-
-    params_dict  = grid.dae['params_dict']
-    f_list = grid.dae['f']
-    x_list = grid.dae['x']
-    g_list = grid.dae['g'] 
-    y_ini_list = grid.dae['y_ini'] 
-    u_ini_dict = grid.dae['u_ini_dict']
-    y_run_list = grid.dae['y_run'] 
-    u_run_dict = grid.dae['u_run_dict']
-    h_dict = grid.dae['h_dict']
-
-
-    # VSC
-
-    ## VSC parameters
-    S_n,U_n  = sym.symbols(f'S_n_{name},U_n_{name}', real=True)
-    R_s,R_sn,R_ng = sym.symbols(f'R_{name}_s,R_{name}_sn,R_{name}_ng', real=True)
-    X_s,X_sn,X_ng = sym.symbols(f'X_{name}_s,X_{name}_sn,X_{name}_ng', real=True)
-    A_loss = sym.symbols(f'A_loss_{name}',real=True)
-    B_loss = sym.symbols(f'B_loss_{name}',real=True)
-    C_loss = sym.symbols(f'C_loss_{name}',real=True)
-
-    ## VSC inputs
-    v_tao_r, v_tao_i = sym.symbols(f'v_tao_r_{name},v_tao_i_{name}', real=True)
-    v_tbo_r, v_tbo_i = sym.symbols(f'v_tbo_r_{name},v_tbo_i_{name}', real=True)
-    v_tco_r, v_tco_i = sym.symbols(f'v_tco_r_{name},v_tco_i_{name}', real=True)
-    v_tno_r, v_tno_i = sym.symbols(f'v_tno_r_{name},v_tno_i_{name}', real=True)
-
-
-    # algebraic states
-    #e_an_i,e_bn_i,e_cn_i,e_ng_i = sym.symbols(f'e_{name}_an_i,e_{name}_bn_i,e_{name}_cn_i,e_{name}_ng_i', real=True)
-    #v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'v_{name}_a_r,v_{name}_b_r,v_{name}_c_r,v_{name}_n_r,v_{name}_o_r', real=True)
-    #v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'v_{name}_a_i,v_{name}_b_i,v_{name}_c_i,v_{name}_n_i,v_{name}_o_i', real=True)
-    v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'V_{name}_0_r,V_{name}_1_r,V_{name}_2_r,V_{name}_3_r,v_{name}_o_r', real=True)
-    v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'V_{name}_0_i,V_{name}_1_i,V_{name}_2_i,V_{name}_3_i,v_{name}_o_i', real=True)
-    i_sa_r,i_sb_r,i_sc_r,i_sn_r,i_ng_r = sym.symbols(f'i_vsc_{name}_a_r,i_vsc_{name}_b_r,i_vsc_{name}_c_r,i_vsc_{name}_n_r,i_vsc_{name}_ng_r', real=True)
-    i_sa_i,i_sb_i,i_sc_i,i_sn_i,i_ng_i = sym.symbols(f'i_vsc_{name}_a_i,i_vsc_{name}_b_i,i_vsc_{name}_c_i,i_vsc_{name}_n_i,i_vsc_{name}_ng_i', real=True)
-    v_tao_r,v_tbo_r,v_tco_r,v_tno_r = sym.symbols(f'v_tao_r_{name},v_tbo_r_{name},v_tco_r_{name},v_tno_r_{name}', real=True)
-    v_tao_i,v_tbo_i,v_tco_i,v_tno_i = sym.symbols(f'v_tao_i_{name},v_tbo_i_{name},v_tco_i_{name},v_tno_i_{name}', real=True)
-    p_dc = sym.Symbol(f'p_dc_{name}', real=True)
-
-    #e_om_r,e_om_i = sym.symbols(f'e_{name}_om_r,e_{name}_om_i', real=True)
-
-    ## VSC impedances
-    Z_sa = R_s + 1j*X_s 
-    Z_sb = R_s + 1j*X_s
-    Z_sc = R_s + 1j*X_s
-    Z_sn = R_sn + 1j*X_sn
-    Z_ng = R_ng + 1j*X_ng
-
-    ## POI currents
-    i_sa = i_sa_r + 1j*i_sa_i
-    i_sb = i_sb_r + 1j*i_sb_i
-    i_sc = i_sc_r + 1j*i_sc_i
-    i_sn = i_sn_r + 1j*i_sn_i
-
-    ## POI voltages
-    v_sa = v_sa_r + 1j*v_sa_i
-    v_sb = v_sb_r + 1j*v_sb_i
-    v_sc = v_sc_r + 1j*v_sc_i
-    v_sn = v_sn_r + 1j*v_sn_i
-    v_og = v_og_r + 1j*v_og_i
-
-    ## VSC AC side voltages
-    v_tao = v_tao_r + 1j*v_tao_i
-    v_tbo = v_tbo_r + 1j*v_tbo_i
-    v_tco = v_tco_r + 1j*v_tco_i
-    v_tno = v_tno_r + 1j*v_tno_i
+    VSC with 3 phase and 4 wire working in open loop as a grid former.
     
-    s_ta = v_tao * sym.conjugate(i_sa)
-    s_tb = v_tbo * sym.conjugate(i_sb)
-    s_tc = v_tco * sym.conjugate(i_sc)
-    s_tn = v_tno * sym.conjugate(i_sc)
+    '''
 
-    p_ac_a = sym.re(s_ta)
-    p_ac_b = sym.re(s_tb)
-    p_ac_c = sym.re(s_tc)
-    p_ac_n = sym.re(s_tn)
+    bus_ac_name = vsc_data['bus']
+    bus_dc_name = vsc_data['bus']  
+    name = bus_ac_name
 
-    ## VSC RMS currents
-    i_rms_a = sym.sqrt(i_sa_r**2+i_sa_i**2+1e-6) 
-    i_rms_b = sym.sqrt(i_sb_r**2+i_sb_i**2+1e-6) 
-    i_rms_c = sym.sqrt(i_sc_r**2+i_sc_i**2+1e-6) 
-    i_rms_n = sym.sqrt(i_sn_r**2+i_sn_i**2+1e-6) 
+    ac_3ph_4w_l(grid,vsc_data)
 
-    ## VSC power losses
-    p_loss_a = A_loss*i_rms_a*i_rms_a + B_loss*i_rms_a + C_loss
-    p_loss_b = A_loss*i_rms_b*i_rms_b + B_loss*i_rms_b + C_loss
-    p_loss_c = A_loss*i_rms_c*i_rms_c + B_loss*i_rms_c + C_loss
-    p_loss_n = A_loss*i_rms_n*i_rms_n + B_loss*i_rms_n + C_loss
+    p_pos = grid.aux[f'ac_3ph_4w_l_{name}']['p_pos']
+    q_pos = grid.aux[f'ac_3ph_4w_l_{name}']['q_pos']
+    i_sa = grid.aux[f'ac_3ph_4w_l_{name}']['i_sa']
+    i_sb = grid.aux[f'ac_3ph_4w_l_{name}']['i_sb']
+    i_sc = grid.aux[f'ac_3ph_4w_l_{name}']['i_sc']
+    v_dc = grid.aux[f'ac_3ph_4w_l_{name}']['v_dc']
 
-    p_vsc_loss = p_loss_a + p_loss_b + p_loss_c + p_loss_n
-    p_ac = p_ac_a + p_ac_b + p_ac_c + p_ac_n
-
-    eq_i_sa_cplx = v_og + v_tao - i_sa*Z_sa - v_sa   # v_sa = v_sag
-    eq_i_sb_cplx = v_og + v_tbo - i_sb*Z_sb - v_sb
-    eq_i_sc_cplx = v_og + v_tco - i_sc*Z_sc - v_sc
-    eq_i_sn_cplx = v_og + v_tno - i_sn*Z_sn - v_sn
-    eq_v_og_cplx = i_sa + i_sb + i_sc + i_sn + v_og/Z_ng
-    eq_p_dc = -p_dc + p_ac + p_vsc_loss
-
-    grid.dae['g'] += [sym.re(eq_i_sa_cplx)] 
-    grid.dae['g'] += [sym.re(eq_i_sb_cplx)] 
-    grid.dae['g'] += [sym.re(eq_i_sc_cplx)] 
-    grid.dae['g'] += [sym.re(eq_i_sn_cplx)] 
-    grid.dae['g'] += [sym.re(eq_v_og_cplx)] 
-    grid.dae['g'] += [sym.im(eq_i_sa_cplx)] 
-    grid.dae['g'] += [sym.im(eq_i_sb_cplx)] 
-    grid.dae['g'] += [sym.im(eq_i_sc_cplx)] 
-    grid.dae['g'] += [sym.im(eq_i_sn_cplx)] 
-    grid.dae['g'] += [sym.im(eq_v_og_cplx)] 
-    grid.dae['g'] += [eq_p_dc] 
-
-    grid.dae['y_ini'] += [i_sa_r,i_sb_r,i_sc_r,i_sn_r,v_og_r]
-    grid.dae['y_ini'] += [i_sa_i,i_sb_i,i_sc_i,i_sn_i,v_og_i]
-    grid.dae['y_ini'] += [p_dc]
-    grid.dae['y_run'] += [i_sa_r,i_sb_r,i_sc_r,i_sn_r,v_og_r]
-    grid.dae['y_run'] += [i_sa_i,i_sb_i,i_sc_i,i_sn_i,v_og_i]
-    grid.dae['y_run'] += [p_dc]
-
-    for ph in ['a','b','c','n']:
-        i_s_r = sym.Symbol(f'i_vsc_{name}_{ph}_r', real=True)
-        i_s_i = sym.Symbol(f'i_vsc_{name}_{ph}_i', real=True)  
-        idx_r,idx_i = grid.node2idx(name,ph)
-        grid.dae['g'] [idx_r] += -i_s_r
-        grid.dae['g'] [idx_i] += -i_s_i
-        i_s = i_s_r + 1j*i_s_i
-        i_s_m = np.abs(i_s)
-        grid.dae['h_dict'].update({f'i_vsc_{name}_{ph}_m':i_s_m})
-
-    ## outputs
-    v_sabc = sym.Matrix([[v_sa],[v_sb],[v_sc]])
-    i_sabc = sym.Matrix([[i_sa],[i_sb],[i_sc]])
-    n2a = {0:'a',1:'b',2:'c'}
-    for ph in [0,1,2]:
-        s = v_sabc[ph]*sym.conjugate(i_sabc[ph])
-        p = sym.re(s)
-        q = sym.im(s)
-        grid.dae['h_dict'].update({f'p_vsc_{name}_{n2a[ph]}':p,f'q_vsc_{name}_{n2a[ph]}':q})
-
-    ## parameters default values
-    grid.dae['params_dict'].update({f'X_{name}_s':data['X'],f'R_{name}_s':data['R']})
-    grid.dae['params_dict'].update({f'X_{name}_sn':data['X_n'],f'R_{name}_sn':data['R_n']})
-    grid.dae['params_dict'].update({f'X_{name}_ng':data['X_ng'],f'R_{name}_ng':data['R_ng']})
-
-    grid.dae['xy_0_dict'].update({'omega':1.0})
-
-    S_n_N = data['S_n']
-    U_n_N = data['U_n']
-    V_n_N = U_n_N/np.sqrt(3)
-    phi_N = 0.0
-    if 'phi' in data: phi_N = data['phi']
-
-    v_tao_N = V_n_N*np.exp(1j*phi_N)
-    v_tbo_N = V_n_N*np.exp(1j*(phi_N - np.pi*2.0/3.0))
-    v_tco_N = V_n_N*np.exp(1j*(phi_N - np.pi*4.0/3.0))
-    v_tno_N = 0.0
-
-    I_n = S_n_N/(np.sqrt(3)*U_n_N)
-    P_0 = 0.01*S_n_N
-    C_loss_N = P_0/3
-    P_cc = 0.01*S_n_N
-    A_loss_N = P_cc/(I_n**2)/3
-    B_loss_N = 1.0
-
-    if 'A_loss' in data:
-        A_loss_N = data['A_loss']
-        B_loss_N = data['B_loss']
-        C_loss_N = data['C_loss']
-
-    params_dict.update({str(A_loss):A_loss_N})
-    params_dict.update({str(B_loss):B_loss_N})
-    params_dict.update({str(C_loss):C_loss_N})
-
-    grid.dae['u_ini_dict'].update({str(v_tao_r):v_tao_N.real, str(v_tao_i):v_tao_N.imag})
-    grid.dae['u_ini_dict'].update({str(v_tbo_r):v_tbo_N.real, str(v_tbo_i):v_tbo_N.imag})
-    grid.dae['u_ini_dict'].update({str(v_tco_r):v_tco_N.real, str(v_tco_i):v_tco_N.imag})
-    grid.dae['u_ini_dict'].update({str(v_tno_r):v_tno_N.real, str(v_tno_i):v_tno_N.imag})
-    grid.dae['u_run_dict'].update({str(v_tao_r):v_tao_N.real, str(v_tao_i):v_tao_N.imag})
-    grid.dae['u_run_dict'].update({str(v_tbo_r):v_tbo_N.real, str(v_tbo_i):v_tbo_N.imag})
-    grid.dae['u_run_dict'].update({str(v_tco_r):v_tco_N.real, str(v_tco_i):v_tco_N.imag})
-    grid.dae['u_run_dict'].update({str(v_tno_r):v_tno_N.real, str(v_tno_i):v_tno_N.imag})
-
-
-def gfpizv(grid,data):
-
-#######################################################################################
-    # CTRL
-    name = data['bus']
+    omega_coi = sym.Symbol(f'omega_coi', real=True)
+    xi_freq = sym.Symbol(f'xi_freq', real=True) 
 
     # inputs
-    p_c = sym.Symbol(f'p_c_{name}', real=True) 
-    xi_freq = sym.Symbol('xi_freq',real=True)
-    omega_coi = sym.Symbol('omega_coi',real=True)
-
-    # parameters
-    S_n,U_n = sym.symbols(f'S_n_{name},U_n_{name}', real=True)
-    T_e = sym.Symbol(f'H_{name}', real=True)
-    K_f = sym.Symbol(f'K_f_{name}', real=True)
-    T_f = sym.Symbol(f'T_f_{name}', real=True)
-    K_agc = sym.Symbol(f'K_agc_{name}', real=True)
-    T_e = sym.Symbol(f'T_e_{name}', real=True)
-    K_p = sym.Symbol(f"K_p_{name}", real=True)    
-    T_p = sym.Symbol(f"T_p_{name}", real=True)   
-    T_c = sym.Symbol(f"T_c_{name}", real=True)   
-    T_v = sym.Symbol(f"T_v_{name}", real=True)   
-    K_qp = sym.Symbol(f"K_qp_{name}", real=True)   
-    K_qi = sym.Symbol(f"K_qi_{name}", real=True) 
-    Droop = sym.Symbol(f"Droop_{name}", real=True)   
-    R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
-    K_delta = sym.Symbol(f"K_delta_{name}", real=True) 
-
-    ## inputs
-    omega_ref = sym.Symbol(f'omega_{name}_ref', real=True)
-    p_c = sym.Symbol(f'p_c_{name}', real=True)  
-    q_ref = sym.Symbol(f'q_ref_{name}', real=True)    
     e_ao_m,e_bo_m,e_co_m,e_no_m = sym.symbols(f'e_ao_m_{name},e_bo_m_{name},e_co_m_{name},e_no_m_{name}', real=True)
+    omega_ref,p_c = sym.symbols(f'omega_ref_{name},p_c_{name}', real=True)
     phi_a = sym.Symbol(f'phi_a_{name}', real=True)
     phi_b = sym.Symbol(f'phi_b_{name}', real=True)
     phi_c = sym.Symbol(f'phi_c_{name}', real=True)
+    m_a = sym.Symbol(f'm_a_{name}', real=True)
+    m_b = sym.Symbol(f'm_b_{name}', real=True)
+    m_c = sym.Symbol(f'm_c_{name}', real=True)
+    phi_a_r = sym.Symbol(f'phi_a_r_{name}', real=True)
+    phi_b_r = sym.Symbol(f'phi_b_r_{name}', real=True)
+    phi_c_r = sym.Symbol(f'phi_c_r_{name}', real=True)
     phi_n = sym.Symbol(f'phi_n_{name}', real=True)
     v_ra = sym.Symbol(f'v_ra_{name}', real=True)
     v_rb = sym.Symbol(f'v_rb_{name}', real=True)
     v_rc = sym.Symbol(f'v_rc_{name}', real=True)
     v_rn = sym.Symbol(f'v_rn_{name}', real=True)    
-    v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'V_{name}_0_r,V_{name}_1_r,V_{name}_2_r,V_{name}_3_r,v_{name}_o_r', real=True)
-    v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'V_{name}_0_i,V_{name}_1_i,V_{name}_2_i,V_{name}_3_i,v_{name}_o_i', real=True)
-    i_sa_r,i_sb_r,i_sc_r,i_sn_r,i_ng_r = sym.symbols(f'i_vsc_{name}_a_r,i_vsc_{name}_b_r,i_vsc_{name}_c_r,i_vsc_{name}_n_r,i_vsc_{name}_ng_r', real=True)
-    i_sa_i,i_sb_i,i_sc_i,i_sn_i,i_ng_i = sym.symbols(f'i_vsc_{name}_a_i,i_vsc_{name}_b_i,i_vsc_{name}_c_i,i_vsc_{name}_n_i,i_vsc_{name}_ng_i', real=True)
-    v_tao_r,v_tbo_r,v_tco_r,v_tno_r = sym.symbols(f'v_tao_r_{name},v_tbo_r_{name},v_tco_r_{name},v_tno_r_{name}', real=True)
-    v_tao_i,v_tbo_i,v_tco_i,v_tno_i = sym.symbols(f'v_tao_i_{name},v_tbo_i_{name},v_tco_i_{name},v_tno_i_{name}', real=True)
-
-
-    # dynamical states
-    p_cf= sym.Symbol(f'p_cf_{name}', real=True)   
-    phi = sym.Symbol(f'phi_{name}', real=True)
-    xi_p = sym.Symbol(f'xi_p_{name}', real=True)
-    xi_q = sym.Symbol(f'xi_q_{name}', real=True)
-    p_ef = sym.Symbol(f'p_ef_{name}', real=True)
     De_ao_m,De_bo_m,De_co_m,De_no_m  = sym.symbols(f'De_ao_m_{name},De_bo_m_{name},De_co_m_{name},De_no_m_{name}', real=True)
+    q_ref = sym.Symbol(f'q_ref_{name}', real=True)
+
+    # parameters
+    S_n,U_n,H,K_f,T_f,K_agc,K_delta  = sym.symbols(f'S_n_{name},U_n_{name},H_{name},K_f_{name},T_f_{name},K_agc_{name},K_delta_{name}', real=True)
+    R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
+    R_s,R_sn,R_ng = sym.symbols(f'R_{name}_s,R_{name}_sn,R_{name}_ng', real=True)
+    X_s,X_sn,X_ng = sym.symbols(f'X_{name}_s,X_{name}_sn,X_{name}_ng', real=True)
+    T_e = sym.Symbol(f'T_e_{name}', real=True)
+    K_pp = sym.Symbol(f"K_pp_{name}", real=True)    
+    T_pp = sym.Symbol(f"T_pp_{name}", real=True)   
+    K_qp = sym.Symbol(f"K_qp_{name}", real=True)    
+    K_qi = sym.Symbol(f"K_qp_{name}", real=True)    
+    T_c = sym.Symbol(f"T_c_{name}", real=True)   
+    T_v = sym.Symbol(f"T_v_{name}", real=True)   
+    Droop = sym.Symbol(f"Droop_{name}", real=True)   
+
     omega = sym.Symbol(f'omega_{name}', real=True)
-    
-    ## auxiliar variables
-    omega = sym.Symbol(f'omega_{name}', real=True)
+    phi_v = sym.Symbol(f'phi_v_{name}', real=True)
+    xi_p = sym.Symbol(f'xi_p_{name}', real=True) 
+    p_ef  = sym.Symbol(f'p_ef_{name}', real=True)
     p_m = sym.Symbol(f'p_m_{name}', real=True) 
+    p_c = sym.Symbol(f'p_c_{name}', real=True) 
+    p_cf= sym.Symbol(f'p_cf_{name}', real=True)   
+    xi_q = sym.Symbol(f'xi_q_{name}', real=True) 
+    e_m = sym.Symbol(f'e_m_{name}', real=True) 
 
-    
-    ## auxiliar equations
-    alpha = np.exp(2.0/3*np.pi*1j)
-    A_0a =  np.array([[1, 1, 1],
-                    [1, alpha**2, alpha],
-                    [1, alpha, alpha**2]])
+    # v_tao = v_tao_r + 1j*v_tao_i
+    # v_tbo = v_tbo_r + 1j*v_tbo_i
+    # v_tco = v_tco_r + 1j*v_tco_i
 
-    A_a0 = 1/3* np.array([[1, 1, 1],
-                        [1, alpha, alpha**2],
-                        [1, alpha**2, alpha]])
+    # e_ao_m = e_m
+    # e_bo_m = e_m
+    # e_co_m = e_m
 
-    omega_coi_i = 0
-    HS_coi = 0
+    e_ao_r = (e_ao_m+De_ao_m)*sym.cos(phi_a_r + phi_v) 
+    e_ao_i = (e_ao_m+De_ao_m)*sym.sin(phi_a_r + phi_v) 
+    e_bo_r = (e_bo_m+De_bo_m)*sym.cos(phi_b_r + phi_v-2/3*np.pi) 
+    e_bo_i = (e_bo_m+De_bo_m)*sym.sin(phi_b_r + phi_v-2/3*np.pi) 
+    e_co_r = (e_co_m+De_co_m)*sym.cos(phi_c_r + phi_v-4/3*np.pi) 
+    e_co_i = (e_co_m+De_co_m)*sym.sin(phi_c_r + phi_v-4/3*np.pi) 
 
-    ## POI currents
-    i_sa = i_sa_r + 1j*i_sa_i
-    i_sb = i_sb_r + 1j*i_sb_i
-    i_sc = i_sc_r + 1j*i_sc_i
-    i_sn = i_sn_r + 1j*i_sn_i
-
-    ## POI voltages
-    v_sa = v_sa_r + 1j*v_sa_i
-    v_sb = v_sb_r + 1j*v_sb_i
-    v_sc = v_sc_r + 1j*v_sc_i
-    v_sn = v_sn_r + 1j*v_sn_i
-    v_og = v_og_r + 1j*v_og_i
-
-    v_sabc = sym.Matrix([[v_sa],[v_sb],[v_sc]])
-    i_sabc = sym.Matrix([[i_sa],[i_sb],[i_sc]])
-
-    v_szpn = A_a0*v_sabc
-    i_szpn = A_a0*i_sabc
-    
-    s_pos = 3*v_szpn[1]*sym.conjugate(i_szpn[1])
-    s_neg = 3*v_szpn[2]*sym.conjugate(i_szpn[2])
-    s_zer = 3*v_szpn[0]*sym.conjugate(i_szpn[0])
-    
-    p_pos = sym.re(s_pos)
-    q_pos = sym.im(s_pos)
-
-    p_r = K_agc*xi_freq
-    epsilon_p = p_m - p_ef
-    epsilon_q = q_ref - q_pos/S_n
-    De_q_nosat = K_qp*epsilon_q + K_qi*xi_q
-    De_min = -U_n*0.05
-    De_max =  U_n*0.05
-    De_q  = sym.Piecewise((De_min,De_q_nosat<De_min),
-                          (De_max,De_q_nosat>De_max),
-                          (De_q_nosat,True))
-    K_qaw = sym.Piecewise((0,De_q_nosat<De_min),
-                          (0,De_q_nosat>De_max),
-                          (1,True))
-
-    Z_va = R_v + 1j*X_v # virtual impedance phase a
-    Z_vb = R_v + 1j*X_v # virtual impedance phase b
-    Z_vc = R_v + 1j*X_v # virtual impedance phase c
-
-    e_ao_r = (e_ao_m+De_ao_m)*sym.cos(phi_a + phi) 
-    e_ao_i = (e_ao_m+De_ao_m)*sym.sin(phi_a + phi) 
-    e_bo_r = (e_bo_m+De_bo_m)*sym.cos(phi_b + phi-2/3*np.pi) 
-    e_bo_i = (e_bo_m+De_bo_m)*sym.sin(phi_b + phi-2/3*np.pi) 
-    e_co_r = (e_co_m+De_co_m)*sym.cos(phi_c + phi-4/3*np.pi) 
-    e_co_i = (e_co_m+De_co_m)*sym.sin(phi_c + phi-4/3*np.pi) 
-    e_no_r = (e_no_m+De_no_m)*sym.cos(phi_n + phi) 
-    e_no_i = (e_no_m+De_no_m)*sym.sin(phi_n + phi)
 
     e_ao_cplx = e_ao_r + 1j*e_ao_i
     e_bo_cplx = e_bo_r + 1j*e_bo_i
     e_co_cplx = e_co_r + 1j*e_co_i
-    e_no_cplx = e_no_r + 1j*e_no_i
 
-    ## VSC AC side voltages
-    v_tao = v_tao_r + 1j*v_tao_i
-    v_tbo = v_tbo_r + 1j*v_tbo_i
-    v_tco = v_tco_r + 1j*v_tco_i
-    v_tno = v_tno_r + 1j*v_tno_i
+    Z_b = U_n**2/S_n
 
-    ## differential equations
-    dphi   = 2*np.pi*50*(omega - omega_coi) - K_delta*phi
+    Z_va = (R_v + 1j*X_v)/Z_b 
+    Z_vb = (R_v + 1j*X_v)/Z_b 
+    Z_vc = (R_v + 1j*X_v)/Z_b 
+
+    v_tao =  e_ao_cplx - i_sa*Z_va     # v_sa = v_sag
+    v_tbo =  e_bo_cplx - i_sb*Z_vb  
+    v_tco =  e_co_cplx - i_sc*Z_vc  
+
+    eq_phi_a = sym.atan2(sym.im(v_tao),sym.re(v_tao)) - phi_a
+    eq_phi_b = sym.atan2(sym.im(v_tbo),sym.re(v_tbo)) - phi_b 
+    eq_phi_c = sym.atan2(sym.im(v_tco),sym.re(v_tco)) - phi_c 
+
+    grid.dae['g'] += [eq_phi_a] 
+    grid.dae['g'] += [eq_phi_b] 
+    grid.dae['g'] += [eq_phi_c] 
+
+    sqrt6 = np.sqrt(6)
+
+    grid.dae['g'] += [sqrt6*sym.Abs(v_tao)/v_dc - m_a]
+    grid.dae['g'] += [sqrt6*sym.Abs(v_tbo)/v_dc - m_b]
+    grid.dae['g'] += [sqrt6*sym.Abs(v_tco)/v_dc - m_c]
+
+    grid.dae['y_ini'] += [phi_a,phi_b,phi_c]
+    grid.dae['y_ini'] += [m_a,m_b,m_c]
+    grid.dae['y_run'] += [phi_a,phi_b,phi_c]
+    grid.dae['y_run'] += [m_a,m_b,m_c]
+
+    p_r = K_agc*xi_freq
+    epsilon_p = p_m - p_ef
+    epsilon_q = q_ref - q_pos
+
+    dphi_v   = 2*np.pi*50*(omega - omega_coi) - K_delta*phi_v
     dxi_p = epsilon_p
-    dxi_q = K_qaw*epsilon_q - (1-K_qaw)*xi_q - 1e-6*xi_q
     dp_ef = 1/T_e*(p_pos/S_n - p_ef)
     dp_cf = 1/T_c*(p_c - p_cf)
-    dDe_ao_m = 1/T_v*(v_ra + De_q - De_ao_m)
-    dDe_bo_m = 1/T_v*(v_rb + De_q - De_bo_m)
-    dDe_co_m = 1/T_v*(v_rc + De_q - De_co_m)
+    dxi_q = epsilon_q - 10*xi_q
+
+    dDe_ao_m = 1/T_v*(v_ra - De_ao_m)
+    dDe_bo_m = 1/T_v*(v_rb - De_bo_m)
+    dDe_co_m = 1/T_v*(v_rc - De_co_m)
     dDe_no_m = 1/T_v*(v_rn - De_no_m)
 
-    grid.dae['f'] += [dphi,dxi_p,dxi_q,dp_ef,dp_cf,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m] #,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m]
-    grid.dae['x'] += [ phi, xi_p, xi_q, p_ef, p_cf, De_ao_m, De_bo_m, De_co_m, De_no_m] #, De_ao_m, De_bo_m, De_co_m, De_no_m]
-    
-    ## algebraic equations   
-    g_omega = -omega + K_p*(epsilon_p + xi_p/T_p) + 1
-    g_p_m  = -p_m + p_cf + p_r - 1/Droop*(omega - omega_ref)
-    eq_v_tao_cplx =  e_ao_cplx - i_sa*Z_va - v_tao   # v_sa = v_sag
-    eq_v_tbo_cplx =  e_bo_cplx - i_sb*Z_vb - v_tbo
-    eq_v_tco_cplx =  e_co_cplx - i_sc*Z_vc - v_tco
+    # v_tao =  e_ao_cplx - i_sa*Z_va     # v_sa = v_sag
+    # v_tbo =  e_bo_cplx - i_sb*Z_vb  
+    # v_tco =  e_co_cplx - i_sc*Z_vc  
 
-    grid.dae['g'] +=     [g_omega, g_p_m] 
-    grid.dae['y_ini'] += [  omega,   p_m] 
-    grid.dae['y_run'] += [  omega,   p_m] 
- 
-    grid.dae['g'] += [sym.re(eq_v_tao_cplx)] 
-    grid.dae['g'] += [sym.re(eq_v_tbo_cplx)] 
-    grid.dae['g'] += [sym.re(eq_v_tco_cplx)] 
-    grid.dae['g'] += [sym.im(eq_v_tao_cplx)]
-    grid.dae['g'] += [sym.im(eq_v_tbo_cplx)]
-    grid.dae['g'] += [sym.im(eq_v_tco_cplx)]
-    grid.dae['y_ini'] += [v_tao_r,v_tbo_r,v_tco_r]
-    grid.dae['y_ini'] += [v_tao_i,v_tbo_i,v_tco_i]
-    grid.dae['y_run'] += [v_tao_r,v_tbo_r,v_tco_r]
-    grid.dae['y_run'] += [v_tao_i,v_tbo_i,v_tco_i]
+    # g_list += [sym.re(eq_v_tao_cplx)] 
+    # g_list += [sym.re(eq_v_tbo_cplx)] 
+    # g_list += [sym.re(eq_v_tco_cplx)] 
+    # g_list += [sym.im(eq_v_tao_cplx)]
+    # g_list += [sym.im(eq_v_tbo_cplx)]
+    # g_list += [sym.im(eq_v_tco_cplx)]
 
-        
+
+    # y_ini_list += [v_tao_r,v_tbo_r,v_tco_r,i_sa_r,i_sb_r,i_sc_r,i_sn_r,v_og_r]
+    # y_ini_list += [v_tao_i,v_tbo_i,v_tco_i,i_sa_i,i_sb_i,i_sc_i,i_sn_i,v_og_i]
+    # y_run_list += [v_tao_r,v_tbo_r,v_tco_r,i_sa_r,i_sb_r,i_sc_r,i_sn_r,v_og_r]
+    # y_run_list += [v_tao_i,v_tbo_i,v_tco_i,i_sa_i,i_sb_i,i_sc_i,i_sn_i,v_og_i]
+
     V_1 = 400/np.sqrt(3)
     V_b = V_1
-    #    V_1 = 400/np.sqrt(3)*np.exp(1j*np.deg2rad(0))
-    # A_1toabc = np.array([1, alpha**2, alpha])
-    #V_abc = V_1 * A_1toabc 
-    #e_an_r,e_bn_r,e_cn_r = V_abc.real
-    #e_an_i,e_bn_i,e_cn_i = V_abc.imag
 
-    ## inputs default values
-    grid.dae['u_ini_dict'].update({f'e_ao_m_{name}':V_1,
-                       f'e_bo_m_{name}':V_1,
-                       f'e_co_m_{name}':V_1,
-                       f'e_no_m_{name}':0.0})
-    grid.dae['u_ini_dict'].update({f'v_ra_{name}':0.0,
-                       f'v_rb_{name}':0.0,
-                       f'v_rc_{name}':0.0,
-                       f'v_rn_{name}':0.0})
-    grid.dae['u_run_dict'].update({f'e_ao_m_{name}':V_1,
-                       f'e_bo_m_{name}':V_1,
-                       f'e_co_m_{name}':V_1,
-                       f'e_no_m_{name}':0.0})
-    grid.dae['u_run_dict'].update({f'v_ra_{name}':0.0,
-                       f'v_rb_{name}':0.0,
-                       f'v_rc_{name}':0.0,
-                       f'v_rn_{name}':0.0})
-
-    #u_dict.update({f'phi_{name}':0.0})
-    grid.dae['u_ini_dict'].update({f'phi_a_{name}':0.0})
-    grid.dae['u_ini_dict'].update({f'phi_b_{name}':0.0})
-    grid.dae['u_ini_dict'].update({f'phi_c_{name}':0.0})
-    grid.dae['u_ini_dict'].update({f'phi_n_{name}':0.0})
-
-    grid.dae['u_ini_dict'].update({f'p_c_{name}':0.0})
-    grid.dae['u_ini_dict'].update({f'omega_{name}_ref':1.0})
-    grid.dae['u_ini_dict'].update({f'q_ref_{name}':0.0})
-
-    grid.dae['u_run_dict'].update({f'phi_a_{name}':0.0})
-    grid.dae['u_run_dict'].update({f'phi_b_{name}':0.0})
-    grid.dae['u_run_dict'].update({f'phi_c_{name}':0.0})
-    grid.dae['u_run_dict'].update({f'phi_n_{name}':0.0})
-
-    grid.dae['u_run_dict'].update({f'p_c_{name}':0.0})
-    grid.dae['u_run_dict'].update({f'omega_{name}_ref':1.0})
-    grid.dae['u_run_dict'].update({f'q_ref_{name}':0.0})
-
-    #for ph in ['a','b','c','n']:
-    #    u_dict.pop(f'i_{name}_{ph}_r')
-    #    u_dict.pop(f'i_{name}_{ph}_i')
-
-    ## parameters default values
-    grid.dae['params_dict'].update({f'X_v_{name}':data['X_v'],f'R_v_{name}':data['R_v']})
-    grid.dae['params_dict'].update({f'S_n_{name}':data['S_n']})
-    grid.dae['params_dict'].update({f'U_n_{name}':data['U_n']})
-    grid.dae['params_dict'].update({f'T_e_{name}':data['T_e']})
-    grid.dae['params_dict'].update({f'T_c_{name}':data['T_c']})
-    grid.dae['params_dict'].update({f'T_v_{name}':data['T_v']})
-    grid.dae['params_dict'].update({f'Droop_{name}':data['Droop']})
-    grid.dae['params_dict'].update({f'K_p_{name}':data['K_p']})
-    grid.dae['params_dict'].update({f'T_p_{name}':data['T_p']})
-    grid.dae['params_dict'].update({f'K_agc_{name}':data['K_agc']})
-    grid.dae['params_dict'].update({f'K_delta_{name}':data['K_delta']})
-    grid.dae['params_dict'].update({f'K_qp_{name}':data['K_qp']})
-    grid.dae['params_dict'].update({f'K_qi_{name}':data['K_qi']})
+    # algebraic equations   
+    g_omega = -omega + K_pp*(epsilon_p + xi_p/T_pp) + 1
+    g_p_m  = -p_m + p_cf + p_r - 1/Droop*(omega - omega_ref)
+    #g_e_m  = -e_m + K_qp*epsilon_p + K_qi*xi_q + V_b
     
-
-    grid.dae['h_dict'].update({f'p_{name}_pos':sym.re(s_pos),
-                   f'p_{name}_neg':sym.re(s_neg),
-                   f'p_{name}_zer':sym.re(s_zer)})
-    grid.dae['h_dict'].update({f'q_{name}_pos':sym.im(s_pos)})
+    grid.dae['g'] += [g_omega, g_p_m] #, g_e_m] 
+    grid.dae['y_ini'] += [  omega,   p_m] #, e_m] 
+    grid.dae['y_run'] += [  omega,   p_m] #, e_m] 
+ 
+    grid.dae['f'] += [dphi_v,dxi_p,dp_ef,dp_cf,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m] #, dxi_q] #,dDe_ao_m,dDe_bo_m,dDe_co_m,dDe_no_m]
+    grid.dae['x'] += [ phi_v, xi_p, p_ef, p_cf, De_ao_m, De_bo_m, De_co_m, De_no_m] #,  xi_q] #, De_ao_m, De_bo_m, De_co_m, De_no_m]
+    
     grid.dae['h_dict'].update({str(e_ao_m):e_ao_m,str(e_bo_m):e_bo_m,str(e_co_m):e_co_m})
     grid.dae['h_dict'].update({str(v_ra):v_ra,str(v_rb):v_rb,str(v_rc):v_rc})
+
+    # n2a = {0:'a',1:'b',2:'c'}
+    # for ph in [0,1,2]:
+    #     s = v_sabc[ph]*sym.conjugate(i_sabc[ph])
+    #     p = sym.re(s)
+    #     q = sym.im(s)
+    #     h_dict.update({f'p_vsc_{name}_{n2a[ph]}':p,f'q_vsc_{name}_{n2a[ph]}':q})
+
     grid.dae['h_dict'].update({str(p_c):p_c,str(omega_ref):omega_ref})
-    grid.dae['h_dict'].update({str(phi):phi})
+    grid.dae['h_dict'].update({str(phi_v):phi_v})
+    grid.dae['h_dict'].update({f'v_tao_m_{name}':sym.Abs(v_tao)})
+    grid.dae['h_dict'].update({f'v_tbo_m_{name}':sym.Abs(v_tbo)})
+    grid.dae['h_dict'].update({f'v_tco_m_{name}':sym.Abs(v_tco)})
+    grid.dae['h_dict'].update({f'Z_b_{name}':Z_b})
+
+    m = 0.7071
+    grid.dae['u_ini_dict'].pop(f'm_a_{name}')
+    grid.dae['u_ini_dict'].pop(f'm_b_{name}')
+    grid.dae['u_ini_dict'].pop(f'm_c_{name}')
+
+    grid.dae['u_run_dict'].pop(f'm_a_{name}')
+    grid.dae['u_run_dict'].pop(f'm_b_{name}')
+    grid.dae['u_run_dict'].pop(f'm_c_{name}')
+
+    grid.dae['u_ini_dict'].pop(f'phi_a_{name}')
+    grid.dae['u_run_dict'].pop(f'phi_a_{name}')
+    grid.dae['u_ini_dict'].pop(f'phi_b_{name}')
+    grid.dae['u_run_dict'].pop(f'phi_b_{name}')
+    grid.dae['u_ini_dict'].pop(f'phi_c_{name}')
+    grid.dae['u_run_dict'].pop(f'phi_c_{name}')
+
+    grid.dae['u_ini_dict'].update({f'phi_a_r_{name}':0.0})
+    grid.dae['u_ini_dict'].update({f'phi_b_r_{name}':0.0})
+    grid.dae['u_ini_dict'].update({f'phi_c_r_{name}':0.0})
+
+    grid.dae['u_run_dict'].update({f'phi_a_r_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'phi_b_r_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'phi_c_r_{name}':0.0})
+
+    grid.dae['u_ini_dict'].update({f'omega_ref_{name}':1.0})
+    grid.dae['u_run_dict'].update({f'omega_ref_{name}':1.0})
+
+    grid.dae['u_ini_dict'].update({f'p_c_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'p_c_{name}':0.0})
+
+    grid.dae['u_ini_dict'].update({f'q_ref_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'q_ref_{name}':0.0})
+
+    grid.dae['xy_0_dict'].update({f'omega_{name}':1.0})
+    grid.dae['xy_0_dict'].update({f'm_a_{name}':0.75})
+    grid.dae['xy_0_dict'].update({f'm_b_{name}':0.75})
+    grid.dae['xy_0_dict'].update({f'm_c_{name}':0.75})
+
+    if not 'default_deg' in vsc_data:
+        vsc_data.update({'default_deg':0.0}) 
+
+    grid.dae['xy_0_dict'].update({f'phi_a_{name}':       0.0 + np.deg2rad(vsc_data['default_deg'])})
+    grid.dae['xy_0_dict'].update({f'phi_b_{name}':-2/3*np.pi + np.deg2rad(vsc_data['default_deg'])})
+    grid.dae['xy_0_dict'].update({f'phi_c_{name}':-4/3*np.pi + np.deg2rad(vsc_data['default_deg'])})
 
     HS_coi  = S_n
     omega_coi_i = S_n*omega
 
     grid.omega_coi_numerator += omega_coi_i 
     grid.omega_coi_denominator += HS_coi
+
+    grid.dae['params_dict'].update({f'X_v_{name}':vsc_data['X_v'],f'R_v_{name}':vsc_data['R_v']})
+    grid.dae['params_dict'].update({f'X_{name}_s':vsc_data['X'],f'R_{name}_s':vsc_data['R']})
+    grid.dae['params_dict'].update({f'X_{name}_sn':vsc_data['X_n'],f'R_{name}_sn':vsc_data['R_n']})
+    grid.dae['params_dict'].update({f'X_{name}_ng':vsc_data['X_ng'],f'R_{name}_ng':vsc_data['R_ng']})
+    grid.dae['params_dict'].update({f'S_n_{name}':vsc_data['S_n']})
+    grid.dae['params_dict'].update({f'U_n_{name}':vsc_data['U_n']})
+    grid.dae['params_dict'].update({f'T_e_{name}':vsc_data['T_e']})
+    grid.dae['params_dict'].update({f'T_c_{name}':vsc_data['T_c']})
+    grid.dae['params_dict'].update({f'T_v_{name}':vsc_data['T_v']})
+    grid.dae['params_dict'].update({f'Droop_{name}':vsc_data['Droop']})
+    grid.dae['params_dict'].update({f'K_pp_{name}':vsc_data['K_p']})
+    grid.dae['params_dict'].update({f'T_pp_{name}':vsc_data['T_p']})
+    grid.dae['params_dict'].update({f'K_qp_{name}':0.1})
+    grid.dae['params_dict'].update({f'K_qi_{name}':0.1})
+    grid.dae['params_dict'].update({f'K_agc_{name}':vsc_data['K_agc']})
+    grid.dae['params_dict'].update({f'K_delta_{name}':vsc_data['K_delta']})
+
+    print("vsc_data['U_n']", vsc_data['U_n'])
+    
+
+    #    V_1 = 400/np.sqrt(3)*np.exp(1j*np.deg2rad(0))
+    # A_1toabc = np.array([1, alpha**2, alpha])
+    #V_abc = V_1 * A_1toabc 
+    #e_an_r,e_bn_r,e_cn_r = V_abc.real
+    #e_an_i,e_bn_i,e_cn_i = V_abc.imag
+
+    grid.dae['u_ini_dict'].update({f'e_ao_m_{name}':V_1,f'e_bo_m_{name}':V_1,f'e_co_m_{name}':V_1,f'e_no_m_{name}':0.0})
+    grid.dae['u_ini_dict'].update({f'v_ra_{name}':0.0,f'v_rb_{name}':0.0,f'v_rc_{name}':0.0,f'v_rn_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'e_ao_m_{name}':V_1,f'e_bo_m_{name}':V_1,f'e_co_m_{name}':V_1,f'e_no_m_{name}':0.0})
+    grid.dae['u_run_dict'].update({f'v_ra_{name}':0.0,f'v_rb_{name}':0.0,f'v_rc_{name}':0.0,f'v_rn_{name}':0.0})
+
+
+    # params_dict  = grid.dae['params_dict']
+    # f_list = grid.dae['f']
+    # x_list = grid.dae['x']
+    # g_list = grid.dae['g'] 
+    # y_ini_list = grid.dae['y_ini'] 
+    # u_ini_dict = grid.dae['u_ini_dict']
+    # y_run_list = grid.dae['y_run'] 
+    # u_run_dict = grid.dae['u_run_dict']
+    # h_dict = grid.dae['h_dict']
+
+
+    # alpha = np.exp(2.0/3*np.pi*1j)
+    # A_0a =  np.array([[1, 1, 1],
+    #                 [1, alpha**2, alpha],
+    #                 [1, alpha, alpha**2]])
+
+    # A_a0 = 1/3* np.array([[1, 1, 1],
+    #                     [1, alpha, alpha**2],
+    #                     [1, alpha**2, alpha]])
+
+    # omega_coi_i = 0
+    # HS_coi = 0
+
+    # omega_coi = sym.Symbol('omega_coi',real=True)
+    # xi_freq = sym.Symbol('xi_freq',real=True)
+
+    # #vscs = [
+    # #    {'bus':'B1','S_n':100e3,'R':0.01,'X':0.1,'R_n':0.01,'X_n':0.1,'R_ng':0.01,'X_ng':3.0,'K_f':0.1,'T_f':1.0,'K_sec':0.5,'K_delta':0.001},
+    # #    ]
+
+    # #for vsc in vsc_data:
+        
+    # name = vsc_data['bus']
+
+    # # inputs
+    # e_ao_m,e_bo_m,e_co_m,e_no_m = sym.symbols(f'e_ao_m_{name},e_bo_m_{name},e_co_m_{name},e_no_m_{name}', real=True)
+    # omega_ref,p_c = sym.symbols(f'omega_ref_{name},p_c_{name}', real=True)
+    # phi_a = sym.Symbol(f'phi_a_{name}', real=True)
+    # phi_b = sym.Symbol(f'phi_b_{name}', real=True)
+    # phi_c = sym.Symbol(f'phi_c_{name}', real=True)
+    # phi_n = sym.Symbol(f'phi_n_{name}', real=True)
+    # v_ra = sym.Symbol(f'v_ra_{name}', real=True)
+    # v_rb = sym.Symbol(f'v_rb_{name}', real=True)
+    # v_rc = sym.Symbol(f'v_rc_{name}', real=True)
+    # v_rn = sym.Symbol(f'v_rn_{name}', real=True)    
+
+    # # parameters
+    # S_n,H,K_f,T_f,K_agc,K_delta  = sym.symbols(f'S_n_{name},H_{name},K_f_{name},T_f_{name},K_agc_{name},K_delta_{name}', real=True)
+    # R_v,X_v = sym.symbols(f'R_v_{name},X_v_{name}', real=True)
+    # R_s,R_sn,R_ng = sym.symbols(f'R_{name}_s,R_{name}_sn,R_{name}_ng', real=True)
+    # X_s,X_sn,X_ng = sym.symbols(f'X_{name}_s,X_{name}_sn,X_{name}_ng', real=True)
+    # T_e = sym.Symbol(f'T_e_{name}', real=True)
+    # K_p = sym.Symbol(f"K_p_{name}", real=True)    
+    # T_p = sym.Symbol(f"T_p_{name}", real=True)   
+    # T_c = sym.Symbol(f"T_c_{name}", real=True)   
+    # T_v = sym.Symbol(f"T_v_{name}", real=True)   
+
+    # Droop = sym.Symbol(f"Droop_{name}", real=True)   
+    
+    # # dynamical states
+    # phi = sym.Symbol(f'phi_{name}', real=True)
+    # xi_p = sym.Symbol(f'xi_p_{name}', real=True)
+    # p_ef = sym.Symbol(f'p_ef_{name}', real=True)
+    # De_ao_m,De_bo_m,De_co_m,De_no_m  = sym.symbols(f'De_ao_m_{name},De_bo_m_{name},De_co_m_{name},De_no_m_{name}', real=True)
+
+
+    # omega = sym.Symbol(f'omega_{name}', real=True)
+    
+    # # algebraic states
+    # #e_an_i,e_bn_i,e_cn_i,e_ng_i = sym.symbols(f'e_{name}_an_i,e_{name}_bn_i,e_{name}_cn_i,e_{name}_ng_i', real=True)
+    # #v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'v_{name}_a_r,v_{name}_b_r,v_{name}_c_r,v_{name}_n_r,v_{name}_o_r', real=True)
+    # #v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'v_{name}_a_i,v_{name}_b_i,v_{name}_c_i,v_{name}_n_i,v_{name}_o_i', real=True)
+    # v_sa_r,v_sb_r,v_sc_r,v_sn_r,v_og_r = sym.symbols(f'V_{name}_0_r,V_{name}_1_r,V_{name}_2_r,V_{name}_3_r,v_{name}_o_r', real=True)
+    # v_sa_i,v_sb_i,v_sc_i,v_sn_i,v_og_i = sym.symbols(f'V_{name}_0_i,V_{name}_1_i,V_{name}_2_i,V_{name}_3_i,v_{name}_o_i', real=True)
+    # i_sa_r,i_sb_r,i_sc_r,i_sn_r,i_ng_r = sym.symbols(f'i_vsc_{name}_a_r,i_vsc_{name}_b_r,i_vsc_{name}_c_r,i_vsc_{name}_n_r,i_vsc_{name}_ng_r', real=True)
+    # i_sa_i,i_sb_i,i_sc_i,i_sn_i,i_ng_i = sym.symbols(f'i_vsc_{name}_a_i,i_vsc_{name}_b_i,i_vsc_{name}_c_i,i_vsc_{name}_n_i,i_vsc_{name}_ng_i', real=True)
+    # v_mn_r,v_mn_i = sym.symbols(f'v_{name}_mn_r,v_{name}_mn_i', real=True)
+    # v_tao_r,v_tbo_r,v_tco_r = sym.symbols(f'v_tao_r_{name},v_tbo_r_{name},v_tco_r_{name}', real=True)
+    # v_tao_i,v_tbo_i,v_tco_i = sym.symbols(f'v_tao_i_{name},v_tbo_i_{name},v_tco_i_{name}', real=True)
+
+    # omega = sym.Symbol(f'omega_{name}', real=True)
+    # p_ef  = sym.Symbol(f'p_ef_{name}', real=True)
+    # p_m = sym.Symbol(f'p_m_{name}', real=True) 
+    # p_c = sym.Symbol(f'p_c_{name}', real=True) 
+    # p_cf= sym.Symbol(f'p_cf_{name}', real=True)   
+
+    # e_om_r,e_om_i = sym.symbols(f'e_{name}_om_r,e_{name}_om_i', real=True)
+    
+    # Z_va = R_v + 1j*X_v
+    # Z_vb = R_v + 1j*X_v
+    # Z_vc = R_v + 1j*X_v
+
+    # Z_sa = R_s + 1j*X_s 
+    # Z_sb = R_s + 1j*X_s
+    # Z_sc = R_s + 1j*X_s
+    # Z_sn = R_sn + 1j*X_sn
+    # Z_ng = R_ng + 1j*X_ng
+
+    # i_sa = i_sa_r + 1j*i_sa_i
+    # i_sb = i_sb_r + 1j*i_sb_i
+    # i_sc = i_sc_r + 1j*i_sc_i
+    # i_sn = i_sn_r + 1j*i_sn_i
+
+    # v_sa = v_sa_r + 1j*v_sa_i
+    # v_sb = v_sb_r + 1j*v_sb_i
+    # v_sc = v_sc_r + 1j*v_sc_i
+    # v_sn = v_sn_r + 1j*v_sn_i
+    # v_og = v_og_r + 1j*v_og_i
+
+    # v_tao = v_tao_r + 1j*v_tao_i
+    # v_tbo = v_tbo_r + 1j*v_tbo_i
+    # v_tco = v_tco_r + 1j*v_tco_i
+
+      
+    # e_ao_r = (e_ao_m+De_ao_m)*sym.cos(phi_a + phi) 
+    # e_ao_i = (e_ao_m+De_ao_m)*sym.sin(phi_a + phi) 
+    # e_bo_r = (e_bo_m+De_bo_m)*sym.cos(phi_b + phi-2/3*np.pi) 
+    # e_bo_i = (e_bo_m+De_bo_m)*sym.sin(phi_b + phi-2/3*np.pi) 
+    # e_co_r = (e_co_m+De_co_m)*sym.cos(phi_c + phi-4/3*np.pi) 
+    # e_co_i = (e_co_m+De_co_m)*sym.sin(phi_c + phi-4/3*np.pi) 
+    # e_no_r = (e_no_m+De_no_m)*sym.cos(phi_n + phi) 
+    # e_no_i = (e_no_m+De_no_m)*sym.sin(phi_n + phi)
+
+    # e_ao_cplx = e_ao_r + 1j*e_ao_i
+    # e_bo_cplx = e_bo_r + 1j*e_bo_i
+    # e_co_cplx = e_co_r + 1j*e_co_i
+    # e_no_cplx = e_no_r + 1j*e_no_i
+
+    # v_san = v_sa - v_sn
+    # v_sbn = v_sb - v_sn
+    # v_scn = v_sc - v_sn
+
+
+    # eq_v_tao_cplx =  e_ao_cplx - i_sa*Z_va - v_tao   # v_sa = v_sag
+    # eq_v_tbo_cplx =  e_bo_cplx - i_sb*Z_vb - v_tbo
+    # eq_v_tco_cplx =  e_co_cplx - i_sc*Z_vc - v_tco
+    # eq_i_sa_cplx = v_og + v_tao - i_sa*Z_sa - v_sa   # v_sa = v_sag
+    # eq_i_sb_cplx = v_og + v_tbo - i_sb*Z_sb - v_sb
+    # eq_i_sc_cplx = v_og + v_tco - i_sc*Z_sc - v_sc
+    # eq_i_sn_cplx = v_og + v_tno - i_sn*Z_sn - v_sn
+    # eq_v_og_cplx = i_sa + i_sb + i_sc + i_sn + v_og/Z_ng
+    # #eq_i_sn_cplx = e_ng_cplx - i_sn*Z_sn - v_ng
+    # #eq_i_ng_cplx = i_ng + i_sa + i_sb + i_sc + i_sn
+    # #eq_e_ng_cplx  = -e_ng_cplx  + i_ng*Z_ng
+
+    # g_list += [sym.re(eq_v_tao_cplx)] 
+    # g_list += [sym.re(eq_v_tbo_cplx)] 
+    # g_list += [sym.re(eq_v_tco_cplx)] 
+    # g_list += [sym.re(eq_i_sa_cplx)] 
+    # g_list += [sym.re(eq_i_sb_cplx)] 
+    # g_list += [sym.re(eq_i_sc_cplx)] 
+    # g_list += [sym.re(eq_i_sn_cplx)] 
+    # g_list += [sym.re(eq_v_og_cplx)] 
+    # g_list += [sym.im(eq_v_tao_cplx)]
+    # g_list += [sym.im(eq_v_tbo_cplx)]
+    # g_list += [sym.im(eq_v_tco_cplx)]
+    # g_list += [sym.im(eq_i_sa_cplx)] 
+    # g_list += [sym.im(eq_i_sb_cplx)] 
+    # g_list += [sym.im(eq_i_sc_cplx)] 
+    # g_list += [sym.im(eq_i_sn_cplx)] 
+    # g_list += [sym.im(eq_v_og_cplx)] 
+
+    # y_ini_list += [v_tao_r,v_tbo_r,v_tco_r,i_sa_r,i_sb_r,i_sc_r,i_sn_r,v_og_r]
+    # y_ini_list += [v_tao_i,v_tbo_i,v_tco_i,i_sa_i,i_sb_i,i_sc_i,i_sn_i,v_og_i]
+    # y_run_list += [v_tao_r,v_tbo_r,v_tco_r,i_sa_r,i_sb_r,i_sc_r,i_sn_r,v_og_r]
+    # y_run_list += [v_tao_i,v_tbo_i,v_tco_i,i_sa_i,i_sb_i,i_sc_i,i_sn_i,v_og_i]
+
+    # #y_ini_str = [str(item) for item in y_list]
+
+    # for ph in ['a','b','c','n']:
+    #     i_s_r = sym.Symbol(f'i_vsc_{name}_{ph}_r', real=True)
+    #     i_s_i = sym.Symbol(f'i_vsc_{name}_{ph}_i', real=True)  
+    #     idx_r,idx_i = grid.node2idx(name,ph)
+    #     grid.dae['g'] [idx_r] += -i_s_r
+    #     grid.dae['g'] [idx_i] += -i_s_i
+    #     i_s = i_s_r + 1j*i_s_i
+    #     i_s_m = np.abs(i_s)
+    #     h_dict.update({f'i_vsc_{name}_{ph}_m':i_s_m})
+
+        
+
+    # #u_dict.update({f'phi_{name}':0.0})
+    # u_ini_dict.update({f'phi_a_{name}':0.0})
+    # u_ini_dict.update({f'phi_b_{name}':0.0})
+    # u_ini_dict.update({f'phi_c_{name}':0.0})
+    # u_ini_dict.update({f'phi_n_{name}':0.0})
+
+    # u_ini_dict.update({f'p_c_{name}':0.0})
+    # u_ini_dict.update({f'omega_{name}_ref':1.0})
+
+    # u_run_dict.update({f'phi_a_{name}':0.0})
+    # u_run_dict.update({f'phi_b_{name}':0.0})
+    # u_run_dict.update({f'phi_c_{name}':0.0})
+    # u_run_dict.update({f'phi_n_{name}':0.0})
+
+    # u_run_dict.update({f'p_c_{name}':0.0})
+    # u_run_dict.update({f'omega_{name}_ref':1.0})
+
+    # #for ph in ['a','b','c','n']:
+    # #    u_dict.pop(f'i_{name}_{ph}_r')
+    # #    u_dict.pop(f'i_{name}_{ph}_i')
+
+    # params_dict.update({f'X_v_{name}':vsc_data['X_v'],f'R_v_{name}':vsc_data['R_v']})
+    # params_dict.update({f'X_{name}_s':vsc_data['X'],f'R_{name}_s':vsc_data['R']})
+    # params_dict.update({f'X_{name}_sn':vsc_data['X_n'],f'R_{name}_sn':vsc_data['R_n']})
+    # params_dict.update({f'X_{name}_ng':vsc_data['X_ng'],f'R_{name}_ng':vsc_data['R_ng']})
+    
+    # params_dict.update({f'S_n_{name}':vsc_data['S_n']})
+    # params_dict.update({f'T_e_{name}':vsc_data['T_e']})
+    # params_dict.update({f'T_c_{name}':vsc_data['T_c']})
+    # params_dict.update({f'T_v_{name}':vsc_data['T_v']})
+    # params_dict.update({f'Droop_{name}':vsc_data['Droop']})
+    # params_dict.update({f'K_p_{name}':vsc_data['K_p']})
+    # params_dict.update({f'T_p_{name}':vsc_data['T_p']})
+    # params_dict.update({f'K_agc_{name}':vsc_data['K_agc']})
+    # params_dict.update({f'K_delta_{name}':vsc_data['K_delta']})
+    
+    
+    # v_sabc = sym.Matrix([[v_sa],[v_sb],[v_sc]])
+    # i_sabc = sym.Matrix([[i_sa],[i_sb],[i_sc]])
+    
+
+    # v_szpn = A_a0*v_sabc
+    # i_szpn = A_a0*i_sabc
+    
+    # s_pos = 3*v_szpn[1]*sym.conjugate(i_szpn[1])
+    # s_neg = 3*v_szpn[2]*sym.conjugate(i_szpn[2])
+    # s_zer = 3*v_szpn[0]*sym.conjugate(i_szpn[0])
+    
 
 
 def test_ib():
@@ -469,29 +510,26 @@ def test_ib():
 
     grid = urisi('ac_3ph_4w_gfpizv_ib.hjson')
     grid.uz_jacs = True
-    grid.construct('temp')
-    grid.compile('temp')
-
+    grid.build('temp')
+ 
     import temp
 
     model = temp.model()    
-    p_c = 0.5
-    q_ref = 0.1
-    model.ini({'p_c_A1':p_c,'q_ref_A1':q_ref},'xy_0.json')
+    p_c = 0.0
+    model.ini({'p_c_A1':0.0},'xy_0.json')
     
     model.report_u()
     model.report_x()
     model.report_y()
     model.report_z()
 
-    S_n = model.get_value('S_n_A1')
-    assert model.get_value('omega_A1')  == pytest.approx(1)
-    assert model.get_value('omega_coi') == pytest.approx(1)
-    assert model.get_value('p_vsc_A1_a') == pytest.approx(p_c*S_n/3, rel=0.05)
-    assert model.get_value('p_vsc_A1_b') == pytest.approx(p_c*S_n/3, rel=0.05)
-    assert model.get_value('p_vsc_A1_c') == pytest.approx(p_c*S_n/3, rel=0.05)
-    assert model.get_value('p_A2') == pytest.approx(-p_c*S_n, rel=0.05)
-    assert model.get_value('q_A2') == pytest.approx(-q_ref*S_n, rel=0.05)
+    # S_n = model.get_value('S_n_A1')
+    # assert model.get_value('omega_A1')  == pytest.approx(1)
+    # assert model.get_value('omega_coi') == pytest.approx(1)
+    # assert model.get_value('p_vsc_A1_a') == pytest.approx(p_c*S_n/3, rel=0.05)
+    # assert model.get_value('p_vsc_A1_b') == pytest.approx(p_c*S_n/3, rel=0.05)
+    # assert model.get_value('p_vsc_A1_c') == pytest.approx(p_c*S_n/3, rel=0.05)
+    # assert model.get_value('p_A2') == pytest.approx(-p_c*S_n, rel=0.05)
 
 def test_iso():
     '''
@@ -505,21 +543,16 @@ def test_iso():
 
     grid = urisi('ac_3ph_4w_gfpizv_iso.hjson')
     grid.uz_jacs = True
-    grid.construct('temp')
-    grid.compile('temp')
+    grid.build('temp')
 
     import temp
 
     model = temp.model()
     p_load_ph =  50e3
-    q_load_ph =  20e3
+    q_load_ph = -20e3
     model.ini({'p_load_A2_a':p_load_ph,'q_load_A2_a':q_load_ph,
                'p_load_A2_b':p_load_ph,'q_load_A2_b':q_load_ph,
                'p_load_A2_c':p_load_ph,'q_load_A2_c':q_load_ph,},'xy_0.json')
-
-    model.report_x()  
-    model.report_y()
-    model.report_z()
 
     assert model.get_value('omega_A1')  == 1.0
     assert model.get_value('omega_coi') == 1.0

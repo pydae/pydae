@@ -74,10 +74,10 @@ def milano6ord(grid,name,bus_name,data_dict):
     # dynamic equations            
     ddelta = Omega_b*(omega - omega_s) - K_delta*delta
     domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
-    de1q = (-f_s_e1q - (X_d - X1d - T2d0/T1d0*X2d/X1d * (X_d - X1d))*i_d + (1 - T_AA/T1d0)*v_f)/T1d0
-    de1d = (-e1d + (X_q - X1q - T2q0/T1q0*X2q/X1q * (X_q - X1q))*i_q)/T1q0
-    de2q = (-e2q + e1q - (X1d-X2d + T2d0/T1d0*X2d/X1d*(X_d - X1d))*i_d + T_AA/T1d0 * v_f)/T2d0
-    de2d = (-e2d + e1d + (X1q-X2q + T2q0/T1q0*X2q/X1q*(X_q - X1q))*i_q)/T2q0
+    de1q = (      -e1q - (X_d - X1d - T2d0/T1d0*X2d/X1d * (X_d - X1d))*i_d + (1 - T_AA/T1d0)*v_f)/T1d0
+    de1d = (      -e1d + (X_q - X1q - T2q0/T1q0*X2q/X1q * (X_q - X1q))*i_q)/T1q0
+    de2q = (-e2q + e1q - (X1d - X2d + T2d0/T1d0*X2d/X1d * (X_d - X1d))*i_d + T_AA/T1d0 * v_f)/T2d0
+    de2d = (-e2d + e1d + (X1q - X2q + T2q0/T1q0*X2q/X1q * (X_q - X1q))*i_q)/T2q0
 
     # algebraic equations   
     g_i_d  = v_q + R_a*i_q - e2q + (X2d - X_l)*i_d

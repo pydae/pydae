@@ -219,10 +219,9 @@ def test_ib():
     import pydae.build_cffi as db
     import pytest
 
-    grid = urisi('ac_3ph_4w_gfpizv_ib.hjson')
+    grid = urisi('ac_3ph_4w_ib.hjson')
     grid.uz_jacs = True
-    grid.construct('temp')
-    grid.compile('temp')
+    grid.build('temp')
 
     import temp
 
@@ -255,10 +254,9 @@ def test_iso():
     import pydae.build_cffi as db
     import pytest
 
-    grid = urisi('ac_3ph_4w_gfpizv_iso.hjson')
+    grid = urisi('ac_3ph_4w_iso.hjson')
     grid.uz_jacs = True
-    grid.construct('temp')
-    grid.compile('temp')
+    grid.build('temp')
 
     import temp
 

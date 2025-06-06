@@ -139,8 +139,8 @@ def ac3ph4w_ideal(grid,data):
     HS_coi  = 1.0
     omega_coi_i = 1.0
 
-    grid.omega_coi_numerator += 1e3
-    grid.omega_coi_denominator += 1e3
+    grid.omega_coi_numerator += 1e6
+    grid.omega_coi_denominator += 1e6
 
     grid.dae['h_dict'].update({f'p_{name}':p_total})
     grid.dae['h_dict'].update({f'q_{name}':q_total})

@@ -54,6 +54,7 @@ def ac_3ph_4w_l(grid,vsc_data):
     # parameters
     R_s,R_sn,R_ng = sym.symbols(f'R_{name}_s,R_{name}_sn,R_{name}_ng', real=True)
     X_s,X_sn,X_ng = sym.symbols(f'X_{name}_s,X_{name}_sn,X_{name}_ng', real=True)
+    S_n,U_n = sym.symbols(f'S_n_{name},U_n_{name}', real=True)
     
     # dynamical states
     De_ao_m,De_bo_m,De_co_m,De_no_m  = sym.symbols(f'De_ao_m_{name},De_bo_m_{name},De_co_m_{name},De_no_m_{name}', real=True)
@@ -96,10 +97,10 @@ def ac_3ph_4w_l(grid,vsc_data):
     sqrt6 = np.sqrt(6)
     e_ao_r = (m_a*v_dc/sqrt6)*sym.cos(phi_a + phi) 
     e_ao_i = (m_a*v_dc/sqrt6)*sym.sin(phi_a + phi) 
-    e_bo_r = (m_b*v_dc/sqrt6)*sym.cos(phi_b + phi-2/3*np.pi) 
-    e_bo_i = (m_b*v_dc/sqrt6)*sym.sin(phi_b + phi-2/3*np.pi) 
-    e_co_r = (m_c*v_dc/sqrt6)*sym.cos(phi_c + phi-4/3*np.pi) 
-    e_co_i = (m_c*v_dc/sqrt6)*sym.sin(phi_c + phi-4/3*np.pi) 
+    e_bo_r = (m_b*v_dc/sqrt6)*sym.cos(phi_b + phi-2/3*np.pi*0.0) 
+    e_bo_i = (m_b*v_dc/sqrt6)*sym.sin(phi_b + phi-2/3*np.pi*0.0) 
+    e_co_r = (m_c*v_dc/sqrt6)*sym.cos(phi_c + phi-4/3*np.pi*0.0) 
+    e_co_i = (m_c*v_dc/sqrt6)*sym.sin(phi_c + phi-4/3*np.pi*0.0) 
     e_no_r = (m_n*v_dc/sqrt6)*sym.cos(phi_n) 
     e_no_i = (m_n*v_dc/sqrt6)*sym.sin(phi_n) 
 
@@ -127,6 +128,16 @@ def ac_3ph_4w_l(grid,vsc_data):
     eq_i_sc_cplx = v_og + e_co_cplx - i_sc*Z_sc - v_sc
     eq_i_sn_cplx = v_og + e_no_cplx - i_sn*Z_sn - v_sn
     eq_v_og_cplx = i_sa + i_sb + i_sc + i_sn + v_og/Z_ng
+
+    grid.aux.update({f'ac_3ph_4w_l_{name}':{}})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'Z_sa':Z_sa,'Z_sb':Z_sb,'Z_sc':Z_sc})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'v_san':v_san,'v_sbn':v_sbn,'v_scn':v_scn})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'e_ao_cplx':e_ao_cplx,'e_bo_cplx':e_bo_cplx,'e_co_cplx':e_co_cplx})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'i_sa':i_sa,'i_sb':i_sb,'i_sc':i_sc})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'s_sa':s_sa,'s_sb':s_sb,'s_sc':s_sc})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'v_dc':v_dc})  
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'v_og':v_og})
+
 
     ### DC side
     A_loss = sym.symbols(f'A_loss_{name}',real=True)
@@ -221,6 +232,10 @@ def ac_3ph_4w_l(grid,vsc_data):
     y_ini_list += [p_pos,q_pos]
     y_run_list += [p_pos,q_pos]
 
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'s_pos':s_pos})
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'p_pos':p_pos})
+    grid.aux[f'ac_3ph_4w_l_{name}'].update({'q_pos':q_pos})
+    
     h_dict.update({f'p_{name}_pos':sym.re(s_pos),f'p_{name}_neg':sym.re(s_neg),f'p_{name}_zer':sym.re(s_zer)})
     h_dict.update({str(m_a):m_a,str(m_b):m_b,str(m_c):m_c,str(m_n):m_n})
     h_dict.update({str(phi):phi})
@@ -247,16 +262,17 @@ def ac_3ph_4w_l(grid,vsc_data):
     params_dict.update({str(C_loss):C_loss_num})
 
 
-def test():
+
+
+def test_iso():
     import numpy as np
     import sympy as sym
     import json
     from pydae.urisi.urisi_builder import urisi
     import pydae.build_cffi as db
 
-    grid = urisi('ac_3ph_4w_l.hjson')
-    grid.construct('temp')
-    grid.compile('temp')
+    grid = urisi('ac_3ph_4w_l_iso.hjson')
+    grid.build('temp')
 
     import temp
 
@@ -279,8 +295,38 @@ def test():
     model.report_y()
     model.report_z()
 
+def test_ib():
+    import numpy as np
+    import sympy as sym
+    import json
+    from pydae.urisi.urisi_builder import urisi
+    import pydae.build_cffi as db
+
+    grid = urisi('ac_3ph_4w_l_ib.hjson')
+    grid.build('temp')
+
+    import temp
+
+    S_n = 100e3
+    V_n = 400
+    I_n = S_n/V_n
+    Conduction_losses = 0.02*S_n # = A*I_n**2
+    lossses = 1.0
+    A = Conduction_losses/(I_n**2)/3*lossses
+    B = 1/3*lossses
+    C = 0.02*S_n/3*lossses
+    model = temp.model()
+    m = 0.75
+    phi = 0.1
+    model.ini({
+               #'A_loss_A1':A,'B_loss_A1':B,'C_loss_A1':C,
+               'm_a_A1':m,'m_b_A1':m,'m_c_A1':m,
+               'phi_a_A1':phi,'phi_b_A1':phi,'phi_c_A1':phi,
+               },'xy_0.json')
+    model.report_y()
+    model.report_z()
 
 if __name__ == '__main__':
 
     #development()
-    test()
+    test_ib()

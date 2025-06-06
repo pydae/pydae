@@ -78,6 +78,8 @@ def bess_pq_ss(grid,name,bus_name,data_dict):
     D = np.array([[0.0, 0.0],
                   [0.0, 0.0]])
 
+ 
+ 
     if 'A' in data_dict:
         A = np.array(data_dict['A_pq'])
         B = np.array(data_dict['B_pq'])

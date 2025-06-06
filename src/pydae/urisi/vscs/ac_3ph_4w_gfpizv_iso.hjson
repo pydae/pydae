@@ -1,5 +1,5 @@
 {
-system:{S_base:1e6, K_p_agc:0.01, K_i_agc:0.01, K_xif:0.0}
+system:{S_base:1e6, K_p_agc:0.0, K_i_agc:0.0, K_xif:0.1, phi_deg_default:0.0}
 buses:[    
          {name: "A1",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
          {name: "A2",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
@@ -18,11 +18,11 @@ loads:[
 //         ],
 vscs:[
      {"type":"ac_3ph_4w_gfpizv","bus":"A1","S_n":100e3,"U_n":400,
-     "R_v":0.0,"X_v":0.1,
-     "R":0.01,"X":0.1,"R_n":0.01,"X_n":0.1,"R_ng":0.01,"X_ng":3.0,
-     "K_p":0.1,"T_p":0.1,"T_e":0.1,"K_sec":0.5,"K_delta":0.01, 
-     "T_c":0.1, "Droop":0.05, "T_v":0.1,"K_agc":1.0,
-      "K_qp":0.01,"K_qi":0.0}
+     R_v:0, X_v:0.01,
+     "R":0.01,"X":0.05,"R_n":0.01,"X_n":0.1,"R_ng":0.01,"X_ng":3.0,
+     "K_p":0.1,"T_p":0.1,"T_e":0.1,"K_sec":0.0,"K_delta":0.0, 
+     "T_c":0.1, "Droop":0.05, "T_v":0.1,"K_agc":0.0,
+      K_qp:0.01,K_qi:0.01}
         ],
 line_codes:
         {

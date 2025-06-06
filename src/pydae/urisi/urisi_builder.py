@@ -12,6 +12,7 @@ from pydae.urisi.shunts.shunts import add_shunts,shunts_preprocess
 from pydae.urisi.sources.sources import add_sources
 from pydae.urisi.ess.ess import add_ess
 from pydae.urisi.miscellaneous.breaker import add_breakers
+from pydae.urisi.fcs.fcs import add_fcs
 
 import pydae.build_cffi as db
 from pydae.build_v2 import build_numba,build_mkl
@@ -69,6 +70,8 @@ class urisi:
         self.dae = {'f':[],'g':[],'x':[],'y_ini':[],'y_run':[],
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
+
+        self.aux = {}
 
         self.uz_jacs = False     
         self.verbose = False 
@@ -299,12 +302,17 @@ class urisi:
                 add_ess(self,item)
         if 'breakers' in  self.data:
             for item in self.data['breakers']:
-                add_breakers(self,item)                
+                add_breakers(self,item)   
+        if 'fcs' in  self.data:
+            for item in self.data['fcs']:
+                add_fcs(self,item) 
+
+        # Center Of Inertia (COI)                  
         omega_coi = sym.Symbol("omega_coi", real=True)  
 
-        # if self.omega_coi_denominator <1e-6:
-        #     self.omega_coi_denominator = 1e-6
-        #     self.omega_coi_numerator = 1e-6
+        if self.omega_coi_denominator == 0.0:
+            self.omega_coi_denominator = 1e-6
+            self.omega_coi_numerator = 1e-6
 
         self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
         self.dae['y_ini'] += [ omega_coi]
