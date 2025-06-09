@@ -117,8 +117,12 @@ def milano6ord(grid,name,bus_name,data_dict):
 
     grid.dae['xy_0_dict'].update({str(omega):1.0})
     grid.dae['xy_0_dict'].update({str(e1q):1.0})
+    grid.dae['xy_0_dict'].update({str(e1d):1.0})
     grid.dae['xy_0_dict'].update({str(e2q):1.0})
-   
+    grid.dae['xy_0_dict'].update({str(e2d):1.0})
+    grid.dae['xy_0_dict'].update({str(i_d):0.5})
+    grid.dae['xy_0_dict'].update({str(i_q):0.5})
+
     # outputs
     grid.dae['h_dict'].update({f"p_e_{name}":p_e})
     grid.dae['h_dict'].update({f"v_f_{name}":v_f})
