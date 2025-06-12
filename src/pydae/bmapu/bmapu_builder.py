@@ -381,10 +381,19 @@ class bmapu:
 
             if 'monitor' in line:
                 if line['monitor']:
-                    h_grid.update({f"p_line_{bus_j}_{bus_k}":P_line_to})
-                    h_grid.update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
-                    h_grid.update({f"p_line_{bus_k}_{bus_j}":P_line_from})
-                    h_grid.update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
+                    # h_grid.update({f"p_line_{bus_j}_{bus_k}":P_line_to})
+                    # h_grid.update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
+                    # h_grid.update({f"p_line_{bus_k}_{bus_j}":P_line_from})
+                    # h_grid.update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
+                    p_line_to,q_line_to = sym.symbols(f"p_line_{bus_j}_{bus_k},q_line_{bus_j}_{bus_k}", real=True)
+                    p_line_from,q_line_from = sym.symbols(f"p_line_{bus_k}_{bus_j},q_line_{bus_k}_{bus_j}", real=True)
+
+                    g_grid += [p_line_to - P_line_to]
+                    g_grid += [q_line_to - Q_line_to]
+                    g_grid += [p_line_from - P_line_from]
+                    g_grid += [q_line_from - Q_line_from]
+
+                    y_grid += [p_line_to,q_line_to,p_line_from,q_line_from]
 
         self.dae['f'] += []
         self.dae['g'] += g_grid
