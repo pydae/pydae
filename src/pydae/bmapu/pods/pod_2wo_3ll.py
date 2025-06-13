@@ -75,6 +75,8 @@ def add_pod_2wo_3ll(grid,data):
     ############################################################################################################
 
     # dynamic states
+    x_lpf  = sym.Symbol(f"x_lpf_pod_{name}", real=True)  # low pass filter
+    
     x_wo1  = sym.Symbol(f"x_wo1_pod_{name}", real=True)  # washout 1
     x_wo2  = sym.Symbol(f"x_wo2_pod_{name}", real=True)  # washout 2
 
@@ -90,6 +92,7 @@ def add_pod_2wo_3ll(grid,data):
     T_wo1 = sym.Symbol(f"T_wo1_pod_{name}", real=True)  
     T_wo2 = sym.Symbol(f"T_wo2_pod_{name}", real=True)  
 
+    T_lpf = sym.Symbol(f"T_lpf_pod_{name}", real=True) 
     T_1 = sym.Symbol(f"T_1_pod_{name}", real=True) 
     T_2 = sym.Symbol(f"T_2_pod_{name}", real=True)
     T_3 = sym.Symbol(f"T_3_pod_{name}", real=True) 
@@ -106,10 +109,13 @@ def add_pod_2wo_3ll(grid,data):
 
     # auxiliar
     omega = omega_pll_f
-    u_wo1 = K_stab*(omega - 1.0) + u_pll_probe
+    u_lpf = K_stab*(omega - 1.0) + u_pll_probe
     
-    z_wo1 = u_wo1 - x_wo1
+    z_lpf = x_lpf
+    z_wo1 = z_lpf - x_wo1
     z_wo2 = z_wo1 - x_wo2
+
+    u_wo1 = z_lpf
     u_wo2 = z_wo1
     z_12 = (z_wo2 - x_12)*T_1/T_2 + x_12
     z_34 = (z_12 - x_34)*T_3/T_4 + x_34
@@ -117,6 +123,7 @@ def add_pod_2wo_3ll(grid,data):
 
     pod_out_nosat = z_56
 
+    dx_lpf = (u_lpf - x_lpf)/T_lpf  # low pass filter state
     dx_wo1 = (u_wo1 - x_wo1)/T_wo1  # washout1 state
     dx_wo2 = (u_wo2 - x_wo2)/T_wo2  # washout2 state
     dx_12 =  (z_wo2 - x_12)/T_2      # lead compensator state
@@ -125,11 +132,12 @@ def add_pod_2wo_3ll(grid,data):
 
     g_pod_out = -pod_out + sym.Piecewise((-Limit,pod_out_nosat<-Limit),(Limit,pod_out_nosat>Limit),(pod_out_nosat,True))  
     
-    grid.dae['f'] += [dx_wo1,dx_wo2,dx_12,dx_34, dx_56]
-    grid.dae['x'] += [ x_wo1, x_wo2, x_12, x_34,  x_56]
+    grid.dae['f'] += [dx_lpf, dx_wo1,dx_wo2,dx_12,dx_34, dx_56]
+    grid.dae['x'] += [ x_lpf, x_wo1, x_wo2, x_12, x_34,  x_56]
     grid.dae['g'] += [g_pod_out]
     grid.dae['y_ini'] += [pod_out]  
     grid.dae['y_run'] += [pod_out] 
+    grid.dae['params_dict'].update({str(T_lpf):data['T_lpf']})
     grid.dae['params_dict'].update({str(T_wo1):data['T_wo1']})
     grid.dae['params_dict'].update({str(T_wo2):data['T_wo2']})
     grid.dae['params_dict'].update({str(T_1):data['T_1']})
