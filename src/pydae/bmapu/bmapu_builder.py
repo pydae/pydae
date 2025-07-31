@@ -19,6 +19,8 @@ from pydae.bmapu.loads.loads import add_loads
 from pydae.bmapu.sources.sources import add_sources
 from pydae.bmapu.miscellaneous.miscellaneous import add_miscellaneous
 from pydae.bmapu.pods.pods import add_pods
+from pydae.bmapu.miscellaneous.banks import add_banks
+
 import pydae.build_cffi as db
 from pydae.build_v2 import builder
 
@@ -143,7 +145,9 @@ class bmapu:
             B_primitive[it+1,it+1] = bs_jk/2
             B_primitive[it+2,it+2] = bs_jk/2
 
-            
+            if not 'thermal' in line:
+                line.update({'thermal':False})      
+
             if 'X_pu' in line:
                 if 'S_mva' in line: S_line = 1e6*line['S_mva']
                 R = line['R_pu']*sys['S_base']/S_line  # in pu of the system base
@@ -168,7 +172,13 @@ class bmapu:
                 bus_idx = buses_list.index(line['bus_j'])
                 U_base = self.buses[bus_idx]['U_kV']*1000
                 Z_base = U_base**2/sys['S_base']
-                R = line['R_km']*line['km']/Z_base  # in pu of the system base
+                if line['thermal']:
+                    R = sym.Symbol(f"R_{line_name}", real=True)
+                    R_N = line['R_km']*line['km']/Z_base  # in pu of the system base
+                    u_grid.update({str(R):R_N})
+                else:    
+                    R = line['R_km']*line['km']/Z_base  # in pu of the system base
+
                 X = line['X_km']*line['km']/Z_base  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
@@ -385,15 +395,38 @@ class bmapu:
                     # h_grid.update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
                     # h_grid.update({f"p_line_{bus_k}_{bus_j}":P_line_from})
                     # h_grid.update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
-                    p_line_to,q_line_to = sym.symbols(f"p_line_{bus_j}_{bus_k},q_line_{bus_j}_{bus_k}", real=True)
-                    p_line_from,q_line_from = sym.symbols(f"p_line_{bus_k}_{bus_j},q_line_{bus_k}_{bus_j}", real=True)
+                    p_line_to_pu,q_line_to_pu = sym.symbols(f"p_line_pu_{bus_j}_{bus_k},q_line_pu_{bus_j}_{bus_k}", real=True)
+                    p_line_from_pu,q_line_from_pu = sym.symbols(f"p_line_pu_{bus_k}_{bus_j},q_line_pu_{bus_k}_{bus_j}", real=True)
 
-                    g_grid += [p_line_to - P_line_to]
-                    g_grid += [q_line_to - Q_line_to]
-                    g_grid += [p_line_from - P_line_from]
-                    g_grid += [q_line_from - Q_line_from]
+                    g_grid += [p_line_to_pu - P_line_to]
+                    g_grid += [q_line_to_pu - Q_line_to]
+                    g_grid += [p_line_from_pu - P_line_from]
+                    g_grid += [q_line_from_pu - Q_line_from]
 
-                    y_grid += [p_line_to,q_line_to,p_line_from,q_line_from]
+                    y_grid += [p_line_to_pu,q_line_to_pu,p_line_from_pu,q_line_from_pu]
+                    
+                    U_base = self.buses[idx_j]['U_kV']*1000
+                    I_base = S_base/(np.sqrt(3)*U_base)
+
+                    h_grid.update({f'p_line_{bus_j}_{bus_k}':p_line_to_pu*S_base})
+                    h_grid.update({f'q_line_{bus_j}_{bus_k}':q_line_to_pu*S_base})
+                    h_grid.update({f'p_line_{bus_k}_{bus_j}':p_line_from_pu*S_base})
+                    h_grid.update({f'q_line_{bus_k}_{bus_j}':q_line_from_pu*S_base})
+
+                    I_j_k_pu = (  p_line_to_pu**2 +   q_line_to_pu**2)**0.5/V_j
+                    I_k_j_pu = (p_line_from_pu**2 + q_line_from_pu**2)**0.5/V_k
+
+                    h_grid.update({f'I_line_{bus_j}_{bus_k}':I_j_k_pu*I_base})
+                    h_grid.update({f'I_line_{bus_k}_{bus_j}':I_k_j_pu*I_base})
+
+        for bus in self.buses:
+            if 'monitor' in bus:
+                if bus['monitor']:
+                    U_base = bus['U_kV']*1000
+                    V = sym.Symbol(f"V_{bus['name']}", real=True) 
+                    h_grid.update({f"U_{bus['name']}":V*U_base})
+ 
+
 
         self.dae['f'] += []
         self.dae['g'] += g_grid
@@ -459,6 +492,8 @@ class bmapu:
             add_loads(self)
         if 'pods' in  self.data:
             add_pods(self)
+        if 'banks' in  self.data:
+            add_banks(self)
 
         add_miscellaneous(self)
 

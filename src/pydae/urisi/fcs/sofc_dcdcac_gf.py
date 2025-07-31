@@ -127,28 +127,31 @@ def sofc_dcdcac_gf(grid,data,name,bus_name):
     Tau_h2 = sym.Symbol(f'Tau_h2_{name}', real=True) # ?? (units?)
     Tau_h2o = sym.Symbol(f'Tau_h2o_{name}', real=True) # ?? (units?)
     Tau_o2 = sym.Symbol(f'Tau_o2_{name}', real=True) # ?? (units?)
-    N0 = sym.Symbol(f'N0_{name}', real=True) # ?? (units?)
+    N_s = sym.Symbol(f'N_s_{name}', real=True) # ?? (units?)
+    N_p = sym.Symbol(f'N_p_{name}', real=True) # ?? (units?)
     E0 = sym.Symbol(f'E0_{name}', real=True) # ?? (units?)
     R_ohm = sym.Symbol(f'R_ohm_{name}', real=True) # ?? (units?)
 
     F = 96487.3 # Faraday's constant (units?)
     R = 8.314 # Universal gas constant  (units?)
     i_dc = i_dc_ref + Di_dc_ref + sym.Piecewise((1.0,i_l<1.0),(250.0,i_l>250.0),(i_l,True))
+    i_cell = i_dc/N_p
 
-    #formulacion del sistema de ecuaciones del modelo
+    #formulacion del sistema de ecuaciones del modelo de una única celda
     # dynamic equations
-    dq_h2  = (2*K_r/U_opt*i_dc - q_h2)/Tau_f
-    dp_h2  = (-p_h2 + (-2*K_r*i_dc + q_h2)/K_h2)/Tau_h2
-    dp_h2o = (2*K_r*i_dc/K_h2o - p_h2o)/Tau_h2o
-    dp_o2  = ((q_h2/R_h01 - K_r*i_dc)/K_o2 - p_o2)/Tau_o2
+    dq_h2  = (2*K_r/U_opt*i_cell - q_h2)/Tau_f
+    dp_h2  = (-p_h2 + (-2*K_r*i_cell + q_h2)/K_h2)/Tau_h2
+    dp_h2o = (2*K_r*i_cell/K_h2o - p_h2o)/Tau_h2o
+    dp_o2  = ((q_h2/R_h01 - K_r*i_cell)/K_o2 - p_o2)/Tau_o2
 
     dDi_dc_ref  = di_dc_ref - 1e-6*Di_dc_ref
 
-    V_ernst = R*temp/(2*F)*sym.ln(p_h2*sym.sqrt(p_o2)/p_h2o)*N0
+    V_ernst = R*temp/(2*F)*sym.ln(p_h2*sym.sqrt(p_o2)/p_h2o)
     P_dc = v_fc_dc*i_dc
 
+
     # Algebraic equations
-    g_v_fc_dc = V_ernst + E0*N0 - R_ohm*N0*i_dc - v_fc_dc
+    g_v_fc_dc = (V_ernst + E0 - R_ohm*i_cell)*N_s - v_fc_dc
 
 
     grid.dae['f'] += [dq_h2,dp_h2,dp_h2o,dp_o2,dDi_dc_ref]
@@ -181,7 +184,8 @@ def sofc_dcdcac_gf(grid,data,name,bus_name):
     grid.dae['params_dict'].update({f'Tau_h2_{name}':26.1})
     grid.dae['params_dict'].update({f'Tau_h2o_{name}':78.3})
     grid.dae['params_dict'].update({f'Tau_o2_{name}':2.91})
-    grid.dae['params_dict'].update({f'N0_{name}':450})
+    grid.dae['params_dict'].update({f'N_s_{name}':450})
+    grid.dae['params_dict'].update({f'N_p_{name}':10})
     grid.dae['params_dict'].update({f'E0_{name}':1.18})
     grid.dae['params_dict'].update({f'R_ohm_{name}':3.2813e-004})
 

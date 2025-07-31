@@ -8,7 +8,9 @@
 
 import numpy as np
 import json
-
+import hjson
+import requests
+import os 
 
 def save(json_file,dictionary, sort_keys=False, indent=4):
     '''
@@ -34,14 +36,14 @@ def save(json_file,dictionary, sort_keys=False, indent=4):
     
 
     
-def load(json_file):
+def load(data_input):
     '''
-    Read json file and convert it to dictionary.
+    Read json or hjson file and convert it to dictionary.
 
     Parameters
     ----------
-    json_file : path
-        Path of the json data file.
+    data_input : path
+        Path of the json or hjson data file.
 
     Returns
     -------
@@ -50,12 +52,21 @@ def load(json_file):
 
     '''
     
-    with open(json_file, 'r') as fobj:
-        json_data = fobj.read()
-        
-    json_data = json_data.replace("'",'"')
-    data_dictionary = json.loads(json_data)        
-    
+    if type(data_input) == str:
+        if 'http' in data_input:
+            url = data_input
+            resp = requests.get(url)
+            data_dictionary = hjson.loads(resp.text)
+        else:
+            if os.path.splitext(data_input)[1] == '.json':
+                with open(data_input,'r') as fobj:
+                    data_dictionary = json.loads(fobj.read().replace("'",'"'))
+            if os.path.splitext(data_input)[1] == '.hjson':
+                with open(data_input,'r') as fobj:
+                    data_dictionary = hjson.loads(fobj.read().replace("'",'"'))
+    elif type(data_input) == dict:
+        data_dictionary = data_input 
+
     return data_dictionary
 
 

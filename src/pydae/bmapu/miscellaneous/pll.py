@@ -68,6 +68,7 @@ def add_pll(grid,data):
     grid.dae['h_dict'].update({f"omega_pll_{name}":omega_pll})
     grid.dae['h_dict'].update({f"omega_pll_f_{name}":omega_pll_f})
     grid.dae['h_dict'].update({f"rocof_pll_{name}":rocof_pll})
+    grid.dae['h_dict'].update({f"frequency_{name}":50*omega_pll_f})
 
 def test():
     import numpy as np

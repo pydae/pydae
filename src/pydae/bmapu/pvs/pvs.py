@@ -29,12 +29,15 @@ def add_pvs(grid):
         else:
             name = bus_name
             
+
+
         for gen_id in range(100):
             if name not in grid.generators_id_list:
                 grid.generators_id_list += [name]
                 break
             else:
                 name = name + f'_{gen_id}'
+
                 
         item['name'] = name
 
