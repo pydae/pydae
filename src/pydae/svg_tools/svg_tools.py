@@ -534,8 +534,15 @@ class animatesvg():
     def set_size(self,width,height):
         self.root.attrib['width']  = f'{width}px'
         self.root.attrib['height'] = f'{height}px'
-        
-    def rotate(self,times,angle,x,y):
+
+    def rotate_group(self,group_id):
+
+        for item in self.g_list:
+            if item.attrib['id'] == self.group_id:
+                pass
+
+
+    def rotate_animation(self,times,angle,x,y):
         if type(x) == float:
             x = times*0+x
         if type(y) == float:
@@ -572,7 +579,7 @@ class animatesvg():
                 anim.set('keyTimes',f"{keyTimes}")  
                 item.insert(0, anim)
                 
-    def translate(self,times,x,y):  
+    def translate_animation(self,times,x,y):  
         t_end = times[-1]
         N_t = len(times)   
         keyTimes = ""
@@ -604,7 +611,7 @@ class animatesvg():
                 anim.set('keyTimes',f"{keyTimes}")  
                 item.insert(0, anim)
 
-    def scale(self,times,x_0,y_0,sx,sy):  
+    def scale_animation(self,times,x_0,y_0,sx,sy):  
         t_end = times[-1]
         N_t = len(times)   
         keyTimes = ""

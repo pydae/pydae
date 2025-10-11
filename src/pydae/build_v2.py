@@ -30,7 +30,7 @@ from cffi import FFI
 
 class builder():   
 
-    def __init__(self,sys,verbose=False):
+    def __init__(self,sys,verbose=False,API=False):
 
         logging.basicConfig(format='%(asctime)s %(message)s', level=logging.INFO)
 
@@ -40,11 +40,12 @@ class builder():
         self.name = self.sys['name']
         self.save_sources = False
         self.string_u2z = ''
-        self.u2z = '\#'
+        self.u2z = r'#'
         self.inirun = True
         self.sparse = False
         self.mkl = False
         self.platform = 'Windows'
+        self.API = API
 
 
         if not os.path.exists('build'):
@@ -118,7 +119,8 @@ class builder():
         x = sym.Matrix(sys['x_list']).T
         y_ini = sym.Matrix(sys['y_ini_list']).T
         y_run = sym.Matrix(sys['y_run_list']).T
-        u_ini = sym.Matrix(list(sys['u_ini_dict'].keys()), real=True)
+        u_ini_list = [sym.Symbol(item,real=True) for item in list(sys['u_ini_dict'].keys())]
+        u_ini = sym.Matrix(u_ini_list).T 
         u_run_list = [sym.Symbol(item,real=True) for item in list(sys['u_run_dict'].keys())]
         u_run = sym.Matrix(u_run_list).T 
         h =  sym.Matrix(list(sys['h_dict'].values())).T   
@@ -802,7 +804,10 @@ class builder():
         if self.mkl:
             class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2_mkl.py").decode().replace('\r\n','\n') 
         else:
-            class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2.py").decode().replace('\r\n','\n') 
+            if self.API:
+                class_template = pkgutil.get_data(__name__, "templates/class_dae_template_api.py").decode().replace('\r\n','\n') 
+            else:
+                class_template = pkgutil.get_data(__name__, "templates/class_dae_template_v2.py").decode().replace('\r\n','\n') 
             if self.uz_jacs:
                 uz_jacs_template = pkgutil.get_data(__name__, "templates/uz_jacs_v2.py").decode().replace('\r\n','\n') 
                 class_template += uz_jacs_template
@@ -1341,9 +1346,11 @@ def sym2xyup_mp(sys,full_list,inirun):
     logging.debug('end full_list update with xyup and tipo')
 
 
-def build_numba(sys_dict,verbose=False):
+def build_numba(sys_dict,verbose=False, API=False):
 
-    b = builder(sys_dict,verbose=verbose)
+    from pydae.build_v2 import builder 
+
+    b = builder(sys_dict,verbose=True,API=API)
     b.sparse = False
     b.mkl = False
     b.uz_jacs = False
@@ -1353,6 +1360,8 @@ def build_numba(sys_dict,verbose=False):
     b.cwrite()
     b.template()
     b.compile()
+
+
 
 def build_mkl(sys_dict,verbose=False,platform='Windows'):
     '''
@@ -1376,20 +1385,22 @@ def build_mkl(sys_dict,verbose=False,platform='Windows'):
 def test_numba():
 
     from pydae.models.pendulum.dae import dae
-    from pydae.build_v2 import builder
+    from pydae.build_v2 import builder,build_numba
 
     sys_dict = dae('temp') 
 
-    b = builder(sys_dict,verbose=True)
-    b.sparse = False
-    b.mkl = False
-    b.uz_jacs = False
-    b.dict2system()
-    b.functions()
-    b.jacobians()
-    b.cwrite()
-    b.template()
-    b.compile()
+    build_numba(sys_dict,verbose=True)
+
+    # b = builder(sys_dict,verbose=True)
+    # b.sparse = False
+    # b.mkl = False
+    # b.uz_jacs = False
+    # b.dict2system()
+    # b.functions()
+    # b.jacobians()
+    # b.cwrite()
+    # b.template()
+    # b.compile()
 
     import temp 
 
@@ -1471,4 +1482,4 @@ def test_mkl():
 
 if __name__ == "__main__":
 
-    test_mkl()
+    test_numba()

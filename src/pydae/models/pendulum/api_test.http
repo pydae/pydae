@@ -1,0 +1,106 @@
+### GET measures. Devuelve todas las medidas del POI y de los inversores
+GET http://127.100.0.1:8000/measurements
+Content-Type: application/json
+
+### GET measures. Devuelve todas las medidas del POI y de los inversores
+GET http://10.20.0.2:5500/ppc_measurements
+Content-Type: application/json
+
+### GET measures. Devuelve todas las medidas del POI y de los inversores
+GET http://10.20.0.4:5500/ppc_measurements
+Content-Type: application/json
+
+
+### POST setpoints. POST request to change PPC references. 
+POST http://127.0.0.1:5500/ppc_setpoints
+Content-Type: application/json
+
+{
+    "p_ol_ref":0.0,
+    "q_ol_ref":0.0,
+    "p_s_ref_BESS":0.0
+}
+
+
+
+### POST false measurement liner transformations parameters . 
+POST http://127.100.0.1:8000/meas_pert
+Content-Type: application/json
+
+{
+    "U_SS1":{"m":0.5,"b":0}
+}
+
+
+
+### POST setpoints. POST request to change active and reactive power references at POI. 
+POST http://10.20.0.2:8000/setpoints
+Content-Type: application/json
+
+{
+    "p_ol_ref":0.5,
+    "q_ol_ref":0.5,
+    "p_s_ref_BESS":0.0
+}
+
+
+### POST setpoints. POST request to change active and reactive power references at POI. 
+POST http://10.20.0.2:8000/setpoints
+Content-Type: application/json
+
+{
+    "p_s_ppc_LV0101":1.5e6,
+    "p_s_ppc_LV0102":01.5e6,
+    "p_s_ref_BESS":0.0
+}
+
+
+
+
+### POST setpoints. POST request to change PPC references. 
+POST http://127.0.0.1:5500/ppc_setpoints
+Content-Type: application/json
+
+{
+    "record":true
+}
+
+
+
+### POST setpoints. POST request to change PPC references. 
+POST http://127.0.0.1:5500/ppc_setpoints
+Content-Type: application/json
+
+{
+    "P_POI_ref":0.5,
+    "Q_POI_ref":-0.9
+}
+
+### POST setpoints. POST request to change PPC references. 
+POST http://127.0.0.1:5500/ppc_setpoints
+Content-Type: application/json
+
+{
+    "record":false
+}
+
+
+### POST setpoints. POST request to change PPC references. 
+POST http://127.0.0.1:5500/ppc_setpoints
+Content-Type: application/json
+
+{
+    "stop_ppc":true
+}
+
+
+### POST setpoints. POST request to change PPC references. 
+POST http://127.0.0.1:5500/ppc_params
+Content-Type: application/json
+
+{
+    "K_pp":0.5,
+    "K_pi":5.0,
+    "K_qp":0.5,
+    "K_qi":5.0
+}

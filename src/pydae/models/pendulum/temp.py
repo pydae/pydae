@@ -8,6 +8,10 @@ import cffi
 import numba.core.typing.cffi_utils as cffi_support
 from io import BytesIO
 import pkgutil
+from fastapi import FastAPI,Response
+import time
+from threading import Thread
+import uvicorn
 
 dae_file_mode = 'local'
 
@@ -78,13 +82,14 @@ exp = np.exp
 
 class model: 
 
-    def __init__(self): 
+    def __init__(self, ip='localhost', port=8000): 
         
         self.matrices_folder = 'build'
         self.sparse = False
         self.dae_file_mode = 'local'
         self.t_end = 10.000000 
         self.Dt = 0.0010000 
+        self.Dt_mid = 0.05
         self.decimation = 10.000000 
         self.itol = 1e-6 
         self.Dt_max = 0.001000 
@@ -93,7 +98,7 @@ class model:
         self.imax = 100 
         self.N_x = 4
         self.N_y = 2 
-        self.N_z = 4 
+        self.N_z = 5 
         self.N_store = 100000 
         self.params_list = ['L', 'G', 'M', 'K_d'] 
         self.params_values_list  = [5.21, 9.81, 10.0, 0.001] 
@@ -101,7 +106,7 @@ class model:
         self.inputs_ini_values_list  = [np.float64(0.08726646259971647), 0.0] 
         self.inputs_run_list = ['f_x', 'u_dummy'] 
         self.inputs_run_values_list = [0, 0.0] 
-        self.outputs_list = ['E_p', 'E_k', 'f_x', 'lam'] 
+        self.outputs_list = ['E_p', 'E_k', 'theta', 'f_x', 'lam'] 
         self.x_list = ['p_x', 'p_y', 'v_x', 'v_y'] 
         self.y_run_list = ['lam', 'theta'] 
         self.xy_list = self.x_list + self.y_run_list 
@@ -232,11 +237,38 @@ class model:
         
         self.ss_solver = 2
         self.lsolver = 2
- 
+  
+        self.http_ip = ip
+        self.http_port = port
+                
+    def start_api(self):
+         
+        app = FastAPI()      
+          
+        @app.get("/measurements")
+        async def get_measurements():
+            measurements_dict = {}
+            for key, value in zip(self.outputs_list, self.z):
+                if key in self.outputs_list:
+                    idx = self.outputs_list.index(key)
+                    measurements_dict.update({key:self.z[idx]})
+            return measurements_dict
+
+        @app.post("/setpoints")
+        async def set_setpoints(received: dict):
+            for key,value in received.items():
+                if key in self.inputs_run_list:
+                    idx = self.inputs_run_list.index(key)
+                    self.u_run[idx] = value
+            return Response(content = f'OK:{received.items()}', media_type='text/plain')
         
+        @app.post("/meas_pert")
+        async def set_meas_pert(received: dict):
+            self.measurements_perturbations.update(received)
+            return Response(content = f'OK:{received.items()}', media_type='text/plain')
 
-
-
+        print(f"Starting http server at: {self.http_ip}:{self.http_port}")
+        uvicorn.run(app, host=self.http_ip, port=self.http_port, log_level='critical')
         
     def update(self):
 
@@ -845,6 +877,30 @@ class model:
         self.Hx = sp_Hx
         self.Hy = sp_Hy
         self.Hu = sp_Hu
+
+    def step_loop(self):
+
+        t_0 =  time.perf_counter()
+
+        while True:
+
+            t = time.perf_counter() - t_0
+
+            self.t_mid = t + self.Dt_mid
+            self.step(self.t_mid,{})
+            
+            while True:
+                t = time.perf_counter() - t_0
+                if  t >= self.t_mid: break
+                time.sleep(10e-3)
+
+    def run_api(self, ip='localhost', port=8000, xy_0=0.0):
+        self.ip = ip
+        self.port = port
+        self.xy_0 = xy_0
+        self.step_loop_thread = Thread(target = self.step_loop)
+        self.step_loop_thread.start()
+        self.start_api()
 
 
 @numba.njit() 
@@ -1796,7 +1852,10 @@ def c_h_eval(z,x,y,u,p,Dt):
 
 
 
-
+if __name__ == '__main__':
+    api = model()
+    api.ini({},xy_0='xy_0.json')
+    api.run_api()
 
 def sp_jac_ini_vectors():
 

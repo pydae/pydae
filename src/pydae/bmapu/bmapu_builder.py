@@ -550,10 +550,10 @@ class bmapu:
             self.sys_dict.update({'testing':True})
 
 
-    def compile(self):
+    def compile(self, API=False):
 
         bldr = db.builder(self.sys_dict,verbose=self.verbose);
-        bldr.build()    
+        bldr.build(API=API)    
 
     def compile_mkl(self, name):
 
@@ -568,11 +568,11 @@ class bmapu:
         b.template()
         b.compile_mkl()  
 
-    def build(self, name =''):
+    def build(self, name ='', API=False):
         if name == '':
             print('Error: name is not provided.')
         self.construct(name)    
-        self.compile()  
+        self.compile(API=False)  
 
     def build_mkl_win(self, name =''):
         if name == '':
