@@ -1083,7 +1083,7 @@ class builder():
         ffi.compile()
         print(f'Compilation time: {time.time()-t_0:0.2f} s')
         
-    def build(self):
+    def build(self, API=False):
 
         sys = self.sys
         name = self.name

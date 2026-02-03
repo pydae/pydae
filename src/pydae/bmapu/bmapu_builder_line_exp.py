@@ -10,6 +10,7 @@ import sympy as sym
 import json
 import os
 import hjson
+from pydae.bmapu.lines.lines import add_lines
 from pydae.bmapu.syns.syns import add_syns
 from pydae.bmapu.vscs.vscs import add_vscs
 from pydae.bmapu.vsgs.vsgs import add_vsgs
@@ -20,7 +21,6 @@ from pydae.bmapu.sources.sources import add_sources
 from pydae.bmapu.miscellaneous.miscellaneous import add_miscellaneous
 from pydae.bmapu.pods.pods import add_pods
 from pydae.bmapu.miscellaneous.banks import add_banks
-from pydae.bmapu.lines.lines import add_lines
 
 import pydae.build_cffi as db
 from pydae.build_v2 import builder
@@ -91,8 +91,12 @@ class bmapu:
         self.transformers = data['transformers']
         self.loads = data['loads']
 
-   
-        
+        self.y_grid = []
+        self.g_grid = []
+        self.x_grid = []
+        self.f_grid = []
+    
+        self.params_grid = {'S_base':self.system['S_base']}
         self.S_base = sym.Symbol("S_base", real=True) 
         self.N_bus = len(self.buses)
         self.N_branch = 3*len(self.lines) + len(self.shunts) + 2*len(self.transformers)
@@ -100,8 +104,6 @@ class bmapu:
         self.dae = {'f':[],'g':[],'x':[],'y_ini':[],'y_run':[],
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
-        
-        self.dae['params_dict'].update({'S_base':self.system['S_base']})
 
         self.uz_jacs = True     
         self.verbose = False   
@@ -111,97 +113,22 @@ class bmapu:
         
         N_branch = self.N_branch
         N_bus = self.N_bus
-        sys = self.system
+        self.sys = self.system
         
         S_base = sym.Symbol('S_base', real=True)
+        self.S_base = S_base
         
-       
+        self.xy_0_dict_grid = {}
+        self.u_grid = {}
+        self.h_grid = {}
+        
         self.A = sym.zeros(N_branch,N_bus)
         self.G_primitive = sym.zeros(N_branch,N_branch)
         self.B_primitive = sym.zeros(N_branch,N_branch)
         self.buses_list = [bus['name'] for bus in self.buses]
         self.it = 0
 
-        add_lines(self) 
-        # for line in self.lines:
-    
-        #     bus_j = line['bus_j']
-        #     bus_k = line['bus_k']
-    
-        #     idx_j = self.buses_list.index(bus_j)
-        #     idx_k = self.buses_list.index(bus_k)    
-    
-        #     A[self.self.it,idx_j] = 1
-        #     A[self.self.it,idx_k] =-1   
-        #     A[self.self.it+1,idx_j] = 1
-        #     A[self.self.it+2,idx_k] = 1   
-            
-        #     line_name = f"{bus_j}_{bus_k}"
-        #     g_jk = sym.Symbol(f"g_{line_name}", real=True) 
-        #     b_jk = sym.Symbol(f"b_{line_name}", real=True) 
-        #     bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
-        #     G_primitive[self.it,self.it] = g_jk
-        #     B_primitive[self.it,self.it] = b_jk
-        #     B_primitive[self.it+1,self.it+1] = bs_jk/2
-        #     B_primitive[self.it+2,self.it+2] = bs_jk/2
-
-        #     if not 'thermal' in line:
-        #         line.update({'thermal':False})      
-
-        #     if 'X_pu' in line:
-        #         if 'S_mva' in line: S_line = 1e6*line['S_mva']
-        #         R = line['R_pu']*sys['S_base']/S_line  # in pu of the system base
-        #         X = line['X_pu']*sys['S_base']/S_line  # in pu of the system base
-        #         G =  R/(R**2+X**2)
-        #         B = -X/(R**2+X**2)
-        #         self.dae['params_dict'].update({f"g_{line_name}":G})
-        #         self.dae['params_dict'].update({f'b_{line_name}':B})
-    
-        #     if 'X' in line:
-        #         bus_idx = self.buses_list.index(line['bus_j'])
-        #         U_base = self.buses[bus_idx]['U_kV']*1000
-        #         Z_base = U_base**2/sys['S_base']
-        #         R = line['R']/Z_base  # in pu of the system base
-        #         X = line['X']/Z_base  # in pu of the system base
-        #         G =  R/(R**2+X**2)
-        #         B = -X/(R**2+X**2)
-        #         self.dae['params_dict'].update({f"g_{line_name}":G})
-        #         self.dae['params_dict'].update({f'b_{line_name}':B})
-    
-        #     if 'X_km' in line:
-        #         bus_idx = self.buses_list.index(line['bus_j'])
-        #         U_base = self.buses[bus_idx]['U_kV']*1000
-        #         Z_base = U_base**2/sys['S_base']
-        #         if line['thermal']:
-        #             R = sym.Symbol(f"R_{line_name}", real=True)
-        #             R_N = line['R_km']*line['km']/Z_base  # in pu of the system base
-        #             self.dae['u_ini_dict'].update({str(R):R_N})
-        #         else:    
-        #             R = line['R_km']*line['km']/Z_base  # in pu of the system base
-
-        #         X = line['X_km']*line['km']/Z_base  # in pu of the system base
-        #         G =  R/(R**2+X**2)
-        #         B = -X/(R**2+X**2)
-        #         self.dae['params_dict'].update({f"g_{line_name}":G})
-        #         self.dae['params_dict'].update({f'b_{line_name}':B})        
-    
-        #     self.dae['params_dict'].update({f'bs_{line_name}':0.0})
-        #     if 'Bs_pu' in line:
-        #         if 'S_mva' in line: S_line = 1e6*line['S_mva']
-        #         Bs = line['Bs_pu']*S_line/sys['S_base']  # in pu of the system base
-        #         bs = Bs
-        #         self.dae['params_dict'][f'bs_{line_name}'] = bs
-     
-        #     if 'Bs_km' in line:
-        #         bus_idx = self.buses_list.index(line['bus_j'])
-        #         U_base = self.buses[bus_idx]['U_kV']*1000
-        #         Z_base = U_base**2/sys['S_base']
-        #         Y_base = 1.0/Z_base
-        #         Bs = line['Bs_km']*line['km']/Y_base # in pu of the system base
-        #         bs = Bs 
-        #         self.dae['params_dict'][f'bs_{line_name}'] = bs
-                
-        #     self.it += 3
+        add_lines(self)
 
         for trafo in self.transformers:
     
@@ -211,8 +138,8 @@ class bmapu:
             idx_j = self.buses_list.index(bus_j)
             idx_k = self.buses_list.index(bus_k)    
     
-            self.A[self.it,idx_j] = 1
-            self.A[self.it+1,idx_k] = 1  
+            self.A[it,idx_j] = 1
+            self.A[it+1,idx_k] = 1  
             
             trafo_name = f"{bus_j}_{bus_k}"
             g_jk = sym.Symbol(f"g_cc_{trafo_name}", real=True) 
@@ -239,13 +166,13 @@ class bmapu:
                 X = trafo['X_pu']*sys['S_base']/S_trafo  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
-                self.dae['params_dict'].update({f"g_cc_{trafo_name}":G})
-                self.dae['params_dict'].update({f'b_cc_{trafo_name}':B})
+                self.params_grid.update({f"g_cc_{trafo_name}":G})
+                self.params_grid.update({f'b_cc_{trafo_name}':B})
                 tap_m = 1.0
                 if 'tap_m' in trafo:
                     tap_m = trafo['tap_m']
-                self.dae['params_dict'].update({f'tap_{trafo_name}':tap_m})
-                self.dae['params_dict'].update({f'ang_{trafo_name}':0.0})
+                self.params_grid.update({f'tap_{trafo_name}':tap_m})
+                self.params_grid.update({f'ang_{trafo_name}':0.0})
 
     
             if 'X' in trafo:
@@ -256,10 +183,10 @@ class bmapu:
                 X = trafo['X']/Z_base  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
-                self.dae['params_dict'].update({f"g_cc_{trafo_name}":G})
-                self.dae['params_dict'].update({f'b_cc_{trafo_name}':B})
-                self.dae['params_dict'].update({f'tap_{trafo_name}':1.0})
-                self.dae['params_dict'].update({f'ang_{trafo_name}':0.0})
+                self.params_grid.update({f"g_cc_{trafo_name}":G})
+                self.params_grid.update({f'b_cc_{trafo_name}':B})
+                self.params_grid.update({f'tap_{trafo_name}':1.0})
+                self.params_grid.update({f'ang_{trafo_name}':0.0})
      
             self.it += 2
 
@@ -280,22 +207,22 @@ class bmapu:
             
             if 'X_pu' in shunt:
                 if 'S_mva' in shunt: S_line = 1e6*shunt['S_mva']
-                R = shunt['R_pu']*sys['S_base']/S_line  # in pu of the system base
-                X = shunt['X_pu']*sys['S_base']/S_line  # in pu of the system base
+                R = shunt['R_pu']*self.sys['S_base']/S_line  # in pu of the system base
+                X = shunt['X_pu']*self.sys['S_base']/S_line  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
-                self.dae['params_dict'].update({f"g_shunt_{shunt_name}":G})
-                self.dae['params_dict'].update({f'b_shunt_{shunt_name}':B})
+                self.params_grid.update({f"g_shunt_{shunt_name}":G})
+                self.params_grid.update({f'b_shunt_{shunt_name}':B})
     
             if 'X' in shunt:
                 U_base = self.buses[idx_j]['U_kV']*1000
-                Z_base = U_base**2/sys['S_base']
+                Z_base = U_base**2/self.sys['S_base']
                 R = shunt['R']/Z_base  # in pu of the system base
                 X = shunt['X']/Z_base  # in pu of the system base
                 G =  R/(R**2+X**2)
                 B = -X/(R**2+X**2)
-                self.dae['params_dict'].update({f"g_shunt_{shunt_name}":G})
-                self.dae['params_dict'].update({f'b_shunt_{shunt_name}':B})
+                self.params_grid.update({f"g_shunt_{shunt_name}":G})
+                self.params_grid.update({f'b_shunt_{shunt_name}':B})
                 
             self.it += 1    
     
@@ -321,36 +248,28 @@ class bmapu:
                 theta_k = sym.Symbol(f"theta_{bus_k_name}", real=True) 
                 g[2*j]   += V_j*V_k*(G[j,k]*cos(theta_j - theta_k) + B[j,k]*sin(theta_j - theta_k)) 
                 g[2*j+1] += V_j*V_k*(G[j,k]*sin(theta_j - theta_k) - B[j,k]*cos(theta_j - theta_k))        
-                self.dae['h_dict'].update({f"V_{bus_j_name}":V_j})
+                self.h_grid.update({f"V_{bus_j_name}":V_j})
             bus = self.buses[j]
             bus_name = bus['name']
             if 'type' in bus:
                 if bus['type'] == 'slack':
-                    self.dae['y_ini'] += [P_j]
-                    self.dae['y_ini'] += [Q_j]
-                    self.dae['y_run'] += [P_j]
-                    self.dae['y_run'] += [Q_j]
-                    self.dae['u_ini_dict'].update({f"V_{bus_name}":1.0})
-                    self.dae['u_ini_dict'].update({f"theta_{bus_name}":0.0})  
-                    self.dae['u_run_dict'].update({f"V_{bus_name}":1.0})
-                    self.dae['u_run_dict'].update({f"theta_{bus_name}":0.0})  
+                    self.y_grid += [P_j]
+                    self.y_grid += [Q_j]
+                    self.u_grid.update({f"V_{bus_name}":1.0})
+                    self.u_grid.update({f"theta_{bus_name}":0.0})  
             else:
-                self.dae['y_ini'] += [V_j]
-                self.dae['y_ini'] += [theta_j]     
-                self.dae['y_run'] += [V_j]
-                self.dae['y_run'] += [theta_j]       
-                self.dae['u_ini_dict'].update({f"P_{bus_name}":bus['P_W']})
-                self.dae['u_ini_dict'].update({f"Q_{bus_name}":bus['Q_var']})    
-                self.dae['u_run_dict'].update({f"P_{bus_name}":bus['P_W']})
-                self.dae['u_run_dict'].update({f"Q_{bus_name}":bus['Q_var']})  
-                self.dae['xy_0_dict'].update({str(V_j):1.0,str(theta_j):0.0})
+                self.y_grid += [V_j]
+                self.y_grid += [theta_j]        
+                self.u_grid.update({f"P_{bus_name}":bus['P_W']})
+                self.u_grid.update({f"Q_{bus_name}":bus['Q_var']})    
+                self.xy_0_dict_grid.update({str(V_j):1.0,str(theta_j):0.0})
                 
-            self.dae['params_dict'].update({f'U_{bus_name}_n':bus['U_kV']*1000})
-        self.dae['g'] += list(g)     
+            self.params_grid.update({f'U_{bus_name}_n':bus['U_kV']*1000})
+        self.g_grid = list(g)     
     
         if False:
             v_sym_list = []
-            for bus in self.buses_list:
+            for bus in buses_list:
                 V_m = sym.Symbol(f'V_{bus}',real=True)
                 V_a = sym.Symbol(f'theta_{bus}',real=True)
                 v_sym_list += [V_m*sym.exp(sym.I*V_a)]
@@ -359,109 +278,38 @@ class bmapu:
     
             I_lines = (G_primitive+1j*B_primitive) * A * sym.Matrix(v_sym_list)
     
-            self.it = 0
+            it = 0
             for line in self.lines:
                 I_jk_r = sym.Symbol(f"I_{line['bus_j']}_{line['bus_k']}_r", real=True)
                 I_jk_i = sym.Symbol(f"I_{line['bus_j']}_{line['bus_k']}_i", real=True)
-                self.dae['g'] += [-I_jk_r + sym.re(I_lines[self.it])]
-                self.dae['g'] += [-I_jk_i + sym.im(I_lines[self.it])]
-                self.dae['y_ini'] += [I_jk_r]
-                self.dae['y_ini'] += [I_jk_i]
-                self.dae['y_run'] += [I_jk_r]
-                self.dae['y_run'] += [I_jk_i]
-                self.it += 1
+                g_grid += [-I_jk_r + sym.re(I_lines[it])]
+                g_grid += [-I_jk_i + sym.im(I_lines[it])]
+                y_grid += [I_jk_r]
+                y_grid += [I_jk_i]
+                it += 1
         
-        ### Lines monitoring
-        for line in self.lines:
     
-            bus_j = line['bus_j']
-            bus_k = line['bus_k']
-
-            line_name = f"{bus_j}_{bus_k}"
-    
-            idx_j = self.buses_list.index(bus_j)
-            idx_k = self.buses_list.index(bus_k)  
-
-            V_j = sym.Symbol(f"V_{bus_j}", real=True) 
-            V_k = sym.Symbol(f"V_{bus_k}", real=True) 
-            theta_j = sym.Symbol(f"theta_{bus_j}", real=True) 
-            theta_k = sym.Symbol(f"theta_{bus_k}", real=True)
-
-            b_ij_p = 0.0
-            if f'bs_{line_name}' in self.dae['params_dict']:
-                b_ij_p = self.dae['params_dict'][f'bs_{line_name}']
-
-            G_jk = G[idx_j,idx_k] 
-            B_jk = B[idx_j,idx_k] 
-            theta_jk = theta_j - theta_k
-            P_line_to   = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
-            Q_line_to   = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
-            P_line_from = V_j*V_k*(G_jk*sym.cos(-theta_jk) + B_jk*sym.sin(-theta_jk)) - V_k**2*(G_jk) 
-            Q_line_from = V_j*V_k*(G_jk*sym.sin(-theta_jk) - B_jk*sym.cos(-theta_jk)) + V_k**2*(B_jk) 
-
-            if 'monitor' in line or 'dtr' in line:
-                if line['monitor'] or line['dtr']:
-                    # self.dae['h_dict'].update({f"p_line_{bus_j}_{bus_k}":P_line_to})
-                    # self.dae['h_dict'].update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
-                    # self.dae['h_dict'].update({f"p_line_{bus_k}_{bus_j}":P_line_from})
-                    # self.dae['h_dict'].update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
-                    p_line_to_pu,q_line_to_pu = sym.symbols(f"p_line_pu_{bus_j}_{bus_k},q_line_pu_{bus_j}_{bus_k}", real=True)
-                    p_line_from_pu,q_line_from_pu = sym.symbols(f"p_line_pu_{bus_k}_{bus_j},q_line_pu_{bus_k}_{bus_j}", real=True)
-
-                    self.dae['g'] += [p_line_to_pu - P_line_to]
-                    self.dae['g'] += [q_line_to_pu - Q_line_to]
-                    self.dae['g'] += [p_line_from_pu - P_line_from]
-                    self.dae['g'] += [q_line_from_pu - Q_line_from]
-
-                    self.dae['y_ini'] += [p_line_to_pu,q_line_to_pu,p_line_from_pu,q_line_from_pu]
-                    self.dae['y_run'] += [p_line_to_pu,q_line_to_pu,p_line_from_pu,q_line_from_pu]
-                    
-                    U_base = self.buses[idx_j]['U_kV']*1000
-                    I_base = S_base/(np.sqrt(3)*U_base)
-
-                    self.dae['h_dict'].update({f'p_line_{bus_j}_{bus_k}':p_line_to_pu*S_base})
-                    self.dae['h_dict'].update({f'q_line_{bus_j}_{bus_k}':q_line_to_pu*S_base})
-                    self.dae['h_dict'].update({f'p_line_{bus_k}_{bus_j}':p_line_from_pu*S_base})
-                    self.dae['h_dict'].update({f'q_line_{bus_k}_{bus_j}':q_line_from_pu*S_base})
-
-                    I_j_k,I_k_j = sym.symbols(f"I_{bus_j}_{bus_k},I_{bus_k}_{bus_j}", real=True)
-
-                    I_j_k_eq = (  p_line_to_pu**2 +   q_line_to_pu**2)**0.5/V_j*I_base
-                    I_k_j_eq = (p_line_from_pu**2 + q_line_from_pu**2)**0.5/V_k*I_base
-
-                    self.dae['g'] += [I_j_k_eq - I_j_k]
-
-                    self.dae['y_ini'] += [I_j_k]
-                    self.dae['y_run'] += [I_j_k]
-
-
-                    self.dae['g'] += [I_k_j_eq - I_k_j]
-
-                    self.dae['y_ini'] += [I_k_j]
-                    self.dae['y_run'] += [I_k_j]
-
-                    self.dae['h_dict'].update({f'I_line_{bus_j}_{bus_k}':I_j_k})
-                    self.dae['h_dict'].update({f'I_line_{bus_k}_{bus_j}':I_k_j})
 
         for bus in self.buses:
             if 'monitor' in bus:
                 if bus['monitor']:
                     U_base = bus['U_kV']*1000
                     V = sym.Symbol(f"V_{bus['name']}", real=True) 
-                    self.dae['h_dict'].update({f"U_{bus['name']}":V*U_base})
+                    self.h_grid.update({f"U_{bus['name']}":V*U_base})
  
+                
 
-
-        # self.dae['f'] += []
-        #self.dae['g'] += g_grid
-        # self.dae['x'] += []
-        # self.dae['y_ini'] += self.dae['y_ini']
-        # self.dae['y_run'] += self.dae['y_ini']
-        # self.dae['u_ini_dict'].update(self.dae['u_ini_dict'])
-        # self.dae['u_run_dict'].update(self.dae['u_ini_dict'])
-        # self.dae['h_dict'].update(self.dae['h_dict'])
-        # self.dae['params_dict'].update(self.dae['params_dict'])
-
+        self.dae['f'] += []
+        self.dae['g'] += self.g_grid
+        self.dae['x'] += []
+        self.dae['y_ini'] += self.y_grid
+        self.dae['y_run'] += self.y_grid
+        self.dae['u_ini_dict'].update(self.u_grid)
+        self.dae['u_run_dict'].update(self.u_grid)
+        self.dae['h_dict'].update(self.h_grid)
+        self.dae['params_dict'].update(self.params_grid)
+        self.dae['xy_0_dict'].update(self.xy_0_dict_grid)
+        
         self.A_incidence = self.A
         self.G_primitive = self.G_primitive
         self.B_primitive = self.B_primitive
@@ -526,6 +374,11 @@ class bmapu:
         self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
         self.dae['y_ini'] += [ omega_coi]
         self.dae['y_run'] += [ omega_coi]
+
+
+        self.dae['g'] += self.g_line_monitors
+        self.dae['y_ini'] += self.y_line_monitors
+        self.dae['y_run'] += self.y_line_monitors
 
         # secondary frequency control
         xi_freq = sym.Symbol("xi_freq", real=True) 
@@ -661,18 +514,24 @@ class bmapu:
 
 if __name__ == "__main__":
 
+    from pydae.bmapu import bmapu_builder
+    from pydae.build_v2 import build_mkl,build_numba
+
+
     data = {
-        "sys":{"name":"k12p6","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
+        "system":{"name":"temp","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
         "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
                  {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
-        "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.15,"R_pu":0.0, "S_mva":900.0}]
+        "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.15,"R_pu":0.0, "S_mva":900.0}],
+        "sources":[{"bus":"1","type":"vsource","V_mag_pu":1.0,"V_ang_rad":0.0,"K_delta":0.1}]
         }
 
-    grid = bmapu(data)
+    grid = bmapu_builder.bmapu(data)
+    grid.uz_jacs = False
+    grid.verbose = True
+    grid.construct(f'temp')
+    build_numba(grid.sys_dict)
 
-    from syns.syns import add_syns
-    add_syns(grid,'hola')
-    
     # data = {
     #     "sys":{"name":"k12p6","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
     #     "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
