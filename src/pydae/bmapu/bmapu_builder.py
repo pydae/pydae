@@ -391,13 +391,7 @@ class bmapu:
             if f'bs_{line_name}' in self.dae['params_dict']:
                 b_ij_p = self.dae['params_dict'][f'bs_{line_name}']
 
-            G_jk = G[idx_j,idx_k] 
-            B_jk = B[idx_j,idx_k] 
-            theta_jk = theta_j - theta_k
-            P_line_to   = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
-            Q_line_to   = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
-            P_line_from = V_j*V_k*(G_jk*sym.cos(-theta_jk) + B_jk*sym.sin(-theta_jk)) - V_k**2*(G_jk) 
-            Q_line_from = V_j*V_k*(G_jk*sym.sin(-theta_jk) - B_jk*sym.cos(-theta_jk)) + V_k**2*(B_jk) 
+
 
             if 'monitor' in line or 'dtr' in line:
                 if line['monitor'] or line['dtr']:
@@ -405,6 +399,16 @@ class bmapu:
                     # self.dae['h_dict'].update({f"q_line_{bus_j}_{bus_k}":Q_line_to}) 
                     # self.dae['h_dict'].update({f"p_line_{bus_k}_{bus_j}":P_line_from})
                     # self.dae['h_dict'].update({f"q_line_{bus_k}_{bus_j}":Q_line_from}) 
+
+
+                    G_jk = G[idx_j,idx_k] 
+                    B_jk = B[idx_j,idx_k] 
+                    theta_jk = theta_j - theta_k
+                    P_line_to   = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
+                    Q_line_to   = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
+                    P_line_from = V_j*V_k*(G_jk*sym.cos(-theta_jk) + B_jk*sym.sin(-theta_jk)) - V_k**2*(G_jk) 
+                    Q_line_from = V_j*V_k*(G_jk*sym.sin(-theta_jk) - B_jk*sym.cos(-theta_jk)) + V_k**2*(B_jk) 
+
                     p_line_to_pu,q_line_to_pu = sym.symbols(f"p_line_pu_{bus_j}_{bus_k},q_line_pu_{bus_j}_{bus_k}", real=True)
                     p_line_from_pu,q_line_from_pu = sym.symbols(f"p_line_pu_{bus_k}_{bus_j},q_line_pu_{bus_k}_{bus_j}", real=True)
 
@@ -442,6 +446,11 @@ class bmapu:
 
                     self.dae['h_dict'].update({f'I_line_{bus_j}_{bus_k}':I_j_k})
                     self.dae['h_dict'].update({f'I_line_{bus_k}_{bus_j}':I_k_j})
+
+                    self.dae['xy_0_dict'].update({str(p_line_to_pu):0.1})  
+                    self.dae['xy_0_dict'].update({str(p_line_from_pu):-0.1})  
+                    self.dae['xy_0_dict'].update({str(I_j_k):0.1})  
+                    self.dae['xy_0_dict'].update({str(I_k_j):-0.1})  
 
         for bus in self.buses:
             if 'monitor' in bus:
@@ -662,7 +671,7 @@ class bmapu:
 if __name__ == "__main__":
 
     data = {
-        "sys":{"name":"k12p6","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
+        "system":{"name":"k12p6","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01},       
         "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
                  {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
         "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.15,"R_pu":0.0, "S_mva":900.0}]

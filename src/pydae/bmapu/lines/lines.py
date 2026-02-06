@@ -177,6 +177,8 @@ def test_line_pu_build():
     grid.uz_jacs = False
     grid.verbose = True
     grid.construct(f'temp')
+
+    
     build_numba(grid.sys_dict)
 
 def test_line_pu_ini():
@@ -214,6 +216,10 @@ def test_line_km_build():
     grid.uz_jacs = False
     grid.verbose = True
     grid.construct(f'temp')
+
+    print(grid.sys_dict)
+
+   
     build_numba(grid.sys_dict)
 
 def test_line_km_ini():
@@ -221,7 +227,7 @@ def test_line_km_ini():
     import temp
 
     model = temp.model()
-    model.ini({'P_2':5000e6,'Q_2':0, "K_xif":0.01},'xy_0.json')
+    model.ini({'P_2':5000e6,'Q_2':0, "K_p_agc":0.0,"K_i_agc":0.0, "K_xif":0.01},'xy_0.json')
     print(f"V_1 = {model.get_value('V_1'):2.2f}, V_2 = {model.get_value('V_2'):2.2f}")
 
     print("report_y:")

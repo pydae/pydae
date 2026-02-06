@@ -92,7 +92,7 @@ class model:
         self.solvern = 5 
         self.imax = 100 
         self.N_x = 2
-        self.N_y = 10 
+        self.N_y = 12 
         self.N_z = 9 
         self.N_store = 100000 
         self.params_list = ['S_base', 'g_1_2', 'b_1_2', 'bs_1_2', 'U_1_n', 'U_2_n', 'K_p_agc', 'K_i_agc', 'K_xif'] 
@@ -101,11 +101,11 @@ class model:
         self.inputs_ini_values_list  = [0.0, 0.0, 5000000000.0, 0.0, 1.0, 0.0] 
         self.inputs_run_list = ['P_1', 'Q_1', 'P_2', 'Q_2', 'v_ref_1', 'theta_ref_1'] 
         self.inputs_run_values_list = [0.0, 0.0, 5000000000.0, 0.0, 1.0, 0.0] 
-        self.outputs_list = ['p_line_1_2', 'q_line_1_2', 'p_line_2_1', 'q_line_2_1', 'I_line_1_2', 'I_line_2_1', 'V_1', 'V_2', 'V_dummy_1'] 
+        self.outputs_list = ['V_1', 'V_2', 'p_line_1_2', 'q_line_1_2', 'p_line_2_1', 'q_line_2_1', 'I_line_1_2', 'I_line_2_1', 'V_dummy_1'] 
         self.x_list = ['V_dummy_1', 'xi_freq'] 
-        self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'omega_coi', 'p_line_pu_1_2', 'q_line_pu_1_2', 'p_line_pu_2_1', 'q_line_pu_2_1', 'p_agc'] 
+        self.y_run_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'p_line_pu_1_2', 'q_line_pu_1_2', 'p_line_pu_2_1', 'q_line_pu_2_1', 'I_1_2', 'I_2_1', 'omega_coi', 'p_agc'] 
         self.xy_list = self.x_list + self.y_run_list 
-        self.y_ini_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'omega_coi', 'p_line_pu_1_2', 'q_line_pu_1_2', 'p_line_pu_2_1', 'q_line_pu_2_1', 'p_agc'] 
+        self.y_ini_list = ['V_1', 'theta_1', 'V_2', 'theta_2', 'p_line_pu_1_2', 'q_line_pu_1_2', 'p_line_pu_2_1', 'q_line_pu_2_1', 'I_1_2', 'I_2_1', 'omega_coi', 'p_agc'] 
         self.xy_ini_list = self.x_list + self.y_ini_list 
         self.t = 0.0
         self.it = 0
@@ -264,6 +264,10 @@ class model:
     #     jac_run_ss_eval_xy(self.jac_run,self.x,self.y_run,self.u_run,self.p)
     #     jac_run_ss_eval_up(self.jac_run,self.x,self.y_run,self.u_run,self.p)
         
+        
+    def jac_ini_eval(self):
+        de_jac_ini_eval(self.jac_ini,self.x,self.y_ini,self.u_ini,self.p,self.Dt)
+      
     def jac_run_eval(self):
         de_jac_run_eval(self.jac_run,self.x,self.y_run,self.u_run,self.p,self.Dt)
       
@@ -1800,24 +1804,24 @@ def c_h_eval(z,x,y,u,p,Dt):
 
 def sp_jac_ini_vectors():
 
-    sp_jac_ini_ia = [0, 1, 6, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 6, 2, 3, 4, 5, 7, 2, 3, 4, 5, 8, 2, 3, 4, 5, 9, 2, 3, 4, 5, 10, 1, 6, 11]
-    sp_jac_ini_ja = [0, 1, 3, 4, 5, 9, 13, 14, 19, 24, 29, 34, 37]
-    sp_jac_ini_nia = 12
-    sp_jac_ini_nja = 12
+    sp_jac_ini_ia = [0, 1, 12, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5, 6, 2, 3, 4, 5, 7, 2, 3, 4, 5, 8, 2, 3, 4, 5, 9, 2, 6, 7, 10, 4, 8, 9, 11, 12, 1, 12, 13]
+    sp_jac_ini_ja = [0, 1, 3, 4, 5, 9, 13, 18, 23, 28, 33, 37, 41, 42, 45]
+    sp_jac_ini_nia = 14
+    sp_jac_ini_nja = 14
     return sp_jac_ini_ia, sp_jac_ini_ja, sp_jac_ini_nia, sp_jac_ini_nja 
 
 def sp_jac_run_vectors():
 
-    sp_jac_run_ia = [0, 1, 6, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 6, 2, 3, 4, 5, 7, 2, 3, 4, 5, 8, 2, 3, 4, 5, 9, 2, 3, 4, 5, 10, 1, 6, 11]
-    sp_jac_run_ja = [0, 1, 3, 4, 5, 9, 13, 14, 19, 24, 29, 34, 37]
-    sp_jac_run_nia = 12
-    sp_jac_run_nja = 12
+    sp_jac_run_ia = [0, 1, 12, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5, 6, 2, 3, 4, 5, 7, 2, 3, 4, 5, 8, 2, 3, 4, 5, 9, 2, 6, 7, 10, 4, 8, 9, 11, 12, 1, 12, 13]
+    sp_jac_run_ja = [0, 1, 3, 4, 5, 9, 13, 18, 23, 28, 33, 37, 41, 42, 45]
+    sp_jac_run_nia = 14
+    sp_jac_run_nja = 14
     return sp_jac_run_ia, sp_jac_run_ja, sp_jac_run_nia, sp_jac_run_nja 
 
 def sp_jac_trap_vectors():
 
-    sp_jac_trap_ia = [0, 1, 6, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 6, 2, 3, 4, 5, 7, 2, 3, 4, 5, 8, 2, 3, 4, 5, 9, 2, 3, 4, 5, 10, 1, 6, 11]
-    sp_jac_trap_ja = [0, 1, 3, 4, 5, 9, 13, 14, 19, 24, 29, 34, 37]
-    sp_jac_trap_nia = 12
-    sp_jac_trap_nja = 12
+    sp_jac_trap_ia = [0, 1, 12, 2, 3, 2, 3, 4, 5, 2, 3, 4, 5, 2, 3, 4, 5, 6, 2, 3, 4, 5, 7, 2, 3, 4, 5, 8, 2, 3, 4, 5, 9, 2, 6, 7, 10, 4, 8, 9, 11, 12, 1, 12, 13]
+    sp_jac_trap_ja = [0, 1, 3, 4, 5, 9, 13, 18, 23, 28, 33, 37, 41, 42, 45]
+    sp_jac_trap_nia = 14
+    sp_jac_trap_nja = 14
     return sp_jac_trap_ia, sp_jac_trap_ja, sp_jac_trap_nia, sp_jac_trap_nja 
