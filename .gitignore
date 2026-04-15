@@ -42,3 +42,7 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Generated artifacts from examples
+examples/*.svg
+examples/*_data.json
