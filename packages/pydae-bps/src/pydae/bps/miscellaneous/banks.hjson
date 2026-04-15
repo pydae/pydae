@@ -1,0 +1,8 @@
+{
+    "system":{"name":"capacitor_bank","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},       
+    "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
+             {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+    "banks":[{"bus":"1", "B":50.0, "S_mva":1.0, "T_cap":1.0}],
+    "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.05,"R_pu":0.0,"Bs_pu":0.0,"S_mva":100, monitor:true}],
+    "sources":[{"bus":"2","type":"genape", "S_n":1000e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
+    }

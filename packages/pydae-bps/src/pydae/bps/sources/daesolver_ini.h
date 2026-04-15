@@ -1,0 +1,15 @@
+//int solve(int * pt,double * a, int * ia, int * ja, int n, double * b, double * x, int flag);
+//int ini(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);
+//int step(int * pt,double t, double t_end, double *jac_trap,int *indptr,int *indices,double *f,double *g,double *fg,double *x,double *y,double *xy,double *x_0,double *f_0,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol, int its, double Dt);
+void f_ini_eval(double *f,double *x,double *y,double *u,double *p,double Dt);
+void g_ini_eval(double *g,double *x,double *y,double *u,double *p,double Dt);
+void sp_jac_ini_num_eval(double *jac_ini,double *x,double *y,double *u,double *p,double Dt);
+void sp_jac_ini_up_eval(double *jac_ini,double *x,double *y,double *u,double *p,double Dt);
+void sp_jac_ini_xy_eval(double *jac_ini,double *x,double *y,double *u,double *p,double Dt);
+//void f_run_eval(double *f,double *x,double *y,double *u,double *p,double Dt);
+//void g_run_eval(double *g,double *x,double *y,double *u,double *p,double Dt);
+//void sp_jac_trap_num_eval(double *out,double *x,double *y,double *u,double *p,double Dt);
+//void sp_jac_trap_up_eval(double *out,double *x,double *y,double *u,double *p,double Dt);
+//void sp_jac_trap_xy_eval(double *out,double *x,double *y,double *u,double *p,double Dt);
+//void h_eval(double *data,double *x,double *y,double *u,double *p,double Dt);
+//int ini2(int * pt,double *jac_ini,int *indptr,int *indices,double *x,double *y,double *xy,double *Dxy,double *u,double *p,int N_x,int N_y,int max_it, double itol,double *z, double *inidblparams, int *iniintparams);

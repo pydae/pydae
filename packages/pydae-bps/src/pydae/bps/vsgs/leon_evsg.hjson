@@ -1,0 +1,13 @@
+{
+        "system":{"name":"temp","S_base":100e6, "K_p_agc":0.0,"K_i_agc":1e-6,"K_xif":1e-6},       
+        "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},
+                 {"name":"2", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+        "lines":[{"bus_j":"1", "bus_k":"2", "X_pu":0.1,"R_pu":0.0, "S_mva":100.0}],
+        "vsgs":[
+            {"bus":"1","type":"leon_evsg",'S_n':100e6,'F_n':50,'K_delta':0.0,
+            'T':0.1520,'F':0.0019,'D_s':0,'H':5,'K':0.1382,'R_v':0.0,'X_v':0.2,'K_g':1047.2,
+            'K_q':20.0,
+            'T_q':0.1,'K_p_v':1e-6,'K_i_v':1e-6,
+            'K_delta':0}],
+        "sources":[{"type":"genape","bus":"2","S_n":10000e6,"F_n":50.0,"R_v":0.0,"X_v":0.1,"K_delta":1e-6,"K_alpha":1e-6}],
+        }

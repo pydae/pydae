@@ -1,0 +1,46 @@
+# =============================================================================
+# pydae-bps: Balanced Power Systems Builder
+# =============================================================================
+# Previously known as "bmapu". Builds DAE system dictionaries from power
+# system network descriptions (like PSS/E or PSAT format).
+#
+# Users install with: pip install pydae-bps
+# Import with:        from pydae.bps import BpsBuilder
+# =============================================================================
+
+[project]
+name = "pydae-bps"
+version = "0.10.0"
+description = "Balanced power systems builder for pydae DAE solver"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Juan Manuel Mauricio", email = "jmmauricio6@gmail.com"}
+]
+keywords = ["power-systems", "DAE", "balanced", "transmission", "simulation"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "pydae>=0.10.0",
+    "networkx>=3.0",
+    "hjson>=3.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/pydae/pydae"
+Repository = "https://github.com/pydae/pydae"
+
+[tool.uv.sources]
+pydae = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pydae"]

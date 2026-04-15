@@ -1,0 +1,46 @@
+# =============================================================================
+# pydae-uds: Unbalanced Distribution Systems Builder
+# =============================================================================
+# Previously known as "urisi". Builds DAE system dictionaries for
+# unbalanced (3-phase) distribution network analysis.
+#
+# Users install with: pip install pydae-uds
+# Import with:        from pydae.uds import UdsBuilder
+# =============================================================================
+
+[project]
+name = "pydae-uds"
+version = "0.10.0"
+description = "Unbalanced distribution systems builder for pydae DAE solver"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Juan Manuel Mauricio", email = "jmmauricio6@gmail.com"}
+]
+keywords = ["power-systems", "DAE", "unbalanced", "distribution", "three-phase"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "pydae>=0.10.0",
+    "networkx>=3.0",
+    "hjson>=3.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/pydae/pydae"
+Repository = "https://github.com/pydae/pydae"
+
+[tool.uv.sources]
+pydae = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pydae"]

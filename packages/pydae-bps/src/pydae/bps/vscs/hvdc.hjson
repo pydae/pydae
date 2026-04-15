@@ -1,0 +1,19 @@
+{
+    "system":{"name":"temp","S_base":1000e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":1e-6},       
+    "buses":[
+        {"name":"WFM", "P_W":0.0,"Q_var":0.0,"U_kV": 33.0},
+        {"name":"WFH", "P_W":0.0,"Q_var":0.0,"U_kV":400.0},
+        {"name":"WFD", "P_W":0.0,"Q_var":0.0,"U_kV":690.0},
+        {"name":"GRD", "P_W":0.0,"Q_var":0.0,"U_kV":690.0},
+        {"name":"GRI", "P_W":0.0,"Q_var":0.0,"U_kV":400.0}
+        ],
+    "lines":[
+    {"bus_j":"WFM", "bus_k":"WFH", "X_pu":0.1,"R_pu":0.0,"Bs_pu":1e-6,"S_mva":2000.0,"sym":true,"monitor":true},
+    {"bus_j":"WFD", "bus_k":"GRD", "X_km":0.0,"R_km":28e-3,"Bs_km":0.0,"km":100.0,"sym":true,"monitor":true}],
+    "vscs":[    
+            {"type":"vsc_acgf_dcp","bus_dc":"WFD","bus_ac":"WFH","S_n":2000e6,"R_s":0.0001,"X_s":0.0},
+            {"type":"vsc_acq_dcgf","bus_dc":"GRD","bus_ac":"GRI","S_n":2000e6,"R_d":0.0001,"X_d":0.0},
+            ],
+"sources":[{"type":"genape","bus":"GRI","S_n":100e9,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
+    }
+

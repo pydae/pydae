@@ -1,0 +1,10 @@
+{
+    "system":{"name":"smib","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":1e-6},       
+    "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+    "vscs":[{"type":"bess_pq","bus":"1","E_kWh":20e3,"S_n":10e6,"K_delta":0.01,
+             "soc_ref":0.5,
+             "socs":[0.0, 0.1, 0.2, 0.8,0.9,1.0],
+             "es":[1, 1.08, 1.13, 1.17, 1.18,1.25],"e_soc_order":1}
+            ],
+    "sources":[{"type":"vsource","bus":"1"}]
+    }
