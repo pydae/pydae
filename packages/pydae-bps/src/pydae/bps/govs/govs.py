@@ -5,10 +5,10 @@ Created on Thu August 10 23:52:55 2022
 @author: jmmauricio
 """
 
-from pydae.bmapu.govs.tgov1 import tgov1
-from pydae.bmapu.govs.hygov import hygov
-from pydae.bmapu.govs.agov1 import agov1
-from pydae.bmapu.govs.ntsieeeg1 import ntsieeeg1
+from pydae.bps.govs.tgov1 import tgov1
+from pydae.bps.govs.hygov import hygov
+from pydae.bps.govs.agov1 import agov1
+from pydae.bps.govs.ntsieeeg1 import ntsieeeg1
 
 def add_gov(dae,syn_data,name,bus_name):
     

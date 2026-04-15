@@ -10,17 +10,17 @@ import sympy as sym
 import json
 import os
 import hjson
-from pydae.bmapu.lines.lines import add_lines
-from pydae.bmapu.syns.syns import add_syns
-from pydae.bmapu.vscs.vscs import add_vscs
-from pydae.bmapu.vsgs.vsgs import add_vsgs
-from pydae.bmapu.wecs.wecs import add_wecs
-from pydae.bmapu.pvs.pvs import add_pvs
-from pydae.bmapu.loads.loads import add_loads
-from pydae.bmapu.sources.sources import add_sources
-from pydae.bmapu.miscellaneous.miscellaneous import add_miscellaneous
-from pydae.bmapu.pods.pods import add_pods
-from pydae.bmapu.miscellaneous.banks import add_banks
+from pydae.bps.lines.lines import add_lines
+from pydae.bps.syns.syns import add_syns
+from pydae.bps.vscs.vscs import add_vscs
+from pydae.bps.vsgs.vsgs import add_vsgs
+from pydae.bps.wecs.wecs import add_wecs
+from pydae.bps.pvs.pvs import add_pvs
+from pydae.bps.loads.loads import add_loads
+from pydae.bps.sources.sources import add_sources
+from pydae.bps.miscellaneous.miscellaneous import add_miscellaneous
+from pydae.bps.pods.pods import add_pods
+from pydae.bps.miscellaneous.banks import add_banks
 
 import pydae.build_cffi as db
 from pydae.build_v2 import builder
@@ -346,7 +346,7 @@ class bmapu:
         
 
 
-        #grid = bmapu_builder.bmapu(data)
+        #grid = BpsBuilder(data)
         if 'syns' in self.data:
             add_syns(self)
         if 'vscs' in self.data:
@@ -514,7 +514,7 @@ class bmapu:
 
 if __name__ == "__main__":
 
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     from pydae.build_v2 import build_mkl,build_numba
 
 
@@ -526,7 +526,7 @@ if __name__ == "__main__":
         "sources":[{"bus":"1","type":"vsource","V_mag_pu":1.0,"V_ang_rad":0.0,"K_delta":0.1}]
         }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     grid.uz_jacs = False
     grid.verbose = True
     grid.construct(f'temp')

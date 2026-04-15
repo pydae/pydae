@@ -161,8 +161,8 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
 if __name__ == "__main__":
 
     import pydae.build_cffi as db
-    from pydae.bmapu import bmapu_builder
-    from pydae.bmapu.vsgs.vsgs import add_vsgs
+    from pydae.bps import BpsBuilder
+    from pydae.bps.vsgs.vsgs import add_vsgs
     import pydae.build_cffi as db
     import sympy as sym
 
@@ -178,7 +178,7 @@ if __name__ == "__main__":
         "genapes":[{"bus":"2","S_n":100e6,"F_n":50.0,"R_v":0.0,"X_v":0.1,"K_delta":0.001,"K_alpha":1.0}],
         }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
 
     add_vsgs(grid)
     omega_coi = sym.Symbol("omega_coi", real=True)  

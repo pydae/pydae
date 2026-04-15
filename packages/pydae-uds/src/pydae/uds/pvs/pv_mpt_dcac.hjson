@@ -1,0 +1,34 @@
+{
+system:{S_base:1e6, K_p_agc:0.01, K_i_agc:0.01, K_xif:0.01}
+buses:[
+         {name: "D1",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.8, "acdc":"DC","nodes":[0,1]},
+         {name: "D2",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.8, "acdc":"DC","nodes":[0,1]},
+        ], 
+lines:[
+        { bus_j: "D1",  bus_k: "D2",  code: "UG1dc", m: 20, vsc_line:true, monitor:true, bus_j_nodes:[0,1], bus_k_nodes:[0,1]},
+        ],
+loads:[
+        ],
+shunts:[
+        {bus: "D2" , R:  1e6, X: 0.0, bus_nodes: [0]},
+        {bus: "D2" , R:  1e6, X: 0.0, bus_nodes: [1]},
+        ],
+sources:[
+        {bus: "D2", type:"vdc_src", v_ref:800.0},
+        ],
+pvs:[
+        {bus:"D1", A:2.92,B:0.45,C:0.027,type:"pv_mpt_dcac", 
+        I_sc:3.87,V_oc:42.1,I_mp:3.56,V_mp:33.7,K_vt:-0.160,K_it:0.065,
+        N_pv_s:25,N_pv_p:2,
+        K_pp:0.01, K_pi:0.01},
+       ],
+line_codes:
+            {
+       UG1dc:
+        {R:[[ 0.211,  0.0],
+            [ 0.0,  0.211]],
+         X:[[ 0.0,  0.0],
+            [ 0.0,  0.0]], I_max:430.0
+            }
+        }          
+ }    

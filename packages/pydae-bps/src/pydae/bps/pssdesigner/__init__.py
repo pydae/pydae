@@ -4,4 +4,4 @@ PSS designer
 ===========================
 
 """
-from pydae.bmapu.pssdesigner.pssdesigner import designer 
+from pydae.bps.pssdesigner.pssdesigner import designer 

@@ -377,7 +377,7 @@ def sym2model():
 #sym2model()
 if __name__ == "__main__":
 
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     
     data = {
     "system":{"name":"test_model","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},       
@@ -388,7 +388,7 @@ if __name__ == "__main__":
     "sources":[{"type":"genape","bus":"2","S_n":10000e6,"F_n":50.0,"X_v":0.001,"R_v":0.0,"K_delta":0.001,"K_alpha":1e-6}]
     }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     #grid.checker()
     grid.uz_jacs = True
     grid.verbose = False

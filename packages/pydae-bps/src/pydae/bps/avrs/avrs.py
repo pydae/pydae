@@ -7,12 +7,12 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.avrs.sexs import sexs
-from pydae.bmapu.avrs.sexs import sexsq
-from pydae.bmapu.avrs.kundur import kundur
-from pydae.bmapu.avrs.ntsst4 import ntsst4
-from pydae.bmapu.avrs.ntsst1 import ntsst1
-from pydae.bmapu.avrs.kundur_tgr import kundur_tgr
+from pydae.bps.avrs.sexs import sexs
+from pydae.bps.avrs.sexs import sexsq
+from pydae.bps.avrs.kundur import kundur
+from pydae.bps.avrs.ntsst4 import ntsst4
+from pydae.bps.avrs.ntsst1 import ntsst1
+from pydae.bps.avrs.kundur_tgr import kundur_tgr
 
 def add_avr(dae,syn_data,name,bus_name):
     

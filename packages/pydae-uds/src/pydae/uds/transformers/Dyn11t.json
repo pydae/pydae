@@ -1,0 +1,38 @@
+{
+"system":{"S_base":1e6, "K_p_agc":0.01, "K_i_agc":0.01, "K_xif":0.01},
+"buses":[
+         {"name": "MV0",  "pos_x":   0, "pos_y":   0, "units": "m", "U_kV":20.0, "N_nodes":3, "phi_deg_0":30.0},
+         {"name": "I01",  "pos_x":  90, "pos_y":   0, "units": "m", "U_kV":0.4},
+         {"name": "I02",  "pos_x": 150, "pos_y":   0, "units": "m", "U_kV":0.4}
+        ], 
+"transformers":[
+        {"bus_j": "MV0",  "bus_k": "I01",  "S_n_kVA": 100, "U_j_kV":20, "U_k_kV":0.4,
+         "R_cc_pu": 0.01, "X_cc_pu":0.04, "connection": "Dyn11",   "conductors_j": 3, "conductors_k": 4,
+         "monitor":true}
+       ],
+"lines":[
+        { "bus_j": "I01",  "bus_k": "I02",  "code":   "UG2", "m": 100.0, "monitor":true, "sym":false}
+        ],
+"loads":[
+         { "bus": "I02" , "kVA": 100.0, "pf": 0.85, "type":"3P+N", "model":"ZIP"}
+        ],
+"shunts":[
+        {"bus": "I01" , "R":  3.0, "X": 0.0, "bus_nodes": [3]}
+         ],
+"sources":[
+       {"type":"ac3ph3w_ideal", "bus": "MV0", "S_n":100e3, "U_n" :20e3, "R":0.01, "X":0.1}
+           ],
+"line_codes":
+        {
+        "UG2":
+            {"R":[ [0.314, 0.049, 0.049, 0.049], 
+                    [0.049, 0.314, 0.049, 0.049], 
+                    [0.049, 0.049, 0.314, 0.049], 
+                    [0.049, 0.049, 0.049, 0.314]], 
+            "X":[[0.762, 0.687, 0.665, 0.687],
+                    [0.687, 0.762, 0.687, 0.665],
+                    [0.665, 0.687, 0.762, 0.687],
+                    [0.687, 0.665, 0.687, 0.762]], "I_max":200.0
+                    }
+        }
+}

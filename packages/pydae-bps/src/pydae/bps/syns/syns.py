@@ -8,16 +8,16 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 
-from pydae.bmapu.syns.milano2ord import milano2ord
-from pydae.bmapu.syns.milano3ord import milano3ord
-from pydae.bmapu.syns.milano4ord import milano4ord
-from pydae.bmapu.syns.milano6ord import milano6ord
+from pydae.bps.syns.milano2ord import milano2ord
+from pydae.bps.syns.milano3ord import milano3ord
+from pydae.bps.syns.milano4ord import milano4ord
+from pydae.bps.syns.milano6ord import milano6ord
 
-from pydae.bmapu.syns.pai6ord import pai6
+from pydae.bps.syns.pai6ord import pai6
 
-from pydae.bmapu.avrs.avrs import add_avr
-from pydae.bmapu.govs.govs import add_gov
-from pydae.bmapu.psss.psss import add_pss
+from pydae.bps.avrs.avrs import add_avr
+from pydae.bps.govs.govs import add_gov
+from pydae.bps.psss.psss import add_pss
 
 
 def add_syns(grid):
@@ -93,40 +93,40 @@ def add_syns(grid):
             grid.dae['xy_0_dict'].update({str(v_pss):0.0})
 
 
-from pydae.utils import read_data
+# from pydae.utils import read_data
 
-def load_params(model,data_input):
+# def load_params(model,data_input):
 
-    data = read_data(data_input)
+#     data = read_data(data_input)
 
-    if 'syns' in data:
-        for syn_data in data['syns']:
-            name = syn_data['bus']
-            if 'name' in syn_data: name = syn_data['name']
-            for item in syn_data:
-                if item not in ['avr','pss','gov','bus']:
-                    model.set_value(f'{item}_{name}',syn_data[item])
-                if item == 'gov':
-                    for item_gov in syn_data['gov']:
-                        param_name = f'{item_gov}_{name}'
-                        if param_name in model.params_list:
-                            model.set_value(f'{item_gov}_{name}',syn_data['gov'][item_gov])
+#     if 'syns' in data:
+#         for syn_data in data['syns']:
+#             name = syn_data['bus']
+#             if 'name' in syn_data: name = syn_data['name']
+#             for item in syn_data:
+#                 if item not in ['avr','pss','gov','bus']:
+#                     model.set_value(f'{item}_{name}',syn_data[item])
+#                 if item == 'gov':
+#                     for item_gov in syn_data['gov']:
+#                         param_name = f'{item_gov}_{name}'
+#                         if param_name in model.params_list:
+#                             model.set_value(f'{item_gov}_{name}',syn_data['gov'][item_gov])
 
-    if 'vscs' in data:
-        for vsc_data in data['vscs']:
-            name = vsc_data['bus']
-            if 'name' in vsc_data: name = vsc_data['name']
-            for item in vsc_data:
-                if item in ['S_n']:
-                    model.set_value(f'{item}_{name}',vsc_data[item])
+#     if 'vscs' in data:
+#         for vsc_data in data['vscs']:
+#             name = vsc_data['bus']
+#             if 'name' in vsc_data: name = vsc_data['name']
+#             for item in vsc_data:
+#                 if item in ['S_n']:
+#                     model.set_value(f'{item}_{name}',vsc_data[item])
 
-    if 'buses' in data:
-        for bus_data in data['buses']:
-            name = bus_data['name']
+#     if 'buses' in data:
+#         for bus_data in data['buses']:
+#             name = bus_data['name']
 
-            for item in bus_data:
-                if item == 'P_W':
-                    model.set_value(f'P_{name}',bus_data[item])
+#             for item in bus_data:
+#                 if item == 'P_W':
+#                     model.set_value(f'P_{name}',bus_data[item])
 
 
 

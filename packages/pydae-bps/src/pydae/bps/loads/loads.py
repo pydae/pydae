@@ -7,7 +7,7 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.loads.load_zip import load_zip
+from pydae.bps.loads.load_zip import load_zip
 
 
 def add_loads(grid):

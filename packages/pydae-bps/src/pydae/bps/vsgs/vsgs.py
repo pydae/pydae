@@ -8,13 +8,13 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 
-from pydae.bmapu.vsgs.leon_gvsg import leon_gvsg
-from pydae.bmapu.vsgs.leon_vsg_ll import leon_vsg_ll
-from pydae.bmapu.vsgs.uvsg_mid import uvsg_mid
-from pydae.bmapu.vsgs.uvsg_high import uvsg_high
-from pydae.bmapu.vsgs.olives_vsg import olives_vsg
-from pydae.bmapu.vsgs.leon_evsg import leon_evsg
-from pydae.bmapu.vsgs.regfm_b1 import regfm_b1
+from pydae.bps.vsgs.leon_gvsg import leon_gvsg
+from pydae.bps.vsgs.leon_vsg_ll import leon_vsg_ll
+from pydae.bps.vsgs.uvsg_mid import uvsg_mid
+from pydae.bps.vsgs.uvsg_high import uvsg_high
+from pydae.bps.vsgs.olives_vsg import olives_vsg
+from pydae.bps.vsgs.leon_evsg import leon_evsg
+from pydae.bps.vsgs.regfm_b1 import regfm_b1
 
 
 def add_vsgs(grid):
@@ -69,8 +69,8 @@ def create_name(grid,data_dict):
 if __name__ == "__main__":
 
     import pydae.build_cffi as db
-    from pydae.bmapu import bmapu_builder
-    from pydae.bmapu.vsgs.vsgs import add_vsgs
+    from pydae.bps import BpsBuilder
+    from pydae.bps.vsgs.vsgs import add_vsgs
     import pydae.build_cffi as db
     import sympy as sym
 
@@ -86,6 +86,6 @@ if __name__ == "__main__":
         "genapes":[{"bus":"2","S_n":100e6,"F_n":50.0,"R_v":0.0,"X_v":0.1,"K_delta":0.001,"K_alpha":1.0}],
         }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
 
     add_vsgs(grid)

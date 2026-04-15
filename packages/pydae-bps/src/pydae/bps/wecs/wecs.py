@@ -7,11 +7,11 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.wecs.full_converter import full_converter
-from pydae.bmapu.wecs.pmsm_1 import pmsm_1
+from pydae.bps.wecs.full_converter import full_converter
+from pydae.bps.wecs.pmsm_1 import pmsm_1
 
-from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
-from pydae.bmapu.vsc_models.vsc_models import add_model
+from pydae.bps.vsc_ctrls.vsc_ctrls import add_ctrl
+from pydae.bps.vsc_models.vsc_models import add_model
 
 def add_wecs(grid):
 

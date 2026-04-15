@@ -125,12 +125,12 @@ def test():
     import numpy as np
     import sympy as sym
     import hjson
-    from pydae.bmapu.bmapu_builder import bmapu
+    from pydae.bps import BpsBuilder
     import pydae.build_cffi as db
     import matplotlib.pyplot as plt
     import pytest
 
-    grid = bmapu('ieeeg1.hjson')
+    grid = BpsBuilder('ieeeg1.hjson')
     grid.checker()
     grid.uz_jacs = True
     grid.build('temp')

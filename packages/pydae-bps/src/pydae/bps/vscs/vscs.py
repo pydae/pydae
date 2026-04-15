@@ -7,20 +7,20 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.vscs.vsc_pq import vsc_pq
-from pydae.bmapu.vscs.vsc_l  import vsc_l
-from pydae.bmapu.vscs.vsc_lcl_uc  import vsc_lcl_uc
-from pydae.bmapu.vscs.bess_pq  import bess_pq
-from pydae.bmapu.vscs.bess_pq_ss import bess_pq_ss
+from pydae.bps.vscs.vsc_pq import vsc_pq
+from pydae.bps.vscs.vsc_l  import vsc_l
+from pydae.bps.vscs.vsc_lcl_uc  import vsc_lcl_uc
+from pydae.bps.vscs.bess_pq  import bess_pq
+from pydae.bps.vscs.bess_pq_ss import bess_pq_ss
 
-from pydae.bmapu.vsc_ctrls.vsc_ctrls import add_ctrl
-from pydae.bmapu.vsc_models.vsc_models import add_model
+from pydae.bps.vsc_ctrls.vsc_ctrls import add_ctrl
+from pydae.bps.vsc_models.vsc_models import add_model
 
-from pydae.bmapu.vscs.vsc_acgf_dcp import vsc_acgf_dcp
-from pydae.bmapu.vscs.vsc_acq_dcgf import vsc_acq_dcgf
-from pydae.bmapu.vscs.vsc_pq_qv_pfr import vsc_pq_qv_pfr
+from pydae.bps.vscs.vsc_acgf_dcp import vsc_acgf_dcp
+from pydae.bps.vscs.vsc_acq_dcgf import vsc_acq_dcgf
+from pydae.bps.vscs.vsc_pq_qv_pfr import vsc_pq_qv_pfr
 
-from pydae.bmapu.miscellaneous.pll import add_pll
+from pydae.bps.miscellaneous.pll import add_pll
 
 
 

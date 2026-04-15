@@ -87,10 +87,10 @@ def vsc_pq_qv_pfr(grid,name,bus_name,data_dict):
 
 def test_build():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pytest
 
-    grid = bmapu_builder.bmapu('vsc_pq_qv_pfr.hjson')
+    grid = BpsBuilder('vsc_pq_qv_pfr.hjson')
     #grid.checker()
     grid.verbose = False 
     grid.build('temp')

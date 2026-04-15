@@ -55,9 +55,9 @@ def add_banks(grid):
 
 def test_build():
     import sympy as sym
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import matplotlib.pyplot as plt
-    grid = bmapu_builder.bmapu('banks.hjson')
+    grid = BpsBuilder('banks.hjson')
     grid.build('temp')
 
 def test_run():

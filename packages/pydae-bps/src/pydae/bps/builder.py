@@ -9,7 +9,7 @@ DAE system dictionary (sys_dict) for the pydae.core.Builder.
 Migration checklist:
   1. Copy bmapu_builder.py content here
   2. Rename class bmapu -> BpsBuilder  
-  3. Update internal imports from pydae.bmapu.* -> pydae.bps.*
+  3. Update internal imports from pydae.bps.* -> pydae.bps.*
   4. Move component models (generators, loads, lines, etc.) into
      pydae/bps/components/
   5. Move grid utility functions (lines.py, etc.) into pydae/bps/utils/

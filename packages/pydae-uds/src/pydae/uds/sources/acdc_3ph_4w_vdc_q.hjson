@@ -1,0 +1,42 @@
+{
+system:{S_base:1e6, K_p_agc:0.01, K_i_agc:0.01, K_xif:0.01}
+buses:[    
+         {name: "D1",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.8, "acdc":"DC","nodes":[0,1]},
+         {name: "A1",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
+         {name: "A2",  pos_x:  30, pos_y: -20, units: "m", U_kV:0.4},
+        ], 
+lines:[
+        { bus_j: "A1",  bus_k: "A2",  code: "UG1", m: 20, vsc_line:true, monitor:true},
+        ],
+loads:[
+        ],
+shunts:[
+        // {bus: "D2" , R:  1e6, X: 0.0, bus_nodes: [0]},
+        // {bus: "D2" , R:  1e6, X: 0.0, bus_nodes: [1]},
+        ],
+sources:[
+        {bus: "A2", type:"ac3ph4w_ideal"},
+        ],
+vscs:[
+        {bus_ac:"D1", bus_ac: "A1", type:"acdc_3ph_4w_vdc_q"},
+        ],
+line_codes:
+        {
+        UG1dc:
+                {R:[[ 0.211,  0.0],
+                [ 0.0,  0.211]],
+                X:[[ 0.0,  0.0],
+                [ 0.0,  0.0]], I_max:430.0
+                },
+        UG1:
+                {R:[[ 0.211,  0.049,  0.049,  0.049],
+                [ 0.049,  0.211,  0.049,  0.049],
+                [ 0.049,  0.049,  0.211,  0.049],
+                [ 0.049,  0.049,  0.049,  0.211]],
+                X:[[ 0.747,  0.673,  0.651,  0.673],
+                [ 0.673,  0.747,  0.673,  0.651],
+                [ 0.651,  0.673,  0.747,  0.673],
+                [ 0.673,  0.651,  0.673,  0.747]], I_max:200.0
+                }
+        }          
+ }    

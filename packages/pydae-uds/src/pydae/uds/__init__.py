@@ -19,10 +19,9 @@ Usage::
 
 Migration from urisi
 ---------------------
-Old:  from pydae.urisi import urisi_builder
+Old:  from pydae.uds import UdsBuilder
 New:  from pydae.uds import UdsBuilder
 """
 
-# TODO: Move urisi source code here and rename the main class
-# from pydae.uds.builder import UdsBuilder
-# __all__ = ["UdsBuilder"]
+from pydae.uds.uds_builder import UdsBuilder
+__all__ = ["UdsBuilder"]

@@ -454,7 +454,7 @@ def change_ss(model,A,B,C,D):
 
 
 def test_build():
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     
     data = {
     "system":{"name":"test_model","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":0.01},       
@@ -536,7 +536,7 @@ def test_build():
 
 
              
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     #grid.checker()
     grid.verbose = False 
     grid.build('temp')
@@ -559,10 +559,10 @@ if __name__=='__main__':
 
 # def test():
     
-#     from pydae.bmapu import bmapu_builder
+#     from pydae.bps import BpsBuilder
 #     import pytest
 
-#     grid = bmapu_builder.bmapu('bess_pq_Hithium.hjson')
+#     grid = BpsBuilder('bess_pq_Hithium.hjson')
 #     #grid.checker()
 #     grid.verbose = False 
 #     grid.build('temp')
@@ -602,7 +602,7 @@ if __name__=='__main__':
 
 
 
-#     grid = bmapu_builder.bmapu(data)
+#     grid = BpsBuilder(data)
 #     #grid.checker()
 #     grid.uz_jacs = True
 #     grid.verbose = False

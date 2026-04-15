@@ -96,12 +96,12 @@ def vsource(grid,name,bus_name,data_dict):
 def test_mkl():
 
     import numpy as np
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     from pydae.build_v2 import builder
     from pydae.utils import read_data
     import json
 
-    grid = bmapu_builder.bmapu('vsource.hjson')
+    grid = BpsBuilder('vsource.hjson')
     grid.construct(f'temp')
     grid.compile_mkl('temp')
 
@@ -114,9 +114,9 @@ def test_mkl():
 
 def test():
 
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     
-    grid = bmapu_builder.bmapu('vsource.hjson')
+    grid = BpsBuilder('vsource.hjson')
     grid.checker()
     grid.verbose = True 
     grid.build('temp')

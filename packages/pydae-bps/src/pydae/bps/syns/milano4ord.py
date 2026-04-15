@@ -272,11 +272,11 @@ __doc__ += generate_sphinx_tables()
 # Testing Block
 # =============================================================================
 def test_build():
-    from pydae.bmapu.bmapu_builder import bmapu
+    from pydae.bps import BpsBuilder
     from pydae.builder.core import Builder
     import pytest
 
-    grid = bmapu('milano4ord.hjson')
+    grid = BpsBuilder('milano4ord.hjson')
     grid.checker()
     grid.uz_jacs = False
     grid.construct('temp_m4')

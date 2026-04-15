@@ -95,10 +95,10 @@ def vsc_acgf_dcp(grid,name,bus_dc,bus_ac,data_dict):
 
 def test():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pytest
 
-    grid = bmapu_builder.bmapu('vsc_acgf_dcp.hjson')
+    grid = BpsBuilder('vsc_acgf_dcp.hjson')
     #grid.checker()
     grid.verbose = True 
     grid.build('temp')

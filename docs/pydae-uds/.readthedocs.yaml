@@ -1,0 +1,27 @@
+# ReadTheDocs build configuration for pydae-uds.
+#
+# To publish: create a ReadTheDocs project whose "Configuration file path"
+# points to  docs/pydae-uds/.readthedocs.yaml
+
+version: 2
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.12"
+
+sphinx:
+  configuration: docs/pydae-uds/conf.py
+  fail_on_warning: false
+
+python:
+  install:
+    - requirements: docs/pydae-uds/requirements.txt
+    - method: pip
+      path: packages/pydae-core
+    - method: pip
+      path: packages/pydae-uds
+
+formats:
+  - htmlzip
+  - pdf

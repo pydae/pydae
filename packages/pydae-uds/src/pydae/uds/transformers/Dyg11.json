@@ -1,0 +1,19 @@
+{
+        "system":{"S_base":1e6, "K_p_agc":0.01, "K_i_agc":0.01, "K_xif":0.01},
+        "buses": [{"name":"00","U_kV":110.0, "N_nodes":3},
+                  {"name":"12","U_kV": 20.0, "N_nodes":3},
+                  {"name":"13","U_kV": 20.0, "N_nodes":3}],
+        "lines":     [  
+                        {"bus_j":"12", "bus_k":"13", "R_km":0.510, "X_km":0.366, "B_muS_km":3.172, "km":4.89, "N_branches":3}                     ],
+        "transformers":[
+                {"bus_j": "00",  "bus_k": "12",  "S_n_kVA": 25000, "U_j_kV":110, "U_k_kV":20,
+                 "R_cc_pu": 0.01, "X_cc_pu":0.04, "connection": "Dyg11",   "conductors_j": 3, "conductors_k": 3,
+                 "monitor":true}
+               ],
+        "loads" : [
+                 {"bus": "13", "kVA":100, "pf": 0.95, "type":"3P", "model":"ZIP"}
+                ],
+        "sources":[
+               {"type":"ac3ph3w_ideal", "bus": "00", "S_n":100e3, "U_n" :110e3, "R":0.01, "X":0.1}
+                   ]}
+        

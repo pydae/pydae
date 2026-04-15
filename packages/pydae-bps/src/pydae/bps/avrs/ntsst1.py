@@ -108,11 +108,11 @@ def test():
     import numpy as np
     import sympy as sym
     import hjson
-    from pydae.bmapu.bmapu_builder import bmapu
+    from pydae.bps import BpsBuilder
     import pydae.build_cffi as db
     import pytest
 
-    grid = bmapu('ntsst1.hjson')
+    grid = BpsBuilder('ntsst1.hjson')
     grid.checker()
     grid.uz_jacs = True
     grid.build('temp')

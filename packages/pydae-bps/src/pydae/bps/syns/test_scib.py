@@ -2,11 +2,11 @@
 # Testing Block
 # =============================================================================
 def test_build():
-    from pydae.bmapu.bmapu_builder import bmapu
+    from pydae.bps import BpsBuilder
     from pydae.builder.core import Builder
     import pytest
 
-    grid = bmapu('config_planta_scib.json')
+    grid = BpsBuilder('config_planta_scib.json')
     grid.checker()
     grid.uz_jacs = False
     grid.construct('scib')

@@ -7,8 +7,8 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.sources.genape import genape
-from pydae.bmapu.sources.vsource import vsource
+from pydae.bps.sources.genape import genape
+from pydae.bps.sources.vsource import vsource
 
 def add_sources(grid):
 

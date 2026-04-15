@@ -7,8 +7,8 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.miscellaneous.fault import add_fault
-from pydae.bmapu.miscellaneous.pll import add_pll
+from pydae.bps.miscellaneous.fault import add_fault
+from pydae.bps.miscellaneous.pll import add_pll
 
 
 def add_miscellaneous(grid):

@@ -659,7 +659,7 @@ def mppt_omega_p(omega_t):
 if __name__ == '__main__':
     #symmodel()
 
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import sympy as sym
 
     data = {
@@ -678,7 +678,7 @@ if __name__ == '__main__':
         }
 
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     #grid.checker()
     grid.uz_jacs = True
     grid.verbose = False

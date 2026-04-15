@@ -194,9 +194,9 @@ def development():
 
 def test_build():
 
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     
-    grid = bmapu_builder.bmapu('genape.hjson')
+    grid = BpsBuilder('genape.hjson')
     grid.checker()
     grid.verbose = True 
     grid.build('temp')

@@ -141,10 +141,10 @@ def leon_evsg(grid,name,bus_name,data_dict):
 def test_build():
 
     import pydae.build_cffi as db
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pydae.build_cffi as db
 
-    grid = bmapu_builder.bmapu('leon_evsg.hjson')
+    grid = BpsBuilder('leon_evsg.hjson')
     grid.uz_jacs = True
     grid.verbose = True
     grid.build('temp')

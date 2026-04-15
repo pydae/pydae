@@ -7,7 +7,7 @@ Tests milano2ord, milano3ord, milano4ord, and milano6ord for steady-state cohere
 import os
 import json
 import pytest
-from pydae.bmapu.bmapu_builder import bmapu
+from pydae.bps import BpsBuilder
 from pydae.builder.core import Builder
 from pydae.builder.model_class import Model
 
@@ -59,13 +59,13 @@ def test_milano_steady_state(model_type):
         "sources": [{"type": "vsource", "bus": "2"}]
     }
 
-    # Write dictionary to a temporary JSON file for bmapu ingestion
+    # Write dictionary to a temporary JSON file for BpsBuilder ingestion
     with open(file_name, 'w') as f:
         json.dump(sys_dict, f, indent=4)
 
     try:
         # 2. Build and Compile the ctypes Model
-        grid = bmapu(file_name)
+        grid = BpsBuilder(file_name)
         grid.checker()
         grid.uz_jacs = False
         grid.construct(sys_name)

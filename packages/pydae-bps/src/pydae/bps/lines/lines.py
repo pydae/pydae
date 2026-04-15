@@ -8,7 +8,7 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 
-from pydae.bmapu.lines.line_dtr import add_line_dtr
+from pydae.bps.lines.line_dtr import add_line_dtr
 
 
 def add_lines(self):
@@ -162,7 +162,7 @@ def get_line_current(model,bus_j,bus_k, units='A'):
 
 def test_line_pu_build():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     from pydae.build_v2 import build_mkl,build_numba
 
     data = {
@@ -173,7 +173,7 @@ def test_line_pu_build():
         "sources":[{"bus":"1","type":"vsource","V_mag_pu":1.0,"V_ang_rad":0.0,"K_delta":0.1}]
         }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     grid.uz_jacs = False
     grid.verbose = True
     grid.construct(f'temp')
@@ -193,7 +193,7 @@ def test_line_pu_ini():
 
 def test_line_km_build():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     from pydae.build_v2 import build_mkl,build_numba
 
     R_km = 0.0268  # (Ω/km)
@@ -212,7 +212,7 @@ def test_line_km_build():
         "sources":[{"bus":"1","type":"vsource","V_mag_pu":1.0,"V_ang_rad":0.0,"K_delta":0.1}]
         }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     grid.uz_jacs = False
     grid.verbose = True
     grid.construct(f'temp')

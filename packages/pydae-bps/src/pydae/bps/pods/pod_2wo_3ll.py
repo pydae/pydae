@@ -156,12 +156,12 @@ def test():
     import numpy as np
     import sympy as sym
     import hjson
-    from pydae.bmapu.bmapu_builder import bmapu
+    from pydae.bps import BpsBuilder
     import pydae.build_cffi as db
     import pytest
     import matplotlib.pyplot as plt
 
-    grid = bmapu('pod_2wo_3ll.hjson')
+    grid = BpsBuilder('pod_2wo_3ll.hjson')
     grid.checker()
     grid.uz_jacs = True
     grid.build('temp')

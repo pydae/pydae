@@ -181,7 +181,7 @@ def regfm_b1(grid,name,bus_name,data_dict):
 def test_build():
 
     import pydae.build_cffi as db
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pydae.build_cffi as db
 
     data = {
@@ -196,7 +196,7 @@ def test_build():
         "sources":[{"type":"genape","bus":"2","S_n":100e6,"F_n":50.0,"R_v":0.0,"X_v":0.1,"K_delta":0.001,"K_alpha":0.1}],
         }
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     grid.uz_jacs = True
     grid.verbose = True
     grid.build('temp')

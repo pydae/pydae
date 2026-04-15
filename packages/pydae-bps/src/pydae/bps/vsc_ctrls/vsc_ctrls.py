@@ -7,10 +7,10 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bmapu.vsc_ctrls.ctrl_pq import ctrl_pq
-from pydae.bmapu.vsc_ctrls.leon_vsg_ll import leon_vsg_ll
-from pydae.bmapu.vsc_ctrls.uvsg import uvsg
-from pydae.bmapu.vsc_ctrls.i_vsg_ll import i_vsg_ll
+from pydae.bps.vsc_ctrls.ctrl_pq import ctrl_pq
+from pydae.bps.vsc_ctrls.leon_vsg_ll import leon_vsg_ll
+from pydae.bps.vsc_ctrls.uvsg import uvsg
+from pydae.bps.vsc_ctrls.i_vsg_ll import i_vsg_ll
 
 def add_ctrl(dae,name,bus_name,data_dict):
     

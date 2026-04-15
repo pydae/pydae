@@ -161,7 +161,7 @@ def leon_vsg_ll(grid,name,bus_name,data_dict):
 def test_build():
 
     import pydae.build_cffi as db
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pydae.build_cffi as db
 
     data = {
@@ -177,7 +177,7 @@ def test_build():
         }
 
 
-    grid = bmapu_builder.bmapu(data)
+    grid = BpsBuilder(data)
     grid.uz_jacs = True
     grid.verbose = True
     grid.build('temp')

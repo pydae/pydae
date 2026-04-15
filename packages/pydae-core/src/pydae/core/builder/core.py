@@ -4,7 +4,24 @@ The Builder orchestrates the full pipeline:
   1. Parse & validate the symbolic system dictionary
   2. Compute symbolic Jacobians
   3. Translate to C code
-  4. Compile into a shared library (.so / .dll)
+  4. Compile into a shared library (.so / .dll) or CFFI extension
+
+Usage
+=====
+  # Dense, CFFI (default)
+  Builder(sys_dict)
+
+  # Sparse with KLU, ctypes
+  Builder(sys_dict, target='ctypes', sparse='klu')
+
+  # Sparse with Apple Accelerate, CFFI
+  Builder(sys_dict, target='cffi', sparse='accelerate')
+
+  # Sparse with PARDISO, ctypes
+  Builder(sys_dict, target='ctypes', sparse='pardiso')
+
+  # Legacy: sparse=True is equivalent to sparse='klu'
+  Builder(sys_dict, sparse=True)
 """
 
 from pydae.core.builder.parser import process_system_dict, check_system
@@ -17,6 +34,9 @@ import logging
 import json
 from sympy import Symbol, Expr
 
+# Canonical names for the sparse backends
+VALID_SPARSE_BACKENDS = {'klu', 'pardiso', 'accelerate'}
+
 
 class SympyEncoder(json.JSONEncoder):
     """JSON encoder that handles SymPy Symbol/Expr objects."""
@@ -27,7 +47,20 @@ class SympyEncoder(json.JSONEncoder):
 
 
 class Builder:   
-    def __init__(self, system_dict, verbose=False, API=False, target='cffi'):
+    def __init__(self, system_dict, verbose=False, API=False, target='cffi', sparse=True):
+        """
+        Parameters
+        ----------
+        system_dict : dict
+            Symbolic system definition.
+        target : str
+            Compilation backend: ``'cffi'`` (default) or ``'ctypes'``.
+        sparse : bool or str
+            * ``False`` / ``None`` → dense solver
+            * ``True`` / ``'klu'`` → SuiteSparse KLU (0-based CSC)
+            * ``'pardiso'``        → Intel MKL PARDISO (1-based CSR)
+            * ``'accelerate'``     → Apple Accelerate (0-based CSC, macOS)
+        """
         logging.basicConfig(
             format='%(asctime)s %(message)s', 
             level=logging.INFO if not verbose else logging.DEBUG
@@ -40,6 +73,24 @@ class Builder:
         self.API = API
         self.save_sources = True
         self.uz_jacs = True 
+
+        # ------------------------------------------------------------------
+        # Normalise the sparse setting
+        # ------------------------------------------------------------------
+        if sparse is True:
+            self.sparse = 'klu'
+        elif isinstance(sparse, str) and sparse.lower() in VALID_SPARSE_BACKENDS:
+            self.sparse = sparse.lower()
+        elif sparse in (False, None):
+            self.sparse = False
+        else:
+            raise ValueError(
+                f"Invalid sparse backend '{sparse}'. "
+                f"Choose from: False, True, {VALID_SPARSE_BACKENDS}"
+            )
+        
+        if not 'alpha_solver' in self.raw_sys['params_dict']:
+            self.raw_sys['params_dict'].update({'alpha_solver': 0.5})
         
         # Initialize ALL lists (Dynamic, Algebraic, Outputs, Jacobians)
         self.f_ini_list, self.f_run_list = [], []
@@ -56,7 +107,8 @@ class Builder:
 
     def build(self):
         """The main orchestration pipeline."""
-        logging.info(f"Starting build pipeline for {self.name} (Target: {self.target})...")
+        logging.info(f"Starting build pipeline for {self.name} "
+                     f"(target={self.target}, sparse={self.sparse})...")
         
         # --- Parsing Phase ---
         self.sys, self.inirun = check_system(self.raw_sys)
@@ -72,10 +124,13 @@ class Builder:
             self.system_dict_to_json[item] = {
                 str(k): float(v) for k, v in self.raw_sys[item].items()
             }
-            
-        with open("system_data.json", "w") as fobj:
-            json.dump(self.system_dict_to_json, fobj, cls=SympyEncoder, indent=4)
 
+        # ------------------------------------------------------------------
+        # Write sparse backend metadata so Model class can size buffers
+        # ------------------------------------------------------------------
+        self.system_dict_to_json['sparse_backend'] = self.sparse if self.sparse else None
+        self.system_dict_to_json['target'] = self.target
+            
         # Create dictionaries for the code generator with the symbolic equations
         self.f_ini_list = [{'sym': eq} for eq in self.sys['f']]
         self.f_run_list = [{'sym': eq} for eq in self.sys['f']]
@@ -86,6 +141,27 @@ class Builder:
         # --- Symbolic Math Phase ---
         self.sys = compute_base_jacobians(self.sys, self.inirun)
         build_large_jacobians(self) 
+
+        # ------------------------------------------------------------------
+        # NNZ is known only after Jacobians are built — write it now
+        # ------------------------------------------------------------------
+        if self.sparse:
+            _, Ai_ini, Ap_ini = self.jac_ini_sp[:3]
+            _, Ai_trap, Ap_trap = self.jac_trap_sp[:3]
+            self.system_dict_to_json['NNZ_ini'] = len(self.jac_ini_list)
+            self.system_dict_to_json['NNZ_trap'] = len(self.jac_trap_list)
+            # Store both sparsity patterns for diagnostics
+            self.system_dict_to_json['Ap_ini'] = [int(v) for v in Ap_ini]
+            self.system_dict_to_json['Ai_ini'] = [int(v) for v in Ai_ini]
+            self.system_dict_to_json['Ap_trap'] = [int(v) for v in Ap_trap]
+            self.system_dict_to_json['Ai_trap'] = [int(v) for v in Ai_trap]
+        else:
+            self.system_dict_to_json['NNZ_ini'] = 0
+            self.system_dict_to_json['NNZ_trap'] = 0
+
+        # Write the JSON metadata file
+        with open(f"{self.name}_data.json", "w") as fobj:
+            json.dump(self.system_dict_to_json, fobj, cls=SympyEncoder, indent=4)
         
         # --- Translation & Code Generation Phase ---
         if self.target == 'cffi':
@@ -93,7 +169,7 @@ class Builder:
         elif self.target == 'ctypes':
             self._build_ctypes()
         else:
-            raise ValueError(f"Target '{self.target}' is not supported yet.")
+            raise ValueError(f"Target '{self.target}' is not supported. Use 'cffi' or 'ctypes'.")
             
         logging.info("Build pipeline completed successfully!")
 

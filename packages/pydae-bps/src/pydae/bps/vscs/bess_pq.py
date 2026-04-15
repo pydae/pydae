@@ -148,10 +148,10 @@ def bess_pq(grid,name,bus_name,data_dict):
 
 def test():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pytest
 
-    grid = bmapu_builder.bmapu('bess_pq_Hithium.hjson')
+    grid = BpsBuilder('bess_pq_Hithium.hjson')
     #grid.checker()
     grid.verbose = False 
     grid.build('temp')

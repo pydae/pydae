@@ -9,7 +9,7 @@ import numpy as np
 import sympy as sym
 
 
-from pydae.bmapu.pods.pod_2wo_3ll import add_pod_2wo_3ll
+from pydae.bps.pods.pod_2wo_3ll import add_pod_2wo_3ll
 
 
 def add_pods(grid):

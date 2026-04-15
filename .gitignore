@@ -1,36 +1,44 @@
-*.nja
-.idea
-.cache
-
-MANIFEST
-
-*.py[cod]
-*.so
-
-dist
-build
-*.egg
-*.egg-info
-
-.ipynb_checkpoints/
-.benchmarks/
-
-.coverage
-
+# Python
 __pycache__/
-.eggs/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+*.dll
+*.dylib
 
-dev
-log.txt
+# Virtual environments
+.venv/
+venv/
+env/
 
+# uv
+uv.lock
 
-..gitignore.kate-swp
-.travis.yml
-for_dev.rst
-.pytest_cache
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-pydgrid.egg-info
+# Build artifacts from pydae
+*_cffi.c
+*_ctypes.c
+*_ctypes.so
+*_ctypes.dll
+system_data.json
 
-generate
+# OS
+.DS_Store
+Thumbs.db
 
-Release/
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter
+.ipynb_checkpoints/

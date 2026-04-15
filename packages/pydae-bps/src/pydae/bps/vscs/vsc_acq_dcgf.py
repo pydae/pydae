@@ -108,10 +108,10 @@ def vsc_acq_dcgf(grid,name,bus_j,bus_ac,data_dict):
 
 def test():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pytest
 
-    grid = bmapu_builder.bmapu('vsc_acq_dcgf.hjson')
+    grid = BpsBuilder('vsc_acq_dcgf.hjson')
     #grid.checker()
     grid.verbose = True 
     grid.build('temp')
@@ -129,10 +129,10 @@ def test():
 
 def test_hvdc():
     
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pytest
 
-    grid = bmapu_builder.bmapu('hvdc.hjson')
+    grid = BpsBuilder('hvdc.hjson')
     #grid.checker()
     grid.verbose = True 
     grid.build('temp')

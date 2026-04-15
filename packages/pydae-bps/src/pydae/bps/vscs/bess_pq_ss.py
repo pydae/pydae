@@ -8,7 +8,7 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 from sympy import interpolating_spline
-from pydae.utils.ss_num2sym import ss_num2sym
+#from pydae.utils.ss_num2sym import ss_num2sym
 
 def bess_pq_ss(grid,name,bus_name,data_dict):
     """
@@ -190,10 +190,10 @@ def bess_pq_ss(grid,name,bus_name,data_dict):
 
 def test_build():
 
-    from pydae.bmapu import bmapu_builder
+    from pydae.bps import BpsBuilder
     import pytest
 
-    grid = bmapu_builder.bmapu('bess_pq_ss.hjson')
+    grid = BpsBuilder('bess_pq_ss.hjson')
     #grid.checker()
     grid.verbose = False 
     grid.build('temp')

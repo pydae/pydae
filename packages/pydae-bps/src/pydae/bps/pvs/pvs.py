@@ -8,11 +8,11 @@ Created on Thu August 10 23:52:55 2022
 import numpy as np
 import sympy as sym
 
-from pydae.bmapu.pvs.pv_1 import pv_1
-from pydae.bmapu.pvs.pv_dq import pv_dq
-from pydae.bmapu.pvs.pv_dq_d import pv_dq_d
-from pydae.bmapu.pvs.pv_dq_ss import pv_dq_ss
-from pydae.bmapu.pvs.pv_dq_vrt import pv_dq_vrt
+from pydae.bps.pvs.pv_1 import pv_1
+from pydae.bps.pvs.pv_dq import pv_dq
+from pydae.bps.pvs.pv_dq_d import pv_dq_d
+from pydae.bps.pvs.pv_dq_ss import pv_dq_ss
+from pydae.bps.pvs.pv_dq_vrt import pv_dq_vrt
 
 def add_pvs(grid):
 

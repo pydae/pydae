@@ -9,7 +9,7 @@ symbolic DAE system dictionary for pydae.core.Builder.
 Migration checklist:
   1. Copy urisi_builder.py content here
   2. Rename class urisi -> UdsBuilder
-  3. Update internal imports from pydae.urisi.* -> pydae.uds.*
+  3. Update internal imports from pydae.uds.* -> pydae.uds.*
   4. Move component models into pydae/uds/components/
 """
 
