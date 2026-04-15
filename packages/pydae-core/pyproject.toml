@@ -59,7 +59,7 @@ include = ["src/", "README.md", "LICENSE"]
 
 [tool.hatch.build.targets.wheel.force-include]
 # Ensure C solver sources are shipped with the package
-"src/pydae/core/solver/daesolver_dense.c" = "pydae/core/solver/daesolver_dense.c"
-"src/pydae/core/solver/daesolver_dense.h" = "pydae/core/solver/daesolver_dense.h"
-"src/pydae/core/solver/daesolver_run_lapack.c" = "pydae/core/solver/daesolver_run_lapack.c"
-"src/pydae/core/solver/daesolver_run_lapack.h" = "pydae/core/solver/daesolver_run_lapack.h"
+"src/pydae/daesolver/daesolver_dense.c" = "pydae/daesolver/daesolver_dense.c"
+"src/pydae/daesolver/daesolver_dense.h" = "pydae/daesolver/daesolver_dense.h"
+"src/pydae/daesolver/daesolver_run_lapack.c" = "pydae/daesolver/daesolver_run_lapack.c"
+"src/pydae/daesolver/daesolver_run_lapack.h" = "pydae/daesolver/daesolver_run_lapack.h"
