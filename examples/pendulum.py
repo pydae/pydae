@@ -20,6 +20,9 @@ This is the example from the project README — kept as a runnable script
 so users can verify their pydae installation works end-to-end.
 """
 
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import numpy as np
 import sympy as sym
 
@@ -65,7 +68,7 @@ def build():
         },
     }
 
-    bld = Builder(sys_dict, target="ctypes")
+    bld = Builder(sys_dict, target="ctypes", sparse=False)
     bld.build()
     return bld
 
@@ -107,5 +110,20 @@ if __name__ == "__main__":
         theta = np.degrees(model.get_values("theta"))
         print(f"  duration   : {t[0]:.2f} s -> {t[-1]:.2f} s ({len(t)} samples)")
         print(f"  theta range: {theta.min():+.2f} deg .. {theta.max():+.2f} deg")
+
+        # Plot theta(t) and save as SVG next to this script
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(t, theta, color="tab:blue", linewidth=1.2)
+        ax.set_xlabel("time [s]")
+        ax.set_ylabel(r"$\theta$ [deg]")
+        ax.set_title("Pendulum — angle vs time")
+        ax.grid(True, alpha=0.3)
+        ax.axhline(0, color="black", linewidth=0.5)
+        fig.tight_layout()
+
+        out_path = Path(__file__).parent / "pendulum_theta.svg"
+        fig.savefig(out_path)
+        plt.close(fig)
+        print(f"  plot saved : {out_path}")
     except AttributeError:
         print("  (Model has finished — inspect attributes interactively)")
