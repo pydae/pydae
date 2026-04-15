@@ -5,6 +5,7 @@ Runnable examples that demonstrate the public API of the `pydae` packages.
 | File | What it shows |
 |---|---|
 | `pendulum.py` | Damped pendulum DAE — the example from the project README. Builds the system, compiles the C solver, and simulates 21 s of motion. |
+| `milano4ord_saturation.py` | Milano 4th-order synchronous-machine model built with `pydae.bps`. Steps mechanical power and plots speed, $e'_q$, and saturation factor to SVG. |
 
 ## Running
 
