@@ -30,15 +30,15 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "numpy>=1.24",
-    "scipy>=1.10",
-    "sympy>=1.12",
-    "numba>=0.57",
-    "cffi>=1.15",
-    "hjson>=3.1",
-    "pandas>=2.0",
-    "matplotlib>=3.7",
-    "svgwrite>=1.4",
+    "numpy",
+    "scipy",
+    "sympy",
+    "numba",
+    "cffi",
+    "hjson",
+    "pandas",
+    "matplotlib",
+    "svgwrite",
 ]
 
 [project.urls]
