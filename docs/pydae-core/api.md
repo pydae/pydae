@@ -18,12 +18,20 @@ The main public names are:
 - **`pydae.core.diagnostics`** — Jacobian health checks and structural
   analysis helpers.
 
-<!--
 ```{eval-rst}
 .. autosummary::
     :toctree: _autosummary
+    :nosignatures:
     :recursive:
 
     pydae.core
 ```
--->
+
+## pydae.ssa
+
+```{eval-rst}
+.. automodule:: pydae.ssa.ssa
+    :members:
+    :undoc-members:
+    :show-inheritance:
+```

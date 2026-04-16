@@ -2,6 +2,13 @@
 Sphinx configuration for pydae-core documentation.
 """
 
+import sys, pathlib
+# Expose the src layout so autodoc can locate pydae.core and pydae.ssa
+# even though pydae itself is a native namespace package (no __init__.py).
+_src = pathlib.Path(__file__).parents[2] / "packages" / "pydae-core" / "src"
+if str(_src) not in sys.path:
+    sys.path.insert(0, str(_src))
+
 # -- Project information -----------------------------------------------------
 project = "pydae-core"
 copyright = "2026, Juan Manuel Mauricio"
@@ -59,6 +66,7 @@ intersphinx_mapping = {
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
+suppress_warnings = ["autosummary"]
 
 # -- Autodoc ----------------------------------------------------------------
 autodoc_default_options = {
@@ -69,7 +77,7 @@ autodoc_default_options = {
 # Set to False for a pure "scaffold" build that doesn't require the package
 # to be importable. Flip to True (and install the package in the build env)
 # once you want an auto-generated API reference.
-autosummary_generate = False
+autosummary_generate = True
 
 # Mock heavy/optional deps so autodoc can still import when building on a
 # minimal environment.
@@ -78,6 +86,7 @@ autodoc_mock_imports = [
     "scipy",
     "sympy",
     "matplotlib",
+    "pandas",
     "cffi",
     "numba",
     "networkx",

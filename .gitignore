@@ -46,3 +46,7 @@ htmlcov/
 # Generated artifacts from examples
 examples/*.svg
 examples/*_data.json
+
+# Sphinx build output
+docs/**/_build/
+docs/**/_autosummary/

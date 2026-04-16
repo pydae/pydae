@@ -32,7 +32,6 @@ Element-family subpackages (each with its own element-level API):
 - `pydae.bps.sources` — ideal voltage sources, GENAPE
 - `pydae.bps.pssdesigner` — PSS design helper
 
-<!--
 ```{eval-rst}
 .. autosummary::
     :toctree: _autosummary
@@ -40,4 +39,3 @@ Element-family subpackages (each with its own element-level API):
 
     pydae.bps
 ```
--->

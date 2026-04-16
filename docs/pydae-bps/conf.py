@@ -2,6 +2,13 @@
 Sphinx configuration for pydae-bps documentation.
 """
 
+import sys, pathlib
+_root = pathlib.Path(__file__).parents[2] / "packages"
+for _pkg in ("pydae-core", "pydae-bps"):
+    _src = _root / _pkg / "src"
+    if str(_src) not in sys.path:
+        sys.path.insert(0, str(_src))
+
 project = "pydae-bps"
 copyright = "2026, Juan Manuel Mauricio"
 author = "Juan Manuel Mauricio"
@@ -52,23 +59,24 @@ intersphinx_mapping = {
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "**.ipynb_checkpoints"]
+suppress_warnings = ["autosummary"]
 
 autodoc_default_options = {
     "members": True,
     "undoc-members": True,
     "show-inheritance": True,
 }
-autosummary_generate = False
+autosummary_generate = True
 autodoc_mock_imports = [
     "numpy",
     "scipy",
     "sympy",
     "matplotlib",
+    "pandas",
     "cffi",
     "numba",
     "networkx",
     "hjson",
-    "pydae",
 ]
 
 html_theme = "furo"
