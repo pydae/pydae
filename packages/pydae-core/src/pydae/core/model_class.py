@@ -92,6 +92,7 @@ class Model:
         self.alpha = 0.5  # 0.5: Trapezoidal, 1.0: Backward Euler
         self.ini_iterations = 0
         self.step_counter = 0
+        self.N_store = 10_000  # default pre-allocated rows for Time/X/Y/Z
         
 
     # --- Memory Pointer Wrappers ---
@@ -153,8 +154,8 @@ class Model:
         self.xy = np.zeros(self.N_xy, dtype=np.float64)
         self.xy_ini = np.zeros(self.N_xy, dtype=np.float64)
         self.z = np.zeros(self.N_z, dtype=np.float64)
-        self.u_ini = np.zeros(max(1, len(self.u_ini_list)), dtype=np.float64)
-        self.u_run = np.zeros(max(1, len(self.u_run_list)), dtype=np.float64)
+        self.u_ini = np.array(self.u_ini_values_list, dtype=np.float64)
+        self.u_run = np.array(self.u_run_values_list, dtype=np.float64)
         self.p = np.zeros(max(1, len(self.params_list)), dtype=np.float64)
 
         self.yini2urun = list(set(self.u_run_list).intersection(set(self.y_ini_list)))
@@ -164,7 +165,7 @@ class Model:
 
         # Load parameter defaults
         self.params_dict = self.data_dict.get('params_dict', {})
-        print('self.params_dict', self.params_dict)
+
         for name, val in self.params_dict.items():
             if name in self.params_dict:
                 self.p[self.params_list.index(name)] = val
@@ -198,6 +199,17 @@ class Model:
             elif item in self.y_ini_list:
                 self.xy_0[self.y_ini_list.index(item) + self.N_x] = value
 
+    def load_xy_0(self, file_name='xy_0.json'):
+        """Load initial guesses for the xy_0 vector from a JSON file.
+
+        The file must contain a flat mapping of variable name -> value.
+        Keys that do not match any entry in ``x_list`` or ``y_ini_list``
+        are silently ignored.
+        """
+        with open(file_name) as fobj:
+            xy_0_dict = json.loads(fobj.read())
+        self.dict2xy0(xy_0_dict)
+
     def ini(self, params_dict, xy_0='None'):
         """Solves the steady-state (Newton-Raphson)."""
         for k, v in params_dict.items(): self.set_value(k, v)
@@ -218,16 +230,20 @@ class Model:
         self.step_counter = 0
         self.t_start = 0.0
 
+        # Pre-allocate fixed storage (old-pydae pattern): N_store rows,
+        # truncated later in post(). Reused across multiple run() calls.
+        n = int(self.N_store)
+        self.Time = np.zeros(n, dtype=np.float64)
+        self.X = np.zeros(n * self.N_x, dtype=np.float64)
+        self.Y = np.zeros(n * self.N_y, dtype=np.float64)
+        self.Z = np.zeros(n * self.N_z, dtype=np.float64)
+
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
         self.jac_ini_flat = np.zeros(self.jac_size_ini, dtype=np.float64)
         self.pivots_ini = np.zeros(self.N_xy, dtype=np.int32)
         Dxy = np.zeros(self.N_xy, dtype=np.float64)
         self.ini_int = np.array([0, 0, 0, 0, 0], dtype=np.int32)
         ini_dbl = np.zeros(5, dtype=np.float64)
-
-        print('self.x', self.x)
-        print('self.y_ini', self.y_ini)
-        print('self.xy_ini', self.xy_ini)
 
         res_ini = self.solver_lib.ini(
             self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy), 
@@ -266,20 +282,28 @@ class Model:
         """Simulates the time-domain evolution."""
         for k, v in inputs_dict.items(): self.set_value(k, v)
 
-        # Handle dynamic storage allocation
+        # Storage: pre-allocated in ini() with N_store rows. Only grow
+        # (doubling) if the decimation-aware required row count exceeds
+        # current capacity. This mirrors the old-pydae pattern and avoids
+        # per-run over-allocation.
         self.t_start = getattr(self, 't_start', 0.0)
-        req_steps = int(np.ceil((t_end - self.t_start) / self.Dt)) + 2
-        req_store = self.it_store[0] + req_steps
+        dec = max(1, int(self.decimation))
+        n_solver_steps = int(np.ceil((t_end - self.t_start) / self.Dt)) + 2
+        req_new_rows = int(np.ceil(n_solver_steps / dec)) + 1
+        req_store = int(self.it_store[0]) + req_new_rows
 
         if not hasattr(self, 'Time') or len(self.Time) < req_store:
-            alloc_size = req_store + 5000
-            new_Time = np.zeros(alloc_size, dtype=np.float64)
-            new_X = np.zeros(alloc_size * self.N_x, dtype=np.float64)
-            new_Y = np.zeros(alloc_size * self.N_y, dtype=np.float64)
-            new_Z = np.zeros(alloc_size * self.N_z, dtype=np.float64)
-            
+            # Doubling growth, starting from N_store
+            new_size = max(int(self.N_store), len(getattr(self, 'Time', [])))
+            while new_size < req_store:
+                new_size *= 2
+            new_Time = np.zeros(new_size, dtype=np.float64)
+            new_X = np.zeros(new_size * self.N_x, dtype=np.float64)
+            new_Y = np.zeros(new_size * self.N_y, dtype=np.float64)
+            new_Z = np.zeros(new_size * self.N_z, dtype=np.float64)
+
             if hasattr(self, 'Time') and self.it_store[0] > 0:
-                idx = self.it_store[0]
+                idx = int(self.it_store[0])
                 new_Time[:idx] = self.Time[:idx]
                 new_X[:idx * self.N_x] = self.X[:idx * self.N_x]
                 new_Y[:idx * self.N_y] = self.Y[:idx * self.N_y]
@@ -337,7 +361,7 @@ class Model:
         """Gets a time-series array of a variable from the stored simulation history."""
         if name in self.x_list:     return self.X[:, self.x_list.index(name)]
         if name in self.y_run_list: return self.Y[:, self.y_run_list.index(name)]
-        if name in self.h_list:     return self.Z[:, self.h_list.index(name)]
+        if name in self.z_list:     return self.Z[:, self.z_list.index(name)]
         return None
 
     # --- REPORTING FUNCTIONS ---
@@ -423,12 +447,3 @@ def test_pendulum():
 
     plt.figure(figsize=(10, 5))
     plt.plot(model.Time, np.rad2deg(model.get_values('theta')))
-    plt.title('Dynamic Response of Pendulum')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Angle (degrees)')
-    plt.grid(True)
-    plt.savefig('pendulum.svg')
-
-if __name__ == "__main__":
-    test_build_pendulum('temp',  target='cffi', sparse='pardiso')
-    test_pendulum()

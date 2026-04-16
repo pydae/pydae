@@ -35,6 +35,7 @@ dependencies = [
     "sympy",
     "numba",
     "cffi",
+    "setuptools",  # required by cffi.ffi.compile() on Python >= 3.12
     "hjson",
     "pandas",
     "matplotlib",

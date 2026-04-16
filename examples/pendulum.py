@@ -20,6 +20,7 @@ This is the example from the project README — kept as a runnable script
 so users can verify their pydae installation works end-to-end.
 """
 
+import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -27,6 +28,10 @@ import numpy as np
 import sympy as sym
 
 from pydae.core import Builder, Model
+
+# Make all relative paths resolve inside this examples/ folder regardless
+# of the caller's working directory.
+os.chdir(Path(__file__).parent)
 
 
 def build():

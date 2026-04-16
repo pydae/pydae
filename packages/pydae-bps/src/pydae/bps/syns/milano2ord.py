@@ -246,6 +246,8 @@ def test_run():
     model.run(1.0, {})
     model.run(10.0, {'p_m_1': 1.0, 'D_1':20.0})    # Fault cleared
 
+    print(model.Time)
+
     model.post()
 
     fig, axes = plt.subplots()
