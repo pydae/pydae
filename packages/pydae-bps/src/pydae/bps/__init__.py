@@ -17,6 +17,13 @@ Quick start::
 
 """
 
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("pydae-bps")
+except PackageNotFoundError:
+    __version__ = "unknown"
+
 from pydae.bps.bps_builder import BpsBuilder
 
-__all__ = ["BpsBuilder"]
+__all__ = ["BpsBuilder", "__version__"]

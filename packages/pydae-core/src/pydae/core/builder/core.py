@@ -194,6 +194,8 @@ class Builder:
         sym2xyup_fn(self.sys, self.jac_run_list, 'run')
         sym2xyup_fn(self.sys, self.jac_trap_list, 'run')
 
+        logging.info("End translating symbolic equations to C strings.")
+
     def _build_cffi(self):
         from pydae.core.builder.codegen.cffi_builder import sym2c, sym2xyup, generate_and_compile_cffi
         self._translate_all(sym2c, sym2xyup)

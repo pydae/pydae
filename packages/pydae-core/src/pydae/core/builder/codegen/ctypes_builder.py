@@ -138,8 +138,9 @@ def generate_and_compile_ctypes(builder_obj):
 
     output_dir = os.path.abspath('build')
     os.makedirs(output_dir, exist_ok=True)
-    c_file_path = os.path.join(output_dir, f"temp_ctypes_{builder_obj.name}.c")
-    lib_path = os.path.join(output_dir, f"{builder_obj.name}_ctypes{lib_ext}")
+    backend_tag = sparse_backend or 'dense'
+    c_file_path = os.path.join(output_dir, f"{builder_obj.name}_ctypes_{backend_tag}.c")
+    lib_path = os.path.join(output_dir, f"{builder_obj.name}_ctypes_{backend_tag}{lib_ext}")
     
     dae_dense_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'daesolver', 'daesolver.c'))
     dae_include_dir = os.path.dirname(dae_dense_path)
@@ -160,7 +161,14 @@ def generate_and_compile_ctypes(builder_obj):
     else:
         compiler = 'gcc'
     
-    compile_cmd = [compiler, '-O3']
+    if is_windows:
+        # -O2 avoids aggressive SIMD vectorisation from -O3 that can cause
+        # stack-misalignment corruption when Python (MSVC) calls into a
+        # MinGW-compiled DLL.  -mstackrealign forces the DLL entry points
+        # to re-align the stack on every call, matching MSVC's ABI.
+        compile_cmd = [compiler, '-O2', '-mstackrealign']
+    else:
+        compile_cmd = [compiler, '-O3']
 
     # Platform-specific shared library flags
     if is_windows:

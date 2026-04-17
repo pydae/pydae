@@ -23,6 +23,7 @@ Jacobian buffer size: ``NNZ`` entries for any sparse backend, or
 import ctypes
 import numpy as np
 from numpy.ctypeslib import ndpointer
+from scipy.sparse import csc_matrix, csr_matrix
 import sys
 import os
 import json
@@ -36,20 +37,28 @@ class Model:
     def __init__(self, model_name, matrices_folder='./build', data_folder='.'):
         self.model_name = model_name
         self.is_cffi = False
-        
+
         # Add the build folder to sys.path to ensure CFFI modules are importable
         sys.path.insert(0, os.path.abspath(matrices_folder))
-        
+
+        # Load system metadata (JSON) first — needed to derive library name
+        self._load_system_data(data_folder)
+
+        # Derive the backend tag for the library filename
+        # e.g. "pendulum_cffi_klu", "pendulum_ctypes_dense"
+        backend_tag = self.sparse_backend or 'dense'
+        target = self.data_dict.get('target', 'cffi')
+
         # 1. Attempt to load the CFFI backend (Preferred for Windows/Sparse compatibility)
         try:
-            module = importlib.import_module(f"{self.model_name}_cffi")
+            module = importlib.import_module(f"{self.model_name}_cffi_{backend_tag}")
             self.ffi = module.ffi
             self.solver_lib = module.lib
             self.is_cffi = True
         except ImportError:
             # 2. Fallback to classic ctypes backend
             self.lib_ext = '.dll' if sys.platform == 'win32' else ('.dylib' if sys.platform == 'darwin' else '.so')
-            lib_filename = f"{self.model_name}_ctypes{self.lib_ext}"
+            lib_filename = f"{self.model_name}_ctypes_{backend_tag}{self.lib_ext}"
             self.lib_path = os.path.abspath(os.path.join(matrices_folder, lib_filename))
 
             # Fix for Windows Conda environments to find compiler-related DLLs
@@ -60,29 +69,26 @@ class Model:
 
             if not os.path.exists(self.lib_path):
                 raise FileNotFoundError(f"Shared library not found for {self.model_name}. Did you run the builder?")
-            
+
             self.solver_lib = ctypes.CDLL(self.lib_path)
-            
+
             # Define pointer types for ctypes
             c_double_p = ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS')
             c_int_p = ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS')
 
             # Signatures for ini (18 arguments) and run (27 arguments)
             self.solver_lib.ini.argtypes = [
-                c_double_p, c_int_p, c_double_p, c_double_p, c_double_p, c_double_p, 
-                c_double_p, c_double_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_double, 
+                c_double_p, c_int_p, c_double_p, c_double_p, c_double_p, c_double_p,
+                c_double_p, c_double_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_double,
                 c_double_p, c_double_p, c_int_p, c_double_p, c_double_p, c_double_p
             ]
             self.solver_lib.run.argtypes = [
-                ctypes.c_double, ctypes.c_double, c_double_p, c_int_p, c_double_p, c_double_p, 
-                c_double_p, c_double_p, c_double_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, 
-                ctypes.c_double, c_int_p, ctypes.c_double, c_double_p, c_double_p, c_int_p, 
-                c_double_p, c_double_p, c_double_p, c_double_p, ctypes.c_int, ctypes.c_int, 
+                ctypes.c_double, ctypes.c_double, c_double_p, c_int_p, c_double_p, c_double_p,
+                c_double_p, c_double_p, c_double_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
+                ctypes.c_double, c_int_p, ctypes.c_double, c_double_p, c_double_p, c_int_p,
+                c_double_p, c_double_p, c_double_p, c_double_p, ctypes.c_int, ctypes.c_int,
                 c_double_p, c_double_p, c_double_p
             ]
-
-        # Load system metadata (JSON)
-        self._load_system_data(data_folder)
         
         # Default solver settings
         self.max_it = 50
@@ -210,6 +216,60 @@ class Model:
             xy_0_dict = json.loads(fobj.read())
         self.dict2xy0(xy_0_dict)
 
+    def save_xy_0(self,file_name = 'xy_0.json'):
+        xy_0_dict = {}
+        for item in self.x_list:
+            xy_0_dict.update({item:self.get_value(item)})
+        for item in self.y_ini_list:
+            xy_0_dict.update({item:self.get_value(item)})
+    
+        xy_0_str = json.dumps(xy_0_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(xy_0_str)
+    
+    def load_xy_0(self,file_name = 'xy_0.json'):
+        with open(file_name) as fobj:
+            xy_0_str = fobj.read()
+        xy_0_dict = json.loads(xy_0_str)
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
+
+    def load_params(self,data_input):
+    
+        if type(data_input) == str:
+            json_file = data_input
+            self.json_file = json_file
+            self.json_data = open(json_file).read().replace("'",'"')
+            data = json.loads(self.json_data)
+        elif type(data_input) == dict:
+            data = data_input
+    
+        self.data = data
+        for item in self.data:
+            self.set_value(item, self.data[item])
+
+    def save_params(self,file_name = 'parameters.json'):
+        params_dict = {}
+        for item in self.params_list:
+            params_dict.update({item:self.get_value(item)})
+
+        params_dict_str = json.dumps(params_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(params_dict_str)
+
+    def save_inputs_ini(self,file_name = 'inputs_ini.json'):
+        inputs_ini_dict = {}
+        for item in self.inputs_ini_list:
+            inputs_ini_dict.update({item:self.get_value(item)})
+
+        inputs_ini_dict_str = json.dumps(inputs_ini_dict, indent=4)
+        with open(file_name,'w') as fobj:
+            fobj.write(inputs_ini_dict_str)
+            
     def ini(self, params_dict, xy_0='None'):
         """Solves the steady-state (Newton-Raphson)."""
         for k, v in params_dict.items(): self.set_value(k, v)
@@ -328,6 +388,110 @@ class Model:
         self.t_start = t_end
         self.step_counter = run_int[7]
 
+    def _sparse_to_dense_jac(self, flat, which='trap'):
+        """Expand a NNZ-long Jacobian buffer to a dense ``(N_xy, N_xy)``
+        array using the sparsity pattern stored in ``data_dict``.
+
+        The JSON always stores 0-based CSC arrays (column pointers + row
+        indices) regardless of backend.  The 1-based offset for PARDISO
+        is only applied inside the generated C code, not in the metadata.
+        """
+        Ap = np.asarray(self.data_dict[f'Ap_{which}'], dtype=np.intp)
+        Ai = np.asarray(self.data_dict[f'Ai_{which}'], dtype=np.intp)
+        n = self.N_xy
+
+        # All backends: JSON stores 0-based CSC
+        M = csc_matrix((flat, Ai, Ap), shape=(n, n))
+        return M.toarray()
+
+    def _ensure_jac_trap_argtypes(self):
+        """Lazy ctypes argtypes setup for ``jac_trap_eval``."""
+        if self.is_cffi:
+            return
+        fn = self.solver_lib.jac_trap_eval
+        if fn.argtypes:
+            return
+        c_double_p = ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS')
+        fn.argtypes = [c_double_p, c_double_p, c_double_p,
+                       c_double_p, c_double_p, ctypes.c_double]
+
+    def jac_run_eval(self):
+        """Evaluate the run Jacobian ``jac_run = [[F_x, F_y], [G_x, G_y]]``.
+
+        Calls the compiled ``jac_trap_eval`` at the current operating point
+        to obtain ``jac_trap``::
+
+            jac_trap = [[I - alpha*Dt*F_x,  -alpha*Dt*F_y],
+                        [       G_x,               G_y    ]]
+
+        then recovers the run-Jacobian blocks::
+
+            F_x = (I - jac_trap[:N_x, :N_x]) / (alpha*Dt)
+            F_y = -jac_trap[:N_x, N_x:]      / (alpha*Dt)
+            G_x =  jac_trap[N_x:, :N_x]
+            G_y =  jac_trap[N_x:, N_x:]
+        """
+        self._ensure_jac_trap_argtypes()
+
+        # Current operating point
+        self.x = self.xy[:self.N_x]
+        self.y_run = self.xy[self.N_x:]
+
+        jac_trap_flat = np.zeros(self.jac_size_trap, dtype=np.float64)
+        self.solver_lib.jac_trap_eval(
+            self._d(jac_trap_flat),
+            self._d(self.x), self._d(self.y_run),
+            self._d(self.u_run), self._d(self.p),
+            self.Dt,
+        )
+
+        # Dense form of jac_trap
+        if self.is_sparse:
+            self.jac_trap = self._sparse_to_dense_jac(jac_trap_flat, which='trap')
+        else:
+            self.jac_trap = jac_trap_flat.reshape((self.N_xy, self.N_xy))
+
+        # Reconstruct the run Jacobian blocks
+        N_x = self.N_x
+        alpha_dt = self.alpha * self.Dt
+
+        self.F_x = (np.eye(N_x) - self.jac_trap[:N_x, :N_x]) / alpha_dt
+        self.F_y = -self.jac_trap[:N_x, N_x:] / alpha_dt
+        self.G_x = self.jac_trap[N_x:, :N_x]
+        self.G_y = self.jac_trap[N_x:, N_x:]
+
+        self.jac_run = np.block([[self.F_x, self.F_y], [self.G_x, self.G_y]])
+        return self.jac_run
+
+    def A_eval(self):
+        """Compute the reduced linearized state matrix ``A``.
+
+        Eliminates the algebraic variables from the DAE linearization via the
+        Schur complement::
+
+            A = F_x - F_y @ inv(G_y) @ G_x
+
+        Requires that ``jac_run_eval`` has been called (or calls it lazily)
+        so that ``F_x``, ``F_y``, ``G_x``, ``G_y`` are available.
+
+        Returns
+        -------
+        numpy.ndarray
+            The ``(N_x, N_x)`` state matrix of the linearized system
+            ``dx/dt = A @ dx`` around the current operating point.
+        """
+        if not hasattr(self, "F_x"):
+            self.jac_run_eval()
+
+        if self.N_y > 0:
+            # Solve G_y * Z = G_x  -> Z = inv(G_y) @ G_x
+            Z = np.linalg.solve(self.G_y, self.G_x)
+            self.A = self.F_x - self.F_y @ Z
+        else:
+            self.A = self.F_x.copy()
+
+        return self.A
+
     def post(self):
         """Truncates pre-allocated arrays and reshapes results."""
         idx = self.it_store[0]
@@ -354,7 +518,7 @@ class Model:
         if name in self.x_list:     return self.xy[self.x_list.index(name)]
         if name in self.y_run_list: return self.xy[self.N_x + self.y_run_list.index(name)]
         if name in self.params_list:return self.p[self.params_list.index(name)]
-        if name in self.h_list:     return self.z[self.h_list.index(name)]
+        if name in self.h_list:     return self.z[self.z_list.index(name)]
         return None
 
     def get_values(self, name):
@@ -368,7 +532,7 @@ class Model:
     def report_x(self, fmt='5.2f'): [print(f"{i:5s} = {self.get_value(i):{fmt}}") for i in self.x_list]
     def report_y(self, fmt='5.2f'): [print(f"{i:5s} = {self.get_value(i):{fmt}}") for i in self.y_run_list]
     def report_u(self, fmt='5.2f'): [print(f"{i:5s} = {self.get_value(i):{fmt}}") for i in self.u_run_list]
-    def report_z(self, fmt='5.2f'): [print(f"{i:5s} = {self.get_value(i):{fmt}}") for i in self.h_list]
+    def report_z(self, fmt='5.2f'): [print(f"{i:5s} = {self.get_value(i):{fmt}}") for i in self.z_list]
     def report_params(self, fmt='5.2f'): [print(f"{i:5s} = {self.get_value(i):{fmt}}") for i in self.params_list]
 
 
@@ -385,65 +549,3 @@ def test_build_pendulum(model_name,  target='ctypes', sparse=False):
     L,G,M,K_d,K_lam = sym.symbols('L,G,M,K_d,K_lam', real=True)
     p_x,p_y,v_x,v_y = sym.symbols('p_x,p_y,v_x,v_y', real=True) 
     lam,f_x,theta,u_dummy = sym.symbols('lam,f_x,theta,u_dummy', real=True) 
-
-    dp_x = v_x 
-    dp_y = v_y
-    dv_x = (-2*p_x*lam + f_x - K_d*v_x)/M
-    dv_y = (-M*G - 2*p_y*lam - K_d*v_y)/M   
-
-    g_1 = p_x**2 + p_y**2 - L**2 -lam*K_lam
-    g_2 = -theta + sym.atan2(p_x,-p_y) + u_dummy
-
-    params_dict = {'L':5.21,'G':9.81,'M':10.0,'K_d':1e-3,'K_lam':1e-6}  # parameters with default values
-
-    u_ini_dict = {'theta':np.deg2rad(5.0),'u_dummy':0.0}  # input for the initialization problem
-    u_run_dict = {'f_x':0,'u_dummy':0.0}                  # input for the running problem, its value is updated 
-
-    sys_dict = {'name':model_name, 'target':'ctypes',
-                'params_dict':params_dict,
-                'f_list':[dp_x,dp_y,dv_x,dv_y],
-                'g_list':[g_1,g_2],
-                'x_list':[ p_x, p_y, v_x, v_y],
-                'y_ini_list':[lam,f_x],
-                'y_run_list':[lam,theta],
-                'u_ini_dict':u_ini_dict,
-                'u_run_dict':u_run_dict,
-                'h_dict':{'E_p':M*G*(p_y+L),'E_k':0.5*M*(v_x**2+v_y**2),'f_x':f_x,'lam':lam}} 
-
-    bld = Builder(sys_dict, target=target, sparse=sparse)
-    bld.build()
-
-def test_pendulum():
-
-    import time
-
-    model = Model('temp')
-    model.report_params()
-    M = 30.0  
-    L = 5.21  
-    deg = 30
-    
-    p_x_0 = L * np.sin(np.deg2rad(deg))
-    p_y_0 = -L * np.cos(np.deg2rad(deg))
-    xy_0 = {'p_x': p_x_0, 'p_y': p_y_0, 'lam': 55, 'f_x': 1}
-    K_lam = 1e-6
- 
-    t_1 = time.perf_counter_ns()
-    success = model.ini({'M': M, 'L': L, 'K_lam': K_lam, 'theta': np.deg2rad(deg), 'K_d': 0.0}, xy_0=xy_0) 
-    t_2 = time.perf_counter_ns()
-    model.report_y()
-
-    t_3 = time.perf_counter_ns()
-    model.run(1.0, {})
-    model.run(20.0, {'f_x': 0.0})
-    #model.run(40.0, {'K_d': 10})
-    t_4 = time.perf_counter_ns()
-    model.post()
-
-    print("model.Time", model.Time)
-    print("model.get_values('theta')", model.get_values('theta'))
-
-    import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(10, 5))
-    plt.plot(model.Time, np.rad2deg(model.get_values('theta')))

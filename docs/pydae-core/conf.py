@@ -13,7 +13,7 @@ if str(_src) not in sys.path:
 project = "pydae-core"
 copyright = "2026, Juan Manuel Mauricio"
 author = "Juan Manuel Mauricio"
-release = "1.0.1"
+release = "1.0.2"
 
 # -- General configuration ---------------------------------------------------
 extensions = [

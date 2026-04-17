@@ -5,6 +5,7 @@ import platform
 import logging
 import sympy as sym
 from cffi import FFI
+from concurrent.futures import ProcessPoolExecutor
 
 # ---------------------------------------------------------------------------
 # Supported sparse solver backends (C preprocessor define, compiler flag)
@@ -15,23 +16,102 @@ SPARSE_BACKENDS = {
     'accelerate': 'USE_ACCELERATE',   # Apple Accelerate  (0-based CSC, long* Ap)
 }
 
+# ---------------------------------------------------------------------------
+# Parallel translation tuning
+# ---------------------------------------------------------------------------
+# Parallel ``sym2c`` / ``sym2xyup`` is OPT-IN. Using it requires the build
+# script to be guarded by ``if __name__ == "__main__":`` so that child
+# processes re-importing the module on Windows (spawn) don't re-execute
+# the build. Enable by setting ``PYDAE_PARALLEL=1``.
+PARALLEL_ENABLED = os.environ.get("PYDAE_PARALLEL", "0") == "1"
+# Below this list length, stay serial — spawn overhead dominates.
+PARALLEL_MIN = int(os.environ.get("PYDAE_PARALLEL_MIN", "200"))
+# Max workers (default: CPU count). Override via ``PYDAE_MAX_WORKERS``.
+_MAX_WORKERS = os.environ.get("PYDAE_MAX_WORKERS")
+MAX_WORKERS = int(_MAX_WORKERS) if _MAX_WORKERS else (os.cpu_count() or 1)
+
+
+# ---------------------------------------------------------------------------
+# Top-level worker functions — must be picklable for multiprocessing (spawn)
+# ---------------------------------------------------------------------------
+def _ccode_one(expr):
+    """Worker: convert one SymPy expression to a C code string."""
+    return sym.ccode(expr)
+
+
+def _xyup_one(args):
+    """Worker: apply pre-built (pattern, replacement) substitutions to a
+    single C code string. ``patterns`` is a list of (compiled regex or
+    string, replacement) pairs — we use pre-formatted (name, repl) tuples
+    and re-compile inside the worker so the payload stays small."""
+    ccode, patterns = args
+    for name, repl in patterns:
+        ccode = re.sub(rf'\b{name}\b', repl, ccode)
+    return ccode
+
 
 def sym2c(full_list):
-    """Converts a list of SymPy expressions into C code strings."""
-    for item in full_list:
-        item.update({'ccode': sym.ccode(item['sym'])})
+    """Converts a list of SymPy expressions into C code strings.
+
+    Parallelised with a process pool when the list is long enough to
+    amortise spawn cost (see ``PARALLEL_MIN``).
+    """
+    n = len(full_list)
+    if n == 0:
+        return
+    if not PARALLEL_ENABLED or n < PARALLEL_MIN or MAX_WORKERS <= 1:
+        for item in full_list:
+            item['ccode'] = sym.ccode(item['sym'])
+        return
+
+    exprs = [item['sym'] for item in full_list]
+    workers = min(MAX_WORKERS, n)
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        # chunksize amortises IPC overhead across many small tasks
+        chunksize = max(1, n // (workers * 8))
+        results = list(pool.map(_ccode_one, exprs, chunksize=chunksize))
+    for item, ccode in zip(full_list, results):
+        item['ccode'] = ccode
+
+
+def _xyup_patterns(sys, inirun):
+    """Build the ordered list of (name, replacement) substitutions shared
+    by every expression in an ``inirun`` pass."""
+    patterns = [(x, f'x[{i}]') for i, x in enumerate(sys['x_list'])]
+    y_list = sys['y_ini_list'] if inirun == 'ini' else sys['y_run_list']
+    patterns += [(y, f'y[{i}]') for i, y in enumerate(y_list)]
+    u_dict = sys['u_ini_dict'] if inirun == 'ini' else sys['u_run_dict']
+    patterns += [(u, f'u[{i}]') for i, u in enumerate(u_dict.keys())]
+    patterns += [(p, f'p[{i}]')
+                 for i, p in enumerate(sys.get('params_dict', {}).keys())]
+    return patterns
+
 
 def sym2xyup(sys, full_list, inirun):
-    """Replaces variable names in C code strings with C array index syntax."""
-    for item in full_list:
-        string = item['ccode']
-        for it, x in enumerate(sys['x_list']): string = re.sub(rf'\b{x}\b', f'x[{it}]', string)
-        y_list = sys['y_ini_list'] if inirun == 'ini' else sys['y_run_list']
-        for it, y in enumerate(y_list): string = re.sub(rf'\b{y}\b', f'y[{it}]', string)
-        u_dict = sys['u_ini_dict'] if inirun == 'ini' else sys['u_run_dict']
-        for it, u in enumerate(u_dict.keys()): string = re.sub(rf'\b{u}\b', f'u[{it}]', string)
-        for it, p in enumerate(sys.get('params_dict', {}).keys()): string = re.sub(rf'\b{p}\b', f'p[{it}]', string)
-        item['xyup'] = string
+    """Replaces variable names in C code strings with C array index syntax.
+
+    Parallelised with a process pool when the list is long enough.
+    """
+    n = len(full_list)
+    if n == 0:
+        return
+    patterns = _xyup_patterns(sys, inirun)
+
+    if not PARALLEL_ENABLED or n < PARALLEL_MIN or MAX_WORKERS <= 1:
+        for item in full_list:
+            string = item['ccode']
+            for name, repl in patterns:
+                string = re.sub(rf'\b{name}\b', repl, string)
+            item['xyup'] = string
+        return
+
+    payload = [(item['ccode'], patterns) for item in full_list]
+    workers = min(MAX_WORKERS, n)
+    with ProcessPoolExecutor(max_workers=workers) as pool:
+        chunksize = max(1, n // (workers * 8))
+        results = list(pool.map(_xyup_one, payload, chunksize=chunksize))
+    for item, xyup in zip(full_list, results):
+        item['xyup'] = xyup
 
 def _get_c_funcs(func_name, eq_list, is_sparse=False):
     def_str = f'void {func_name}(double *data, double *x, double *y, double *u, double *p, double Dt);\n'
@@ -140,10 +220,12 @@ def generate_and_compile_cffi(builder_obj):
                 double *u, double *p, int N_x, int N_y, int max_it, double itol, 
                 double *z, double *inidblparams, int *iniintparams, double *f, double *g, double *fg);
 
-        int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double *y, double *xy, 
-                double *u, double *p, int N_x, int N_y, int max_it, double itol, 
-                int *its, double Dt, double *z, double *dblparams, int *intparams, double *Time, 
+        int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double *y, double *xy,
+                double *u, double *p, int N_x, int N_y, int max_it, double itol,
+                int *its, double Dt, double *z, double *dblparams, int *intparams, double *Time,
                 double *X, double *Y, double *Z, int N_z, int N_store, double *f, double *g, double *fg);
+
+        void jac_trap_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
     """)
 
     # 6. Paths and OS detection
@@ -171,15 +253,23 @@ def generate_and_compile_cffi(builder_obj):
     include_dirs = [dae_include_dir]
     library_dirs = []
     libraries = []
-    extra_compile_args = ['-O3']
+    define_macros = []
     extra_link_args = []
+
+    # Use /O2 on MSVC, -O3 on GCC/Clang
+    if is_windows:
+        extra_compile_args = ['/O2']
+    else:
+        extra_compile_args = ['-O3']
 
     # CRITICAL: Pass the backend #define as a compiler flag so it is visible
     # to BOTH compilation units (the generated model source AND daesolver.c
     # which is compiled separately via the `sources=` parameter).
+    # Using define_macros ensures cross-compiler compatibility (MSVC uses
+    # /D, GCC/Clang uses -D — distutils handles the translation).
     if is_sparse:
         c_define = SPARSE_BACKENDS[sparse_backend]
-        extra_compile_args.append(f'-D{c_define}')
+        define_macros.append((c_define, '1'))
 
     # ------------------------------------------------------------------
     # 8. Backend-specific include / library / linker configuration
@@ -199,7 +289,8 @@ def generate_and_compile_cffi(builder_obj):
     # ------------------------------------------------------------------
     # 9. Configure CFFI Extension Source
     # ------------------------------------------------------------------
-    module_name = f"{builder_obj.name}_cffi"
+    backend_tag = sparse_backend or 'dense'
+    module_name = f"{builder_obj.name}_cffi_{backend_tag}"
     
     ffi.set_source(
         module_name,
@@ -208,19 +299,58 @@ def generate_and_compile_cffi(builder_obj):
         include_dirs=include_dirs,
         library_dirs=library_dirs,
         libraries=libraries,
+        define_macros=define_macros,       # e.g. [('USE_SPARSE', '1')] — portable across MSVC/GCC
         extra_compile_args=extra_compile_args,
         extra_link_args=extra_link_args,
     )
 
     # 10. Execute Compilation
-    logging.info(f"[CFFI] Compiling module '{module_name}' "
-                 f"(backend: {sparse_backend or 'dense'})")
-    try:
-        lib_path = ffi.compile(tmpdir=output_dir)
-        logging.info(f"[CFFI] Compilation successful. Python Module saved at: {lib_path}")
-    except Exception as e:
-        logging.error(f"[CFFI] Compilation FAILED. Exception: {e}")
-        raise e
+    # Skip recompile when source is unchanged (hash check).  On Windows the
+    # old .pyd is held open by the OS until the previous process fully exits;
+    # overwriting it while the handle is still alive corrupts the DLL and
+    # causes nondeterministic crashes.  Renaming (not deleting) the old file
+    # releases the name so the new .pyd can be written safely.
+    import hashlib, glob
+
+    src_hash = hashlib.sha256(all_sources.encode()).hexdigest()[:16]
+    hash_file = os.path.join(output_dir, f"{module_name}.hash")
+
+    skip_compile = False
+    if os.path.exists(hash_file):
+        with open(hash_file) as _hf:
+            if _hf.read().strip() == src_hash:
+                # Also verify the .pyd/.so actually exists
+                existing = glob.glob(os.path.join(output_dir, f"{module_name}.*"))
+                existing = [p for p in existing if not p.endswith('.hash')]
+                if existing:
+                    skip_compile = True
+                    logging.info(f"[CFFI] Source unchanged — reusing cached '{module_name}'")
+
+    if not skip_compile:
+        # On Windows, rename the old .pyd before writing the new one so that
+        # any still-open DLL handle points to the renamed file, not the path
+        # the new compile will write to.
+        if is_windows:
+            old_pyds = glob.glob(os.path.join(output_dir, f"{module_name}.*.pyd"))
+            for old_pyd in old_pyds:
+                try:
+                    stale = old_pyd + ".stale"
+                    if os.path.exists(stale):
+                        os.remove(stale)
+                    os.rename(old_pyd, stale)
+                except OSError:
+                    pass  # file still locked — compiler will overwrite in-place
+
+        logging.info(f"[CFFI] Compiling module '{module_name}' "
+                     f"(backend: {sparse_backend or 'dense'})")
+        try:
+            lib_path = ffi.compile(tmpdir=output_dir)
+            logging.info(f"[CFFI] Compilation successful. Python Module saved at: {lib_path}")
+            with open(hash_file, 'w') as _hf:
+                _hf.write(src_hash)
+        except Exception as e:
+            logging.error(f"[CFFI] Compilation FAILED. Exception: {e}")
+            raise e
 
 
 # ==============================================================================

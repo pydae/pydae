@@ -73,7 +73,7 @@ def build():
         },
     }
 
-    bld = Builder(sys_dict, target="ctypes", sparse=False)
+    bld = Builder(sys_dict, target="cffi", sparse='klu')
     bld.build()
     return bld
 
@@ -86,7 +86,7 @@ def simulate():
     # We give a hint for p_x, p_y so the constraint solver lands on the
     # correct branch (negative p_y for a hanging pendulum).
     model.ini(
-        {"theta": np.deg2rad(10)},
+        {"theta": np.deg2rad(30), "K_d":10},
         xy_0={"p_x": 0.9, "p_y": -5.1, "lam": 0, "f_x": 1},
     )
 

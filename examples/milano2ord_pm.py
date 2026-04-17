@@ -14,21 +14,27 @@ Adapted from ``tests/...`` to use the public package API:
 
 import os
 from pathlib import Path
-import matplotlib.pyplot as plt  # noqa: E402
 
-# Force the Agg backend's native .pyd to load now, into a clean heap
-plt.figure()
-plt.close("all")
+# Force matplotlib's native Agg extension to load BEFORE any pydae
+# compiled model DLL. On Windows this avoids a CRT-heap collision
+# (STATUS_HEAP_CORRUPTION 0xC0000374) that silently kills the process.
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+plt.figure(); plt.close("all")
 
-from pydae.bps import BpsBuilder  # noqa: E402
-from pydae.core import Builder, Model  # noqa: E402
+import numpy as np
+import sympy as sym
 
-# Make all relative paths (./build, xy_0.json, output SVG, etc.) resolve
-# inside this examples/ folder, regardless of where the script is invoked
-# from (repo root, examples/, an IDE, etc.).
+from pydae.core import Builder, Model
+from pydae.bps import BpsBuilder
+
+# Make all relative paths resolve inside this examples/ folder regardless
+# of the caller's working directory.
 os.chdir(Path(__file__).parent)
 
-MODEL_NAME = "temp_m2"
+
+MODEL_NAME = "milano2ord"
 HJSON_PATH = Path(__file__).parent / "milano2ord.hjson"
 
 
@@ -55,39 +61,21 @@ def simulate():
     model.report_y()
 
     print("Simulating step response...")
-    # Hold steady for 1 s
-    model.run(0.1, {})
 
-    print("Simulation ended...")
 
     model.report_u()
     model.report_y()
 
     # Step change: p_m_1 -> 1.0 pu, raise damping to D_1 = 20
-    model.run(1.0, {"p_m_1": 1.0, "D_1": 20.0})
-
+    model.run(1.0, {})
+    model.run(10.0, {"p_m_1": 1.0, "D_1":20.0})    
     model.post()
+
+    print("Simulation ended...")
 
     print("Post done")
 
     return model
-
-
-def plot(model) -> None:
-    """Plot omega_1 vs time and save to SVG."""
-
-    for it, item in enumerate(model.Time):
-        print(it, item, model.get_values("omega_1")[it])
-
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(model.Time, model.get_values("omega_1"), label=r"$\omega_1$")
-    ax.set_xlabel("Time (s)")
-    ax.set_ylabel(r"$\omega_1$")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    fig.tight_layout()
-    fig.savefig('milano2ord_pm.svg')
-    plt.close(fig)
 
 
 if __name__ == "__main__":
@@ -97,7 +85,25 @@ if __name__ == "__main__":
     print("Simulating step response...")
     model = simulate()
 
-    out_path = Path(__file__).parent / "milano2ord_pm.svg"
-    print(f"Saving plot to: {out_path}")
-    plot(model)
-    #print(f"Done.
+    try:
+        print(model.Time)
+        print(model.get_values('omega_1'))
+        # Plot omega_1 and save as SVG next to this script
+        out_path = Path(__file__).parent / "milano2ord.svg"
+        print(f"  plot to be saved at: {out_path}")
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(model.Time, model.get_values('omega_1'), color="tab:blue", linewidth=1.2)
+        ax.set_xlabel("time [s]")
+        ax.set_ylabel(r"$\theta$ [deg]")
+        ax.set_title("Pendulum — angle vs time")
+        ax.grid(True, alpha=0.3)
+
+        fig.tight_layout()
+
+
+        fig.savefig(out_path)
+        plt.close(fig)
+        
+    except AttributeError:
+        print("  (Model has finished — inspect attributes interactively)")

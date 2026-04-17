@@ -30,6 +30,7 @@ any engineering or scientific problem that can be posed as a DAE.
 
 overview
 getting_started
+architecture
 ```
 
 ```{toctree}

@@ -192,7 +192,8 @@ class TestBuild:
         bld.build()
 
         lib_ext = '.dll' if sys.platform == 'win32' else '.so'
-        lib_path = os.path.join('build', f"test_pendulum_ctypes{lib_ext}")
+        backend_tag = 'klu'  # Builder defaults to sparse=True → 'klu'
+        lib_path = os.path.join('build', f"test_pendulum_ctypes_{backend_tag}{lib_ext}")
         assert os.path.exists(lib_path), f"Compiled library not found: {lib_path}"
         assert os.path.getsize(lib_path) > 0
 

@@ -22,7 +22,14 @@ Quick start::
     model.post()
 """
 
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("pydae")
+except PackageNotFoundError:
+    __version__ = "unknown"
+
 from pydae.core.builder.core import Builder
 from pydae.core.model_class import Model
 
-__all__ = ["Builder", "Model"]
+__all__ = ["Builder", "Model", "__version__"]
