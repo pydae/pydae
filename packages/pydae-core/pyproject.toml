@@ -8,7 +8,7 @@
 
 [project]
 name = "pydae"
-version = "1.0.0"
+version = "1.0.1"
 description = "Core engine for solving and analyzing Differential-Algebraic Equation (DAE) systems"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -38,6 +38,7 @@ dependencies = [
     "setuptools",  # required by cffi.ffi.compile() on Python >= 3.12
     "hjson",
     "pandas",
+    "tabulate",  # required by pandas.DataFrame.to_markdown()
     "matplotlib",
     "svgwrite",
 ]

@@ -108,11 +108,12 @@ static void pardiso_default_iparm(int iparm[]) {
     iparm[17] = -1;
     iparm[18] = -1;
     iparm[34] = 0;
-    /* The Python codegen emits the sparsity pattern in CSC form, which is
-     * equivalent to CSR of the transpose.  Tell PARDISO to solve
-     *   A^T x = b   (== J x = b with our storage)
-     * by setting iparm(12) = 2 (0-based iparm[11]).  Without this, PARDISO
-     * factorises J^T instead of J and Newton diverges → NaN residuals. */
+    /* The sparsity pattern is in CSC form (Ap = column pointers, Ai = row
+     * indices).  PARDISO expects CSR (Ap = row pointers, Ai = column
+     * indices).  Feeding CSC arrays to PARDISO as if they were CSR is
+     * equivalent to factorising the transpose A^T.  Setting iparm[11] = 2
+     * tells PARDISO to solve A^T x = b, which recovers the correct
+     * forward solution A x = b.  Without this the Newton loop diverges. */
     iparm[11] = 2;
 }
 #endif
@@ -234,7 +235,7 @@ int ini(double *jac_ini, int *pivots, double *x, double *y, double *xy, double *
 
 #ifdef USE_SPARSE
         for (i = 0; i < N; i++) Dxy[i] = fg[i];
-        klu_tsolve(Symbolic, Numeric, N, 1, Dxy, &Common);
+        klu_solve(Symbolic, Numeric, N, 1, Dxy, &Common);
 #elif defined(USE_PARDISO)
         phase = 33;
         pardiso(pt, &maxfct, &mnum, &mtype, &phase,
@@ -288,7 +289,7 @@ int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double
         int *its, double Dt, double *z, double *dblparams, int *intparams, double *Time, 
         double *X, double *Y, double *Z, int N_z, int N_store, double *f, double *g, double *fg) {
     
-    int i, j, it;
+    int i, j, it = 0;
     double norma;
     int N = N_x + N_y;
     int decimation = (intparams[4] > 0) ? intparams[4] : 1;
@@ -417,7 +418,7 @@ int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double
             
 #ifdef USE_SPARSE
             for (i = 0; i < N; i++) Dxy[i] = fg[i];
-            klu_tsolve(Symbolic, Numeric, N, 1, Dxy, &Common);
+            klu_solve(Symbolic, Numeric, N, 1, Dxy, &Common);
 #elif defined(USE_PARDISO)
             phase = 33;
             pardiso(pt, &maxfct, &mnum, &mtype, &phase,
