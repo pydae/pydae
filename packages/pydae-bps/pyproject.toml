@@ -33,7 +33,9 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/pydae/pydae"
+Documentation = "https://pydae-bps.readthedocs.io"
 Repository = "https://github.com/pydae/pydae"
+Issues = "https://github.com/pydae/pydae/issues"
 
 [tool.uv.sources]
 pydae = { workspace = true }
