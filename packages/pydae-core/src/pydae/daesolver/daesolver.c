@@ -146,14 +146,30 @@ static SparseMatrix_Double accel_make_matrix_trap(int N, double *values) {
 // ==============================================================================
 // 5. INITIALIZATION SOLVER (uses Ap_ini / Ai_ini)
 // ==============================================================================
-int ini(double *jac_ini, int *pivots, double *x, double *y, double *xy, double *Dxy, 
-        double *u, double *p, int N_x, int N_y, int max_it, double itol, 
+int ini(double *jac_ini, int *pivots, double *x, double *y, double *xy, double *Dxy,
+        double *u, double *p, int N_x, int N_y, int max_it, double itol,
         double *z, double *inidblparams, int *iniintparams, double *f, double *g, double *fg) {
-    
+
     int i, it;
     double norma;
     int N = N_x + N_y;
     double Dt = 0.0;
+
+    // --- DIAGNOSTIC MODE (iniintparams[4] == 1) ---
+    // Populate fg and jac_ini from a single evaluation at (x, y) without
+    // running Newton. Dense-only: the sparse backends pack values into NNZ
+    // arrays which the diagnostic inspector reconstructs via Ap/Ai.
+    if (iniintparams[4] == 1) {
+        f_ini_eval(f, x, y, u, p, Dt);
+        g_ini_eval(g, x, y, u, p, Dt);
+        for (i = 0; i < N_x; i++) fg[i] = -f[i];
+        for (i = 0; i < N_y; i++) fg[i + N_x] = -g[i];
+#if !defined(USE_SPARSE) && !defined(USE_PARDISO) && !defined(USE_ACCELERATE)
+        for (int k = 0; k < N * N; k++) jac_ini[k] = 0.0;
+#endif
+        jac_ini_eval(jac_ini, x, y, u, p, Dt);
+        return 0;
+    }
 
 #ifdef USE_SPARSE
     klu_common Common;

@@ -5,6 +5,7 @@ Excitation-system models that regulate the field voltage of synchronous machines
 ```{toctree}
 :maxdepth: 1
 
+avr_1
 avr_antiw
 kundur
 kundur_tgr

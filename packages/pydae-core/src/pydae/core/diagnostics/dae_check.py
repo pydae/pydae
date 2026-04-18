@@ -19,8 +19,15 @@ Improvements over the original version
 * Summary verdict at the end with actionable next steps.
 """
 
+import sys
 import numpy as np
 import logging
+
+# Best-effort UTF-8 for Windows consoles (cp1252 can't encode arrows/sigma).
+try:
+    sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
 
 try:
     import matplotlib.pyplot as plt
@@ -186,14 +193,14 @@ def diagnose_dae_model(jac_flat, fg, Nx, Ny,
             print(f"    {_RED}Zero row {r}{_RST} → equation for {var_names[r]} has no dependence on any variable")
         issues.append(_crit(f"Zero rows: {[var_names[r] for r in zero_rows]} — disconnected equations."))
     else:
-        print(f"    All rows nonzero  {_GRN}✓{_RST}")
+        print(f"    All rows nonzero  {_GRN}OK{_RST}")
 
     if len(zero_cols) > 0:
         for c in zero_cols:
             print(f"    {_RED}Zero col {c}{_RST} → variable {var_names[c]} does not appear in any equation")
         issues.append(_crit(f"Zero columns: {[var_names[c] for c in zero_cols]} — disconnected variables."))
     else:
-        print(f"    All columns nonzero  {_GRN}✓{_RST}")
+        print(f"    All columns nonzero  {_GRN}OK{_RST}")
 
     # ------------------------------------------------------------------
     # 3. Row scaling (equation balancing)
@@ -225,7 +232,7 @@ def diagnose_dae_model(jac_flat, fg, Nx, Ny,
             print(f"    {_YEL}Near-zero diagonal [{idx}]{_RST}: {var_names[idx]}  (|J[{idx},{idx}]| = {diag[idx]:.2e})")
         issues.append(_warn(f"Near-zero diagonals at: {[var_names[i] for i in small_pivots]}"))
     else:
-        print(f"    All diagonal entries nonzero  {_GRN}✓{_RST}")
+        print(f"    All diagonal entries nonzero  {_GRN}OK{_RST}")
 
     # Diagonal dominance (informational)
     dd_count = 0
