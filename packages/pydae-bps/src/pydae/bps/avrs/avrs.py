@@ -22,9 +22,6 @@ def add_avr(dae,syn_data,name,bus_name):
     if syn_data['avr']['type'] == 'kundur':
         kundur(dae,syn_data,name,bus_name)
 
-    if syn_data['avr']['type'] == 'avr_kundurq':
-        avr_kundurq(dae,syn_data,name,bus_name)
-
     if syn_data['avr']['type'] == 'ntsst4':
         ntsst4(dae,syn_data,name,bus_name)
 
