@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(uv sync:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv run ruff:*)",
+      "Bash(uv run sphinx-build:*)",
+      "Bash(uv run python:*)",
+      "Bash(uv build:*)",
+      "Bash(uvx:*)",
+      "Bash(git status)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch)",
+      "Bash(git branch:*)",
+      "Bash(ls)",
+      "Bash(ls:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git checkout .)",
+      "Bash(git restore .)",
+      "Bash(git branch -D:*)",
+      "Bash(rm -rf:*)",
+      "Bash(uvx twine upload:*)",
+      "Bash(uv publish:*)"
+    ]
+  }
+}

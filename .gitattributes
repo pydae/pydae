@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+# Binary types — keep bytes exactly as committed
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.svg binary
+*.pdf binary
+*.ico binary
+*.so binary
+*.dll binary
+*.dylib binary
+*.pyd binary

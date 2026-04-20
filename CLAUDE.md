@@ -144,3 +144,77 @@ from pydae.ssa import eval_ss, eval_A
 ```
 
 Old-style imports (`import pydae.build_cffi`, `from pydae.bmapu import ...`) no longer work. See `MIGRATION_GUIDE.md` for full mapping.
+
+## Cross-platform notes
+
+This repo is developed on both Windows and Linux (Debian). Claude Code may be invoked from either — keep commands portable.
+
+**Toolchain**
+- `uv` is the package manager. Do not use `pip install -e .` — the workspace layout relies on `uv sync --all-packages`.
+- A C compiler is required for `-m build` / `-m model` tests and for `Builder.build()`:
+  - Linux: `sudo apt install build-essential` (provides `gcc`).
+  - Windows: MSVC Build Tools or MinGW `gcc` on `PATH`. CFFI is generally more reliable than ctypes on Windows because it links at Python-extension build time rather than loading a standalone DLL.
+- Python ≥ 3.10. `uv run` auto-selects the workspace interpreter; outside `uv`, use `python -m pytest` rather than a bare `pytest` to avoid picking up a different interpreter's scripts.
+
+**Path and shell**
+- Inside Git Bash / WSL / Linux: forward slashes, `/dev/null`.
+- Inside `cmd.exe` / PowerShell: prefer forward slashes where tools accept them; use `NUL` only for native Windows commands.
+- All Python paths in the codebase should use `pathlib.Path` or forward slashes — no hard-coded backslashes.
+
+**Line endings**
+- Repo is normalised to LF via `.gitattributes` (`* text=auto eol=lf`). Do not override locally. C sources, HJSON fixtures, and Python files must stay LF so that hash-based caching (e.g., the CFFI source-unchanged skip in `daesolver`) is stable across OSes.
+
+**Parallel symbolic codegen**
+- `PYDAE_PARALLEL=1` fans out `sympy.ccode` translation across a `ProcessPoolExecutor`. Helpful for large systems (> 200 expressions). On Windows, the spawn-start-method overhead is higher; leave it off for small models.
+
+**Running tests on a cold machine**
+```bash
+uv sync --all-packages              # one-time; installs all three packages + dev deps
+uv run pytest -m "parse or symbolic or codegen"   # fast, no C compiler required
+uv run pytest -m "build or model"   # requires gcc / MSVC
+```
+
+## Repo layout landmarks
+
+- `packages/pydae-core/src/pydae/core/` — engine. `builder/`, `codegen/`, `model_class.py`, `ssa.py`.
+- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `wecs/`, `loads/`, `lines/`, `psss/`, `pods/`, `sources/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`.
+- `packages/pydae-uds/src/pydae/uds/` — unbalanced distribution builder.
+- `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
+- `examples/` — standalone scripts (`pendulum.py`, `milano*ord*.py`). Build artefacts (`*_data.json`, `*.svg`) are gitignored.
+- `docs/pydae-{core,bps,uds}/` — three independent Sphinx projects (each with its own `conf.py` and `.readthedocs.yaml`).
+
+## Conventions
+
+- **Docstrings with LaTeX**: use raw strings (`r"""..."""`). A non-raw docstring with `\xi`, `\n`, etc. will raise `SyntaxError: (unicodeescape) truncated \xXX escape`.
+- **Component modules** (`avrs/`, `govs/`, etc.) expose a `descriptions()` list (the single source of truth for parameters/inputs/states/outputs, consumed by docs autosummary) and a builder function taking `(dae, data, name, bus_name)` that appends into `dae['f']`, `dae['g']`, `dae['x']`, `dae['y_ini']`, `dae['y_run']`, `dae['u_ini_dict']`, `dae['u_run_dict']`, `dae['params_dict']`, `dae['xy_0_dict']`, `dae['h_dict']`.
+- **ini/run variable swap**: for PV-bus initialisation, swap `V_bus ↔ v_ref` at the same index in `y_ini` (replace in place, do not append-then-delete) so that downstream components that reference `y_ini` by integer index — notably `vsource`'s `g[idx_V] = ...` — keep targeting the correct equation. This pattern is preferred over the legacy `xi_v` dummy-integrator approach. See `avrs/kundur.py`, `avrs/kundur_tgr.py`, `avrs/sexs.py`, `avrs/avr_1.py` for the canonical form.
+- **In-module tests**: component files carry a `def test():` at the bottom that builds a minimal network from the sibling `.hjson`, runs `ini()` and `run()`, and asserts on observables. Pattern: reuse for any new component.
+- **Namespace packages**: never add `__init__.py` under `packages/*/src/pydae/` — only inside the subpackage (`pydae/core/`, `pydae/bps/`, etc.).
+- **Commit style**: use conventional-commit prefixes (`feat:`, `fix:`, `docs:`, `chore:`). Do not add `Co-Authored-By: Claude` trailers in this repo.
+
+## Docs
+
+```bash
+# build one subproject
+uv run sphinx-build -b html docs/pydae-core docs/pydae-core/_build/html
+uv run sphinx-build -b html docs/pydae-bps  docs/pydae-bps/_build/html
+uv run sphinx-build -b html docs/pydae-uds  docs/pydae-uds/_build/html
+```
+
+ReadTheDocs is configured per subproject. The repo's default branch is `master` (not `main`) — the RTD admin must match, or builds fail with `fatal: couldn't find remote ref refs/heads/main`.
+
+## Releases
+
+```bash
+# bump version in packages/<pkg>/pyproject.toml, commit with tag per package
+git tag pydae-core-vX.Y.Z
+git tag pydae-bps-vX.Y.Z
+
+# build + publish (PyPI token in ~/.pypirc)
+uv build --package pydae     packages/pydae-core
+uv build --package pydae-bps packages/pydae-bps
+uvx twine upload dist/pydae-X.Y.Z*       --repository pypi
+uvx twine upload dist/pydae_bps-X.Y.Z*   --repository pypi
+```
+
+Per-package tags (not a single repo-wide tag) so subpackages can release independently.
