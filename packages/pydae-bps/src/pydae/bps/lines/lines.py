@@ -40,6 +40,15 @@ def add_line(self, line):
     self.A[self.it+2,idx_k] = 1   
     
     line_name = f"{bus_j}_{bus_k}"
+    if 'name' in line :
+        if line['name'] is not None:
+            line_name = line['name']
+            
+    if 'sub_name' in line:
+        if line['sub_name'] is not None:
+            line_name = f"{line_name}_{line['sub_name']}"
+
+
     g_jk = sym.Symbol(f"g_{line_name}", real=True) 
     b_jk = sym.Symbol(f"b_{line_name}", real=True) 
     bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
