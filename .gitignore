@@ -29,7 +29,13 @@ uv.lock
 *_ctypes.c
 *_ctypes.so
 *_ctypes.dll
+*.pyd
 system_data.json
+packages/**/temp_*_data.json
+packages/**/temp_*_xy_0.json
+packages/**/xy_0.json
+packages/**/jacobian_diagnostic.png
+packages/**/Release/
 
 # OS
 .DS_Store
@@ -46,7 +52,15 @@ htmlcov/
 # Generated artifacts from examples
 examples/*.svg
 examples/*_data.json
+examples/xy_0.json
+examples/*_xy_0.json
+examples/jacobian_diagnostic.png
 
 # Sphinx build output
 docs/**/_build/
 docs/**/_autosummary/
+
+# Claude Code local state (keep .claude/commands, settings.json, this repo's shared config)
+.claude/settings.local.json
+.claude/.credentials*
+.claude/history*
