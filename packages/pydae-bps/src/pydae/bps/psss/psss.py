@@ -7,15 +7,15 @@ Created on Thu August 10 23:52:55 2022
 
 import numpy as np
 import sympy as sym
-from pydae.bps.psss.pss_kundur import pss_kundur
+from pydae.bps.psss.pss_kundur_1 import pss_kundur_1
 from pydae.bps.psss.pss_pss2 import pss_pss2
 from pydae.bps.psss.pss_kundur_2 import pss_kundur_2
 from pydae.bps.psss.pss2a import pss2a
 
 def add_pss(dae,syn_data,name,bus_name):
 
-    if syn_data['pss']['type'] == 'pss_kundur':
-        pss_kundur(dae,syn_data,name,bus_name)
+    if syn_data['pss']['type'] == 'pss_kundur_1':
+        pss_kundur_1(dae,syn_data,name,bus_name)
     elif syn_data['pss']['type'] == 'pss2':
         pss_pss2(dae,syn_data,name,bus_name)
     elif syn_data['pss']['type'] == 'pss_kundur_2':

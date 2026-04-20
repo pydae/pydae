@@ -45,7 +45,7 @@ zero — the stabiliser only responds to transients.
 
 Example data entry::
 
-    "pss": {"type": "pss_kundur",
+    "pss": {"type": "pss_kundur_1",
             "K_stab": 20.0,
             "T_w": 10.0, "T_1": 0.05, "T_2": 0.02,
             "V_Smax": 0.1, "V_Smin": -0.1}
@@ -59,7 +59,7 @@ import sympy as sym
 
 
 def descriptions():
-    """Single source of truth for pss_kundur parameters, inputs, states, outputs."""
+    """Single source of truth for pss_kundur_1 parameters, inputs, states, outputs."""
     descriptions_list = []
 
     # Parameters
@@ -119,11 +119,11 @@ def descriptions():
     return descriptions_list
 
 
-def pss_kundur(dae, data, name, bus_name):
+def pss_kundur_1(dae, data, name, bus_name):
     """
     Example data entry::
 
-        "pss": {"type": "pss_kundur",
+        "pss": {"type": "pss_kundur_1",
                 "K_stab": 20.0,
                 "T_w": 10.0, "T_1": 0.05, "T_2": 0.02,
                 "V_Smax": 0.1, "V_Smin": -0.1}
@@ -190,22 +190,27 @@ def pss_kundur(dae, data, name, bus_name):
 def test():
     from pydae.core import Builder, Model
     from pydae.bps import BpsBuilder
+    from pydae.ssa import damp_report
     import pytest
 
-    grid = BpsBuilder('pss_kundur.hjson')
+    grid = BpsBuilder('pss_kundur_1.hjson')
     grid.uz_jacs = False
-    grid.construct('temp_pss_kundur')
+    grid.construct('temp_pss_kundur_1')
 
     bld = Builder(grid.sys_dict, target="cffi", sparse=False)
     bld.build()
 
-    model = Model('temp_pss_kundur')
+    model = Model('temp_pss_kundur_1')
 
     v_set = 1.02
     model.ini({'V_1': v_set, 'p_m_1': 0.8}, 'xy_0.json')
     model.report_x()
     model.report_y()
     model.report_u()
+
+    model.A_eval()
+    damp_report(model)
+
 
     assert model.get_value('V_1') == pytest.approx(v_set, rel=1e-3)
     assert model.get_value('v_pss_1') == pytest.approx(0.0, abs=1e-6)

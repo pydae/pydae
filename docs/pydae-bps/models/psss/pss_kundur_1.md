@@ -1,4 +1,4 @@
-# pss_kundur
+# pss_kundur_1
 
 *Power system stabilizers — pydae-bps model.*
 
@@ -49,7 +49,7 @@ zero — the stabiliser only responds to transients.
 
 Example data entry:
 
-    "pss": {"type": "pss_kundur",
+    "pss": {"type": "pss_kundur_1",
             "K_stab": 20.0,
             "T_w": 10.0, "T_1": 0.05, "T_2": 0.02,
             "V_Smax": 0.1, "V_Smin": -0.1}
@@ -66,7 +66,7 @@ grid = BpsBuilder("my_network.json")
 grid.construct("my_system")
 ```
 
-The `pss_kundur` model is instantiated by including an entry in the relevant
+The `pss_kundur_1` model is instantiated by including an entry in the relevant
 section of the network JSON (see [Overview](../../overview.md)).
 
 ## Parameters, inputs, states, outputs
@@ -104,5 +104,5 @@ section of the network JSON (see [Overview](../../overview.md)).
 
 ## Source
 
-- Module: `pydae.bps.psss.pss_kundur`
-- File: [`packages/pydae-bps/src/pydae/bps/psss/pss_kundur.py`](https://github.com/pydae/pydae/tree/main/packages/pydae-bps/src/pydae/bps/psss/pss_kundur.py)
+- Module: `pydae.bps.psss.pss_kundur_1`
+- File: [`packages/pydae-bps/src/pydae/bps/psss/pss_kundur_1.py`](https://github.com/pydae/pydae/tree/main/packages/pydae-bps/src/pydae/bps/psss/pss_kundur_1.py)

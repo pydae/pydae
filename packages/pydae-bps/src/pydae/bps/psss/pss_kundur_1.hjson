@@ -1,5 +1,5 @@
 {
-system:{name:"pss_kundur", S_base:100e6, K_p_agc:0.0, K_i_agc:0.0, K_xif:0.0001},
+system:{name:"pss_kundur_1", S_base:100e6, K_p_agc:0.0, K_i_agc:0.0, K_xif:0.0001},
 buses:[{name:"1", P_W:0.0, Q_var:0.0, U_kV:20.0},
        {name:"2", P_W:0.0, Q_var:0.0, U_kV:20.0}
       ],
@@ -13,7 +13,7 @@ syns:[
         Omega_b:314.1592653589793, omega_s:1.0, K_sec:0.0,
         avr:{type:"sexs", K_a:200.0, T_a:0.015, T_b:10.0, T_e:0.1,
              E_min:-5, E_max:5, v_ref:1.0},
-        pss:{type:"pss_kundur",
+        pss:{type:"pss_kundur_1",
              K_stab:20.0,
              T_w:10.0, T_1:0.05, T_2:0.02,
              V_Smax:0.1, V_Smin:-0.1}

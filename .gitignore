@@ -33,6 +33,7 @@ uv.lock
 system_data.json
 packages/**/temp_*_data.json
 packages/**/temp_*_xy_0.json
+packages/**/temp_*_damp_report.md
 packages/**/xy_0.json
 packages/**/jacobian_diagnostic.png
 packages/**/Release/
