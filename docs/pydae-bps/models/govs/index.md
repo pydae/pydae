@@ -7,6 +7,7 @@ Primary-frequency-control models for hydro, steam, and gas turbines.
 
 agov1
 hygov
+ieeeg1
 ntsieeeg1
 tgov1
 ```

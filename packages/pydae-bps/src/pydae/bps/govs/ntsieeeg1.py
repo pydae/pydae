@@ -130,7 +130,7 @@ def test():
     import matplotlib.pyplot as plt
     import pytest
 
-    grid = BpsBuilder('ieeeg1.hjson')
+    grid = BpsBuilder('ntsieeeg1.hjson')
     grid.checker()
     grid.uz_jacs = True
     grid.build('temp')

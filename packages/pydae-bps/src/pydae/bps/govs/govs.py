@@ -9,9 +9,10 @@ from pydae.bps.govs.tgov1 import tgov1
 from pydae.bps.govs.hygov import hygov
 from pydae.bps.govs.agov1 import agov1
 from pydae.bps.govs.ntsieeeg1 import ntsieeeg1
+from pydae.bps.govs.ieeeg1 import ieeeg1
 
 def add_gov(dae,syn_data,name,bus_name):
-    
+
     if syn_data['gov']['type'] == 'tgov1':
         tgov1(dae,syn_data,name,bus_name)
     if syn_data['gov']['type'] == 'hygov':
@@ -20,3 +21,5 @@ def add_gov(dae,syn_data,name,bus_name):
         agov1(dae,syn_data,name,bus_name)
     if syn_data['gov']['type'] == 'ntsieeeg1':
         ntsieeeg1(dae,syn_data,name,bus_name)
+    if syn_data['gov']['type'] == 'ieeeg1':
+        ieeeg1(dae,syn_data,name,bus_name)
