@@ -283,7 +283,7 @@ def test():
     grid.uz_jacs = False
     grid.construct('temp_sexs')
 
-    bld = Builder(grid.sys_dict, target="cffi", sparse='klu')
+    bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
     bld.build()
 
     model = Model('temp_sexs')
