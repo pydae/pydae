@@ -19,6 +19,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "codegen: C code generation tests")
     config.addinivalue_line("markers", "build: full compile pipeline (needs gcc)")
     config.addinivalue_line("markers", "model: end-to-end simulation tests")
-    config.addinivalue_line("markers", "slow: tests that take > 5 seconds")
+    config.addinivalue_line("markers", "core: core solver and DAE pipeline tests")
     config.addinivalue_line("markers", "bps: balanced power systems tests")
     config.addinivalue_line("markers", "uds: unbalanced distribution tests")
+    config.addinivalue_line("markers", "slow: tests that take > 5 seconds")
