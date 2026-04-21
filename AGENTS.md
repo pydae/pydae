@@ -4,32 +4,28 @@ Compact instructions for OpenCode sessions in `pydae`. See `CLAUDE.md` for full 
 
 ## Workflow & Commands
 
-*   **Setup**: `uv sync --all-packages`. Never use `pip`.
-*   **Testing**: `uv run pytest`
-    *   Fast: `uv run pytest -m "parse or symbolic or codegen"` (no C compiler)
-    *   Full: `uv run pytest -m "build or model"` (needs GCC/MSVC)
-    *   Single file: `uv run pytest tests/core/test_pendulum.py`
-    *   Single package: `uv run --package pydae pytest tests/core/`
+*   **Setup**: Always use `uv sync --all-packages`. Never use `pip`.
+*   **Testing**: Use `uv run pytest`.
+    *   Fast (No C compiler): `uv run pytest -m "parse or symbolic or codegen"`
+    *   Full (Requires GCC/MSVC): `uv run pytest -m "build or model"`
+    *   Targeting: `uv run pytest tests/core/`, `uv run pytest tests/bps/`
 *   **Linting**: `uv run ruff check .`
 
-## Architecture
+## Architecture & Quirks
 
-*   **Monorepo**: 3 packages — `pydae-core` (solver), `pydae-bps` (balanced PS), `pydae-uds` (unbalanced).
-*   **Imports**: `from pydae.core import Builder, Model` | `from pydae.bps import BpsBuilder` | `from pydae.uds import UdsBuilder`.
-*   **Namespace**: `packages/*/src/pydae/` MUST NOT have `__init__.py`.
-
-## Quirks
-
-*   **DAE Pipeline**: `define symbolic` → `build (C-compile)` → `simulate`.
-*   **Sparse solvers**: `sparse=False` (dense), `sparse=True` or `'klu'` (SuiteSparse), `'pardiso'` (MKL).
-*   **Parallelism**: `PYDAE_PARALLEL=1` for >200 expressions.
-*   **ini/run Swap**: Swap at same index in `y_ini` (replace in-place, never append-then-delete).
-*   **Line Endings**: Forced LF. Do not override.
+*   **Monorepo**: Packages in `packages/` (`pydae-core`, `pydae-bps`, `pydae-uds`).
+*   **Namespace Packages**: `packages/*/src/pydae/` MUST NOT have `__init__.py`.
+*   **Pipeline**: `define symbolic` → `build (C-compile)` → `simulate`.
+*   **Parallelism**: Set `PYDAE_PARALLEL=1` for systems with > 200 expressions.
+*   **ini/run Swap**: Never delete/re-append variables in `y_ini` to maintain index integrity for downstream components; swap in-place.
+*   **Line Endings**: Repository is forced LF. Do not override.
 
 ## Constraints
 
-*   **LaTeX Docs**: Raw strings (`r"""..."""`) — escape errors otherwise.
-*   **Component Tests**: `def test()` at bottom of modules validates against sibling `.hjson`.
-*   **Branching**: Default branch is `master` (not `main`).
-*   **Cross-platform**: Use `pathlib.Path` or `/`, never hard-coded backslashes.
-*   **C Compiler Required**: Linux needs `build-essential` (gcc), Windows needs MSVC or MinGW.
+*   **LaTeX Docs**: Docstrings must be raw strings (`r"""..."""`) to prevent escape character errors.
+*   **Test Patterns**:
+    *   Use `def test():` at the bottom of component modules for verification against sibling `.hjson` files.
+    *   Test compilation backends (`cffi`/`ctypes`) and sparse modes (`dense`/`klu`) using the pattern in `tests/core/test_compilation_modes.py`.
+*   **Branching**: Repo default is `master` (not `main`).
+*   **Environment**: Repo is cross-platform; use `pathlib.Path` or `/` for paths, avoid hard-coded backslashes.
+*   **Compiler**: Build pipeline requires `gcc` (Linux) or MSVC/MinGW (Windows).
