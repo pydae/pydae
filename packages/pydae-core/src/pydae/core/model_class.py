@@ -99,19 +99,33 @@ class Model:
         self.ini_iterations = 0
         self.step_counter = 0
         self.N_store = 10_000  # default pre-allocated rows for Time/X/Y/Z
-        
+
+        # Anchor list for CFFI from_buffer cdata objects to keep them
+        # alive through each solver invocation (see _d/_i below).
+        self._ffi_pins = []
+
 
     # --- Memory Pointer Wrappers ---
+    # CFFI's ffi.cast("T*", ffi.from_buffer(arr)) can release the
+    # from_buffer cdata before the C call completes on some platforms
+    # (observed as intermittent Windows heap corruption at 0xc0000374
+    # after solver_lib.ini returns). Pin the from_buffer cdata in
+    # ``self._ffi_pins`` for the duration of each solver call; the
+    # solver methods clear the list afterward.
     def _d(self, arr):
-        """Cast numpy double array to C pointer."""
+        """Cast numpy double array to C pointer (cffi) or pass-through (ctypes)."""
         if self.is_cffi:
-            return self.ffi.cast("double *", self.ffi.from_buffer(arr))
+            buf = self.ffi.from_buffer(arr)
+            self._ffi_pins.append(buf)
+            return self.ffi.cast("double *", buf)
         return arr
 
     def _i(self, arr):
-        """Cast numpy int array to C pointer."""
+        """Cast numpy int array to C pointer (cffi) or pass-through (ctypes)."""
         if self.is_cffi:
-            return self.ffi.cast("int *", self.ffi.from_buffer(arr))
+            buf = self.ffi.from_buffer(arr)
+            self._ffi_pins.append(buf)
+            return self.ffi.cast("int *", buf)
         return arr
 
     def _load_system_data(self, folder):
@@ -213,8 +227,15 @@ class Model:
         are silently ignored.
         """
         with open(file_name) as fobj:
-            xy_0_dict = json.loads(fobj.read())
-        self.dict2xy0(xy_0_dict)
+            xy_0_str = fobj.read()
+        xy_0_dict = json.loads(xy_0_str)
+    
+        for item in xy_0_dict:
+            if item in self.x_list:
+                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
+            if item in self.y_ini_list:
+                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
+
 
     def save_xy_0(self,file_name = 'xy_0.json'):
         xy_0_dict = {}
@@ -227,17 +248,7 @@ class Model:
         with open(file_name,'w') as fobj:
             fobj.write(xy_0_str)
     
-    def load_xy_0(self,file_name = 'xy_0.json'):
-        with open(file_name) as fobj:
-            xy_0_str = fobj.read()
-        xy_0_dict = json.loads(xy_0_str)
-    
-        for item in xy_0_dict:
-            if item in self.x_list:
-                self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
-            if item in self.y_ini_list:
-                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
-
+     
     def load_params(self,data_input):
     
         if type(data_input) == str:
@@ -305,11 +316,13 @@ class Model:
         self.ini_int = np.array([0, 0, 0, 0, 0], dtype=np.int32)
         ini_dbl = np.zeros(5, dtype=np.float64)
 
+        self._ffi_pins.clear()
         res_ini = self.solver_lib.ini(
-            self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy), 
-            self._d(self.u_ini), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol, 
+            self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy),
+            self._d(self.u_ini), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol,
             self._d(self.z), self._d(ini_dbl), self._i(self.ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
         )
+        self._ffi_pins.clear()
 
         self.ini_iterations = self.ini_int[2]
 
@@ -319,11 +332,13 @@ class Model:
         if res_ini != 0 or np.isnan(self.xy_ini).any():
             print("Initialization failed! Triggering automatic numerical diagnostics...\n")
             self.ini_int[4] = 1 # Enable diagnostic flag
+            self._ffi_pins.clear()
             self.solver_lib.ini(
-            self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy), 
-            self._d(self.u_ini), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol, 
+            self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy),
+            self._d(self.u_ini), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol,
             self._d(self.z), self._d(ini_dbl), self._i(self.ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
             )
+            self._ffi_pins.clear()
             diagnose_dae_model(
                 self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
                 x_names=self.x_list, y_names=self.y_ini_list,

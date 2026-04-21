@@ -158,18 +158,21 @@ def damp_report(model, sparse=False, tol_part=0.2):
         string += f'{freqs[it]:0.4f}'.rjust(10, ' ') 
         string += f'{zetas[it]:0.4f}'.rjust(10, ' ') 
 
-        string += '\n'
+        
         #'\t{i:0.4f}\t{freqs[it]:0.3f}\t{zetas[it]:0.4f}\n'
 
     
         # idx_participation = np.argmax(participation_matrix[:,it])
         # states_participation += [model.x_list[idx_participation]]
 
-        #participation_matrix = np.abs(ssa.participation(model).values)
+        # participation_matrix = np.abs(ssa.participation(model).values)
         
-        # #idx_participation = participation_matrix[:,it] > 0.5
-        max_part = np.max(np.abs(participation_matrix)[:,it])
-        states_participation += [x_array[participation_matrix[:,it]>(max_part-tol_part)]]
+        # # #idx_participation = participation_matrix[:,it] > 0.5
+        # max_part = np.max(np.abs(participation_matrix)[:,it])
+        # states_participation += [x_array[participation_matrix[:,it]>(max_part-tol_part)]]
+        # string += f'{str(x_array[participation_matrix[:,it]>(max_part-tol_part)])}'
+        string += '\n'
+    print(string)
 
     columns = ['Real','Imag','Freq.','Damp']     
     modes = [f'Mode {it+1}' for it in range(N_x)]
@@ -178,17 +181,19 @@ def damp_report(model, sparse=False, tol_part=0.2):
     model.eigvalues = eig
     model.eigvectors = eigv
 
-    # Export as markdown table
-    name = getattr(model, 'model_name', 'model')
-    md_file = f"{name}_damp_report.md"
-    md_df = eig_df.copy().sort_values('Damp', ascending=True)
-    md_df['Participation'] = md_df['Participation'].apply(
-        lambda arr: ', '.join(str(s) for s in arr)
-    )
-    with open(md_file, 'w') as f:
-        f.write(f"# Damp Report: {name}\n\n")
-        f.write(md_df.to_markdown())
-        f.write('\n')
+    print('Damping report done')
+
+    # # Export as markdown table
+    # name = getattr(model, 'model_name', 'model')
+    # md_file = f"{name}_damp_report.md"
+    # md_df = eig_df.copy().sort_values('Damp', ascending=True)
+    # md_df['Participation'] = md_df['Participation'].apply(
+    #     lambda arr: ', '.join(str(s) for s in arr)
+    # )
+    # with open(md_file, 'w') as f:
+    #     f.write(f"# Damp Report: {name}\n\n")
+    #     f.write(md_df.to_markdown())
+    #     f.write('\n')
 
     return eig_df
 
@@ -225,13 +230,15 @@ def damp(A, sparse=False):
 
         string += '\n'
         #'\t{i:0.4f}\t{freqs[it]:0.3f}\t{zetas[it]:0.4f}\n'
+    print(string)
     
-    columns = ['Real','Imag','Freq.','Damp']     
-    modes = [f'Mode {it+1}' for it in range(N_x)]
-    eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas},index=modes)
+    # columns = ['Real','Imag','Freq.','Damp']     
+    # modes = [f'Mode {it+1}' for it in range(N_x)]
+    # eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas},index=modes)
     
+    ssstudy = {'eigvalues': eig, 'eigvectors': eigv, 'freqs': freqs, 'zetas': zetas}
 
-    return eig_df
+    return ssstudy
 
 
 def participation(system, method='kundur'):
@@ -863,4 +870,4 @@ DYNAMIC ORDER                 6
 # OF ZERO EIGS                0 
 '''
 
-['delta_Syn_1','omega_Syn_1','e1q_Syn_1','e1d_Syn_1','e2q_Syn_1','e2d_Syn_1']
+['delta_Syn_1','omega_Syn_1','e1q_Syn_1','e1d_Syn_1','e2q_Syn_1','e2d_Syn_1']

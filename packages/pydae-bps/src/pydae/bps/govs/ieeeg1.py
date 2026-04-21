@@ -91,6 +91,7 @@ states.
 """
 
 
+from pydae import ssa
 import sympy as sym
 
 
@@ -380,6 +381,10 @@ def test():
     assert model.get_value('V_1') == pytest.approx(v_set, rel=1e-3)
 
     model.ini({'V_1': v_set, 'p_c_1': p_c_set}, 'xy_0.json')
+
+    model.A_eval()
+    ssa.damp_report(model)
+    
     model.run(1.0, {})
     model.run(30.0, {'p_c_1': 0.6})
     model.post()

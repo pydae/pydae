@@ -55,6 +55,34 @@ cd pydae
 uv sync --all-packages         # Installs everything in editable mode
 ```
 
+This installs into the workspace-local `.venv`. Run commands with `uv run ...`.
+
+### For developers (editable install into a global Python)
+
+To make the in-tree packages visible to a system-wide interpreter (e.g. Anaconda, a Jupyter kernel, or another venv), install each workspace package in editable mode with that interpreter's `pip`:
+
+```bash
+# from the repo root
+python -m pip install -e packages/pydae-core
+python -m pip install -e packages/pydae-bps
+python -m pip install -e packages/pydae-uds   # optional
+```
+
+Use the full path to the target interpreter if you want to pin the install to a specific environment, e.g.:
+
+```bash
+"C:/ProgramData/anaconda3/python.exe" -m pip install -e packages/pydae-core -e packages/pydae-bps
+```
+
+Edits under `packages/*/src/` are picked up on the next import — no reinstall needed. Check versions with:
+
+```python
+from importlib.metadata import version
+print(version('pydae'), version('pydae-bps'))
+```
+
+(`pydae` is a namespace package, so `pydae.__version__` is not defined.)
+
 ## Quick Start
 
 ```python
