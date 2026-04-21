@@ -383,7 +383,7 @@ def test():
     model.ini({'V_1': v_set, 'p_c_1': p_c_set}, 'xy_0.json')
 
     model.A_eval()
-    ssa.damp_report(model)
+    ssa.damp(model.A)
     
     model.run(1.0, {})
     model.run(30.0, {'p_c_1': 0.6})

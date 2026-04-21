@@ -190,7 +190,7 @@ def pss_kundur_1(dae, data, name, bus_name):
 def test():
     from pydae.core import Builder, Model
     from pydae.bps import BpsBuilder
-    from pydae.ssa import damp_report
+    from pydae.ssa import damp
     import pytest
 
     grid = BpsBuilder('pss_kundur_1.hjson')
@@ -209,7 +209,7 @@ def test():
     model.report_u()
 
     model.A_eval()
-    damp_report(model)
+    damp(model.A)
 
 
     assert model.get_value('V_1') == pytest.approx(v_set, rel=1e-3)

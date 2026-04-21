@@ -29,7 +29,8 @@ int solve_dense(double *A, int N, int *pivots, double *b, double *x, int flag) {
                     A[max_row * N + k] = tmp_val;
                 }
             }
-            if (fabs(A[i * N + i]) < 1e-14) return -1; // Singular matrix
+            double pivot_val = A[i * N + i];
+            if (isnan(pivot_val) || isinf(pivot_val) || fabs(pivot_val) < 1e-14) return -1;
             for (int k = i + 1; k < N; k++) {
                 A[k * N + i] /= A[i * N + i];
                 for (int j = i + 1; j < N; j++) {
@@ -178,9 +179,15 @@ int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double
     }
 
     // --- MODE 3: REGULAR TIME INTEGRATION ---
-    double* x_0 = (double*)malloc(N_x * sizeof(double));
-    double* f_0 = (double*)malloc(N_x * sizeof(double));
-    double* Dxy = (double*)malloc(N * sizeof(double));
+    double* x_0 = (double*)calloc(N_x, sizeof(double));
+    double* f_0 = (double*)calloc(N_x, sizeof(double));
+    double* Dxy = (double*)calloc(N, sizeof(double));
+    if (!x_0 || !f_0 || !Dxy) {
+        if (x_0) free(x_0);
+        if (f_0) free(f_0);
+        if (Dxy) free(Dxy);
+        return -2;
+    }
 
     f_run_eval(f, x, y, u, p, Dt);
     g_run_eval(g, x, y, u, p, Dt);

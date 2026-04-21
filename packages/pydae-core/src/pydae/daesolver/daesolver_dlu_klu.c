@@ -44,7 +44,8 @@ int solve_dense(double *A, int N, int *pivots, double *b, double *x, int flag) {
                     A[max_row * N + k] = tmp_val;
                 }
             }
-            if (fabs(A[i * N + i]) < 1e-12) return -1; // Singular matrix
+            double pivot_val = A[i * N + i];
+            if (isnan(pivot_val) || isinf(pivot_val) || fabs(pivot_val) < 1e-12) return -1;
             for (int k = i + 1; k < N; k++) {
                 A[k * N + i] /= A[i * N + i];
                 for (int j = i + 1; j < N; j++) {
@@ -106,7 +107,11 @@ int ini(double *jac_ini, int *pivots, double *x, double *y, double *xy, double *
             jac_ini_eval(jac_ini, x, y, u, p, Dt); 
             if (Numeric != NULL) klu_free_numeric(&Numeric, &Common);
             Numeric = klu_factor(Ap, Ai, jac_ini, Symbolic, &Common);
-            if (Common.status != KLU_OK) return -1;
+            if (Common.status != KLU_OK) {
+                klu_free_symbolic(&Symbolic, &Common);
+                if (Numeric != NULL) klu_free_numeric(&Numeric, &Common);
+                return -1;
+            }
 #else
             // jac_ini points to the N*N dense array
             for (int k = 0; k < N * N; k++) jac_ini[k] = 0.0;
@@ -161,9 +166,15 @@ int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double
     int decimation = (intparams[4] > 0) ? intparams[4] : 1;
 
     // --- Dynamic Memory Allocation ---
-    double* x_0 = (double*)malloc(N_x * sizeof(double));
-    double* f_0 = (double*)malloc(N_x * sizeof(double));
-    double* Dxy = (double*)malloc(N * sizeof(double)); // <-- INTERNAL WORKSPACE ALLOCATED HERE
+    double* x_0 = (double*)calloc(N_x, sizeof(double));
+    double* f_0 = (double*)calloc(N_x, sizeof(double));
+    double* Dxy = (double*)calloc(N, sizeof(double));
+    if (!x_0 || !f_0 || !Dxy) {
+        if (x_0) free(x_0);
+        if (f_0) free(f_0);
+        if (Dxy) free(Dxy);
+        return -2;
+    }
 
 #ifdef USE_SPARSE
     klu_common Common;
@@ -217,7 +228,11 @@ int run(double t, double t_end, double *jac_trap, int *pivots, double *x, double
                 
                 if (Numeric != NULL) klu_free_numeric(&Numeric, &Common);
                 Numeric = klu_factor(Ap, Ai, jac_trap, Symbolic, &Common);
-                if (Common.status != KLU_OK) { free(x_0); free(f_0); free(Dxy); return -1; }
+                if (Common.status != KLU_OK) {
+                    klu_free_symbolic(&Symbolic, &Common);
+                    if (Numeric != NULL) klu_free_numeric(&Numeric, &Common);
+                    free(x_0); free(f_0); free(Dxy); return -1;
+                }
 #else
                 for (int k = 0; k < N * N; k++) jac_trap[k] = 0.0;
                 jac_trap_eval(jac_trap, x, y, u, p, Dt);

@@ -375,6 +375,9 @@ class Model:
         """Simulates the time-domain evolution."""
         for k, v in inputs_dict.items(): self.set_value(k, v)
 
+        # Clear FFI pins at start to prevent memory accumulation
+        self._ffi_pins.clear()
+
         # Storage: pre-allocated in ini() with N_store rows. Only grow
         # (doubling) if the decimation-aware required row count exceeds
         # current capacity. This mirrors the old-pydae pattern and avoids
@@ -404,7 +407,7 @@ class Model:
             self.Time, self.X, self.Y, self.Z = new_Time, new_X, new_Y, new_Z
 
         run_int = np.array([1, 0, 0, 0, self.decimation, 0, 0, self.step_counter], dtype=np.int32)
-        run_dbl = np.zeros(5, dtype=np.float64); run_dbl[0] = self.alpha 
+        run_dbl = np.zeros(5, dtype=np.float64); run_dbl[0] = self.alpha
 
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
         jac_run_flat = np.zeros(self.jac_size_trap, dtype=np.float64)
@@ -414,13 +417,19 @@ class Model:
         self.x = np.copy(self.xy[:self.N_x])
         self.y_run = np.copy(self.xy[self.N_x:])
 
-        self.solver_lib.run(
-            self.t_start, t_end, self._d(jac_run_flat), self._i(pivots), self._d(self.x), self._d(self.y_run), self._d(self.xy), 
-            self._d(self.u_run), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol, 
+        res_run = self.solver_lib.run(
+            self.t_start, t_end, self._d(jac_run_flat), self._i(pivots), self._d(self.x), self._d(self.y_run), self._d(self.xy),
+            self._d(self.u_run), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol,
             self._i(self.it_store), self.Dt, self._d(self.z), self._d(run_dbl), self._i(run_int),
             self._d(self.Time), self._d(self.X), self._d(self.Y), self._d(self.Z), self.N_z, len(self.Time),
             self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
         )
+
+        # Clear FFI pins after C call to release stale pointers
+        self._ffi_pins.clear()
+
+        if res_run != 0:
+            raise RuntimeError("C solver run() failed")
 
         self.t_start = t_end
         self.step_counter = run_int[7]

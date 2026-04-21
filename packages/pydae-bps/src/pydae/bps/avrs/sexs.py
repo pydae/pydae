@@ -305,11 +305,11 @@ def test():
     model.post()
   
     string = f'{model.Time[0]:0.2f}, '
-    string += f'{model.get_values('V_1')[0]:0.2f}'    
+    string += f'{model.get_values("V_1")[0]:0.2f}'
     print(string)
 
     string = f'{model.Time[-1]:0.2f}, '
-    string += f'{model.get_values('V_1')[-1]:0.2f}'    
+    string += f'{model.get_values("V_1")[-1]:0.2f}'    
     print(string)
 
 
