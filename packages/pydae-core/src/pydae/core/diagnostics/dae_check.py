@@ -322,7 +322,7 @@ def diagnose_dae_model(jac_flat, fg, Nx, Ny,
     # ------------------------------------------------------------------
     # 9. Heatmap
     # ------------------------------------------------------------------
-    if HAS_MPL:
+    if HAS_MPL and False: # Disabled for testing
         fig, axes = plt.subplots(1, 2, figsize=(16, 7), gridspec_kw={'width_ratios': [3, 1]})
 
         # Jacobian heatmap
@@ -355,7 +355,7 @@ def diagnose_dae_model(jac_flat, fg, Nx, Ny,
         if save_figure:
             fig.savefig(save_figure, dpi=150, bbox_inches='tight')
             print(f"\n    Diagnostic figure saved to: {save_figure}")
-        plt.show()
+        # plt.show()
 
     # ------------------------------------------------------------------
     # SUMMARY

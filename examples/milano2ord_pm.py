@@ -21,7 +21,7 @@ from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-plt.figure(); plt.close("all")
+# plt.figure(); plt.close("all")
 
 import numpy as np
 import sympy as sym
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
 
         fig.savefig(out_path)
-        plt.close(fig)
+        # plt.close(fig)
         
     except AttributeError:
         print("  (Model has finished — inspect attributes interactively)")

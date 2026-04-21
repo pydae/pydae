@@ -128,7 +128,7 @@ if __name__ == "__main__":
 
         out_path = Path(__file__).parent / "pendulum_theta.svg"
         fig.savefig(out_path)
-        plt.close(fig)
+        # plt.close(fig)
         print(f"  plot saved : {out_path}")
     except AttributeError:
         print("  (Model has finished — inspect attributes interactively)")

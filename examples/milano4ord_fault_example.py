@@ -18,7 +18,7 @@ from pathlib import Path
 
 
 import matplotlib.pyplot as plt
-plt.figure(); plt.close("all")
+# plt.figure(); plt.close("all")
 
 from pydae.bps import BpsBuilder
 from pydae.core import Builder, Model
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     fig.tight_layout()
     fig.savefig(out_path)
-    plt.close(fig)
+    # plt.close(fig)
 
 
     #plot(model, out_path)

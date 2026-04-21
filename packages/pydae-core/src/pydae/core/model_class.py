@@ -354,13 +354,14 @@ class Model:
             )
             self._ffi_pins.clear()
             try:
-                diagnose_dae_model(
-                    self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
-                    x_names=self.x_list, y_names=self.y_ini_list,
-                    sparse_backend=self.sparse_backend,
-                    Ap=self.data_dict.get('Ap_ini'),
-                    Ai=self.data_dict.get('Ai_ini'),
-                )
+                # diagnose_dae_model(
+                #     self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
+                #     x_names=self.x_list, y_names=self.y_ini_list,
+                #     sparse_backend=self.sparse_backend,
+                #     Ap=self.data_dict.get('Ap_ini'),
+                #     Ai=self.data_dict.get('Ai_ini'),
+                # )
+                pass
             except Exception:
                 pass  # Diagnostics may fail on some matplotlib environments
             self.ini_int[4] = 0 
