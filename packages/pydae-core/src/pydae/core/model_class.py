@@ -316,6 +316,12 @@ class Model:
         self.ini_int = np.array([0, 0, 0, 0, 0], dtype=np.int32)
         ini_dbl = np.zeros(5, dtype=np.float64)
 
+        # Ensure independent buffers (not views) before C solve.
+        # Required because ini2run() converts self.x/y_ini to views into xy_ini.
+        # On Windows CFFI, passing views to C causes heap corruption.
+        self.x = np.copy(self.xy_ini[:self.N_x])
+        self.y_ini = np.copy(self.xy_ini[self.N_x:])
+
         self._ffi_pins.clear()
         res_ini = self.solver_lib.ini(
             self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy),
@@ -329,7 +335,15 @@ class Model:
         self.ini2run()
 
         # Automatic Failure Diagnosis
-        if res_ini != 0 or np.isnan(self.xy_ini).any():
+        # Guard np.isnan() in try/except - crashes may occur on some platforms
+        # if CFFI heap was corrupted or matplotlib has issues during diagnostics
+        ini_failed = False
+        try:
+            ini_failed = res_ini != 0 or np.isnan(self.xy_ini).any()
+        except (RuntimeError, ValueError, FloatingPointError):
+            ini_failed = True
+
+        if ini_failed:
             print("Initialization failed! Triggering automatic numerical diagnostics...\n")
             self.ini_int[4] = 1 # Enable diagnostic flag
             self._ffi_pins.clear()
@@ -339,13 +353,16 @@ class Model:
             self._d(self.z), self._d(ini_dbl), self._i(self.ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
             )
             self._ffi_pins.clear()
-            diagnose_dae_model(
-                self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
-                x_names=self.x_list, y_names=self.y_ini_list,
-                sparse_backend=self.sparse_backend,
-                Ap=self.data_dict.get('Ap_ini'),
-                Ai=self.data_dict.get('Ai_ini'),
-            )
+            try:
+                diagnose_dae_model(
+                    self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
+                    x_names=self.x_list, y_names=self.y_ini_list,
+                    sparse_backend=self.sparse_backend,
+                    Ap=self.data_dict.get('Ap_ini'),
+                    Ai=self.data_dict.get('Ai_ini'),
+                )
+            except Exception:
+                pass  # Diagnostics may fail on some matplotlib environments
             self.ini_int[4] = 0 
             return False 
         
@@ -391,6 +408,10 @@ class Model:
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
         jac_run_flat = np.zeros(self.jac_size_trap, dtype=np.float64)
         pivots = np.zeros(self.N_xy, dtype=np.int32)
+
+        # Ensure independent buffers (not views) before C solve
+        self.x = np.copy(self.xy[:self.N_x])
+        self.y_run = np.copy(self.xy[self.N_x:])
 
         self.solver_lib.run(
             self.t_start, t_end, self._d(jac_run_flat), self._i(pivots), self._d(self.x), self._d(self.y_run), self._d(self.xy), 
@@ -448,9 +469,9 @@ class Model:
         """
         self._ensure_jac_trap_argtypes()
 
-        # Current operating point
-        self.x = self.xy[:self.N_x]
-        self.y_run = self.xy[self.N_x:]
+        # Current operating point - ensure independent buffers (not views)
+        self.x = np.copy(self.xy[:self.N_x])
+        self.y_run = np.copy(self.xy[self.N_x:])
 
         jac_trap_flat = np.zeros(self.jac_size_trap, dtype=np.float64)
         self.solver_lib.jac_trap_eval(
