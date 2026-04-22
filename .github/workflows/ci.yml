@@ -25,6 +25,10 @@ jobs:
         python: ["3.10", "3.11", "3.12"]
         solver: [sparse, dense]
         backend: [cffi, ctypes]
+        exclude:
+          # CFFI fails on Windows (MinGW cannot link MSVC Python 3.10+ ABI)
+          - os: windows-latest
+            backend: cffi
 
     # ─────────────────────────────────────────────────────────────────────────────
     # Environment variables
