@@ -138,11 +138,13 @@ jobs:
             jsonschema
           pip install pytest-xdist pytest-timeout pluggy hjson
 
-      - name: Install local package
+      - name: Install local packages
         shell: bash -el {0}
         run: |
-          # Install pydae in editable mode so tests use local code
-          pip install -e . --no-build-isolation
+          # Install each pydae subpackage in editable mode
+          pip install -e packages/pydae-core --no-build-isolation
+          pip install -e packages/pydae-bps --no-build-isolation
+          pip install -e packages/pydae-uds --no-build-isolation
 
       # ─────────────────────────────────────────────────────────────
       # Print environment diagnostics
