@@ -232,7 +232,7 @@ jobs:
             -k "test_compilation_and_execution and not klu" \
             -v --tb=short
 
-      - name: Run KLU tests (cffi: Linux/macOS, ctypes: all OSes)
+      - name: Run KLU tests cffi
         if: >-
           matrix.solver == 'sparse' &&
           matrix.backend == 'cffi'
@@ -242,7 +242,7 @@ jobs:
             -k "test_compilation_and_execution" \
             -v --tb=short
 
-      - name: Run KLU tests (ctypes on Windows)
+      - name: Run KLU tests ctypes
         if: >-
           matrix.solver == 'sparse' &&
           matrix.backend == 'ctypes'
