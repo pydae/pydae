@@ -1,11 +1,23 @@
 # codegen/cffi_builder.py
 import os
 import re
+import sys
 import platform
 import logging
 import sympy as sym
 from cffi import FFI
 from concurrent.futures import ProcessPoolExecutor
+
+# ---------------------------------------------------------------------------
+# Windows Python 3.12 + MinGW ABI incompatibility workaround
+# Python 3.12 uses MSVC ABI; MinGW can't link __imp__ symbols properly.
+# ---------------------------------------------------------------------------
+_MINGW_PY312_WORKAROUND = (
+    sys.platform == 'win32' and
+    sys.version_info >= (3, 12) and
+    platform.system() == 'Windows'
+)
+
 
 # ---------------------------------------------------------------------------
 # Supported sparse solver backends (C preprocessor define, compiler flag)
@@ -349,6 +361,13 @@ def generate_and_compile_cffi(builder_obj):
             with open(hash_file, 'w') as _hf:
                 _hf.write(src_hash)
         except Exception as e:
+            # MinGW + Python 3.12 ABI incompatibility: MinGW emits __imp__Py_NoneStruct
+            # but MSVC-built Python 3.12 DLL does not export the old-style import symbol.
+            if _MINGW_PY312_WORKAROUND:
+                raise RuntimeError(
+                    "CFFI compilation failed on Windows Python 3.12+ (MinGW cannot link "
+                    "against MSVC-built Python). Use target='ctypes' or build with MSVC."
+                ) from e
             logging.error(f"[CFFI] Compilation FAILED. Exception: {e}")
             raise e
 
