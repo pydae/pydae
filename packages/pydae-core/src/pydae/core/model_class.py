@@ -370,16 +370,20 @@ class Model:
             )
             self._ffi_pins.clear()
             try:
-                # diagnose_dae_model(
-                #     self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
-                #     x_names=self.x_list, y_names=self.y_ini_list,
-                #     sparse_backend=self.sparse_backend,
-                #     Ap=self.data_dict.get('Ap_ini'),
-                #     Ai=self.data_dict.get('Ai_ini'),
-                # )
-                pass
-            except Exception:
-                pass  # Diagnostics may fail on some matplotlib environments
+                diagnose_dae_model(
+                    self.jac_ini_flat, self.fg_w, self.N_x, self.N_y,
+                    x_names=self.x_list, y_names=self.y_ini_list,
+                    sparse_backend=self.sparse_backend,
+                    Ap=self.data_dict.get('Ap_ini'),
+                    Ai=self.data_dict.get('Ai_ini'),
+                )
+            except Exception as e:
+                import traceback
+                print("\n" + "="*50)
+                print("CRITICAL: The diagnostic tool itself crashed!")
+                print("="*50)
+                traceback.print_exc()
+                print("="*50 + "\n")
             self.ini_int[4] = 0 
             return False 
         
