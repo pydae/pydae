@@ -69,9 +69,14 @@ def test_compilation_and_execution(pendulum_sys, target, sparse):
     model = Model(pendulum_sys["name"])
     
     # Ini
+    # Physically stable initial guess:
+    # - L = 5.21, theta = 30 deg: p_x = L*sin(30°) = 2.605, p_y = -L*cos(30°) = -4.516
+    # - lam (tension) MUST NOT be 0.0 — causes singular Jacobian blocks (dFx/dlam = -p_x).
+    #   Use rough tension estimate: T ≈ M*G/cos(30°) ≈ 113, or conservative 10.0.
+    # - f_x = 1.0 keeps the pendulum moving slightly
     success = model.ini(
         {"theta": np.deg2rad(30.0)},
-        xy_0={"p_x": 0.9, "p_y": -5.1, "lam": 0.0, "f_x": 1.0},
+        xy_0={"p_x": 2.605, "p_y": -4.516, "lam": 10.0, "f_x": 1.0},
     )
     assert success, f"Initialization failed for {target} sparse={sparse}"
     
