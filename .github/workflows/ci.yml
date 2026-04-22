@@ -184,7 +184,7 @@ jobs:
           # Fast tests: parser, symbolic Jacobian computation, code generation
           # No C compiler needed - validates SymPy pipeline
           pytest tests/core/test_pendulum.py -m "parse or symbolic or codegen" \
-            -v --tb=short -n auto
+            -v --tb=short
 
       # ─────────────────────────────────────────────────────────────
       # Run build tests
@@ -196,7 +196,7 @@ jobs:
           # Tests CFFI/cffi backends (no external sparse solver)
           pytest tests/core/ \
             -m "build" \
-            -v --tb=short -n auto
+            -v --tb=short
 
       # ─────────────────────────────────────────────────────────────
       # Run solver-specific tests
@@ -207,8 +207,8 @@ jobs:
         run: |
           # Dense solver: built-in LU, no external dependencies
           pytest tests/core/test_compilation_modes.py \
-            -k "test_compilation_and_execution" \
-            -v --tb=short -n auto
+            -k "test_compilation_and_execution and not klu" \
+            -v --tb=short
 
       - name: Run KLU tests
         if: >-
@@ -216,13 +216,10 @@ jobs:
           matrix.backend == 'cffi'
         shell: bash -el {0}
         run: |
-          # ─────────────────────────────────────────────────────────
           # KLU (SuiteSparse) is available on all platforms.
-          # Test with CFFI backend which handles compilation.
-          # ─────────────────────────────────────────────────────────
           pytest tests/core/test_compilation_modes.py \
             -k "test_compilation_and_execution" \
-            -v --tb=short -n auto
+            -v --tb=short
 
       - name: Run PARDISO tests (Intel/AMD only)
         if: >-
