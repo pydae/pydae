@@ -57,9 +57,8 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3
           python-version: ${{ matrix.python }}
-          activate-by-priority: true
           # Pre-update conda/mamba for latest solver compatibility
           use-mamba: true
           auto-update-conda: true
