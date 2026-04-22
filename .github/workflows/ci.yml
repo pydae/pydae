@@ -135,9 +135,8 @@ jobs:
             sympy \
             cffi \
             dill \
-            jsonschema \
-            hjson
-          pip install pytest-xdist pytest-timeout pluggy
+            jsonschema
+          pip install pytest-xdist pytest-timeout pluggy hjson
 
       - name: Install local package
         shell: bash -el {0}
