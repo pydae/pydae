@@ -33,6 +33,11 @@ import importlib
 # Optional diagnostic tool
 from pydae.core.diagnostics.dae_check import diagnose_dae_model
 
+# Padding shield: allocate extra elements to absorb potential C buffer overflows.
+# On Windows, heap corruption triggers immediate crashes; this padding provides
+# a safety margin so overflows hit padding instead of corrupting heap canaries.
+PAD = 50
+
 
 class Model:
     def __init__(self, model_name, matrices_folder='./build', data_folder='.'):
@@ -183,13 +188,13 @@ class Model:
             self.jac_size_ini = self.N_xy * self.N_xy
             self.jac_size_trap = self.N_xy * self.N_xy
 
-        # Working memory buffers
-        self.x = np.zeros(self.N_x, dtype=np.float64)
-        self.y = np.zeros(self.N_y, dtype=np.float64)
-        self.y_ini = np.zeros(self.N_y, dtype=np.float64)
-        self.xy = np.zeros(self.N_xy, dtype=np.float64)
-        self.xy_ini = np.zeros(self.N_xy, dtype=np.float64)
-        self.z = np.zeros(self.N_z, dtype=np.float64)
+        # Working memory buffers (padded for safety)
+        self.x = np.zeros(self.N_x + PAD, dtype=np.float64)
+        self.y = np.zeros(self.N_y + PAD, dtype=np.float64)
+        self.y_ini = np.zeros(self.N_y + PAD, dtype=np.float64)
+        self.xy = np.zeros(self.N_xy + PAD, dtype=np.float64)
+        self.xy_ini = np.zeros(self.N_xy + PAD, dtype=np.float64)
+        self.z = np.zeros(self.N_z + PAD, dtype=np.float64)
         self.u_ini = np.array(self.u_ini_values_list, dtype=np.float64)
         self.u_run = np.array(self.u_run_values_list, dtype=np.float64)
         self.p = np.zeros(max(1, len(self.params_list)), dtype=np.float64)
@@ -197,7 +202,7 @@ class Model:
         self.yini2urun = list(set(self.u_run_list).intersection(set(self.y_ini_list)))
         self.uini2yrun = list(set(self.y_run_list).intersection(set(self.u_ini_list)))    
 
-        self.xy_0 = np.zeros(self.N_xy, dtype=np.float64)
+        self.xy_0 = np.zeros(self.N_xy + PAD, dtype=np.float64)
 
         # Load parameter defaults
         self.params_dict = self.data_dict.get('params_dict', {})
@@ -207,10 +212,10 @@ class Model:
                 self.p[self.params_list.index(name)] = val
                 if name == 'alpha': self.alpha = val
 
-        # Evaluation workspace
-        self.f_w = np.zeros(self.N_x, dtype=np.float64)
-        self.g_w = np.zeros(self.N_y, dtype=np.float64)
-        self.fg_w = np.zeros(self.N_xy, dtype=np.float64)
+        # Evaluation workspace (padded for safety)
+        self.f_w = np.zeros(self.N_x + PAD, dtype=np.float64)
+        self.g_w = np.zeros(self.N_y + PAD, dtype=np.float64)
+        self.fg_w = np.zeros(self.N_xy + PAD, dtype=np.float64)
 
     def ini2run(self):
         """Transforms initialization states into runtime states."""
@@ -320,15 +325,15 @@ class Model:
         # Pre-allocate fixed storage (old-pydae pattern): N_store rows,
         # truncated later in post(). Reused across multiple run() calls.
         n = int(self.N_store)
-        self.Time = np.zeros(n, dtype=np.float64)
-        self.X = np.zeros(n * self.N_x, dtype=np.float64)
-        self.Y = np.zeros(n * self.N_y, dtype=np.float64)
-        self.Z = np.zeros(n * self.N_z, dtype=np.float64)
+        self.Time = np.zeros(n + PAD, dtype=np.float64)
+        self.X = np.zeros((n + PAD) * self.N_x, dtype=np.float64)
+        self.Y = np.zeros((n + PAD) * self.N_y, dtype=np.float64)
+        self.Z = np.zeros((n + PAD) * self.N_z, dtype=np.float64)
 
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
-        self.jac_ini_flat = np.zeros(self.jac_size_ini, dtype=np.float64)
-        self.pivots_ini = np.zeros(self.N_xy, dtype=np.int32)
-        Dxy = np.zeros(self.N_xy, dtype=np.float64)
+        self.jac_ini_flat = np.zeros(self.jac_size_ini + PAD, dtype=np.float64)
+        self.pivots_ini = np.zeros(self.N_xy + PAD, dtype=np.int32)
+        Dxy = np.zeros(self.N_xy + PAD, dtype=np.float64)
         self.ini_int = np.array([0, 0, 0, 0, 0], dtype=np.int32)
         ini_dbl = np.zeros(5, dtype=np.float64)
 
@@ -430,7 +435,7 @@ class Model:
         run_dbl = np.zeros(5, dtype=np.float64); run_dbl[0] = self.alpha
 
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
-        jac_run_flat = np.zeros(self.jac_size_trap, dtype=np.float64)
+        jac_run_flat = np.zeros(self.jac_size_trap + PAD, dtype=np.float64)
         pivots = np.zeros(self.N_xy, dtype=np.int32)
 
         # Ensure independent buffers (not views) before C solve
