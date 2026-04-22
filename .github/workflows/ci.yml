@@ -1,0 +1,258 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Test job: builds across OS × Python version matrix
+  # ─────────────────────────────────────────────────────────────────────────────
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }} / ${{ matrix.solver }}-${{ matrix.backend }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        python: ["3.10", "3.11", "3.12"]
+        solver: [sparse]
+        backend: [cffi]
+        include:
+          # Dense solver tests (always run, no external deps)
+          - os: [ubuntu-latest, macos-14, windows-latest]
+            python: ["3.10", "3.11", "3.12"]
+            solver: dense
+            backend: [cffi, ctypes]
+
+    # ─────────────────────────────────────────────────────────────────────────────
+    # Environment variables
+    # ─────────────────────────────────────────────────────────────────────────────
+    env:
+      # Disable pytest bytecode caching to keep CI artifacts clean
+      PYTHONDONTWRITEBYTECODE: "1"
+      # Enable parallel SymPy evaluation (>200 expressions benefit)
+      PYDAE_PARALLEL: "1"
+
+    steps:
+      # ─────────────────────────────────────────────────────────────
+      # Checkout repository
+      # ─────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ─────────────────────────────────────────────────────────────
+      # Setup Conda environment
+      # Uses conda-incubator/setup-miniconda for all OSes to provide
+      # a consistent package manager and compiler wrapper setup.
+      # ─────────────────────────────────────────────────────────────
+      - name: Setup Conda (${{ matrix.os }} / Python ${{ matrix.python }})
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          miniforge-variant: Mambaforge
+          python-version: ${{ matrix.python }}
+          activate-by-priority: true
+          # Pre-update conda/mamba for latest solver compatibility
+          use-mamba: true
+          auto-update-conda: true
+
+      # ─────────────────────────────────────────────────────────────
+      # Compiler setup per OS
+      # ─────────────────────────────────────────────────────────────
+      - name: Install compiler (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash -el {0}
+        run: |
+          # Native gcc is pre-installed on ubuntu-latest
+          # SuiteSparse headers are needed for KLU solver
+          conda install -c conda-forge suitesparse
+          echo "Using system gcc (pre-installed on ubuntu-latest)"
+
+      - name: Install compiler (macOS)
+        if: matrix.os == 'macos-14'
+        shell: bash -el {0}
+        run: |
+          # Apple Clang is pre-installed on macos-14
+          # Install SuiteSparse headers for KLU (needed for all sparse backends)
+          conda install -c conda-forge suitesparse
+          echo "Using Apple Clang (pre-installed on macos-14)"
+
+      - name: Install compiler (Windows MinGW)
+        if: matrix.os == 'windows-latest'
+        shell: bash -el {0}
+        run: |
+          # ─────────────────────────────────────────────────────────
+          # Windows requires MinGW for C compilation.
+          # Install m2w64-toolchain (GCC for MSYS2/Conda) and
+          # libpython (Python development headers for CFFI).
+          # ─────────────────────────────────────────────────────────
+          conda install -c conda-forge m2w64-toolchain libpython
+          # SuiteSparse is needed for KLU solver on Windows
+          conda install -c conda-forge suitesparse
+          echo "Using MinGW (m2w64-toolchain)"
+
+      # ─────────────────────────────────────────────────────────────
+      # Solver-specific setup (after compiler, before tests)
+      # ─────────────────────────────────────────────────────────────
+      - name: Setup Intel MKL (Intel/AMD only)
+        if: >-
+          matrix.os == 'ubuntu-latest' &&
+          matrix.solver == 'sparse' &&
+          matrix.backend == 'cffi'
+        shell: bash -el {0}
+        run: |
+          # ─────────────────────────────────────────────────────────
+          # MKL/PARDISO is Intel-only and requires the MKL headers
+          # and library. Conda-Forge provides MKL via conda.
+          # Skip on Apple Silicon (macOS ARM) - use Accelerate instead.
+          # ─────────────────────────────────────────────────────────
+          conda install -c conda-forge mkl mkl-include
+          echo "MKL/PARDISO configured for Intel/AMD"
+
+      # ─────────────────────────────────────────────────────────────
+      # Install test dependencies and package
+      # ─────────────────────────────────────────────────────────────
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: |
+          # ─────────────────────────────────────────────────────────
+          # Install core dependencies via conda, then pip for the rest.
+          # This ensures conda packages (numpy, scipy) are available
+          # for MKL linking while keeping pip for the local package.
+          # ─────────────────────────────────────────────────────────
+          conda install -c conda-forge \
+            pip \
+            pytest \
+            numpy \
+            scipy \
+            sympy \
+            cffi \
+            dill \
+            jsonschema \
+            hjson
+          pip install pytest-xdist pytest-timeout pluggy
+
+      - name: Install local package
+        shell: bash -el {0}
+        run: |
+          # Install pydae in editable mode so tests use local code
+          pip install -e . --no-build-isolation
+
+      # ─────────────────────────────────────────────────────────────
+      # Print environment diagnostics
+      # ─────────────────────────────────────────────────────────────
+      - name: Diagnostics
+        shell: bash -el {0}
+        run: |
+          echo "=== Environment ==="
+          python --version
+          conda list python
+          echo "=== Compiler ==="
+          if command -v gcc &> /dev/null; then gcc --version | head -1; fi
+          if command -v clang &> /dev/null; then clang --version | head -1; fi
+          if command -v x86_64-w64-mingw32-gcc &> /dev/null; then x86_64-w64-mingw32-gcc --version | head -1; fi
+          echo "=== SuiteSparse ==="
+          conda list suitesparse
+          echo "=== MKL ==="
+          conda list mkl 2>/dev/null || echo "MKL not installed"
+
+      # ─────────────────────────────────────────────────────────────
+      # Run fast tests first (no C compilation needed)
+      # ─────────────────────────────────────────────────────────────
+      - name: Run fast tests (parse, symbolic, codegen)
+        shell: bash -el {0}
+        run: |
+          # Fast tests: parser, symbolic Jacobian computation, code generation
+          # No C compiler needed - validates SymPy pipeline
+          pytest tests/core/test_pendulum.py -m "parse or symbolic or codegen" \
+            -v --tb=short -n auto
+
+      # ─────────────────────────────────────────────────────────────
+      # Run build tests
+      # ─────────────────────────────────────────────────────────────
+      - name: Run build tests
+        shell: bash -el {0}
+        run: |
+          # Build tests: compile C code to shared library
+          # Tests CFFI/cffi backends (no external sparse solver)
+          pytest tests/core/ \
+            -m "build" \
+            -v --tb=short -n auto
+
+      # ─────────────────────────────────────────────────────────────
+      # Run solver-specific tests
+      # ─────────────────────────────────────────────────────────────
+      - name: Run dense solver tests
+        if: matrix.solver == 'dense'
+        shell: bash -el {0}
+        run: |
+          # Dense solver: built-in LU, no external dependencies
+          pytest tests/core/test_compilation_modes.py \
+            -k "test_compilation_and_execution" \
+            -v --tb=short -n auto
+
+      - name: Run KLU tests
+        if: >-
+          matrix.solver == 'sparse' &&
+          matrix.backend == 'cffi'
+        shell: bash -el {0}
+        run: |
+          # ─────────────────────────────────────────────────────────
+          # KLU (SuiteSparse) is available on all platforms.
+          # Test with CFFI backend which handles compilation.
+          # ─────────────────────────────────────────────────────────
+          pytest tests/core/test_compilation_modes.py \
+            -k "test_compilation_and_execution" \
+            -v --tb=short -n auto
+
+      - name: Run PARDISO tests (Intel/AMD only)
+        if: >-
+          matrix.os != 'macos-14' &&
+          matrix.solver == 'sparse' &&
+          matrix.backend == 'cffi'
+        shell: bash -el {0}
+        run: |
+          # ─────────────────────────────────────────────────────────
+          # PARDISO (MKL) is Intel-only.
+          # Skip on Apple Silicon (macOS ARM) - use Accelerate instead.
+          # Ubuntu (Intel/AMD) and Windows (Intel/AMD) can run this.
+          # ─────────────────────────────────────────────────────────
+          pytest tests/core/test_compilation_modes.py::test_pardiso_compilation \
+            -v --tb=short
+
+      - name: Run Accelerate tests (macOS only)
+        if: matrix.os == 'macos-14'
+        shell: bash -el {0}
+        run: |
+          # ─────────────────────────────────────────────────────────
+          # Accelerate is Apple Silicon's sparse solver.
+          # Only available on macOS. Skip on Linux/Windows.
+          # Note: This test is currently experimental for pydae.
+          # ─────────────────────────────────────────────────────────
+          echo "Accelerate (Apple Accelerate) - platform-native sparse solver"
+          echo "Test execution depends on pydae Accelerate support"
+          # pytest tests/core/test_compilation_modes.py::test_accelerate_compilation \
+          #   -v --tb=short
+          echo "Accelerate testing placeholder - implement when pydae adds Accelerate backend"
+
+      # ─────────────────────────────────────────────────────────────
+      # Upload test artifacts on failure
+      # ─────────────────────────────────────────────────────────────
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs-${{ matrix.os }}-py${{ matrix.python }}-${{ matrix.solver }}-${{ matrix.backend }}
+          path: |
+            build/*.c
+            build/*.so 2>/dev/null || echo "No build artifacts"
+          retention-days: 7
+          if-no-files-found: ignore
