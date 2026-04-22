@@ -21,6 +21,7 @@ Jacobian buffer size: ``NNZ`` entries for any sparse backend, or
 """
 
 import ctypes
+import logging
 import numpy as np
 from numpy.ctypeslib import ndpointer
 from scipy.sparse import csc_matrix, csr_matrix
@@ -61,11 +62,26 @@ class Model:
             lib_filename = f"{self.model_name}_ctypes_{backend_tag}{self.lib_ext}"
             self.lib_path = os.path.abspath(os.path.join(matrices_folder, lib_filename))
 
-            # Fix for Windows Conda environments to find compiler-related DLLs
+            # Fix for Windows Conda environments to find DLLs (suitesparse, mkl, compiler libs)
             if sys.platform == 'win32' and 'CONDA_PREFIX' in os.environ:
-                bin_path = os.path.join(os.environ['CONDA_PREFIX'], 'Library', 'bin')
-                if os.path.exists(bin_path):
-                    os.add_dll_directory(bin_path)
+                conda_prefix = os.environ['CONDA_PREFIX']
+                # Add multiple potential DLL directories
+                dll_dirs = [
+                    os.path.join(conda_prefix, 'Library', 'bin'),   # Conda compiler DLLs
+                    os.path.join(conda_prefix, 'Library', 'lib'), # SuiteSparse/MKL libs
+                    os.path.join(conda_prefix, 'envs', 'test', 'Library', 'bin'),
+                    os.path.join(conda_prefix, 'envs', 'test', 'Library', 'lib'),
+                    os.path.join(conda_prefix, 'envs', 'test', 'bin'),
+                    os.path.join(conda_prefix, 'bin'),
+                    os.path.join(sys.exec_prefix, 'Library', 'bin'),
+                ]
+                for d in dll_dirs:
+                    if os.path.exists(d):
+                        try:
+                            os.add_dll_directory(d)
+                            logging.debug(f"[Model] Added DLL directory: {d}")
+                        except (OSError, AttributeError):
+                            pass  # add_dll_directory not available on older Python
 
             if not os.path.exists(self.lib_path):
                 raise FileNotFoundError(f"Shared library not found for {self.model_name}. Did you run the builder?")
@@ -442,8 +458,8 @@ class Model:
         indices) regardless of backend.  The 1-based offset for PARDISO
         is only applied inside the generated C code, not in the metadata.
         """
-        Ap = np.asarray(self.data_dict[f'Ap_{which}'], dtype=np.intp)
-        Ai = np.asarray(self.data_dict[f'Ai_{which}'], dtype=np.intp)
+        Ap = np.asarray(self.data_dict[f'Ap_{which}'], dtype=np.int32)
+        Ai = np.asarray(self.data_dict[f'Ai_{which}'], dtype=np.int32)
         n = self.N_xy
 
         # All backends: JSON stores 0-based CSC

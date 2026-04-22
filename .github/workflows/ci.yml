@@ -225,9 +225,9 @@ jobs:
         shell: bash -el {0}
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and ctypes" -v --tb=short
+            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and ctypes" -v --tb=short -s
           else
-            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" -v --tb=short
+            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" -v --tb=short -s
           fi
 
       - name: Run PARDISO tests (Linux sparse cffi only)
