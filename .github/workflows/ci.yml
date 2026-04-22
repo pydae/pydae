@@ -142,6 +142,7 @@ jobs:
         shell: bash -el {0}
         run: |
           # Install each pydae subpackage in editable mode
+          pip install hatchling
           pip install -e packages/pydae-core --no-build-isolation
           pip install -e packages/pydae-bps --no-build-isolation
           pip install -e packages/pydae-uds --no-build-isolation
