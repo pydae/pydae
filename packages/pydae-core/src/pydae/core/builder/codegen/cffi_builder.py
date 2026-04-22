@@ -256,9 +256,9 @@ def generate_and_compile_cffi(builder_obj):
     define_macros = []
     extra_link_args = []
 
-    # Use /O2 on MSVC, -O3 on GCC/Clang
+    # Use -O2 on MSVC/MinGW (both accept hyphen), -O3 on GCC/Clang
     if is_windows:
-        extra_compile_args = ['/O2']
+        extra_compile_args = ['-O2']
     else:
         extra_compile_args = ['-O3']
 

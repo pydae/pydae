@@ -148,6 +148,12 @@ jobs:
           pip install -e packages/pydae-uds --no-build-isolation
 
       - name: Install solver C-libraries
+        if: matrix.os == 'macos-14'
+        shell: bash -el {0}
+        run: conda install -c conda-forge suitesparse
+
+      - name: Install solver C-libraries (Intel)
+        if: matrix.os != 'macos-14'
         shell: bash -el {0}
         run: conda install -c conda-forge suitesparse mkl
 
