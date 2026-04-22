@@ -40,6 +40,8 @@ jobs:
       PYTHONDONTWRITEBYTECODE: "1"
       # Enable parallel SymPy evaluation (>200 expressions benefit)
       PYDAE_PARALLEL: "1"
+      # Point to conda-installed shared libraries at runtime (set in shell steps)
+      CONDALIB: "$CONDA/lib"
 
     steps:
       # ─────────────────────────────────────────────────────────────
@@ -152,10 +154,20 @@ jobs:
         shell: bash -el {0}
         run: conda install -c conda-forge suitesparse
 
+      - name: Set LD_LIBRARY_PATH (macOS)
+        if: matrix.os == 'macos-14'
+        shell: bash -el {0}
+        run: echo "export LD_LIBRARY_PATH=\$CONDA/lib:\$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
       - name: Install solver C-libraries (Intel)
         if: matrix.os != 'macos-14'
         shell: bash -el {0}
         run: conda install -c conda-forge suitesparse mkl
+
+      # Export library path for subsequent steps
+      - name: Set LD_LIBRARY_PATH
+        shell: bash -el {0}
+        run: echo "export LD_LIBRARY_PATH=\$CONDA/lib:\$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
       # ─────────────────────────────────────────────────────────────
       # Print environment diagnostics
