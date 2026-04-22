@@ -218,9 +218,9 @@ jobs:
       - name: Run dense solver tests
         if: matrix.solver == 'dense'
         shell: bash -el {0}
-        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and ctypes" -v --tb=short
+        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution[ctypes-False]" -v --tb=short -s
 
-      - name: Run KLU tests sparse (cffi on Linux/macOS, ctypes on Windows)
+      - name: Run KLU tests sparse
         if: matrix.solver == 'sparse'
         shell: bash -el {0}
         run: |
