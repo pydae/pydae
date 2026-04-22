@@ -220,10 +220,15 @@ jobs:
         shell: bash -el {0}
         run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and ctypes" -v --tb=short
 
-      - name: Run KLU tests sparse
+      - name: Run KLU tests sparse (cffi on Linux/macOS, ctypes on Windows)
         if: matrix.solver == 'sparse'
         shell: bash -el {0}
-        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu" -v --tb=short
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and ctypes" -v --tb=short
+          else
+            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" -v --tb=short
+          fi
 
       - name: Run PARDISO tests (Linux sparse cffi only)
         if: matrix.os == 'ubuntu-latest' && matrix.solver == 'sparse' && matrix.backend == 'cffi'
