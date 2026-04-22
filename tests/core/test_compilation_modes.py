@@ -5,6 +5,26 @@ import sympy as sym
 from pydae.core import Builder, Model
 import os
 
+
+def _pardiso_available():
+    try:
+        import ctypes
+        for lib in ['libmkl_rt.so', 'libmkl_rt.dylib', 'mkl_rt.dll']:
+            try:
+                ctypes.CDLL(lib)
+                return True
+            except OSError:
+                continue
+        return False
+    except Exception:
+        return False
+
+PARDISO = pytest.mark.skipif(
+    not _pardiso_available(),
+    reason="PARDISO requires Intel MKL not installed"
+)
+
+
 @pytest.fixture
 def pendulum_sys():
     """A minimal pendulum DAE for compilation tests."""
@@ -25,9 +45,51 @@ def pendulum_sys():
     }
 
 @pytest.mark.build
-@pytest.mark.parametrize("target", ["cffi", "ctypes"])
-@pytest.mark.parametrize("sparse", [False, "klu"])
+@pytest.mark.parametrize("target,sparse", [
+    ("cffi", False),
+    ("cffi", "klu"),
+    ("ctypes", False),
+    ("ctypes", "klu"),
+])
 def test_compilation_and_execution(pendulum_sys, target, sparse):
+    """Test dense and KLU sparse backends."""
+    # 1. Build
+    bld = Builder(pendulum_sys, target=target, sparse=sparse)
+    bld.build()
+    
+    # 2. Simulate
+    model = Model(pendulum_sys["name"])
+    
+    # Ini
+    success = model.ini(
+        {"theta": np.deg2rad(30.0)},
+        xy_0={"p_x": 0.9, "p_y": -5.1, "lam": 0.0, "f_x": 1.0},
+    )
+    assert success, f"Initialization failed for {target} sparse={sparse}"
+    
+    # SSA report (requires populated jacobians)
+    model.A_eval()
+    from pydae.ssa import damp
+    damp(model.A)
+    assert model.A.shape == (4, 4)
+    
+    # Run
+    model.run(0.1, {"f_x": 0.1})
+    model.post()
+    
+    assert len(model.Time) > 1
+    assert not np.isnan(model.get_values("theta")).any()
+
+
+@pytest.mark.build
+@pytest.mark.skipif(not _pardiso_available(), reason="PARDISO requires Intel MKL")
+@pytest.mark.parametrize("target", ["cffi", "ctypes"])
+def test_pardiso_compilation(pendulum_sys, target):
+    """Test PARDISO sparse backend when Intel MKL is available."""
+    _run_compilation_test(pendulum_sys, target, "pardiso")
+
+
+def _run_compilation_test(pendulum_sys, target, sparse):
     # 1. Build
     bld = Builder(pendulum_sys, target=target, sparse=sparse)
     bld.build()
