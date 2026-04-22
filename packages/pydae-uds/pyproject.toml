@@ -27,8 +27,8 @@ classifiers = [
 ]
 dependencies = [
     "pydae>=1.0.0",
-    "networkx",
-    "hjson",
+    "networkx>=3.2.0",
+    "hjson>=3.2.0",
 ]
 
 [project.urls]

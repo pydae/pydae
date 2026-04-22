@@ -30,17 +30,17 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "numpy",
-    "scipy",
-    "sympy",
-    "numba",
-    "cffi",
-    "setuptools",  # required by cffi.ffi.compile() on Python >= 3.12
-    "hjson",
-    "pandas",
-    "tabulate",  # required by pandas.DataFrame.to_markdown()
-    "matplotlib",
-    "svgwrite",
+    "numpy>=1.26.0",
+    "scipy>=1.13.0",
+    "sympy>=1.12.0",
+    "numba>=0.59.0",
+    "cffi>=1.16.0",
+    "setuptools>=69.0",  # required by cffi.ffi.compile() on Python >= 3.12
+    "hjson>=3.2.0",
+    "pandas>=2.2.0",
+    "tabulate>=0.9.0",  # required by pandas.DataFrame.to_markdown()
+    "matplotlib>=3.8.0",
+    "svgwrite>=1.4.0",
 ]
 
 [project.urls]
