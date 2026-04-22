@@ -1,4 +1,5 @@
 # tests/core/test_compilation_modes.py
+import shutil
 import pytest
 import numpy as np
 import sympy as sym
@@ -26,12 +27,16 @@ PARDISO = pytest.mark.skipif(
 
 
 @pytest.fixture
-def pendulum_sys():
+def pendulum_sys(tmp_path):
     """A minimal pendulum DAE for compilation tests."""
+    # Build in isolated temp directory to avoid conflicts
+    orig_cwd = os.getcwd()
+    os.chdir(tmp_path)
+
     L, G, M, K_d = sym.symbols("L,G,M,K_d", real=True)
     p_x, p_y, v_x, v_y = sym.symbols("p_x,p_y,v_x,v_y", real=True)
     lam, f_x, theta = sym.symbols("lam,f_x,theta", real=True)
-    return {
+    sys_dict = {
         "name": "test_compilation",
         "params_dict": {"L": 5.21, "G": 9.81, "M": 10.0, "K_d": 1e-3},
         "f_list": [v_x, v_y, (-2 * p_x * lam + f_x - K_d * v_x) / M, (-M * G - 2 * p_y * lam - K_d * v_y) / M],
@@ -43,6 +48,9 @@ def pendulum_sys():
         "u_run_dict": {"f_x": 0},
         "h_dict": {"theta": theta},
     }
+
+    yield sys_dict
+    os.chdir(orig_cwd)
 
 @pytest.mark.build
 @pytest.mark.parametrize("target,sparse", [
