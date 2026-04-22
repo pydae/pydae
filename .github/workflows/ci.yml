@@ -218,16 +218,12 @@ jobs:
       - name: Run dense solver tests
         if: matrix.solver == 'dense'
         shell: bash -el {0}
-        run: |
-          # Dense solver: built-in LU, no external dependencies
-          pytest tests/core/test_compilation_modes.py \
-            -k "test_compilation_and_execution and not klu" \
-            -v --tb=short
+        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and ctypes" -v --tb=short
 
       - name: Run KLU tests sparse
         if: matrix.solver == 'sparse'
         shell: bash -el {0}
-        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution" -v --tb=short
+        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu" -v --tb=short
 
       - name: Run PARDISO tests (Linux sparse cffi only)
         if: matrix.os == 'ubuntu-latest' && matrix.solver == 'sparse' && matrix.backend == 'cffi'
