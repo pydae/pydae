@@ -36,7 +36,7 @@ dependencies = [
     "numba>=0.59.0",
     "cffi>=1.16.0",
     "setuptools>=69.0",  # required by cffi.ffi.compile() on Python >= 3.12
-    "hjson>=3.2.0",
+    "hjson>=3.0.0",
     "pandas>=2.2.0",
     "tabulate>=0.9.0",  # required by pandas.DataFrame.to_markdown()
     "matplotlib>=3.8.0",
