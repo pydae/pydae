@@ -12,6 +12,7 @@ Run selectively:
 """
 import os
 import sys
+import shutil
 import numpy as np
 import sympy as sym
 import pytest
@@ -20,13 +21,16 @@ import pytest
 # ─── Shared fixture ────────────────────────────────────────────────────
 
 @pytest.fixture
-def pendulum_sys():
+def pendulum_sys(tmp_path):
     """The pendulum DAE system dictionary used across all tests."""
+    orig_cwd = os.getcwd()
+    os.chdir(tmp_path)
+
     L, G, M, K_d, K_lam = sym.symbols('L,G,M,K_d,K_lam', real=True)
     p_x, p_y, v_x, v_y = sym.symbols('p_x,p_y,v_x,v_y', real=True)
     lam, f_x, theta, u_dummy = sym.symbols('lam,f_x,theta,u_dummy', real=True)
 
-    return {
+    sys_dict = {
         'name': 'test_pendulum',
         'params_dict': {'L': 5.21, 'G': 9.81, 'M': 10.0, 'K_d': 1e-3, 'K_lam': 1e-6},
         'f_list': [v_x, v_y,
@@ -41,6 +45,9 @@ def pendulum_sys():
         'u_run_dict': {'f_x': 0, 'u_dummy': 0.0},
         'h_dict': {'E_p': M*G*(p_y+L), 'E_k': 0.5*M*(v_x**2+v_y**2), 'f_x': f_x, 'lam': lam},
     }
+
+    yield sys_dict
+    os.chdir(orig_cwd)
 
 
 # ─── 1. Parser tests ──────────────────────────────────────────────────
@@ -191,7 +198,12 @@ class TestBuild:
         bld = Builder(pendulum_sys, target='ctypes')
         bld.build()
 
-        lib_ext = '.dll' if sys.platform == 'win32' else '.so'
+        if sys.platform == 'win32':
+            lib_ext = '.dll'
+        elif sys.platform == 'darwin':
+            lib_ext = '.dylib'
+        else:
+            lib_ext = '.so'
         backend_tag = 'klu'  # Builder defaults to sparse=True → 'klu'
         lib_path = os.path.join('build', f"test_pendulum_ctypes_{backend_tag}{lib_ext}")
         assert os.path.exists(lib_path), f"Compiled library not found: {lib_path}"
