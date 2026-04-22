@@ -30,7 +30,7 @@
         "alpha_solver": 0.5
     },
     "sparse_backend": "pardiso",
-    "target": "ctypes",
+    "target": "cffi",
     "NNZ_ini": 14,
     "NNZ_trap": 16,
     "Ap_ini": [
