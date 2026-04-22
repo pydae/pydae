@@ -17,19 +17,20 @@ See `CLAUDE.md` for full technical documentation.
 *   **Monorepo**: `packages/pydae-core` (PyPI: `pydae`), `packages/pydae-bps`, `packages/pydae-uds`.
 *   **Namespace packages**: `packages/*/src/pydae/` has NO `__init__.py`.
 *   **Pipeline**: `Builder(sys_dict)` → `build()` → `Model.load()`.
-*   **Sparse solvers**: `sparse=False` (dense LU), `sparse='klu'` (SuiteSparse, all OSes), `sparse='pardiso'` (Intel MKL, Intel/AMD only). KLU requires SuiteSparse headers.
+*   **Sparse solvers**: `sparse=False` (dense LU), `sparse='klu'` (SuiteSparse), `sparse='pardiso'` (Intel MKL). KLU and MKL require conda-installed libs.
 *   **Parallel codegen**: `PYDAE_PARALLEL=1` for > 200 expressions.
 
 ## Conventions
 
-*   **ini/run swap**: Swap variable values in-place at the same index in `y_ini` — never delete and re-append (downstream components reference by integer index).
+*   **ini/run swap**: Swap variable values in-place at the same index in `y_ini` — never delete and re-append.
 *   **LaTeX docstrings**: Use raw strings `r"""..."""`.
 *   **Component tests**: `def test():` at bottom of component modules, verified against sibling `.hjson`.
-*   **Cross-platform**: `pathlib.Path` or `/` for all paths; no hard-coded backslashes.
+*   **Cross-platform**: Use `pathlib.Path` or `/` for all paths; no hard-coded backslashes.
 *   **Line endings**: Force LF via `.gitattributes`. Do not override.
 *   **Branching**: Default branch is `master`.
 
 ## Compiler Requirements (Build / Model Tests)
 
-*   Linux: `gcc` (from `build-essential`).
-*   Windows: MinGW (`m2w64-toolchain` + `libpython`). CFFI backend preferred over ctypes on Windows.
+*   Linux: `gcc` (from `build-essential`) + `suitesparse` + `mkl` (conda).
+*   macOS: Clang + `suitesparse` (no MKL).
+*   Windows: MinGW (`m2w64-toolchain` + `libpython`) + `suitesparse` + `mkl`. CFFI preferred over ctypes.
