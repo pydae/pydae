@@ -65,8 +65,7 @@ jobs:
         with:
           miniforge-version: latest
           miniforge-variant: Miniforge3
-          python-version: ${{ matrix.python }}
-          # Pre-update conda/mamba for latest solver compatibility
+          python-version: "${{ matrix.python }}"
           use-mamba: true
           auto-update-conda: true
 
