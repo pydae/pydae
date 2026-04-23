@@ -26,9 +26,9 @@ jobs:
         solver: [sparse, dense]
         backend: [cffi, ctypes]
         exclude:
-          # Windows CI: only dense+ctypes works reliably (MSVC Python + MinGW incompatible)
-          # KLU and CFFI require local testing with MinGW-built Python
+          # ctypes+KLU is unstable on Windows (regex heap corruption on Python 3.13)
           - os: windows-latest
+            backend: ctypes
             solver: sparse
 
     env:
@@ -160,11 +160,11 @@ jobs:
           pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution[ctypes-False]" \
             -v --tb=short -s --junit-xml=/tmp/pytest-dense.xml
 
-      - name: Run KLU tests sparse (Linux/macOS only; Windows uses dense)
-        if: matrix.solver == 'sparse' && matrix.os != 'windows-latest'
+      - name: Run KLU tests sparse
+        if: matrix.solver == 'sparse' && (matrix.os != 'windows-latest' || matrix.backend == 'cffi')
         shell: bash -el {0}
         run: |
-          pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" \
+          pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu" \
             -v --tb=short -s --junit-xml=/tmp/pytest-klu.xml
 
       - name: Run PARDISO tests (Linux sparse cffi only)
