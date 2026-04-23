@@ -30,29 +30,15 @@ jobs:
           - os: windows-latest
             backend: cffi
 
-    # ─────────────────────────────────────────────────────────────────────────────
-    # Environment variables
-    # ─────────────────────────────────────────────────────────────────────────────
     env:
-      # Disable pytest bytecode caching to keep CI artifacts clean
       PYTHONDONTWRITEBYTECODE: "1"
-      # Enable parallel SymPy evaluation (>200 expressions benefit)
       PYDAE_PARALLEL: "1"
-      # Point to conda-installed shared libraries at runtime (set in shell steps)
       CONDALIB: "$CONDA/lib"
 
     steps:
-      # ─────────────────────────────────────────────────────────────
-      # Checkout repository
-      # ─────────────────────────────────────────────────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ─────────────────────────────────────────────────────────────
-      # Setup Conda environment
-      # Uses conda-incubator/setup-miniconda for all OSes to provide
-      # a consistent package manager and compiler wrapper setup.
-      # ─────────────────────────────────────────────────────────────
       - name: Setup Conda (${{ matrix.os }} / Python ${{ matrix.python }})
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -62,15 +48,10 @@ jobs:
           use-mamba: true
           auto-update-conda: true
 
-      # ─────────────────────────────────────────────────────────────
-      # Compiler setup per OS
-      # ─────────────────────────────────────────────────────────────
       - name: Install compiler (Linux)
         if: matrix.os == 'ubuntu-latest'
         shell: bash -el {0}
         run: |
-          # Native gcc is pre-installed on ubuntu-latest
-          # SuiteSparse headers are needed for KLU solver
           conda install -c conda-forge suitesparse
           echo "Using system gcc (pre-installed on ubuntu-latest)"
 
@@ -78,8 +59,6 @@ jobs:
         if: matrix.os == 'macos-14'
         shell: bash -el {0}
         run: |
-          # Apple Clang is pre-installed on macos-14
-          # Install SuiteSparse headers for KLU (needed for all sparse backends)
           conda install -c conda-forge suitesparse
           echo "Using Apple Clang (pre-installed on macos-14)"
 
@@ -87,19 +66,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: bash -el {0}
         run: |
-          # ─────────────────────────────────────────────────────────
-          # Windows requires MinGW for C compilation.
-          # Install m2w64-toolchain (GCC for MSYS2/Conda) and
-          # libpython (Python development headers for CFFI).
-          # ─────────────────────────────────────────────────────────
           conda install -c conda-forge m2w64-toolchain libpython
-          # SuiteSparse is needed for KLU solver on Windows
           conda install -c conda-forge suitesparse
           echo "Using MinGW (m2w64-toolchain)"
 
-      # ─────────────────────────────────────────────────────────────
-      # Solver-specific setup (after compiler, before tests)
-      # ─────────────────────────────────────────────────────────────
       - name: Setup Intel MKL (Intel/AMD only)
         if: >-
           matrix.os == 'ubuntu-latest' &&
@@ -107,25 +77,12 @@ jobs:
           matrix.backend == 'cffi'
         shell: bash -el {0}
         run: |
-          # ─────────────────────────────────────────────────────────
-          # MKL/PARDISO is Intel-only and requires the MKL headers
-          # and library. Conda-Forge provides MKL via conda.
-          # Skip on Apple Silicon (macOS ARM) - use Accelerate instead.
-          # ─────────────────────────────────────────────────────────
           conda install -c conda-forge mkl mkl-include
           echo "MKL/PARDISO configured for Intel/AMD"
 
-      # ─────────────────────────────────────────────────────────────
-      # Install test dependencies and package
-      # ─────────────────────────────────────────────────────────────
       - name: Install dependencies
         shell: bash -el {0}
         run: |
-          # ─────────────────────────────────────────────────────────
-          # Install core dependencies via conda, then pip for the rest.
-          # This ensures conda packages (numpy, scipy) are available
-          # for MKL linking while keeping pip for the local package.
-          # ─────────────────────────────────────────────────────────
           conda install -c conda-forge \
             pip \
             pytest \
@@ -140,7 +97,6 @@ jobs:
       - name: Install local packages
         shell: bash -el {0}
         run: |
-          # Install each pydae subpackage in editable mode
           pip install hatchling editables
           pip install -e packages/pydae-core --no-build-isolation
           pip install -e packages/pydae-bps --no-build-isolation
@@ -161,14 +117,10 @@ jobs:
         shell: bash -el {0}
         run: conda install -c conda-forge suitesparse mkl
 
-      # Export library path for subsequent steps
       - name: Set LD_LIBRARY_PATH
         shell: bash -el {0}
         run: echo "export LD_LIBRARY_PATH=\$CONDA/lib:\$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
-      # ─────────────────────────────────────────────────────────────
-      # Print environment diagnostics
-      # ─────────────────────────────────────────────────────────────
       - name: Diagnostics
         shell: bash -el {0}
         run: |
@@ -188,71 +140,60 @@ jobs:
           ls -la "$CONDA/lib/libsuitesparse"* 2>/dev/null || echo "SuiteSparse libs not in $CONDA/lib"
           ls -la "$CONDA/lib/libmkl"* 2>/dev/null || echo "MKL libs not in $CONDA/lib"
 
-      # ─────────────────────────────────────────────────────────────
-      # Run fast tests first (no C compilation needed)
-      # ─────────────────────────────────────────────────────────────
       - name: Run fast tests (parse, symbolic, codegen)
         shell: bash -el {0}
         run: |
-          # Fast tests: parser, symbolic Jacobian computation, code generation
-          # No C compiler needed - validates SymPy pipeline
           pytest tests/core/test_pendulum.py -m "parse or symbolic or codegen" \
-            -v --tb=short
+            -v --tb=short --junit-xml=/tmp/pytest-fast.xml
 
-      # ─────────────────────────────────────────────────────────────
-      # Run build tests
-      # NOTE: Skip on Windows — CFFI with MinGW fails on Python 3.12+
-      # due to MSVC/MinGW ABI incompatibility. Use ctypes there.
-      # ─────────────────────────────────────────────────────────────
       - name: Run build tests
         if: matrix.os != 'windows-latest'
         shell: bash -el {0}
         run: |
-          pytest tests/core/ \
-            -m "build" \
-            -v --tb=short
+          pytest tests/core/ -m "build" -v --tb=short --junit-xml=/tmp/pytest-build.xml
 
-      # ─────────────────────────────────────────────────────────────
-      # Run solver-specific tests
-      # ─────────────────────────────────────────────────────────────
       - name: Run dense solver tests
         if: matrix.solver == 'dense'
         shell: bash -el {0}
-        run: pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution[ctypes-False]" -v --tb=short -s
+        run: |
+          pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution[ctypes-False]" \
+            -v --tb=short -s --junit-xml=/tmp/pytest-dense.xml
 
       - name: Run KLU tests sparse
         if: matrix.solver == 'sparse'
         shell: bash -el {0}
         run: |
           if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and ctypes" -v --tb=short -s
+            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and ctypes" \
+              -v --tb=short -s --junit-xml=/tmp/pytest-klu.xml
           else
-            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" -v --tb=short -s
+            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" \
+              -v --tb=short -s --junit-xml=/tmp/pytest-klu.xml
           fi
 
       - name: Run PARDISO tests (Linux sparse cffi only)
         if: matrix.os == 'ubuntu-latest' && matrix.solver == 'sparse' && matrix.backend == 'cffi'
         shell: bash -el {0}
-        run: pytest tests/core/test_compilation_modes.py::test_pardiso_compilation -v --tb=short
+        run: |
+          pytest tests/core/test_compilation_modes.py::test_pardiso_compilation \
+            -v --tb=short --junit-xml=/tmp/pytest-pardiso.xml
 
       - name: Run Accelerate tests (macOS only)
         if: matrix.os == 'macos-14'
         shell: bash -el {0}
         run: |
-          # ─────────────────────────────────────────────────────────
-          # Accelerate is Apple Silicon's sparse solver.
-          # Only available on macOS. Skip on Linux/Windows.
-          # Note: This test is currently experimental for pydae.
-          # ─────────────────────────────────────────────────────────
           echo "Accelerate (Apple Accelerate) - platform-native sparse solver"
           echo "Test execution depends on pydae Accelerate support"
-          # pytest tests/core/test_compilation_modes.py::test_accelerate_compilation \
-          #   -v --tb=short
           echo "Accelerate testing placeholder - implement when pydae adds Accelerate backend"
 
-      # ─────────────────────────────────────────────────────────────
-      # Upload test artifacts on failure
-      # ─────────────────────────────────────────────────────────────
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-py${{ matrix.python }}-${{ matrix.solver }}-${{ matrix.backend }}
+          path: /tmp/pytest-*.xml
+          retention-days: 7
+          if-no-files-found: ignore
+
       - name: Upload test logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -263,3 +204,99 @@ jobs:
             build/*.so 2>/dev/null || echo "No build artifacts"
           retention-days: 7
           if-no-files-found: ignore
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Summary job: collects results and generates Markdown table
+  # ─────────────────────────────────────────────────────────────────────────────
+  summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: test-results
+          pattern: test-results-*
+          merge-multiple: true
+
+      - name: Generate summary table
+        shell: bash -el {0}
+        run: |
+          # Build matrix results from JUnit XML files
+          cat << 'EOF' > /tmp/generate_summary.py
+          import os
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          # Matrix dimensions
+          oses = ["ubuntu-latest", "macos-14", "windows-latest"]
+          backends = ["dense-ctypes", "dense-cffi", "klu-ctypes", "klu-cffi"]
+
+          # Initialize results matrix
+          results = {os: {be: "❌" for be in backends} for os in oses}
+
+          # Parse JUnit XML results
+          results_dir = Path("test-results")
+          if results_dir.exists():
+              for xml_file in results_dir.glob("*.xml"):
+                  try:
+                      tree = ET.parse(xml_file)
+                      root = tree.getroot()
+                      
+                      # Extract matrix from filename
+                      parts = xml_file.stem.replace("test-results-", "").split("-")
+                      os_name = parts[0] + "-" + parts[1]  # e.g., "ubuntu-latest"
+                      solver = parts[3]  # sparse or dense  
+                      backend = parts[4]  # cffi or ctypes
+                      
+                      be_col = f"{solver}-{backend}"
+                      if be_col not in backends:
+                          continue
+                      
+                      # Count test results
+                      testsuite = root.find('.//testsuite')
+                      if testsuite is not None:
+                          failures = int(testsuite.get('failures', 0))
+                          tests = int(testsuite.get('tests', 0))
+                          if failures == 0 and tests > 0:
+                              results[os_name][be_col] = "✅"
+                          elif failures > 0:
+                              results[os_name][be_col] = "❌"
+                          else:
+                              results[os_name][be_col] = "⚠️"
+                  except Exception as e:
+                      print(f"Skipping {xml_file}: {e}")
+
+          # Generate Markdown table
+          md = "# pydae CI Test Results\n\n"
+          md += "| OS | " + " | ".join(backends) + " |\n"
+          md += "|" + "|".join(["---" for _ in range(len(backends) + 1)]) + "|\n"
+
+          for os_name in oses:
+              md += f"| {os_name} | "
+              md += " | ".join(results[os_name].get(be, "❌") for be in backends)
+              md += " |\n"
+
+          md += "\n---\n\n"
+          md += "## Diagnostics\n\n"
+          md += "If any tests failed, the detailed **DAE SOLVER DIAGNOSTIC REPORT** is available in the test logs.\n\n"
+          md += "To view:\n"
+          md += "1. Go to the failed job's **Logs**\n"
+          md += "2. Search for `DAE SOLVER DIAGNOSTIC REPORT`\n"
+          md += "3. The report shows:\n"
+          md += "   - Residual magnitudes (large residuals = bad initial guess)\n"
+          md += "   - Diagonal analysis (near-zero = singular Jacobian)\n"
+          md += "   - Condition number (ill-conditioned = numerical issues)\n"
+          md += "   - Suggested actions\n"
+
+          # Write to GITHUB_STEP_SUMMARY
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as f:
+              f.write(md)
+
+          print(md)
+          EOF
+
+          python /tmp/generate_summary.py
