@@ -5,6 +5,7 @@ import numpy as np
 import sympy as sym
 from pydae.core import Builder, Model
 import os
+import sys
 
 
 def _pardiso_available():
@@ -61,6 +62,10 @@ def pendulum_sys(tmp_path):
 ])
 def test_compilation_and_execution(pendulum_sys, target, sparse):
     """Test dense and KLU sparse backends."""
+    # Skip KLU on Windows (ctypes KLU is unstable on Windows per AGENTS.md)
+    if sys.platform == 'win32' and target == 'ctypes' and sparse == 'klu':
+        pytest.skip("KLU with ctypes unstable on Windows")
+
     # 1. Build
     bld = Builder(pendulum_sys, target=target, sparse=sparse)
     bld.build()
