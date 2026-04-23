@@ -188,13 +188,13 @@ class Model:
             self.jac_size_ini = self.N_xy * self.N_xy
             self.jac_size_trap = self.N_xy * self.N_xy
 
-        # Working memory buffers (padded for safety)
-        self.x = np.zeros(self.N_x + PAD, dtype=np.float64)
-        self.y = np.zeros(self.N_y + PAD, dtype=np.float64)
-        self.y_ini = np.zeros(self.N_y + PAD, dtype=np.float64)
-        self.xy = np.zeros(self.N_xy + PAD, dtype=np.float64)
-        self.xy_ini = np.zeros(self.N_xy + PAD, dtype=np.float64)
-        self.z = np.zeros(self.N_z + PAD, dtype=np.float64)
+        # Working memory buffers
+        self.x = np.zeros(self.N_x, dtype=np.float64)
+        self.y = np.zeros(self.N_y, dtype=np.float64)
+        self.y_ini = np.zeros(self.N_y, dtype=np.float64)
+        self.xy = np.zeros(self.N_xy, dtype=np.float64)
+        self.xy_ini = np.zeros(self.N_xy, dtype=np.float64)
+        self.z = np.zeros(self.N_z, dtype=np.float64)
         self.u_ini = np.array(self.u_ini_values_list, dtype=np.float64)
         self.u_run = np.array(self.u_run_values_list, dtype=np.float64)
         self.p = np.zeros(max(1, len(self.params_list)), dtype=np.float64)
@@ -212,7 +212,7 @@ class Model:
                 self.p[self.params_list.index(name)] = val
                 if name == 'alpha': self.alpha = val
 
-        # Evaluation workspace (padded for safety)
+        # Evaluation workspace
         self.f_w = np.zeros(self.N_x + PAD, dtype=np.float64)
         self.g_w = np.zeros(self.N_y + PAD, dtype=np.float64)
         self.fg_w = np.zeros(self.N_xy + PAD, dtype=np.float64)
@@ -312,9 +312,9 @@ class Model:
         elif isinstance(xy_0, (float, int)):
             self.xy_0 = np.ones(self.N_xy + PAD, dtype=np.float64) * xy_0
 
-        # Apply initial guesses
+        # Apply initial guesses (use exact N_x/N_y slices, ignoring PAD region)
         self.x[:] = self.xy_0[:self.N_x]
-        self.y_ini[:] = self.xy_0[self.N_x:]
+        self.y_ini[:] = self.xy_0[self.N_x:self.N_x + self.N_y]
         self.xy_ini[:self.N_x] = self.x
         self.xy_ini[self.N_x:] = self.y_ini
 
@@ -325,10 +325,10 @@ class Model:
         # Pre-allocate fixed storage (old-pydae pattern): N_store rows,
         # truncated later in post(). Reused across multiple run() calls.
         n = int(self.N_store)
-        self.Time = np.zeros(n + PAD, dtype=np.float64)
-        self.X = np.zeros((n + PAD) * self.N_x, dtype=np.float64)
-        self.Y = np.zeros((n + PAD) * self.N_y, dtype=np.float64)
-        self.Z = np.zeros((n + PAD) * self.N_z, dtype=np.float64)
+        self.Time = np.zeros(n, dtype=np.float64)
+        self.X = np.zeros(n * self.N_x, dtype=np.float64)
+        self.Y = np.zeros(n * self.N_y, dtype=np.float64)
+        self.Z = np.zeros(n * self.N_z, dtype=np.float64)
 
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
         self.jac_ini_flat = np.zeros(self.jac_size_ini + PAD, dtype=np.float64)
