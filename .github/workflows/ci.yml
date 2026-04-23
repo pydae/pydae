@@ -225,78 +225,14 @@ jobs:
       - name: Generate summary table
         shell: bash -el {0}
         run: |
-          # Build matrix results from JUnit XML files
-          cat << 'EOF' > /tmp/generate_summary.py
-          import os
-          import xml.etree.ElementTree as ET
-          from pathlib import Path
-
-          # Matrix dimensions
-          oses = ["ubuntu-latest", "macos-14", "windows-latest"]
-          backends = ["dense-ctypes", "dense-cffi", "klu-ctypes", "klu-cffi"]
-
-          # Initialize results matrix
-          results = {os: {be: "❌" for be in backends} for os in oses}
-
-          # Parse JUnit XML results
-          results_dir = Path("test-results")
-          if results_dir.exists():
-              for xml_file in results_dir.glob("*.xml"):
-                  try:
-                      tree = ET.parse(xml_file)
-                      root = tree.getroot()
-                      
-                      # Filename: test-results-{os}-{pyVER}-{solver}-{backend}
-                      # Example: test-results-ubuntu-latest-py3.10-sparse-cffi
-                      stem = xml_file.stem.replace("test-results-", "")
-                      parts = stem.split("-")
-                      # parts: ["ubuntu", "latest", "py3", "10", "sparse", "cffi"]
-                      os_name = parts[0] + "-" + parts[1]
-                      solver = parts[4]
-                      backend = parts[5]
-                      
-                      be_col = f"{solver}-{backend}"
-                      if be_col not in backends:
-                          print(f"Skipping unknown backend: {be_col}")
-                          continue
-                      
-                      # Count test results
-                      testsuite = root.find('.//testsuite')
-                      if testsuite is not None:
-                          failures = int(testsuite.get('failures', 0))
-                          tests = int(testsuite.get('tests', 0))
-                          if failures == 0 and tests > 0:
-                              results[os_name][be_col] = "✅"
-                          elif failures > 0:
-                              results[os_name][be_col] = "❌"
-                          else:
-                              results[os_name][be_col] = "⚠️"
-                          print(f"{os_name}/{be_col}: tests={tests} failures={failures}")
-                  except Exception as e:
-                      print(f"Skipping {xml_file}: {e}")
-
-          # Generate Markdown table
-          md = "# pydae CI Test Results\n\n"
-          md += "| OS | " + " | ".join(backends) + " |\n"
-          md += "|" + "|".join(["---" for _ in range(len(backends) + 1)]) + "|\n"
-
-          for os_name in oses:
-              md += f"| {os_name} | "
-              md += " | ".join(results[os_name].get(be, "❌") for be in backends)
-              md += " |\n"
-
-          md += "\n---\n\n"
-          md += "## Diagnostics\n\n"
-          md += "If any tests failed, the detailed **DAE SOLVER DIAGNOSTIC REPORT** is available in the test logs.\n\n"
-          md += "To view:\n"
-          md += "1. Go to the failed job's **Logs**\n"
-          md += "2. Search for `DAE SOLVER DIAGNOSTIC REPORT`\n"
-
-          # Write to GITHUB_STEP_SUMMARY
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as f:
-              f.write(md)
-
-          print(md)
-          EOF
-
-          python /tmp/generate_summary.py
+          # Debug: show what files we have
+          echo "=== Files in test-results ==="
+          find test-results -type f -name "*.xml" | head -20
+          echo "=== End file list ==="
+          
+          # Show content of first file to understand structure
+          first_xml=$(find test-results -name "*.xml" | head -1)
+          if [ -n "$first_xml" ]; then
+            echo "=== Sample XML: $first_xml ==="
+            head -20 "$first_xml"
+          fi
