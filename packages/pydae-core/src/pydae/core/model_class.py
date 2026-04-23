@@ -310,7 +310,7 @@ class Model:
         elif isinstance(xy_0, str) and xy_0 != 'eval':
             self.load_xy_0(file_name=xy_0)
         elif isinstance(xy_0, (float, int)):
-            self.xy_0 = np.ones(self.N_xy, dtype=np.float64) * xy_0
+            self.xy_0 = np.ones(self.N_xy + PAD, dtype=np.float64) * xy_0
 
         # Apply initial guesses
         self.x[:] = self.xy_0[:self.N_x]
