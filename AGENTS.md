@@ -33,4 +33,22 @@ See `CLAUDE.md` for full technical documentation.
 
 *   Linux: `gcc` (from `build-essential`) + `suitesparse` + `mkl` (conda).
 *   macOS: Clang + `suitesparse` (no MKL).
-*   Windows: MinGW (`m2w64-toolchain` + `libpython`) + `suitesparse` + `mkl`. CFFI preferred over ctypes.
+*   Windows: MinGW (`m2w64-toolchain` + `libpython`) + `suitesparse` + `mkl`. **CFFI preferred over ctypes on Windows**.
+
+## Common Issues & Fixes
+
+### Initial Guess Physics
+Never set `lam=0` (tension) in pendulum/test models:
+*   The Jacobian entry `dFx/dlam = -2*p_x` becomes exactly zero, causing singular matrix errors.
+*   Use `lam >= 10.0` or estimate: `lam ≈ M*G/cos(theta)`.
+*   Include velocities in initial guess: `v_x=0, v_y=0` for steady-state convergence.
+
+### Windows KLU + ctypes
+*   KLU with ctypes may fail on Windows even when cffi+KLU passes.
+*   Diagnostic shows "Near-zero diagonal" despite correct Ap/Ai.
+*   **Fix**: Use `dense` or `cffi` backend on Windows until resolved.
+
+### Buffer Overflow Shield
+*   `model_class.py` has `PAD = 50` guard band on arrays passed to C.
+*   If tests crash with `STATUS_HEAP_CORRUPTION` (Windows), the C code may write past array bounds.
+*   Padding absorbs overflows safely on Linux/macOS but not Windows heap canaries.
