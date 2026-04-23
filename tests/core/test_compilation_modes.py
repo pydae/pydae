@@ -62,9 +62,10 @@ def pendulum_sys(tmp_path):
 ])
 def test_compilation_and_execution(pendulum_sys, target, sparse):
     """Test dense and KLU sparse backends."""
-    # Skip KLU on Windows (ctypes KLU is unstable on Windows per AGENTS.md)
+    # Skip ctypes+KLU on Windows (unstable on Windows per AGENTS.md)
+    # cffi+KLU works fine on Windows
     if sys.platform == 'win32' and target == 'ctypes' and sparse == 'klu':
-        pytest.skip("KLU with ctypes unstable on Windows")
+        pytest.skip("ctypes+KLU unstable on Windows")
 
     # 1. Build
     bld = Builder(pendulum_sys, target=target, sparse=sparse)
