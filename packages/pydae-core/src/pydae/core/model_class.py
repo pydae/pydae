@@ -139,6 +139,15 @@ class Model:
         self._Z = np.zeros((self.N_store + PAD) * self.N_z, dtype=np.float64)
         self.it_store = np.array([0], dtype=np.int32)
 
+        # Pre-allocate Jacobian/solver buffers once so they are never freed
+        # and reallocated between ini() calls — repeated reallocation causes
+        # non-deterministic Windows heap corruption with KLU/CFFI.
+        self._jac_ini_flat = np.zeros(self.jac_size_ini + PAD, dtype=np.float64)
+        self._pivots_ini   = np.zeros(self.N_xy + PAD, dtype=np.int32)
+        self._Dxy_ini      = np.zeros(self.N_xy + PAD, dtype=np.float64)
+        self._ini_int      = np.array([0, 0, 0, 0, 0], dtype=np.int32)
+        self._ini_dbl      = np.zeros(5, dtype=np.float64)
+
         # Public arrays (created in post() - until then they are None)
         self.Time = None
         self.X = None
@@ -188,7 +197,8 @@ class Model:
         self.y_ini_list = self.data_dict.get('y_ini_list', [])
         self.y_run_list = self.data_dict.get('y_run_list', [])
         self.params_list = list(self.data_dict['params_dict'].keys())
-        self.z_list = self.data_dict.get('z_list', [])
+        # h_dict -> h_list in builder, but read both for backward compatibility
+        self.z_list = self.data_dict.get('h_list', self.data_dict.get('z_list', []))
         self.u_run_list = list(self.data_dict['u_run_dict'].keys())
         self.u_ini_list = list(self.data_dict['u_ini_dict'].keys())
         self.u_ini_values_list = list(self.data_dict['u_ini_dict'].values())
@@ -350,12 +360,18 @@ class Model:
         self._Y[:n * self.N_y] = 0.0
         self._Z[:n * self.N_z] = 0.0
 
-        # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
-        self.jac_ini_flat = np.zeros(self.jac_size_ini + PAD, dtype=np.float64)
-        self.pivots_ini = np.zeros(self.N_xy + PAD, dtype=np.int32)
-        Dxy = np.zeros(self.N_xy + PAD, dtype=np.float64)
-        self.ini_int = np.array([0, 0, 0, 0, 0], dtype=np.int32)
-        ini_dbl = np.zeros(5, dtype=np.float64)
+        # Reuse pre-allocated Jacobian/solver buffers (zeroed in-place).
+        # Never reallocate these between calls — doing so causes non-deterministic
+        # Windows heap corruption because the old pointer is handed to KLU/CFFI
+        # just before the allocation replaces it.
+        self._jac_ini_flat[:] = 0.0
+        self._pivots_ini[:]   = 0
+        self._Dxy_ini[:]      = 0.0
+        self._ini_int[:]      = 0
+        self._ini_dbl[:]      = 0.0
+        # Keep public aliases for diagnostic code that reads self.jac_ini_flat / self.ini_int
+        self.jac_ini_flat = self._jac_ini_flat
+        self.ini_int      = self._ini_int
 
         # Ensure independent buffers (not views) before C solve.
         # Required because ini2run() converts self.x/y_ini to views into xy_ini.
@@ -365,9 +381,9 @@ class Model:
 
         self._ffi_pins.clear()
         res_ini = self.solver_lib.ini(
-            self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy),
+            self._d(self._jac_ini_flat), self._i(self._pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(self._Dxy_ini),
             self._d(self.u_ini), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol,
-            self._d(self.z), self._d(ini_dbl), self._i(self.ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
+            self._d(self.z), self._d(self._ini_dbl), self._i(self._ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
         )
         self._ffi_pins.clear()
 
@@ -396,9 +412,9 @@ class Model:
             self.ini_int[4] = 1 # Enable diagnostic flag
             self._ffi_pins.clear()
             self.solver_lib.ini(
-            self._d(self.jac_ini_flat), self._i(self.pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(Dxy),
+            self._d(self._jac_ini_flat), self._i(self._pivots_ini), self._d(self.x), self._d(self.y_ini), self._d(self.xy_ini), self._d(self._Dxy_ini),
             self._d(self.u_ini), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol,
-            self._d(self.z), self._d(ini_dbl), self._i(self.ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
+            self._d(self.z), self._d(self._ini_dbl), self._i(self._ini_int), self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
             )
             self._ffi_pins.clear()
             try:
@@ -537,19 +553,22 @@ class Model:
         self.x = np.copy(self.xy[:self.N_x])
         self.y_run = np.copy(self.xy[self.N_x:])
 
-        jac_trap_flat = np.zeros(self.jac_size_trap, dtype=np.float64)
+        # PAD guard matches run() for safety; clear stale CFFI pins first
+        self._ffi_pins.clear()
+        jac_trap_flat = np.zeros(self.jac_size_trap + PAD, dtype=np.float64)
         self.solver_lib.jac_trap_eval(
             self._d(jac_trap_flat),
             self._d(self.x), self._d(self.y_run),
             self._d(self.u_run), self._d(self.p),
             self.Dt,
         )
+        self._ffi_pins.clear()
 
-        # Dense form of jac_trap
+        # Dense form of jac_trap (strip PAD before passing to sparse reconstructor)
         if self.is_sparse:
-            self.jac_trap = self._sparse_to_dense_jac(jac_trap_flat, which='trap')
+            self.jac_trap = self._sparse_to_dense_jac(jac_trap_flat[:self.jac_size_trap], which='trap')
         else:
-            self.jac_trap = jac_trap_flat.reshape((self.N_xy, self.N_xy))
+            self.jac_trap = jac_trap_flat[:self.jac_size_trap].reshape((self.N_xy, self.N_xy))
 
         # Reconstruct the run Jacobian blocks
         N_x = self.N_x
@@ -580,8 +599,7 @@ class Model:
             The ``(N_x, N_x)`` state matrix of the linearized system
             ``dx/dt = A @ dx`` around the current operating point.
         """
-        if not hasattr(self, "F_x"):
-            self.jac_run_eval()
+        self.jac_run_eval()
 
         if self.N_y > 0:
             # Solve G_y * Z = G_x  -> Z = inv(G_y) @ G_x
@@ -603,11 +621,22 @@ class Model:
 
         # Exactly ONE copy per array - breaks C memory sharing
         self.Time = np.copy(self._Time[:idx])
-        self.X = np.copy(self._X[:self.N_x * idx].reshape(idx, self.N_x))
+
+        # Ensure X is always reshaped correctly (idx rows, N_x cols)
+        if idx > 0 and self.N_x > 0:
+            self.X = np.copy(self._X[:self.N_x * idx].reshape(idx, self.N_x))
+        else:
+            self.X = np.empty((0, self.N_x))
+
         if self.N_y > 0:
             self.Y = np.copy(self._Y[:self.N_y * idx].reshape(idx, self.N_y))
+        else:
+            self.Y = np.empty((0, self.N_y))
+
         if self.N_z > 0:
             self.Z = np.copy(self._Z[:self.N_z * idx].reshape(idx, self.N_z))
+        else:
+            self.Z = np.empty((0, self.N_z))
 
         # Flag that post() was called - next run() must reset buffers
         self._post_called = True
@@ -630,7 +659,7 @@ class Model:
         if name in self.x_list:     return self.xy[self.x_list.index(name)]
         if name in self.y_run_list: return self.xy[self.N_x + self.y_run_list.index(name)]
         if name in self.params_list:return self.p[self.params_list.index(name)]
-        if name in self.h_list:     return self.z[self.z_list.index(name)]
+        if name in self.z_list:     return self.z[self.z_list.index(name)]
         return None
 
     def get_values(self, name):

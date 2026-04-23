@@ -11,7 +11,6 @@ Run selectively:
     uv run pytest -k "test_parse"   # by name substring
 """
 import os
-import sys
 
 import numpy as np
 import pytest
@@ -191,39 +190,88 @@ class TestCodegen:
 @pytest.mark.build
 class TestBuild:
 
-    @pytest.mark.skipif(sys.platform == 'win32', reason="Build tests skipped on Windows")
-    def test_ctypes_build(self, pendulum_sys):
+    @pytest.fixture(autouse=True)
+    def _build_first(self, pendulum_sys):
+        """Ensure the library is compiled before model tests."""
         from pydae.core import Builder
-
         bld = Builder(pendulum_sys, target='ctypes', sparse=False)
         bld.build()
 
-        if sys.platform == 'win32':
-            lib_ext = '.dll'
-        elif sys.platform == 'darwin':
-            lib_ext = '.dylib'
-        else:
-            lib_ext = '.so'
-        backend_tag = 'dense'  # Builder with sparse=False uses 'dense' backend
-        lib_path = os.path.join('build', f"test_pendulum_ctypes_{backend_tag}{lib_ext}")
-        assert os.path.exists(lib_path), f"Compiled library not found: {lib_path}"
-        assert os.path.getsize(lib_path) > 0
+
+# ─── 5. KLU sparse build + A_eval ────────────────────────────────────
+
+@pytest.mark.build
+class TestBuildKLU:
+
+    @pytest.fixture(autouse=True)
+    def _skip_if_not_supported(self):
+        import importlib
+        if importlib.util.find_spec('cffi') is None:
+            pytest.skip("cffi not available")
+
+    def test_cffi_klu_build(self, pendulum_sys):
+        import json
+
+        from pydae.core import Builder
+        bld = Builder(pendulum_sys, target='cffi', sparse='klu')
+        bld.build()
+        with open('test_pendulum_data.json') as f:
+            data = json.load(f)
+        assert data.get('NNZ_trap', 0) > 0, "KLU build did not record NNZ_trap"
+        assert 'Ap_trap' in data, "KLU build did not store Ap_trap"
+        assert 'Ai_trap' in data, "KLU build did not store Ai_trap"
+
+    def test_A_eval_klu(self, pendulum_sys):
+        from pydae.core import Builder, Model
+        bld = Builder(pendulum_sys, target='cffi', sparse='klu')
+        bld.build()
+
+        L, M = 5.21, 30.0
+        deg = 10
+        model = Model('test_pendulum')
+        success = model.ini(
+            {'M': M, 'L': L, 'K_lam': 1e-6, 'theta': np.deg2rad(deg)},
+            xy_0={'p_x': L*np.sin(np.deg2rad(deg)),
+                  'p_y': -L*np.cos(np.deg2rad(deg)),
+                  'lam': 50.0, 'f_x': 0.0, 'v_x': 0.0, 'v_y': 0.0}
+        )
+        assert success
+        model.run(0.1, {})
+
+        A_klu = model.A_eval()
+        assert A_klu.shape == (4, 4)
+        assert np.isfinite(A_klu).all(), "KLU A_eval returned NaN/Inf"
+
+        # Verify A_eval matches dense result for the same model
+        bld_dense = Builder(pendulum_sys, target='ctypes', sparse=False)
+        bld_dense.build()
+        model_dense = Model('test_pendulum')
+        model_dense.ini(
+            {'M': M, 'L': L, 'K_lam': 1e-6, 'theta': np.deg2rad(deg)},
+            xy_0={'p_x': L*np.sin(np.deg2rad(deg)),
+                  'p_y': -L*np.cos(np.deg2rad(deg)),
+                  'lam': 50.0, 'f_x': 0.0, 'v_x': 0.0, 'v_y': 0.0}
+        )
+        model_dense.run(0.1, {})
+        A_dense = model_dense.A_eval()
+
+        np.testing.assert_allclose(A_klu, A_dense, rtol=1e-6,
+                                   err_msg="KLU and dense A matrices differ")
+
+        # A_eval must be re-evaluated after a second run (no stale cache)
+        model.run(0.5, {'f_x': 1.0})
+        A_klu2 = model.A_eval()
+        assert np.isfinite(A_klu2).all()
 
 
-# ─── 5. Model tests (end-to-end) ──────────────────────────────────────
+# ─── 6. Model tests (end-to-end) ──────────────────────────────────────
 
 @pytest.mark.model
 class TestModel:
 
     @pytest.fixture(autouse=True)
     def _build_first(self, pendulum_sys):
-        """Ensure the library is compiled before model tests.
-
-        On Windows, sym2xyup causes heap corruption (Python 3.13 regex issue).
-        Skip build to match CI behavior.
-        """
-        if sys.platform == 'win32':
-            pytest.skip("Build tests skipped on Windows")
+        """Ensure the library is compiled before model tests."""
         from pydae.core import Builder
         bld = Builder(pendulum_sys, target='ctypes', sparse=False)
         bld.build()
@@ -259,7 +307,10 @@ class TestModel:
 
         assert len(model.Time) > 100
         assert model.Time[-1] == pytest.approx(5.0, abs=0.02)
-        assert not np.isnan(model.get_values('E_k')).any()
+        e_k = model.get_values('E_k')
+        assert e_k is not None, f"get_values('E_k') returned None. z_list={model.z_list}"
+        assert len(e_k) > 0
+        assert not np.isnan(e_k).any()
 
     def test_get_value(self):
         from pydae.core import Model
@@ -271,3 +322,32 @@ class TestModel:
         # After init, parameters should be readable
         assert model.get_value('M') == pytest.approx(30.0)
         assert model.get_value('L') == pytest.approx(5.21)
+
+    def test_A_eval_dense(self):
+        """A_eval returns a real (N_x, N_x) matrix with finite entries and
+        correct pendulum eigenvalues (two imaginary pairs for undamped motion)."""
+        from pydae.core import Model
+        L, M = 5.21, 30.0
+        deg = 10
+        model = Model('test_pendulum')
+        model.ini(
+            {'M': M, 'L': L, 'K_lam': 1e-6, 'theta': np.deg2rad(deg)},
+            xy_0={'p_x': L*np.sin(np.deg2rad(deg)),
+                  'p_y': -L*np.cos(np.deg2rad(deg)),
+                  'lam': 50.0, 'f_x': 0.0, 'v_x': 0.0, 'v_y': 0.0}
+        )
+        model.run(0.1, {})
+
+        A = model.A_eval()
+        assert A.shape == (4, 4)
+        assert np.isfinite(A).all(), "A contains NaN or Inf"
+
+        # Calling A_eval a second time (after no new run) must give the same result
+        A2 = model.A_eval()
+        np.testing.assert_array_equal(A, A2)
+
+        # After another run() the Jacobian must be re-evaluated (no stale cache)
+        model.run(0.5, {'f_x': 1.0})
+        A3 = model.A_eval()
+        assert A3.shape == (4, 4)
+        assert np.isfinite(A3).all()

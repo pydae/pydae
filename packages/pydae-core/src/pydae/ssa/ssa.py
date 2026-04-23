@@ -198,9 +198,13 @@ def damp_report(model, sparse=False, tol_part=0.2):
     return eig_df
 
 def damp(A, sparse=False):
+    """
+    Computes eigenvalues, frequencies and damping ratios of the system matrix A and prints a report. 
+    If sparse is True, A should be treated as a sparse matrix, however this is not implemented.
+    """
     
     if sparse:
-        eig,eigv = np.linalg.eig(A)
+        eig,eigv = np.linalg.eig(A) # should be with sparse from scipy.sparse.linalg.eigs or similar, but it is not implemented yet
     else:      
         eig,eigv = np.linalg.eig(A)
         
