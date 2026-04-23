@@ -246,14 +246,18 @@ jobs:
                       tree = ET.parse(xml_file)
                       root = tree.getroot()
                       
-                      # Extract matrix from filename
-                      parts = xml_file.stem.replace("test-results-", "").split("-")
-                      os_name = parts[0] + "-" + parts[1]  # e.g., "ubuntu-latest"
-                      solver = parts[3]  # sparse or dense  
-                      backend = parts[4]  # cffi or ctypes
+                      # Filename: test-results-{os}-{pyVER}-{solver}-{backend}
+                      # Example: test-results-ubuntu-latest-py3.10-sparse-cffi
+                      stem = xml_file.stem.replace("test-results-", "")
+                      parts = stem.split("-")
+                      # parts: ["ubuntu", "latest", "py3", "10", "sparse", "cffi"]
+                      os_name = parts[0] + "-" + parts[1]
+                      solver = parts[4]
+                      backend = parts[5]
                       
                       be_col = f"{solver}-{backend}"
                       if be_col not in backends:
+                          print(f"Skipping unknown backend: {be_col}")
                           continue
                       
                       # Count test results
@@ -267,6 +271,7 @@ jobs:
                               results[os_name][be_col] = "❌"
                           else:
                               results[os_name][be_col] = "⚠️"
+                          print(f"{os_name}/{be_col}: tests={tests} failures={failures}")
                   except Exception as e:
                       print(f"Skipping {xml_file}: {e}")
 
@@ -286,11 +291,6 @@ jobs:
           md += "To view:\n"
           md += "1. Go to the failed job's **Logs**\n"
           md += "2. Search for `DAE SOLVER DIAGNOSTIC REPORT`\n"
-          md += "3. The report shows:\n"
-          md += "   - Residual magnitudes (large residuals = bad initial guess)\n"
-          md += "   - Diagonal analysis (near-zero = singular Jacobian)\n"
-          md += "   - Condition number (ill-conditioned = numerical issues)\n"
-          md += "   - Suggested actions\n"
 
           # Write to GITHUB_STEP_SUMMARY
           with open(os.environ["GITHUB_STEP_SUMMARY"], "w") as f:
