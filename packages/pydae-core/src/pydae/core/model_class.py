@@ -366,6 +366,13 @@ class Model:
 
         if ini_failed:
             print("Initialization failed! Triggering automatic numerical diagnostics...\n")
+            print(f"  Debug: jac_ini_flat[:8] = {self.jac_ini_flat[:8]}")
+            print(f"  Debug: NNZ_ini = {self.NNZ_ini}, jac_size = {self.jac_size_ini}")
+            Ap = self.data_dict.get('Ap_ini', [])
+            Ai = self.data_dict.get('Ai_ini', [])
+            if Ap and Ai:
+                print(f"  Debug: Ap[:6] = {Ap[:6]}")
+                print(f"  Debug: Ai[:8] = {Ai[:8]}")
             self.ini_int[4] = 1 # Enable diagnostic flag
             self._ffi_pins.clear()
             self.solver_lib.ini(
