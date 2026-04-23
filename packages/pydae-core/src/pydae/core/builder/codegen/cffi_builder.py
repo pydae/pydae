@@ -19,11 +19,6 @@ _MINGW_PY312_WORKAROUND = (
     platform.system() == 'Windows'
 )
 
-def _get_msvc_compiler():
-    """Detect if MSVC compiler (cl.exe) is available."""
-    import shutil
-    return shutil.which('cl') is not None
-
 
 # ---------------------------------------------------------------------------
 # Supported sparse solver backends (C preprocessor define, compiler flag)
@@ -370,35 +365,14 @@ def generate_and_compile_cffi(builder_obj):
             # MinGW + Python 3.12 ABI incompatibility: MinGW emits __imp__Py_NoneStruct
             # but MSVC-built Python 3.12 DLL does not export the old-style import symbol.
             if _MINGW_PY312_WORKAROUND:
-                if _get_msvc_compiler():
-                    # MSVC is available - configure distutils to use MSVC and retry
-                    logging.warning(
-                        "[CFFI] MinGW failed (Python 3.12+ ABI incompatibility). "
-                        "Retrying with MSVC compiler..."
-                    )
-                    # Configure distutils for MSVC
-                    os.environ['DISTUTILS_USE_SDK'] = '1'
-                    os.environ['MSSDK'] = '1'
-                    # Retry compilation
-                    try:
-                        lib_path = ffi.compile(tmpdir=output_dir)
-                        logging.info(f"[CFFI] MSVC compilation successful.")
-                        with open(hash_file, 'w') as _hf:
-                            _hf.write(src_hash)
-                    except Exception:
-                        raise RuntimeError(
-                            "CFFI compilation failed with both MinGW and MSVC. "
-                            "Ensure Visual Studio Build Tools are installed with C++ workload."
-                        ) from e
-                else:
-                    raise RuntimeError(
-                        "CFFI compilation failed on Windows Python 3.12+ "
-                        "(MinGW cannot link against MSVC-built Python).\n"
-                        "Options:\n"
-                        "1. Install Visual Studio Build Tools with C++ workload\n"
-                        "2. Use target='ctypes' instead\n"
-                        "3. Use MinGW-built Python (not MSVC-built)"
-                    ) from e
+                raise RuntimeError(
+                    "CFFI compilation failed on Windows Python 3.12+ "
+                    "(MinGW cannot link against MSVC-built Python).\n"
+                    "Options:\n"
+                    "1. Install Visual Studio Build Tools with C++ workload\n"
+                    "2. Use target='ctypes' instead\n"
+                    "3. Use MinGW-built Python (not MSVC-built)"
+                ) from e
             logging.error(f"[CFFI] Compilation FAILED. Exception: {e}")
             raise e
 
