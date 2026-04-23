@@ -26,12 +26,9 @@ jobs:
         solver: [sparse, dense]
         backend: [cffi, ctypes]
         exclude:
-          # CFFI fails on Windows (MinGW cannot link against MSVC Python 3.12+)
+          # Windows CI: only dense+ctypes works reliably (MSVC Python + MinGW incompatible)
+          # KLU and CFFI require local testing with MinGW-built Python
           - os: windows-latest
-            backend: cffi
-          # ctypes+KLU is unstable on Windows (regex heap corruption on Python 3.13)
-          - os: windows-latest
-            backend: ctypes
             solver: sparse
 
     env:
