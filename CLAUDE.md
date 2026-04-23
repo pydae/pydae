@@ -218,3 +218,24 @@ uvx twine upload dist/pydae_bps-X.Y.Z*   --repository pypi
 ```
 
 Per-package tags (not a single repo-wide tag) so subpackages can release independently.
+
+## Troubleshooting & Diagnostics
+
+### Automatic DAE Diagnostics
+On `ini()` failure, `model_class.py` outputs a **DAE SOLVER DIAGNOSTIC REPORT** to stdout:
+
+- **Residual magnitudes** — large values = bad initial guess
+- **Diagonal analysis** — near-zero diagonals = singular Jacobian
+- **Condition number** — >10⁶ = ill-conditioned
+- **Sparsity statistics** — NNZ fill ratio
+
+Check for:
+1. **Zero tension** (`lam=0`) — Jacobian entry `dFx/dlam` becomes zero → singular. Use `lam >= 10.0`.
+2. **Missing velocities** — include `v_x=0, v_y=0` in initial guess for steady state.
+3. **Windows KLU**: use `dense` or `cffi` backend; ctypes+KLU may fail.
+
+### Padding Shield
+`model_class.py` has `PAD = 50` guard band on arrays passed to C. This catches off-by-one overflows on Linux/macOS but not Windows heap canaries.
+
+### CI Workflow
+The workflow outputs JUnit XML (`--junit-xml`) and generates a Markdown summary table via `$GITHUB_STEP_SUMMARY`. Failure diagnostics are in test logs — search for "DAE SOLVER DIAGNOSTIC REPORT".
