@@ -76,7 +76,7 @@ def test_compilation_and_execution(pendulum_sys, target, sparse):
     # - f_x = 1.0 keeps the pendulum moving slightly
     success = model.ini(
         {"theta": np.deg2rad(30.0)},
-        xy_0={"p_x": 2.605, "p_y": -4.516, "lam": 10.0, "f_x": 1.0},
+        xy_0={"p_x": 2.605, "p_y": -4.516, "lam": 50.0, "f_x": 1.0},
     )
     assert success, f"Initialization failed for {target} sparse={sparse}"
     
