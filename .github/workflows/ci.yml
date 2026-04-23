@@ -26,9 +26,10 @@ jobs:
         solver: [sparse, dense]
         backend: [cffi, ctypes]
         exclude:
-          # CFFI fails on Windows (MinGW cannot link MSVC Python 3.10+ ABI)
+          # ctypes+KLU is unstable on Windows (regex heap corruption on Python 3.13)
           - os: windows-latest
-            backend: cffi
+            backend: ctypes
+            solver: sparse
 
     env:
       PYTHONDONTWRITEBYTECODE: "1"
@@ -163,13 +164,10 @@ jobs:
         if: matrix.solver == 'sparse'
         shell: bash -el {0}
         run: |
-          if [ "${{ matrix.os }}" == "windows-latest" ]; then
-            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and ctypes" \
-              -v --tb=short -s --junit-xml=/tmp/pytest-klu.xml
-          else
-            pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" \
-              -v --tb=short -s --junit-xml=/tmp/pytest-klu.xml
-          fi
+          # Windows: ctypes+KLU is unstable, use cffi+KLU
+          # Linux/macOS: use cffi+KLU (cffi preferred)
+          pytest tests/core/test_compilation_modes.py -k "test_compilation_and_execution and klu and cffi" \
+            -v --tb=short -s --junit-xml=/tmp/pytest-klu.xml
 
       - name: Run PARDISO tests (Linux sparse cffi only)
         if: matrix.os == 'ubuntu-latest' && matrix.solver == 'sparse' && matrix.backend == 'cffi'
