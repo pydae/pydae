@@ -21,17 +21,18 @@ Jacobian buffer size: ``NNZ`` entries for any sparse backend, or
 """
 
 import ctypes
+import importlib
+import json
 import logging
+import os
+import sys
+
 import numpy as np
 from numpy.ctypeslib import ndpointer
-from scipy.sparse import csc_matrix, csr_matrix
-import sys
-import os
-import json
-import importlib
 
 # Optional diagnostic tool
 from pydae.core.diagnostics.dae_check import diagnose_dae_model
+from scipy.sparse import csc_matrix
 
 # Padding shield: allocate extra elements to absorb potential C buffer overflows.
 # On Windows, heap corruption triggers immediate crashes; this padding provides
@@ -110,7 +111,7 @@ class Model:
                 c_double_p, c_double_p, c_double_p, c_double_p, ctypes.c_int, ctypes.c_int,
                 c_double_p, c_double_p, c_double_p
             ]
-        
+
         # Default solver settings
         self.max_it = 50
         self.itol = 1e-8
@@ -121,9 +122,28 @@ class Model:
         self.step_counter = 0
         self.N_store = 10_000  # default pre-allocated rows for Time/X/Y/Z
 
+        # Flag to track if post() was called (needs reset before next run)
+        self._post_called = False
+
         # Anchor list for CFFI from_buffer cdata objects to keep them
         # alive through each solver invocation (see _d/_i below).
         self._ffi_pins = []
+
+        # ------------------------------------------------------------------
+        # Dual-Buffer Architecture: Internal buffers (with PAD) for HPC performance.
+        # C solver writes directly to these; public arrays are created in post().
+        # ------------------------------------------------------------------
+        self._Time = np.zeros(self.N_store + PAD, dtype=np.float64)
+        self._X = np.zeros((self.N_store + PAD) * self.N_x, dtype=np.float64)
+        self._Y = np.zeros((self.N_store + PAD) * self.N_y, dtype=np.float64)
+        self._Z = np.zeros((self.N_store + PAD) * self.N_z, dtype=np.float64)
+        self.it_store = np.array([0], dtype=np.int32)
+
+        # Public arrays (created in post() - until then they are None)
+        self.Time = None
+        self.X = None
+        self.Y = None
+        self.Z = None
 
 
     # --- Memory Pointer Wrappers ---
@@ -200,7 +220,7 @@ class Model:
         self.p = np.zeros(max(1, len(self.params_list)), dtype=np.float64)
 
         self.yini2urun = list(set(self.u_run_list).intersection(set(self.y_ini_list)))
-        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.u_ini_list)))    
+        self.uini2yrun = list(set(self.y_run_list).intersection(set(self.u_ini_list)))
 
         self.xy_0 = np.zeros(self.N_xy + PAD, dtype=np.float64)
 
@@ -221,13 +241,13 @@ class Model:
         """Transforms initialization states into runtime states."""
         self.y_ini = self.xy_ini[self.N_x:]
         self.y_run = np.copy(self.y_ini)
-        
+
         for item in self.yini2urun:
             self.u_run[self.u_run_list.index(item)] = self.y_ini[self.y_ini_list.index(item)]
-                
+
         for item in self.uini2yrun:
             self.y_run[self.y_run_list.index(item)] = self.u_ini[self.u_ini_list.index(item)]
-            
+
         self.x = self.xy_ini[:self.N_x]
         self.xy[:self.N_x] = self.x
         self.xy[self.N_x:] = self.y_run
@@ -250,12 +270,12 @@ class Model:
         with open(file_name) as fobj:
             xy_0_str = fobj.read()
         xy_0_dict = json.loads(xy_0_str)
-    
+
         for item in xy_0_dict:
             if item in self.x_list:
                 self.xy_0[self.x_list.index(item)] = xy_0_dict[item]
             if item in self.y_ini_list:
-                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]            
+                self.xy_0[self.y_ini_list.index(item)+self.N_x] = xy_0_dict[item]
 
 
     def save_xy_0(self,file_name = 'xy_0.json'):
@@ -264,14 +284,14 @@ class Model:
             xy_0_dict.update({item:self.get_value(item)})
         for item in self.y_ini_list:
             xy_0_dict.update({item:self.get_value(item)})
-    
+
         xy_0_str = json.dumps(xy_0_dict, indent=4)
         with open(file_name,'w') as fobj:
             fobj.write(xy_0_str)
-    
-     
+
+
     def load_params(self,data_input):
-    
+
         if type(data_input) == str:
             json_file = data_input
             self.json_file = json_file
@@ -279,7 +299,7 @@ class Model:
             data = json.loads(self.json_data)
         elif type(data_input) == dict:
             data = data_input
-    
+
         self.data = data
         for item in self.data:
             self.set_value(item, self.data[item])
@@ -301,7 +321,7 @@ class Model:
         inputs_ini_dict_str = json.dumps(inputs_ini_dict, indent=4)
         with open(file_name,'w') as fobj:
             fobj.write(inputs_ini_dict_str)
-            
+
     def ini(self, params_dict, xy_0='None'):
         """Solves the steady-state (Newton-Raphson)."""
         for k, v in params_dict.items(): self.set_value(k, v)
@@ -318,17 +338,17 @@ class Model:
         self.xy_ini[:self.N_x] = self.x
         self.xy_ini[self.N_x:] = self.y_ini
 
-        self.it_store = np.array([0], dtype=np.int32)
+        self.it_store[0] = 0  # Reset storage tracker (use scalar to match C expectations)
         self.step_counter = 0
         self.t_start = 0.0
 
-        # Pre-allocate fixed storage (old-pydae pattern): N_store rows,
-        # truncated later in post(). Reused across multiple run() calls.
+        # Pre-allocated internal buffers are already in __init__.
+        # Reset them by zeroing only the used portion (pad region remains untouched).
         n = int(self.N_store)
-        self.Time = np.zeros(n, dtype=np.float64)
-        self.X = np.zeros(n * self.N_x, dtype=np.float64)
-        self.Y = np.zeros(n * self.N_y, dtype=np.float64)
-        self.Z = np.zeros(n * self.N_z, dtype=np.float64)
+        self._Time[:n] = 0.0
+        self._X[:n * self.N_x] = 0.0
+        self._Y[:n * self.N_y] = 0.0
+        self._Z[:n * self.N_z] = 0.0
 
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
         self.jac_ini_flat = np.zeros(self.jac_size_ini + PAD, dtype=np.float64)
@@ -389,16 +409,16 @@ class Model:
                     Ap=self.data_dict.get('Ap_ini'),
                     Ai=self.data_dict.get('Ai_ini'),
                 )
-            except Exception as e:
+            except Exception:
                 import traceback
                 print("\n" + "="*50)
                 print("CRITICAL: The diagnostic tool itself crashed!")
                 print("="*50)
                 traceback.print_exc()
                 print("="*50 + "\n")
-            self.ini_int[4] = 0 
-            return False 
-        
+            self.ini_int[4] = 0
+            return False
+
 
         if res_ini != 0 or self.ini_iterations >= self.max_it: return False
         return True
@@ -410,50 +430,52 @@ class Model:
         # Clear FFI pins at start to prevent memory accumulation
         self._ffi_pins.clear()
 
-        # Storage: pre-allocated in ini() with N_store rows. Only grow
-        # (doubling) if the decimation-aware required row count exceeds
-        # current capacity. This mirrors the old-pydae pattern and avoids
-        # per-run over-allocation.
-        self.t_start = getattr(self, 't_start', 0.0)
+        # After post(), subsequent runs must zero internal buffers
+        # to ensure clean state
+        if self._post_called:
+            self._Time[:] = 0.0
+            self._X[:] = 0.0
+            if self.N_y > 0:
+                self._Y[:] = 0.0
+            if self.N_z > 0:
+                self._Z[:] = 0.0
+            self._post_called = False
+            self.it_store[0] = 0
+            self.t_start = 0.0
+
         dec = max(1, int(self.decimation))
         n_solver_steps = int(np.ceil((t_end - self.t_start) / self.Dt)) + 2
         req_new_rows = int(np.ceil(n_solver_steps / dec)) + 1
         req_store = int(self.it_store[0]) + req_new_rows
 
-        if not hasattr(self, 'Time') or len(self.Time) < req_store:
-            # Doubling growth, starting from N_store
-            new_size = max(int(self.N_store), len(getattr(self, 'Time', [])))
-            while new_size < req_store:
-                new_size *= 2
-            new_Time = np.zeros(new_size, dtype=np.float64)
-            new_X = np.zeros(new_size * self.N_x, dtype=np.float64)
-            new_Y = np.zeros(new_size * self.N_y, dtype=np.float64)
-            new_Z = np.zeros(new_size * self.N_z, dtype=np.float64)
-
-            if hasattr(self, 'Time') and self.it_store[0] > 0:
-                idx = int(self.it_store[0])
-                new_Time[:idx] = self.Time[:idx]
-                new_X[:idx * self.N_x] = self.X[:idx * self.N_x]
-                new_Y[:idx * self.N_y] = self.Y[:idx * self.N_y]
-                new_Z[:idx * self.N_z] = self.Z[:idx * self.N_z]
-            self.Time, self.X, self.Y, self.Z = new_Time, new_X, new_Y, new_Z
+        # Check if we would exceed buffer (with PAD). If so, warn but continue -
+        # the PAD shield absorbs small overflows.
+        buffer_size = self.N_store + PAD
+        if req_store > buffer_size:
+            import warnings
+            warnings.warn(
+                f"Storage buffer size ({buffer_size}) may be exceeded. "
+                f"Requested: {req_store}. PAD={PAD} shield may absorb overflow.",
+                RuntimeWarning
+            )
 
         run_int = np.array([1, 0, 0, 0, self.decimation, 0, 0, self.step_counter], dtype=np.int32)
         run_dbl = np.zeros(5, dtype=np.float64); run_dbl[0] = self.alpha
 
         # Jacobian buffer: sparse backends use NNZ, dense uses N_xy²
         jac_run_flat = np.zeros(self.jac_size_trap + PAD, dtype=np.float64)
-        pivots = np.zeros(self.N_xy, dtype=np.int32)
+        pivots = np.zeros(self.N_xy + PAD, dtype=np.int32)
 
         # Ensure independent buffers (not views) before C solve
         self.x = np.copy(self.xy[:self.N_x])
         self.y_run = np.copy(self.xy[self.N_x:])
 
+        # Pass internal buffers to C solver (zero-copy, in-place)
         res_run = self.solver_lib.run(
             self.t_start, t_end, self._d(jac_run_flat), self._i(pivots), self._d(self.x), self._d(self.y_run), self._d(self.xy),
             self._d(self.u_run), self._d(self.p), self.N_x, self.N_y, self.max_it, self.itol,
             self._i(self.it_store), self.Dt, self._d(self.z), self._d(run_dbl), self._i(run_int),
-            self._d(self.Time), self._d(self.X), self._d(self.Y), self._d(self.Z), self.N_z, len(self.Time),
+            self._d(self._Time), self._d(self._X), self._d(self._Y), self._d(self._Z), self.N_z, buffer_size,
             self._d(self.f_w), self._d(self.g_w), self._d(self.fg_w)
         )
 
@@ -571,12 +593,24 @@ class Model:
         return self.A
 
     def post(self):
-        """Truncates pre-allocated arrays and reshapes results."""
+        """Extract safe public arrays from internal buffers.
+
+        Performs EXACTLY ONE copy from internal buffers to public arrays.
+        This breaks the memory sharing with C DLL, allowing safe
+        plotting in Jupyter without heap corruption.
+        """
         idx = self.it_store[0]
-        self.Time = self.Time[:idx]
-        self.X = self.X[:self.N_x * idx].reshape(idx, self.N_x)
-        if self.N_y > 0: self.Y = self.Y[:self.N_y * idx].reshape(idx, self.N_y)
-        if self.N_z > 0: self.Z = self.Z[:self.N_z * idx].reshape(idx, self.N_z)
+
+        # Exactly ONE copy per array - breaks C memory sharing
+        self.Time = np.copy(self._Time[:idx])
+        self.X = np.copy(self._X[:self.N_x * idx].reshape(idx, self.N_x))
+        if self.N_y > 0:
+            self.Y = np.copy(self._Y[:self.N_y * idx].reshape(idx, self.N_y))
+        if self.N_z > 0:
+            self.Z = np.copy(self._Z[:self.N_z * idx].reshape(idx, self.N_z))
+
+        # Flag that post() was called - next run() must reset buffers
+        self._post_called = True
 
     def set_value(self, name_, value):
         """Sets a parameter or input safely."""
@@ -620,10 +654,9 @@ class Model:
 # ==========================================
 
 def test_build_pendulum(model_name,  target='ctypes', sparse=False):
-    import sympy as sym
     import numpy as numpy
-    from pydae.core import Builder
+    import sympy as sym
 
     L,G,M,K_d,K_lam = sym.symbols('L,G,M,K_d,K_lam', real=True)
-    p_x,p_y,v_x,v_y = sym.symbols('p_x,p_y,v_x,v_y', real=True) 
-    lam,f_x,theta,u_dummy = sym.symbols('lam,f_x,theta,u_dummy', real=True) 
+    p_x,p_y,v_x,v_y = sym.symbols('p_x,p_y,v_x,v_y', real=True)
+    lam,f_x,theta,u_dummy = sym.symbols('lam,f_x,theta,u_dummy', real=True)

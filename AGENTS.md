@@ -1,54 +1,44 @@
 # AGENTS.md
 
-See `CLAUDE.md` for full technical documentation.
+Compact instructions for OpenCode sessions in this monorepo. See `CLAUDE.md` for full technical documentation.
 
 ## Workflow & Commands
-
-*   **Setup**: `uv sync --all-packages`. Never `pip install`.
+*   **Setup**: `uv sync --all-packages`. Never use `pip install`.
 *   **Testing**: `uv run pytest`.
     *   Fast (no compiler): `uv run pytest -m "parse or symbolic or codegen"`
-    *   Full (requires GCC/MinGW): `uv run pytest -m "build or model"`
-    *   Single package: `uv run pytest tests/core/`, `uv run pytest tests/bps/`
-    *   By name: `uv run pytest -k "test_name"`
+    *   Full (GCC/MinGW required): `uv run pytest -m "build or model"`
 *   **Linting**: `uv run ruff check .`
 
 ## Architecture
-
-*   **Monorepo**: `packages/pydae-core` (PyPI: `pydae`), `packages/pydae-bps`, `packages/pydae-uds`.
-*   **Namespace packages**: `packages/*/src/pydae/` has NO `__init__.py`.
+*   **Monorepo**: Workspace with three independent packages (`pydae-core`, `pydae-bps`, `pydae-uds`).
+*   **Namespace**: `packages/*/src/pydae/` MUST NOT have `__init__.py`. Only subpackages (e.g., `core/`, `bps/`) have them.
 *   **Pipeline**: `Builder(sys_dict)` → `build()` → `Model.load()`.
-*   **Sparse solvers**: `sparse=False` (dense LU), `sparse='klu'` (SuiteSparse), `sparse='pardiso'` (Intel MKL). KLU and MKL require conda-installed libs.
-*   **Parallel codegen**: `PYDAE_PARALLEL=1` for > 200 expressions.
+*   **Parallel Codegen**: Set `PYDAE_PARALLEL=1` for > 200 expressions.
 
 ## Conventions
+*   **Docstrings**: Use raw strings `r"""..."""` for LaTeX support.
+*   **Component Tests**: Include `def test():` at the bottom of component modules; verify against sibling `.hjson`.
+*   **Paths**: Use `pathlib.Path` or `/`. No hard-coded backslashes for cross-platform compatibility.
+*   **ini/run swap**: Swap variable values in-place at the same index in `y_ini`. Never delete/re-append to keep indices stable for component reference.
 
-*   **ini/run swap**: Swap variable values in-place at the same index in `y_ini` — never delete and re-append.
-*   **LaTeX docstrings**: Use raw strings `r"""..."""`.
-*   **Component tests**: `def test():` at bottom of component modules, verified against sibling `.hjson`.
-*   **Cross-platform**: Use `pathlib.Path` or `/` for all paths; no hard-coded backslashes.
-*   **Line endings**: Force LF via `.gitattributes`. Do not override.
-*   **Branching**: Default branch is `master`.
+## Environment & Gotchas
 
-## Compiler Requirements (Build / Model Tests)
-
-*   Linux: `gcc` (from `build-essential`) + `suitesparse` + `mkl` (conda).
-*   macOS: Clang + `suitesparse` (no MKL).
-*   Windows: MinGW (`m2w64-toolchain` + `libpython`) + `suitesparse` + `mkl`. **CFFI preferred over ctypes on Windows**.
-
-## Common Issues & Fixes
+### Windows Build Backend
+*   **Codegen crashes**: On Windows Python 3.13, both ctypes and cffi fail in `sym2xyup` (regex heap corruption `0xc0000374`).
+*   **CI skips builds**: `ci.yml` explicitly skips build/model tests on Windows. Fast tests only (`parse`, `symbolic`, `codegen`) run.
+*   **Use `sparse=False`**: If building locally on Windows, use dense backend.
 
 ### Initial Guess Physics
-Never set `lam=0` (tension) in pendulum/test models:
-*   The Jacobian entry `dFx/dlam = -2*p_x` becomes exactly zero, causing singular matrix errors.
-*   Use `lam >= 10.0` or estimate: `lam ≈ M*G/cos(theta)`.
-*   Include velocities in initial guess: `v_x=0, v_y=0` for steady-state convergence.
+*   **Never set `lam=0`**: Causes singular Jacobian (`dFx/dlam = -2*p_x` becomes exactly zero).
+*   Use `lam >= 10.0` (50.0 is more robust) and include velocities: `v_x=0, v_y=0`.
 
-### Windows KLU + ctypes
-*   KLU with ctypes may fail on Windows even when cffi+KLU passes.
-*   Diagnostic shows "Near-zero diagonal" despite correct Ap/Ai.
-*   **Fix**: Use `dense` or `cffi` backend on Windows until resolved.
+### Sparse Solvers on Windows
+*   KLU with ctypes may fail even when cffi+KLU passes.
+*   **Fix**: Use `dense` backend on Windows (no sparse solver).
 
 ### Buffer Overflow Shield
-*   `model_class.py` has `PAD = 50` guard band on arrays passed to C.
-*   If tests crash with `STATUS_HEAP_CORRUPTION` (Windows), the C code may write past array bounds.
-*   Padding absorbs overflows safely on Linux/macOS but not Windows heap canaries.
+*   `model_class.py` has `PAD = 50` guard band.
+*   `STATUS_HEAP_CORRUPTION` on Windows indicates C array index-out-of-bounds.
+
+### Line Endings
+*   Force LF via `.gitattributes`. Do not override.
