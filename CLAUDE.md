@@ -155,8 +155,14 @@ This repo is developed on both Windows and Linux (Debian). Claude Code may be in
 - `uv` is the package manager. Do not use `pip install -e .` — the workspace layout relies on `uv sync --all-packages`.
 - A C compiler is required for `-m build` / `-m model` tests and for `Builder.build()`:
   - Linux: `sudo apt install build-essential` (provides `gcc`).
-  - Windows: MSVC Build Tools or MinGW `gcc` on `PATH`. CFFI is generally more reliable than ctypes on Windows because it links at Python-extension build time rather than loading a standalone DLL.
+  - Windows: MinGW `gcc` on `PATH`. CFFI is excluded on Windows CI (MinGW cannot link Python 3.12+ MSVC-built Python); use `target='ctypes'`.
+  - macOS: Apple Clang (pre-installed).
 - Python ≥ 3.10. `uv run` auto-selects the workspace interpreter; outside `uv`, use `python -m pytest` rather than a bare `pytest` to avoid picking up a different interpreter's scripts.
+
+**Windows CI / Build Limitations**
+- CFFI: Excluded on Windows CI (MinGW cannot link against MSVC-built Python 3.12+). Use `target='ctypes'` instead.
+- ctypes+KLU: Unstable on Windows (Python 3.13 regex heap corruption). Use `target='ctypes', sparse=False` or `target='cffi', sparse='klu'` on Linux/macOS.
+- To use CFFI locally on Windows: Install MSVC Build Tools with C++ workload, or use MinGW-built Python.
 
 **Path and shell**
 - Inside Git Bash / WSL / Linux: forward slashes, `/dev/null`.
@@ -232,9 +238,10 @@ On `ini()` failure, `model_class.py` outputs a **DAE SOLVER DIAGNOSTIC REPORT** 
 - **Sparsity statistics** — NNZ fill ratio
 
 Check for:
-1. **Zero tension** (`lam=0`) — Jacobian entry `dFx/dlam` becomes zero → singular. Use `lam >= 10.0`.
+1. **Zero tension** (`lam=0`) — Jacobian entry `dFx/dlam` becomes zero → singular. Use `lam >= 10.0` (50.0 recommended).
 2. **Missing velocities** — include `v_x=0, v_y=0` in initial guess for steady state.
-3. **Windows KLU**: use `dense` or `cffi` backend; ctypes+KLU may fail.
+3. **Windows CFFI fails**: Use `target='ctypes'` (MinGW cannot link Python 3.12+ MSVC-built Python).
+4. **Windows ctypes+KLU unstable**: Use `target='ctypes', sparse=False` or test on Linux/macOS.
 
 ### Padding Shield
 `model_class.py` has `PAD = 50` guard band on arrays passed to C. This catches off-by-one overflows on Linux/macOS but not Windows heap canaries.
