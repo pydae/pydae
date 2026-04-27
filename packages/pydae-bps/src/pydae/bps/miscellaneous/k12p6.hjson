@@ -1,0 +1,94 @@
+{
+system: {name: "k12p6", S_base: 100e6},
+
+// AGC on gen 3 (angle reference, K_delta = 0.01)
+agc: {gen: "3", K_p_agc: 0.0, K_i_agc: 2.0},
+
+buses: [
+  {name: "1",  P_W:   0.0,     Q_var:      0.0, U_kV:  20.0},
+  {name: "2",  P_W:   0.0,     Q_var:      0.0, U_kV:  20.0},
+  {name: "3",  P_W:   0.0,     Q_var:      0.0, U_kV:  20.0},
+  {name: "4",  P_W:   0.0,     Q_var:      0.0, U_kV:  20.0},
+  {name: "5",  P_W:   0.0,     Q_var:      0.0, U_kV: 230.0},
+  {name: "6",  P_W:   0.0,     Q_var:      0.0, U_kV: 230.0},
+  {name: "7",  P_W: -967e6,    Q_var:  100e6,   U_kV: 230.0},
+  {name: "8",  P_W:   0.0,     Q_var:      0.0, U_kV: 230.0},
+  {name: "9",  P_W:-1767e6,    Q_var:  250e6,   U_kV: 230.0},
+  {name: "10", P_W:   0.0,     Q_var:      0.0, U_kV: 230.0},
+  {name: "11", P_W:   0.0,     Q_var:      0.0, U_kV: 230.0}
+],
+
+// Generator step-up transformers (20 kV / 230 kV)
+lines: [
+  {bus_j: "1",  bus_k: "5",  X_pu: 0.15, R_pu: 0.0,    S_mva: 900.0},
+  {bus_j: "2",  bus_k: "6",  X_pu: 0.15, R_pu: 0.0,    S_mva: 900.0},
+  {bus_j: "3",  bus_k: "11", X_pu: 0.15, R_pu: 0.0,    S_mva: 900.0},
+  {bus_j: "4",  bus_k: "10", X_pu: 0.15, R_pu: 0.0,    S_mva: 900.0},
+  // 230 kV transmission lines
+  {bus_j: "5",  bus_k: "6",  X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km:  25},
+  {bus_j: "6",  bus_k: "7",  X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km:  10},
+  {bus_j: "7",  bus_k: "8",  X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km: 110},
+  {bus_j: "7",  bus_k: "8",  X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km: 110},
+  {bus_j: "8",  bus_k: "9",  X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km: 110},
+  {bus_j: "8",  bus_k: "9",  X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km: 110},
+  {bus_j: "9",  bus_k: "10", X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km:  10},
+  {bus_j: "10", bus_k: "11", X_km: 0.529, R_km: 0.0529, Bs_km: 2.1e-6, km:  25}
+],
+
+syns: [
+
+  // ── Generator 1 (area 1) ────────────────────────────────────────────
+  {bus: "1", type: "milano4ord", S_n: 900e6,
+   X_d: 1.8, X1d: 0.3, T1d0: 8.0,
+   X_q: 1.7, X1q: 0.55, T1q0: 0.4,
+   R_a: 0.0025, X_l: 0.2,
+   H: 6.5, D: 1.0,
+   F_n: 60.0, omega_s: 1.0, K_sec: 0.001, K_delta: 0.0,
+   avr: {type: "kundur_tgr", K_a: 200.0, T_r: 0.01, T_a: 1.0, T_b: 10.0,
+         v_ref: 1.03},
+   gov: {type: "tgov1", R: 0.05, T_1: 0.5,
+         V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+   lc:  {K_i: 0.01, p_c_lc: 0.7778}},
+
+  // ── Generator 2 (area 1) ────────────────────────────────────────────
+  {bus: "2", type: "milano4ord", S_n: 900e6,
+   X_d: 1.8, X1d: 0.3, T1d0: 8.0,
+   X_q: 1.7, X1q: 0.55, T1q0: 0.4,
+   R_a: 0.0025, X_l: 0.2,
+   H: 6.5, D: 1.0,
+   F_n: 60.0, omega_s: 1.0, K_sec: 0.001, K_delta: 0.0,
+   avr: {type: "kundur_tgr", K_a: 200.0, T_r: 0.01, T_a: 1.0, T_b: 10.0,
+         v_ref: 1.01},
+   gov: {type: "tgov1", R: 0.05, T_1: 0.5,
+         V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+   lc:  {K_i: 0.01, p_c_lc: 0.7778}},
+
+  // ── Generator 3 (area 2, AGC reference, angle reference) ────────────
+  {bus: "3", type: "milano4ord", S_n: 900e6,
+   X_d: 1.8, X1d: 0.3, T1d0: 8.0,
+   X_q: 1.7, X1q: 0.55, T1q0: 0.4,
+   R_a: 0.0025, X_l: 0.2,
+   H: 6.175, D: 1.0,
+   F_n: 60.0, omega_s: 1.0, K_sec: 0.001, K_delta: 0.01,
+   avr: {type: "kundur_tgr", K_a: 200.0, T_r: 0.01, T_a: 1.0, T_b: 10.0,
+         v_ref: 1.03},
+   gov: {type: "tgov1", R: 0.05, T_1: 0.5,
+         V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0}},
+   // No lc: AGC connects directly to gov p_c and freely finds network balance at ini.
+   // Adding lc would pin p_g_3 = p_c_lc, conflicting with the AGC power-balance search.
+
+  // ── Generator 4 (area 2) ────────────────────────────────────────────
+  {bus: "4", type: "milano4ord", S_n: 900e6,
+   X_d: 1.8, X1d: 0.3, T1d0: 8.0,
+   X_q: 1.7, X1q: 0.55, T1q0: 0.4,
+   R_a: 0.0025, X_l: 0.2,
+   H: 6.175, D: 1.0,
+   F_n: 60.0, omega_s: 1.0, K_sec: 0.001, K_delta: 0.0,
+   avr: {type: "kundur_tgr", K_a: 200.0, T_r: 0.01, T_a: 1.0, T_b: 10.0,
+         v_ref: 1.01},
+   gov: {type: "tgov1", R: 0.05, T_1: 0.5,
+         V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+   lc:  {K_i: 0.01, p_c_lc: 0.7778}}
+
+]
+}

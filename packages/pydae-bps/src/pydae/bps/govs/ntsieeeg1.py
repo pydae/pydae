@@ -109,7 +109,7 @@ def ntsieeeg1(dae,syn_data,name,bus_name):
     dae['params_dict'].update({str(P_min):data['P_min']})
     dae['params_dict'].update({str(K_awu):1000.0}) 
 
-    p_c_ini = data['p_c']
+    p_c_ini = data.get('p_c', 0.5)
 
     dae['u_ini_dict'].update({str(p_c):p_c_ini})
     dae['u_run_dict'].update({str(p_c):p_c_ini})

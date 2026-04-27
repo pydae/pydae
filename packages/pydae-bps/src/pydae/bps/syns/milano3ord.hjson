@@ -34,10 +34,13 @@
       "D": 0.0,
       
       // Constants
-      "K_sat": 1.0, 
+      "K_sat": 1.0,
       "K_delta": 0.0,
-      "K_sec": 0.0
-      
+      "K_sec": 0.0,
+
+      // Desired grid injection (LC auto-triggered; p_m computed including losses)
+      "p_c_lc": 0.5
+
       // Controllers (Commented out for bare machine testing)
       // "avr": {"type":"ntsst1", "T_r":0.1, "K_a":200.0, "T_a":0.015, "T_b":10.0, "T_c":1.0, "v_ref":1.0}
     }

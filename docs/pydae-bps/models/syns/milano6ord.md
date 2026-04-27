@@ -28,17 +28,28 @@ $$\frac{ de''_d}{dt} = \frac{1}{T''_{q0}} \left(-e''_d + e'_d + \left(X'_q - X''
 $$0 = i_d v_d + i_q v_q - p_g$$
 $$0 = i_d v_q - i_q v_d - q_g$$
 
+## Block diagram
+
+![milano6ord block diagram](svg/sm_milano6ord.svg)
+
 ## Usage
 
-```python
-from pydae.bps import BpsBuilder
-
-grid = BpsBuilder("my_network.json")
-grid.construct("my_system")
+```hjson
+syns: [{
+  bus: "1", type: "milano6ord",
+  S_n: 200e6, H: 5.0, D: 0.0,
+  X_d: 1.8,  X_q: 1.7,
+  X1d: 0.3,  X1q: 0.55,
+  X2d: 0.2,  X2q: 0.25,
+  X_l: 0.1,
+  T1d0: 8.0, T1q0: 0.4,
+  T2d0: 0.03, T2q0: 0.05,
+  T_AA: 0.0,
+  R_a: 0.01,
+  S_10: 0.0, S_12: 0.0,
+  K_delta: 0.01, K_sec: 0.0
+}]
 ```
-
-The `milano6ord` model is instantiated by including an entry in the relevant
-section of the network JSON (see [Overview](../../overview.md)).
 
 ## Parameters, inputs, states, outputs
 

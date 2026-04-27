@@ -20,6 +20,7 @@ from pydae.bps.sources.sources import add_sources
 from pydae.bps.miscellaneous.miscellaneous import add_miscellaneous
 from pydae.bps.pods.pods import add_pods
 from pydae.bps.miscellaneous.banks import add_banks
+from pydae.bps.miscellaneous.agc import add_agc
 from pydae.bps.lines.lines import add_lines
 
 # todo:
@@ -60,11 +61,11 @@ class BpsBuilder:
                 data = hjson.loads(resp.text)
             else:
                 if os.path.splitext(data_input)[1] == '.json':
-                    with open(data_input,'r') as fobj:
-                        data = json.loads(fobj.read().replace("'",'"'))
+                    with open(data_input, 'r', encoding='utf-8') as fobj:
+                        data = json.loads(fobj.read().replace("'", '"'))
                 if os.path.splitext(data_input)[1] == '.hjson':
-                    with open(data_input,'r') as fobj:
-                        data = hjson.loads(fobj.read().replace("'",'"'))
+                    with open(data_input, 'r', encoding='utf-8') as fobj:
+                        data = hjson.loads(fobj.read().replace("'", '"'))
         elif type(data_input) == dict:
             data = data_input
             
@@ -521,6 +522,8 @@ class BpsBuilder:
             add_pods(self)
         if 'banks' in  self.data:
             add_banks(self)
+        if 'agc' in self.data:
+            add_agc(self)
 
         add_miscellaneous(self)
 
@@ -531,30 +534,30 @@ class BpsBuilder:
         self.dae['y_ini'] += [ omega_coi]
         self.dae['y_run'] += [ omega_coi]
 
-        # secondary frequency control
-        xi_freq = sym.Symbol("xi_freq", real=True) 
-        p_agc = sym.Symbol("p_agc", real=True)  
-        K_p_agc = sym.Symbol("K_p_agc", real=True) 
-        K_i_agc = sym.Symbol("K_i_agc", real=True) 
-        K_xif  = sym.Symbol("K_xif", real=True)
+        # # secondary frequency control
+        # xi_freq = sym.Symbol("xi_freq", real=True) 
+        # p_agc = sym.Symbol("p_agc", real=True)  
+        # K_p_agc = sym.Symbol("K_p_agc", real=True) 
+        # K_i_agc = sym.Symbol("K_i_agc", real=True) 
+        # K_xif  = sym.Symbol("K_xif", real=True)
 
-        epsilon_freq = 1-omega_coi
-        g_agc = [ -p_agc + K_p_agc*epsilon_freq + K_i_agc*xi_freq ]
-        y_agc = [  p_agc]
-        x_agc = [ xi_freq]
-        f_agc = [epsilon_freq - K_xif*xi_freq]
+        # epsilon_freq = 1-omega_coi
+        # g_agc = [ -p_agc + K_p_agc*epsilon_freq + K_i_agc*xi_freq ]
+        # y_agc = [  p_agc]
+        # x_agc = [ xi_freq]
+        # f_agc = [epsilon_freq - K_xif*xi_freq]
 
-        self.dae['g'] += g_agc
-        self.dae['y_ini'] += y_agc
-        self.dae['y_run'] += y_agc
-        self.dae['f'] += f_agc
-        self.dae['x'] += x_agc
-        self.dae['params_dict'].update({'K_p_agc':self.system['K_p_agc'],'K_i_agc':self.system['K_i_agc']})
+        # self.dae['g'] += g_agc
+        # self.dae['y_ini'] += y_agc
+        # self.dae['y_run'] += y_agc
+        # self.dae['f'] += f_agc
+        # self.dae['x'] += x_agc
+        # self.dae['params_dict'].update({'K_p_agc':self.system['K_p_agc'],'K_i_agc':self.system['K_i_agc']})
 
-        if 'K_xif' in self.system:
-            self.dae['params_dict'].update({'K_xif':self.system['K_xif']})
-        else:
-            self.dae['params_dict'].update({'K_xif':0.0})
+        # if 'K_xif' in self.system:
+        #     self.dae['params_dict'].update({'K_xif':self.system['K_xif']})
+        # else:
+        #     self.dae['params_dict'].update({'K_xif':0.0})
 
          
         with open('xy_0.json','w') as fobj:

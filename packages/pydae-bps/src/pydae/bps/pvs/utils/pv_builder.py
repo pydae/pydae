@@ -64,10 +64,10 @@ class pv_model:
                 data = json.loads(resp.text)
             else:
                 if os.path.splitext(data_input)[1] == '.json':
-                    with open(data_input,'r') as fobj:
+                    with open(data_input, 'r', encoding='utf-8') as fobj:
                         data = json.loads(fobj.read().replace("'",'"'))
                 if os.path.splitext(data_input)[1] == '.hjson':
-                    with open(data_input,'r') as fobj:
+                    with open(data_input, 'r', encoding='utf-8') as fobj:
                         data = hjson.loads(fobj.read().replace("'",'"'))
         elif type(data_input) == dict:
             data = data_input

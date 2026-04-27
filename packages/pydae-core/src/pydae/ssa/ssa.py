@@ -197,51 +197,82 @@ def damp_report(model, sparse=False, tol_part=0.2):
 
     return eig_df
 
-def damp(A, sparse=False):
+def damp(A, sparse=False, model=False, sort=None):
     """
-    Computes eigenvalues, frequencies and damping ratios of the system matrix A and prints a report. 
-    If sparse is True, A should be treated as a sparse matrix, however this is not implemented.
+    Computes eigenvalues, frequencies and damping ratios of matrix A and
+    prints a report.
+
+    Parameters
+    ----------
+    A      : array-like — system state matrix.
+    sparse : bool       — reserved for future sparse support.
+    model  : Model      — when provided, participation factors are appended.
+    sort   : str or None
+        ``'damp'``  — sort rows by damping ratio (ascending).
+        ``'freq'``  — sort rows by oscillation frequency (ascending).
+        ``None``    — natural eigenvalue order (default).
+
+    Returns
+    -------
+    dict with keys ``eigvalues``, ``eigvectors``, ``freqs``, ``zetas``
+    (in the requested sort order).
     """
-    
+
     if sparse:
-        eig,eigv = np.linalg.eig(A) # should be with sparse from scipy.sparse.linalg.eigs or similar, but it is not implemented yet
-    else:      
-        eig,eigv = np.linalg.eig(A)
-        
+        eig, eigv = np.linalg.eig(A)
+    else:
+        eig, eigv = np.linalg.eig(A)
+
     omegas = eig.imag
     sigmas = eig.real
+    freqs  = np.abs(omegas / (2 * np.pi))
+    zetas  = -sigmas / np.sqrt(sigmas ** 2 + omegas ** 2)
 
-    freqs = np.abs(omegas/(2*np.pi))
-    zetas = -sigmas/np.sqrt(sigmas**2+omegas**2)
-    
+    # ── sort index ──────────────────────────────────────────────────────
+    if sort == 'damp':
+        idx = np.argsort(zetas)
+    elif sort == 'freq':
+        idx = np.argsort(freqs)
+    else:
+        idx = np.arange(len(eig))
+
+    # ── header ──────────────────────────────────────────────────────────
     string = ''
-    string += f' Mode'.ljust(10, ' ') 
-    string += f' Real'.ljust(10, ' ') 
-    string += f' Imag'.ljust(10, ' ') 
-    string += f' Freq.'.ljust(10, ' ') 
-    string += f' Damp'.ljust(10, ' ') 
+    string += f' Mode'.ljust(10, ' ')
+    string += f' Real'.ljust(10, ' ')
+    string += f' Imag'.ljust(10, ' ')
+    string += f' Freq.'.ljust(10, ' ')
+    string += f' Damp'.ljust(10, ' ')
     string += '\n'
 
-    N_x = len(eig)
-    for it in range(N_x):
+    if model:
+        participation_matrix = np.abs(participation(model).values)
+        x_array = np.array(model.x_list)
+
+    # ── rows (in sort order) ────────────────────────────────────────────
+    for rank, it in enumerate(idx):
         r = eig[it].real
-        i = eig[it].imag
-        string += f'{it+1:0d}  '.rjust(10, ' ') 
-        string += f'{r:0.4f}  '.rjust(10, ' ') 
-        string += f'{i:0.4f}j'.rjust(10, ' ') 
-        string += f'{freqs[it]:0.4f}'.rjust(10, ' ') 
-        string += f'{zetas[it]:0.4f}'.rjust(10, ' ') 
-
+        i = np.abs(eig[it].imag)
+        string += f'{rank + 1:0d}  '.rjust(10, ' ')
+        string += f'{r:0.4f}  '.rjust(10, ' ')
+        string += f'{i:0.4f}j'.rjust(10, ' ')
+        string += f'{freqs[it]:0.4f}'.rjust(10, ' ')
+        string += f'{zetas[it]:0.4f}'.rjust(10, ' ')
+        if model:
+            max_part = np.max(np.abs(participation_matrix)[:, it])
+            states_participation = x_array[
+                participation_matrix[:, it] > (max_part * 0.5)]
+            string += f'{str(states_participation)}'.rjust(30, ' ')
         string += '\n'
-        #'\t{i:0.4f}\t{freqs[it]:0.3f}\t{zetas[it]:0.4f}\n'
-    print(string)
-    
-    # columns = ['Real','Imag','Freq.','Damp']     
-    # modes = [f'Mode {it+1}' for it in range(N_x)]
-    # eig_df = pd.DataFrame(data={'Real':eig.real,'Imag':eig.imag,  'Freq.':freqs,     'Damp':zetas},index=modes)
-    
-    ssstudy = {'eigvalues': eig, 'eigvectors': eigv, 'freqs': freqs, 'zetas': zetas}
 
+    print(string)
+
+    ssstudy = {
+        'eigvalues':  eig[idx],
+        'eigvectors': eigv[:, idx],
+        'freqs':      freqs[idx],
+        'zetas':      zetas[idx],
+    }
     return ssstudy
 
 

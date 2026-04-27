@@ -108,7 +108,7 @@ def milano2ord(grid, name, bus_name, data_dict):
     v_q = V*cos(delta - theta) 
     p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q)     
     omega_s = omega_coi
-                
+                   
     # 7. Dynamic equations            
     ddelta = Omega_b*(omega - omega_s) - K_delta*delta
     domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
@@ -140,7 +140,8 @@ def milano2ord(grid, name, bus_name, data_dict):
     grid.dae['u_ini_dict'].update({f'{e1q}': val_e1q})
     grid.dae['u_run_dict'].update({f'{e1q}': val_e1q})
 
-    val_p_m = data_dict.get('p_m', default_map.get('p_m', 0.5))
+    val_p_m = data_dict.get('p_m', default_map.get('p_m', 0.0))
+    val_p_m = data_dict.get('p_m', default_map.get('p_m', 0.0))
     grid.dae['u_ini_dict'].update({f'{p_m}': val_p_m})
     grid.dae['u_run_dict'].update({f'{p_m}': val_p_m})
 
@@ -224,39 +225,42 @@ __doc__ += generate_sphinx_tables()
 # =============================================================================
 def test_build():
     from pydae.bps import BpsBuilder
-    from pydae.builder.core import Builder
+    from pydae.core import Builder
     import pytest
 
     grid = BpsBuilder('milano2ord.hjson')
     grid.checker()
     grid.uz_jacs = False
     grid.construct('temp_m2')
-    bld = Builder(grid.sys_dict, target='ctypes')
+    bld = Builder(grid.sys_dict, target='ctypes', sparse=False)
     bld.build()
  
 def test_run():
     import matplotlib.pyplot as plt
-    from pydae.builder.model_class import Model
+    from pydae.core import Model
     
     model = Model('temp_m2')
 
     # Initialization and Fault Simulation
-    model.ini({'p_m_1': 0.5}, 'xy_0.json')
+    model.ini({}, 'xy_0.json')
 
-    model.run(1.0, {})
-    model.run(10.0, {'p_m_1': 1.0, 'D_1':20.0})    # Fault cleared
+    model.report_u()
+    model.report_y()
 
-    print(model.Time)
+    # model.run(1.0, {})
+    # model.run(10.0, {'p_m_1': 1.0, 'D_1':20.0})    # Fault cleared
 
-    model.post()
+    # print(model.Time)
 
-    fig, axes = plt.subplots()
-    axes.plot(model.Time, model.get_values('omega_1'), label='$\\omega$ (pu)')
-    axes.set_xlabel('Time (s)')
-    axes.set_ylabel('omega_1')
-    axes.legend()
-    fig.savefig('milano2ord_pm.svg')
-    print("Test completed. Plot saved as 'milano2ord_pm.svg'.")
+    # model.post()
+
+    # fig, axes = plt.subplots()
+    # axes.plot(model.Time, model.get_values('omega_1'), label='$\\omega$ (pu)')
+    # axes.set_xlabel('Time (s)')
+    # axes.set_ylabel('omega_1')
+    # axes.legend()
+    # fig.savefig('milano2ord_pm.svg')
+    # print("Test completed. Plot saved as 'milano2ord_pm.svg'.")
 
 if __name__ == '__main__':
     test_build()

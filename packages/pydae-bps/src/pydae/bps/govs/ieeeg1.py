@@ -295,7 +295,7 @@ def ieeeg1(dae, data, name, bus_name):
                         (P_max, y_g_nosat > P_max),
                         (y_g_nosat, True))
 
-    u_3 = K * Domega + p_c - y_g + K_sec * p_agc
+    u_3 = K * Domega + p_c - y_g # + K_sec * p_agc
     u_g_nosat = u_3 / T_3
     u_g = sym.Piecewise((U_c, u_g_nosat < U_c),
                         (U_o, u_g_nosat > U_o),
@@ -322,6 +322,7 @@ def ieeeg1(dae, data, name, bus_name):
     dae['y_ini'] += [p_m]
     dae['y_run'] += [p_m]
 
+
     dae['params_dict'].update({str(K): gov_data['K']})
     dae['params_dict'].update({str(K_1): gov_data['K_1']})
     dae['params_dict'].update({str(K_3): gov_data['K_3']})
@@ -341,7 +342,7 @@ def ieeeg1(dae, data, name, bus_name):
     dae['params_dict'].update({str(P_min): gov_data['P_min']})
     dae['params_dict'].update({str(K_awu): 1000.0})
 
-    p_c_ini = gov_data['p_c']
+    p_c_ini = gov_data.get('p_c', 0.5)
     dae['u_ini_dict'].update({str(p_c): p_c_ini})
     dae['u_run_dict'].update({str(p_c): p_c_ini})
 
@@ -372,30 +373,37 @@ def test():
 
     v_set = 1.02
     p_c_set = 0.8
-    model.ini({'V_1': v_set, 'p_c_1': p_c_set}, 'xy_0.json')
+    model.ini({'V_1': v_set, 'p_c_lc_1': p_c_set}, 'xy_0.json')
+
+    print('\nx states:\n')
     model.report_x()
+    print('\ny states:\n')
     model.report_y()
+    print('\nu inputs:\n')
     model.report_u()
 
-    assert model.get_value('p_m_1') == pytest.approx(p_c_set, rel=1e-3)
+    assert model.get_value('p_g_1') == pytest.approx(p_c_set, rel=1e-3)
+    assert model.get_value('p_m_1') > p_c_set  # p_m includes armature losses
     assert model.get_value('V_1') == pytest.approx(v_set, rel=1e-3)
 
-    model.ini({'V_1': v_set, 'p_c_1': p_c_set}, 'xy_0.json')
+    model.ini({'V_1': v_set, 'p_c_lc_1': p_c_set}, 'xy_0.json')
 
     model.A_eval()
     ssa.damp(model.A)
-    
+
     model.run(1.0, {})
-    model.run(30.0, {'p_c_1': 0.6})
+    model.run(60.0, {'p_c_lc_1': 0.6})
     model.post()
 
     string = f'{model.Time[0]:0.2f}, '
-    string += f"{model.get_values('p_m_1')[0]:0.3f}"
+    string += f"{model.get_values('p_g_1')[0]:0.3f}"
     print(string)
 
     string = f'{model.Time[-1]:0.2f}, '
-    string += f"{model.get_values('p_m_1')[-1]:0.3f}"
+    string += f"{model.get_values('p_g_1')[-1]:0.3f}"
     print(string)
+
+    assert model.get_values('p_g_1')[-1] == pytest.approx(0.6, rel=2e-2)
 
 
 if __name__ == '__main__':

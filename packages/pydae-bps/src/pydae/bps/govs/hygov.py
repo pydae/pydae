@@ -1,161 +1,349 @@
 # -*- coding: utf-8 -*-
+r"""
+IEEE HYGOV hydraulic turbine governor.
+
+Four-state model combining a droop governor with a dashpot
+(transient-droop) network, a rate- and position-limited gate
+servomotor, an inelastic-water-column penstock, and an ideal hydraulic
+turbine.
+
+**Signal path**
+
+Speed deviation:
+
+$$\Delta\omega = \omega - 1$$
+
+The dashpot state $c_d$ tracks the gate integrator $x_g$.  Its
+time-derivative is the transient droop signal:
+
+$$\frac{d c_d}{dt} = \frac{x_g - c_d}{T_r}, \qquad
+  c_{d,out} = R_r \, \frac{x_g - c_d}{T_r}$$
+
+The pilot valve demand sums the load reference, permanent droop, and
+transient droop correction:
+
+$$u_{pv} = p_c - \frac{\Delta\omega}{R} - c_{d,out}$$
+
+A first-order filter with time constant $T_f$ smooths the demand:
+
+$$\frac{d c_{pv}}{dt} = \frac{u_{pv} - c_{pv}}{T_f}$$
+
+The gate servomotor is a rate-limited integrator with position limits
+$[G_{min}, G_{max}]$.  Let $y_g = \mathrm{sat}(x_g, G_{min}, G_{max})$:
+
+$$v_g = \mathrm{sat}\!\left(\frac{c_{pv} - x_g}{T_g},\;
+         -V_{g,max},\; V_{g,max}\right)$$
+$$\frac{d x_g}{dt} = v_g + K_{awu}\,(y_g - x_g)$$
+
+The penstock obeys the inelastic water-column equation.  Hydraulic head
+$h = (q / y_g)^2$, water starting time $T_w$:
+
+$$\frac{d q}{dt} = \frac{1 - h}{T_w}$$
+
+Mechanical power with turbine self-damping:
+
+$$0 = A_t\,h\,(q - Q_{nl}) - D_{turb}\,\Delta\omega - p_m$$
+
+**Steady-state relation**
+
+At synchronism ($\omega = 1$, dashpot fully reset $c_d = x_g$):
+$c_{d,out} = 0$, $u_{pv} = p_c$, $c_{pv} = x_g = y_g = p_c$,
+$q = p_c$ (from $dq = 0 \Rightarrow h = 1$), and
+
+$$p_m = A_t\,(p_c - Q_{nl})$$
+
+``p_c`` is therefore the **gate position setpoint**.  For the test
+fixture ($A_t = 1$, $Q_{nl} = 0$) this simplifies to $p_m = p_c$.
+
+**Configuration**
+
+Example data entry (typical defaults)::
+
+    "gov": {"type": "hygov",
+            "R": 0.05,
+            "R_r": 0.3,
+            "T_r": 5.0,
+            "T_f": 0.05,
+            "T_g": 0.5,
+            "V_g_max": 0.2,
+            "G_max": 1.0, "G_min": 0.01,
+            "T_w": 1.0,
+            "A_t": 1.0,
+            "D_turb": 0.0,
+            "Q_nl": 0.0,
+            "p_c": 0.8}
 """
-Created on Thu August 10 23:52:55 2022
 
-@author: jmmauricio
-"""
-
-
+from pydae import ssa
 import sympy as sym
 
 
-def hygov(dae,data,name,bus_name):
-    '''
+def descriptions():
+    """Single source of truth for hygov parameters, inputs, states, and outputs."""
+    descriptions_list = []
 
-    .. table:: Constants
-        :widths: auto
+    # Parameters
+    descriptions_list += [{"type": "Parameter", "tex": "R", "data": "R",
+                           "model": "R_gov", "default": 0.05,
+                           "description": "Permanent droop (speed regulation)",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "R_r", "data": "R_r",
+                           "model": "R_r_gov", "default": 0.3,
+                           "description": "Transient (temporary) droop",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_r", "data": "T_r",
+                           "model": "T_r_gov", "default": 5.0,
+                           "description": "Dashpot reset (transient droop) time constant",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_f", "data": "T_f",
+                           "model": "T_f_gov", "default": 0.05,
+                           "description": "Pilot valve filter time constant",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_g", "data": "T_g",
+                           "model": "T_g_gov", "default": 0.5,
+                           "description": "Gate servomotor time constant",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "V_{g,max}", "data": "V_g_max",
+                           "model": "V_g_max_gov", "default": 0.2,
+                           "description": "Gate velocity (rate) limit",
+                           "units": "pu/s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "G_{max}", "data": "G_max",
+                           "model": "G_max_gov", "default": 1.0,
+                           "description": "Maximum gate position",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "G_{min}", "data": "G_min",
+                           "model": "G_min_gov", "default": 0.01,
+                           "description": "Minimum gate position (keep > 0 to avoid head singularity)",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_w", "data": "T_w",
+                           "model": "T_w_gov", "default": 1.0,
+                           "description": "Water starting time (penstock inertia)",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "A_t", "data": "A_t",
+                           "model": "A_t_gov", "default": 1.0,
+                           "description": "Turbine gain",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "D_{turb}", "data": "D_turb",
+                           "model": "D_turb_gov", "default": 0.0,
+                           "description": "Turbine self-damping coefficient",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "Q_{nl}", "data": "Q_nl",
+                           "model": "Q_nl_gov", "default": 0.0,
+                           "description": "No-load water flow",
+                           "units": "pu"}]
 
-    Example:
-    
-    ``"avr":{"type":"ntsst1","K_a":200.0,"T_c":1.0,"T_b":10.0,"v_ref":1.0},``
+    # Inputs
+    descriptions_list += [{"type": "Input", "tex": "p_c", "data": "p_c",
+                           "model": "p_c", "default": 0.8,
+                           "description": ("Gate position setpoint (load reference). "
+                                           "At steady state: p_m = A_t*(p_c - Q_nl)."),
+                           "units": "pu"}]
 
-    '''
+    # Dynamic states
+    descriptions_list += [{"type": "Dynamic State", "tex": "c_{pv}",
+                           "data": "", "model": "c_pv_gov", "default": "",
+                           "description": "Pilot valve filter output (gate demand)",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Dynamic State", "tex": "c_d",
+                           "data": "", "model": "c_d_gov", "default": "",
+                           "description": "Dashpot integrator state (tracks gate position)",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Dynamic State", "tex": "x_g",
+                           "data": "", "model": "x_g_gov", "default": "",
+                           "description": "Gate servomotor integrator state",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Dynamic State", "tex": "q",
+                           "data": "", "model": "q_gov", "default": "",
+                           "description": "Normalized water flow (penstock state)",
+                           "units": "pu"}]
 
-    data_gov = data['gov']
+    # Algebraic state
+    descriptions_list += [{"type": "Algebraic State", "tex": "p_m",
+                           "data": "", "model": "p_m", "default": "",
+                           "description": "Mechanical power delivered to the synchronous machine",
+                           "units": "pu"}]
 
-    ## parameters
-    R =      sym.Symbol(f"R_{name}", real=True) 
-    T_w =    sym.Symbol(f"T_w_gov_{name}", real=True) 
-    D_turb = sym.Symbol(f"D_turb_gov_{name}", real=True) 
-    Q_nl =   sym.Symbol(f"Q_nl_gov_{name}", real=True) 
-    A_t =    sym.Symbol(f"A_t_gov_{name}", real=True) 
-    T_f =    sym.Symbol(f"T_f_gov_{name}", real=True) 
-    T_r =    sym.Symbol(f"T_r_gov_{name}", real=True) 
-    R_r =    sym.Symbol(f"R_r_gov_{name}", real=True) 
-    T_g =    sym.Symbol(f"T_g_gov_{name}", real=True) 
-    G_max =    sym.Symbol(f"G_max_gov_{name}", real=True) 
-    G_min =    sym.Symbol(f"G_min_gov_{name}", real=True) 
-    V_g_max =    sym.Symbol(f"V_g_max_gov_{name}", real=True) 
-    K_sec = sym.Symbol(f"K_sec_{name}", real=True)  # 0.05
-
-    ## input
-    omega =    sym.Symbol(f"omega_{name}", real=True) 
-    n_ref =    sym.Symbol(f"n_ref_gov_{name}", real=True) 
-    p_c =    sym.Symbol(f"p_c_gov_{name}", real=True) 
-    i_d = sym.Symbol(f"i_d_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)    
-    R_a = sym.Symbol(f"R_a_{name}", real=True)  
-    p_agc = sym.Symbol(f"p_agc", real=True)
-
-    ## dynamic states
-    e =    sym.Symbol(f"e_gov_{name}", real=True) 
-    c_i =    sym.Symbol(f"c_i_gov_{name}", real=True) 
-    g =    sym.Symbol(f"g_gov_{name}", real=True) 
-    q =    sym.Symbol(f"q_gov_{name}", real=True) 
-
-    ## algebraic states
-    p_m = sym.Symbol(f"p_m_{name}", real=True) 
-
-    ## auxiliar
-    c = c_i+e*R_r
-    epsilon = n_ref - (omega + R*c)
-    g_sat = g
-    #g_sat = sym.Piecewise((G_max,g>G_max),(G_min,g>G_min),(g,True))
-    h = (q/g_sat)**2 
-    losses_p = R_a*(i_d**2 + i_q**2)
-    p_r = K_sec*p_agc
-
-    p_ref = p_c + losses_p + p_r
-
-    de = 1/T_f*(p_ref + epsilon - e) 
-    dc_i = 1/(R_r*T_r)*(e - 0.001*c_i)
-    dg = 1/T_g*(c - g) 
-    dq = 1/T_w*(1-h) 
-
-    eq_p_m = -p_m + A_t*h*(q-Q_nl) - D_turb*omega*g
-
-    dae['f'] += [de, dc_i, dg, dq]
-    dae['x'] += [ e,  c_i,  g,  q]
-
-
-    dae['g'] += [eq_p_m]
-    dae['y_ini'] += [p_m] 
-    dae['y_run'] += [p_m]  
-
-    p_c_N = data_gov['p_c']
-    dae['u_ini_dict'].update({str(p_c): p_c_N})  
-    dae['u_run_dict'].update({str(p_c): p_c_N})  
-
-    dae['params_dict'].update({str(R): data_gov['R']})  
-    dae['params_dict'].update({str(R_r): data_gov['R_r']})  
-    dae['params_dict'].update({str(T_r): data_gov['T_r']})  
-    dae['params_dict'].update({str(T_f): data_gov['T_f']})  
-    dae['params_dict'].update({str(T_g): data_gov['T_g']})  
-    dae['params_dict'].update({str(V_g_max): data_gov['V_g_max']})  
-    dae['params_dict'].update({str(G_max): data_gov['G_max']})  
-    dae['params_dict'].update({str(G_min): data_gov['G_min']})  
-    dae['params_dict'].update({str(T_w): data_gov['T_w']})  
-    dae['params_dict'].update({str(A_t): data_gov['A_t']})  
-    dae['params_dict'].update({str(D_turb): data_gov['D_turb']})  
-    dae['params_dict'].update({str(Q_nl): data_gov['Q_nl']})  
-    dae['params_dict'].update({str(K_sec):data_gov['K_sec']})
-
-    dae['u_ini_dict'].update({str(n_ref):1.0})
-    dae['u_run_dict'].update({str(n_ref):1.0})
-
-    dae['xy_0_dict'].update({str(q):p_c_N})
-    dae['xy_0_dict'].update({str(g):p_c_N})
-    dae['xy_0_dict'].update({str(p_m):p_c_N})
-    dae['xy_0_dict'].update({str(e):p_c_N})
+    return descriptions_list
 
 
-    dae['h_dict'].update({f'h_gov_{name}':h})  
-    dae['h_dict'].update({str(q):q})  
-    dae['h_dict'].update({str(g):g})  
+def hygov(dae, data, name, _bus_name):
+    r"""
+    Example data entry::
+
+        "gov": {"type": "hygov",
+                "R": 0.05,
+                "R_r": 0.3,
+                "T_r": 5.0,
+                "T_f": 0.05,
+                "T_g": 0.5,
+                "V_g_max": 0.2,
+                "G_max": 1.0, "G_min": 0.01,
+                "T_w": 1.0,
+                "A_t": 1.0,
+                "D_turb": 0.0,
+                "Q_nl": 0.0,
+                "p_c": 0.8}
+
+    ``p_c`` is the gate position setpoint.  At steady state
+    ($\omega = 1$) the mechanical power is $p_m = A_t\,(p_c - Q_{nl})$.
+    """
+
+    gov_data = data['gov']
+
+    # Input from the rest of the system.
+    omega = sym.Symbol(f"omega_{name}", real=True)
+
+    # External input (gate/power setpoint).
+    p_c = sym.Symbol(f"p_c_{name}", real=True)
+
+    # Dynamic states.
+    c_pv = sym.Symbol(f"c_pv_gov_{name}", real=True)   # pilot valve filter
+    c_d  = sym.Symbol(f"c_d_gov_{name}",  real=True)   # dashpot
+    x_g  = sym.Symbol(f"x_g_gov_{name}",  real=True)   # gate servo integrator
+    q    = sym.Symbol(f"q_gov_{name}",     real=True)   # water flow
+
+    # Algebraic state.
+    p_m = sym.Symbol(f"p_m_{name}", real=True)
+
+    # Parameters.
+    R       = sym.Symbol(f"R_gov_{name}",       real=True)
+    R_r     = sym.Symbol(f"R_r_gov_{name}",     real=True)
+    T_r     = sym.Symbol(f"T_r_gov_{name}",     real=True)
+    T_f     = sym.Symbol(f"T_f_gov_{name}",     real=True)
+    T_g     = sym.Symbol(f"T_g_gov_{name}",     real=True)
+    V_g_max = sym.Symbol(f"V_g_max_gov_{name}", real=True)
+    G_max   = sym.Symbol(f"G_max_gov_{name}",   real=True)
+    G_min   = sym.Symbol(f"G_min_gov_{name}",   real=True)
+    T_w     = sym.Symbol(f"T_w_gov_{name}",     real=True)
+    A_t     = sym.Symbol(f"A_t_gov_{name}",     real=True)
+    D_turb  = sym.Symbol(f"D_turb_gov_{name}",  real=True)
+    Q_nl    = sym.Symbol(f"Q_nl_gov_{name}",    real=True)
+    K_awu   = sym.Symbol(f"K_awu_gov_{name}",   real=True)
+
+    # Speed deviation.
+    delta_omega = omega - 1
+
+    # Dashpot: tracks gate integrator, produces transient droop correction.
+    dc_d    = (x_g - c_d) / T_r
+    c_d_out = R_r * dc_d   # = R_r * (x_g - c_d) / T_r
+
+    # Pilot valve demand: load reference + permanent droop + transient droop.
+    u_pv = p_c - delta_omega / R - c_d_out
+
+    # Pilot valve filter.
+    dc_pv = (u_pv - c_pv) / T_f
+
+    # Gate servomotor: rate-limited integrator with position limits.
+    y_g_nosat = x_g
+    y_g = sym.Piecewise((G_min, y_g_nosat < G_min),
+                        (G_max, y_g_nosat > G_max),
+                        (y_g_nosat, True))
+
+    v_g_nosat = (c_pv - x_g) / T_g
+    v_g = sym.Piecewise((-V_g_max, v_g_nosat < -V_g_max),
+                        ( V_g_max, v_g_nosat >  V_g_max),
+                        (v_g_nosat, True))
+
+    dx_g = v_g + K_awu * (y_g - y_g_nosat)
+
+    # Penstock: inelastic water column.
+    h   = (q / y_g) ** 2
+    dq  = (1 - h) / T_w
+
+    # Mechanical power: turbine output minus self-damping.
+    p_m_eq = A_t * h * (q - Q_nl) - D_turb * delta_omega
+    g_p_m  = p_m_eq - p_m
+
+    # --- ini/run variable partition ---
+    dae['f'] += [dc_pv, dc_d, dx_g, dq]
+    dae['x'] += [c_pv,  c_d,  x_g,  q]
+    dae['g'] += [g_p_m]
+    dae['y_ini'] += [p_m]
+    dae['y_run'] += [p_m]
+
+    dae['params_dict'].update({str(R):       gov_data['R']})
+    dae['params_dict'].update({str(R_r):     gov_data['R_r']})
+    dae['params_dict'].update({str(T_r):     gov_data['T_r']})
+    dae['params_dict'].update({str(T_f):     gov_data['T_f']})
+    dae['params_dict'].update({str(T_g):     gov_data['T_g']})
+    dae['params_dict'].update({str(V_g_max): gov_data['V_g_max']})
+    dae['params_dict'].update({str(G_max):   gov_data['G_max']})
+    dae['params_dict'].update({str(G_min):   gov_data['G_min']})
+    dae['params_dict'].update({str(T_w):     gov_data['T_w']})
+    dae['params_dict'].update({str(A_t):     gov_data['A_t']})
+    dae['params_dict'].update({str(D_turb):  gov_data['D_turb']})
+    dae['params_dict'].update({str(Q_nl):    gov_data['Q_nl']})
+    dae['params_dict'].update({str(K_awu):   1000.0})
+
+    p_c_ini = gov_data.get('p_c', 0.5)
+    dae['u_ini_dict'].update({str(p_c): p_c_ini})
+    dae['u_run_dict'].update({str(p_c): p_c_ini})
+
+    dae['h_dict'].update({str(p_c):                  p_c})
+    dae['h_dict'].update({f'g_gov_{name}':           y_g})
+    dae['h_dict'].update({f'h_gov_{name}':           h})
+    dae['h_dict'].update({f'q_gov_{name}':           q})
+
+    # Steady-state seeds:
+    #   gate = p_c (dashpot reset → c_d = x_g = p_c);
+    #   pilot valve = p_c; water flow = p_c (h=1 at ss);
+    #   p_m = A_t * (p_c - Q_nl).
+    p_m_ini = gov_data['A_t'] * (p_c_ini - gov_data['Q_nl'])
+    dae['xy_0_dict'].update({str(c_pv): p_c_ini})
+    dae['xy_0_dict'].update({str(c_d):  p_c_ini})
+    dae['xy_0_dict'].update({str(x_g):  p_c_ini})
+    dae['xy_0_dict'].update({str(q):    p_c_ini})
+    dae['xy_0_dict'].update({str(p_m):  p_m_ini})
 
 
-def test_build():
-    import numpy as np
-    import sympy as sym
-    import hjson
+def test():
+    from pydae.core import Builder, Model
     from pydae.bps import BpsBuilder
-    import pydae.build_cffi as db
     import pytest
 
     grid = BpsBuilder('hygov.hjson')
-    grid.checker()
-    grid.uz_jacs = True
-    grid.build('temp')
+    grid.uz_jacs = False
+    grid.construct('temp_hygov')
 
-def test_ini():
+    bld = Builder(grid.sys_dict, target='cffi', sparse=False)
+    bld.build()
 
-    import temp
+    model = Model('temp_hygov')
 
-    model = temp.model()
+    v_set   = 1.02
+    p_c_set = 0.8
+    model.ini({'V_1': v_set, 'p_c_lc_1': p_c_set}, 'xy_0.json')
 
-    v_ref_1 = 1.05
-    model.ini({'P_2':-80e6},'xy_0.json')
+    print('\nx states:\n')
     model.report_x()
+    print('\ny states:\n')
     model.report_y()
-    model.report_z()
+    print('\nu inputs:\n')
+    model.report_u()
 
-    # assert model.get_value('V_1') == pytest.approx(v_ref_1, rel=0.001)
-    # # assert model.get_value('q_A2') == pytest.approx(-q_ref, rel=0.05)
+    assert model.get_value('p_g_1') == pytest.approx(p_c_set, rel=1e-3)
+    assert model.get_value('p_m_1') > p_c_set  # p_m includes armature losses
+    assert model.get_value('V_1')   == pytest.approx(v_set,   rel=1e-3)
 
-    # model.ini({'p_m_1':0.5,'v_ref_1':1.0},'xy_0.json')
-    # model.run(1.0,{})
-    # model.run(15.0,{'v_ref_1':1.05})
-    # model.post()
+    model.ini({'V_1': v_set, 'p_c_lc_1': p_c_set}, 'xy_0.json')
 
-    # import matplotlib.pyplot as plt
+    model.A_eval()
+    ssa.damp(model.A)
 
-    # fig,axes = plt.subplots()
-    # axes.plot(model.Time,model.get_values('V_1'))
-    # fig.savefig('ntsst1_step.svg')
+    model.run(1.0,  {})
+    model.run(60.0, {'p_c_lc_1': 0.6})
+    model.post()
+
+    string = f'{model.Time[0]:0.2f}, '
+    string += f"{model.get_values('p_g_1')[0]:0.3f}"
+    print(string)
+
+    string = f'{model.Time[-1]:0.2f}, '
+    string += f"{model.get_values('p_g_1')[-1]:0.3f}"
+    print(string)
+
+    assert model.get_values('p_g_1')[-1] == pytest.approx(0.6, rel=2e-2)
 
 
 if __name__ == '__main__':
-
-    #development()
-    test_build()
-    test_ini()
+    test()

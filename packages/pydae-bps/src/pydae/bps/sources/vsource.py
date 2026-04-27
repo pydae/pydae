@@ -1,34 +1,97 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu August 10 23:52:55 2022
+r"""
+Ideal voltage source — infinite-bus equivalent for pydae-bps.
 
-@author: jmmauricio
+A ``vsource`` connected to a bus pins that bus's voltage magnitude and
+angle to their reference values, acting as a **stiff Thévenin source**
+with zero internal impedance.  It is used to model:
+
+- An **infinite bus** (slack node) in single-machine or multi-machine
+  studies where one terminal is an ideal grid equivalent.
+- The **New York system equivalent** in the IEEE 39-bus benchmark, where
+  the New England area is connected to an external, very stiff grid.
+
+**What the vsource does**
+
+It replaces the standard network bus equations for bus :math:`k` with:
+
+.. math::
+
+   0 = V_k - v_{ref}
+   \qquad
+   0 = \theta_k - \theta_{ref}
+
+so the power-flow and time-domain solver treats :math:`V_k` and
+:math:`\theta_k` as fixed inputs rather than unknown algebraic states.
+
+A dummy dynamic state :math:`V_{dummy}` is added with
+
+.. math::
+
+   \dot{V}_{dummy} = v_{ref} - V_{dummy}
+
+so that the state vector has a consistent dimension.  This state has no
+physical meaning; it simply settles to :math:`v_{ref}` at steady state.
+
+**COI contribution**
+
+The vsource contributes :math:`H = 10^6` s to the centre-of-inertia
+(COI) computation.  This makes it the dominant term, pinning
+:math:`\omega_{COI} \approx 1` pu and establishing the absolute angle
+reference for the rest of the network.
+
+**Inputs (runtime settable)**
+
++----------------------+--------+--------------------------------------------+
+| Symbol               | Default| Description                                |
++======================+========+============================================+
+| ``v_ref_{name}``     | 1.0 pu | Bus voltage magnitude setpoint             |
++----------------------+--------+--------------------------------------------+
+| ``theta_ref_{name}`` | 0.0 rad| Bus voltage angle setpoint                 |
++----------------------+--------+--------------------------------------------+
+
+**HJSON configuration**
+
+Minimal (slack at bus "6" with default V = 1 pu, θ = 0 rad)::
+
+    sources: [{type: "vsource", bus: "6"}]
+
+With explicit setpoints::
+
+    sources: [{"type": "vsource", "bus": "39",
+               "S_n": 10000e9, "F_n": 60,
+               "X_v": 0.0001, "R_v": 0.0,
+               "K_delta": 0.01, "K_alpha": 0.01}]
+
+Note: ``S_n``, ``F_n``, ``X_v``, ``R_v``, ``K_delta``, ``K_alpha`` are
+accepted in the HJSON for documentation purposes but are **not currently
+used** by this builder — the source is always ideal (zero impedance).
+Use ``v_ref_{name}`` and ``theta_ref_{name}`` in ``model.ini()`` to
+override the operating-point setpoints at runtime.
+
+**Usage**
+
+.. code-block:: python
+
+    # Pin bus "39" at V = 1.03 pu, θ = 0 (default)
+    model.ini({"v_ref_39": 1.03}, "xy_0.json")
+
+    # Step the source voltage during a simulation
+    model.run(1.0, {})
+    model.run(10.0, {"v_ref_39": 1.05})
 """
 
 import numpy as np
 import sympy as sym
 
-def vsource(grid,name,bus_name,data_dict):
-    '''
 
-    parameters
-    ----------
+def vsource(grid, name, bus_name, data_dict):
+    """
+    Attach an ideal voltage source to *bus_name* inside *grid*.
 
-
-
-    inputs
-    ------
-
-    theta_ref: internal voltage angle reference
-    v_ref: internal voltage magnitude reference
-
-    example
-    -------
-
-    "vsource": [{"v_ref":1.0, "theta_ref":0.0}]
-
-    
-    '''
+    Replaces the bus V and θ equations with algebraic pin constraints and
+    adds a dummy state ``V_dummy_{name}`` for consistent vector sizing.
+    """
 
     sin = sym.sin
     cos = sym.cos

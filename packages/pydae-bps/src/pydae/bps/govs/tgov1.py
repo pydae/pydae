@@ -1,83 +1,256 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu August 10 23:52:55 2022
+r"""
+IEEE TGOV1 steam turbine-governor.
 
-@author: jmmauricio
+A simple steam turbine governor with a first-order lag valve block and a
+lead-lag turbine representation.  The model matches the PSS/E TGOV1
+definition and the IEEE recommended practice.
+
+**Signal path**
+
+Speed error feeds the valve reference,
+
+$$u_1 = p_c + \frac{1 - \omega}{R}$$
+
+The valve position is a first-order lag of $u_1$ with position limits
+$[V_{min}, V_{max}]$.  Let $x_1$ be the integrator state and
+$y_1 = \mathrm{sat}(x_1, V_{min}, V_{max})$:
+
+$$\frac{d x_1}{dt} = \frac{u_1 - x_1}{T_1} + K_{awu}\,(y_1 - x_1)$$
+
+The anti-windup term $K_{awu}$ drives $x_1$ back when the position
+limiter saturates.
+
+The turbine is represented by a lead-lag $(1 + T_2\,s)/(1 + T_3\,s)$
+with state $x_2$:
+
+$$\frac{d x_2}{dt} = \frac{y_1 - x_2}{T_3}$$
+
+The mechanical power output includes turbine damping:
+
+$$0 = x_2 + \frac{T_2}{T_3}\,(y_1 - x_2) - D_t\,(\omega - 1) - p_m$$
+
+**Steady-state relation**
+
+At synchronism ($\omega = 1$): $u_1 = p_c$, $x_1 = y_1 = p_c$,
+$x_2 = p_c$, and $p_m = p_c$ (for any $T_2$, $T_3$, $D_t = 0$).
+
+**Configuration**
+
+Example data entry (typical defaults)::
+
+    "gov": {"type": "tgov1",
+            "R": 0.05,
+            "T_1": 0.5,
+            "V_max": 1.0, "V_min": 0.0,
+            "T_2": 2.1,  "T_3": 7.0,
+            "D_t": 0.0,
+            "p_c": 0.8}
+
+The ``p_c`` field is the scheduled dispatch — equals the mechanical
+power output at steady state when $\omega = 1$.
 """
 
-import numpy as np
+from pydae import ssa
 import sympy as sym
 
 
-def tgov1(dae,syn_data,name,bus_name):
-    '''
-    Governor TGOV1 like in PSS/E
-    
-    '''
-    bus_name = syn_data['bus']
-    gov_data = syn_data['gov']
-    
-    # inpunts
+def descriptions():
+    """Single source of truth for tgov1 parameters, inputs, states, and outputs."""
+    descriptions_list = []
+
+    # Parameters
+    descriptions_list += [{"type": "Parameter", "tex": "R", "data": "R",
+                           "model": "R_gov", "default": 0.05,
+                           "description": "Permanent droop (speed regulation)",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_1", "data": "T_1",
+                           "model": "T_1_gov", "default": 0.5,
+                           "description": "Steam chest (valve actuator) time constant",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "V_{max}", "data": "V_max",
+                           "model": "V_max_gov", "default": 1.0,
+                           "description": "Maximum valve position limit",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "V_{min}", "data": "V_min",
+                           "model": "V_min_gov", "default": 0.0,
+                           "description": "Minimum valve position limit",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_2", "data": "T_2",
+                           "model": "T_2_gov", "default": 2.1,
+                           "description": "Lead time constant of turbine lead-lag",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "T_3", "data": "T_3",
+                           "model": "T_3_gov", "default": 7.0,
+                           "description": "Lag time constant of turbine lead-lag",
+                           "units": "s"}]
+    descriptions_list += [{"type": "Parameter", "tex": "D_t", "data": "D_t",
+                           "model": "D_t_gov", "default": 0.0,
+                           "description": "Turbine damping coefficient",
+                           "units": "pu"}]
+
+    # Inputs
+    descriptions_list += [{"type": "Input", "tex": "p_c", "data": "p_c",
+                           "model": "p_c", "default": 0.8,
+                           "description": ("Scheduled dispatch (load reference). "
+                                           "Equals p_m at steady state when "
+                                           "omega = 1."),
+                           "units": "pu"}]
+
+    # Dynamic states
+    descriptions_list += [{"type": "Dynamic State", "tex": "x_1",
+                           "data": "", "model": "x_1_gov", "default": "",
+                           "description": "Valve position integrator state",
+                           "units": "pu"}]
+    descriptions_list += [{"type": "Dynamic State", "tex": "x_2",
+                           "data": "", "model": "x_2_gov", "default": "",
+                           "description": "Lead-lag turbine lag state",
+                           "units": "pu"}]
+
+    # Algebraic state
+    descriptions_list += [{"type": "Algebraic State", "tex": "p_m",
+                           "data": "", "model": "p_m", "default": "",
+                           "description": "Mechanical power delivered to the synchronous machine",
+                           "units": "pu"}]
+
+    return descriptions_list
+
+
+def tgov1(dae, data, name, _bus_name):
+    r"""
+    Example data entry::
+
+        "gov": {"type": "tgov1",
+                "R": 0.05,
+                "T_1": 0.5,
+                "V_max": 1.0, "V_min": 0.0,
+                "T_2": 2.1,  "T_3": 7.0,
+                "D_t": 0.0,
+                "p_c": 0.8}
+
+    ``p_c`` is the scheduled dispatch; at steady state ($\omega = 1$)
+    the mechanical power output equals ``p_c``.
+
+    """
+
+    gov_data = data['gov']
+
+    # Inputs from the rest of the system.
     omega = sym.Symbol(f"omega_{name}", real=True)
-    p_agc = sym.Symbol(f"p_agc", real=True)
-    p_c = sym.Symbol(f"p_c_{name}", real=True) 
-    i_d = sym.Symbol(f"i_d_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)    
-    R_a = sym.Symbol(f"R_a_{name}", real=True)  
 
-    # dynamic states
-    x_gov_1 = sym.Symbol(f"x_gov_1_{name}", real=True)
-    x_gov_2 = sym.Symbol(f"x_gov_2_{name}", real=True)  
-    p_g_f   = sym.Symbol(f"p_g_f_{name}", real=True)  
-    xi_gov = sym.Symbol(f"xi_gov_{name}", real=True)  
+    # External input (dispatch setpoint).
+    p_c = sym.Symbol(f"p_c_{name}", real=True)
 
-    # algebraic states
-    p_m = sym.Symbol(f"p_m_{name}", real=True)  
-    p_m_ref = sym.Symbol(f"p_m_ref_{name}", real=True)  
+    # Dynamic states.
+    x_1 = sym.Symbol(f"x_1_gov_{name}", real=True)
+    x_2 = sym.Symbol(f"x_2_gov_{name}", real=True)
 
-    # parameters
-    T_1 = sym.Symbol(f"T_gov_1_{name}", real=True)  # 1
-    T_2 = sym.Symbol(f"T_gov_2_{name}", real=True)  # 2
-    T_3 = sym.Symbol(f"T_gov_3_{name}", real=True)  # 10
-    D_t = sym.Symbol(f"D_t_{name}", real=True)  # 10 
-    Droop = sym.Symbol(f"Droop_{name}", real=True)  # 0.05
-    K_sec = sym.Symbol(f"K_sec_{name}", real=True)  # 0.05
-    K_ci = sym.Symbol(f"K_ci_gov_{name}", real=True)  # 0.05
-    losses_p = R_a*(i_d**2 + i_q**2)
-     
-    omega_ref = sym.Symbol(f"omega_ref_{name}", real=True)
+    # Algebraic state.
+    p_m = sym.Symbol(f"p_m_{name}", real=True)
 
-    # auxiliar
-    Domega = (omega - omega_ref)
-    p_r = K_sec*p_agc
+    # Parameters.
+    R     = sym.Symbol(f"R_gov_{name}",     real=True)
+    T_1   = sym.Symbol(f"T_1_gov_{name}",   real=True)
+    V_max = sym.Symbol(f"V_max_gov_{name}", real=True)
+    V_min = sym.Symbol(f"V_min_gov_{name}", real=True)
+    T_2   = sym.Symbol(f"T_2_gov_{name}",   real=True)
+    T_3   = sym.Symbol(f"T_3_gov_{name}",   real=True)
+    D_t   = sym.Symbol(f"D_t_gov_{name}",   real=True)
+    K_awu = sym.Symbol(f"K_awu_gov_{name}", real=True)
 
-    # differential equations
-    dx_gov_1 =   (p_m_ref - x_gov_1)/T_1
-    dx_gov_2 =   (x_gov_1 - x_gov_2)/T_3
-    # dp_g_f = 1.0/0.1*(p_g - p_g_f)
-    # dxi_gov = p_c - p_g_f - 1e-6*xi_gov
+    # Valve reference: load reference + speed droop.
+    u_1 = p_c + (1.0 / R) * (1 - omega)
 
-    g_p_m_ref  = -p_m_ref + p_c + p_r - 1/Droop*Domega + K_ci*losses_p
-    g_p_m = (x_gov_1 - x_gov_2)*T_2/T_3 + x_gov_2 - D_t*Domega - p_m
+    # Valve position lag with position limits and anti-windup.
+    y_1_nosat = x_1
+    y_1 = sym.Piecewise((V_min, y_1_nosat < V_min),
+                        (V_max, y_1_nosat > V_max),
+                        (y_1_nosat, True))
+    dx_1 = (u_1 - x_1) / T_1 + K_awu * (y_1 - y_1_nosat)
 
-    
-    dae['f'] += [dx_gov_1,dx_gov_2]
-    dae['x'] += [ x_gov_1, x_gov_2]
-    dae['g'] += [g_p_m_ref,g_p_m]
-    dae['y_ini'] += [  p_m_ref,  p_m]  
-    dae['y_run'] += [  p_m_ref,  p_m]  
+    # Lead-lag turbine lag state.
+    dx_2 = (y_1 - x_2) / T_3
 
-    dae['params_dict'].update({str(Droop):gov_data['Droop']})
-    dae['params_dict'].update({str(T_1):gov_data['T_1']})
-    dae['params_dict'].update({str(T_2):gov_data['T_2']})
-    dae['params_dict'].update({str(T_3):gov_data['T_3']})
-    dae['params_dict'].update({str(D_t):gov_data['D_t']})
-    dae['params_dict'].update({str(K_sec):gov_data['K_sec']})
+    # Mechanical power: lead-lag output minus turbine damping.
+    p_m_eq = x_2 + (T_2 / T_3) * (y_1 - x_2) - D_t * (omega - 1)
+    g_p_m = p_m_eq - p_m
 
-    dae['params_dict'].update({str(omega_ref):1.0})
-    dae['params_dict'].update({str(K_ci):1.0e-6})
+    # --- ini/run variable partition (no swap: governor does not pin V) ---
+    dae['f'] += [dx_1, dx_2]
+    dae['x'] += [ x_1,  x_2]
+    dae['g'] += [g_p_m]
+    dae['y_ini'] += [p_m]
+    dae['y_run'] += [p_m]
 
-    dae['u_ini_dict'].update({str(p_c):gov_data['p_c']})
-    dae['u_run_dict'].update({str(p_c):gov_data['p_c']})
+    dae['params_dict'].update({str(R):     gov_data['R']})
+    dae['params_dict'].update({str(T_1):   gov_data['T_1']})
+    dae['params_dict'].update({str(V_max): gov_data['V_max']})
+    dae['params_dict'].update({str(V_min): gov_data['V_min']})
+    dae['params_dict'].update({str(T_2):   gov_data['T_2']})
+    dae['params_dict'].update({str(T_3):   gov_data['T_3']})
+    dae['params_dict'].update({str(D_t):   gov_data['D_t']})
+    dae['params_dict'].update({str(K_awu): 1000.0})
 
-    dae['h_dict'].update({str(p_c):gov_data['p_c']})
+    p_c_ini = gov_data.get('p_c', 0.5)
+    dae['u_ini_dict'].update({str(p_c): p_c_ini})
+    dae['u_run_dict'].update({str(p_c): p_c_ini})
+
+    dae['h_dict'].update({str(p_c): p_c})
+
+    # Steady-state seeds: u_1 = p_c → x_1 = p_c; x_2 = p_c; p_m = p_c.
+    dae['xy_0_dict'].update({str(x_1): p_c_ini})
+    dae['xy_0_dict'].update({str(x_2): p_c_ini})
+    dae['xy_0_dict'].update({str(p_m): p_c_ini})
+
+
+def test():
+    from pydae.core import Builder, Model
+    from pydae.bps import BpsBuilder
+    import pytest
+
+    grid = BpsBuilder('tgov1.hjson')
+    grid.uz_jacs = False
+    grid.construct('temp_tgov1')
+
+    bld = Builder(grid.sys_dict, target='cffi', sparse=False)
+    bld.build()
+
+    model = Model('temp_tgov1')
+
+    v_set = 1.02
+    p_c_set = 0.8
+    model.ini({'V_1': v_set, 'p_c_lc_1': p_c_set}, 'xy_0.json')
+
+    print('\nx states:\n')
+    model.report_x()
+    print('\ny states:\n')
+    model.report_y()
+    print('\nu inputs:\n')
+    model.report_u()
+
+    assert model.get_value('p_g_1') == pytest.approx(p_c_set, rel=1e-3)
+    assert model.get_value('p_m_1') > p_c_set  # p_m includes armature losses
+    assert model.get_value('V_1') == pytest.approx(v_set, rel=1e-3)
+
+    model.ini({'V_1': v_set, 'p_c_lc_1': p_c_set}, 'xy_0.json')
+
+    model.A_eval()
+    ssa.damp(model.A)
+
+    model.run(1.0, {})
+    model.run(60.0, {'p_c_lc_1': 0.6})
+    model.post()
+
+    string = f'{model.Time[0]:0.2f}, '
+    string += f"{model.get_values('p_g_1')[0]:0.3f}"
+    print(string)
+
+    string = f'{model.Time[-1]:0.2f}, '
+    string += f"{model.get_values('p_g_1')[-1]:0.3f}"
+    print(string)
+
+    assert model.get_values('p_g_1')[-1] == pytest.approx(0.6, rel=2e-2)
+
+
+if __name__ == '__main__':
+    test()

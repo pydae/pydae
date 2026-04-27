@@ -181,7 +181,7 @@ class Model:
     def _load_system_data(self, folder):
         """Loads variable names, indices, and dimensions from the JSON metadata."""
         data_file = os.path.join(folder, f"{self.model_name}_data.json")
-        with open(data_file, 'r') as fobj:
+        with open(data_file, 'r', encoding='utf-8') as fobj:
             self.data_dict = json.load(fobj)
 
         # ------------------------------------------------------------------

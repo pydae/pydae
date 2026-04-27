@@ -111,37 +111,82 @@ def add_line(self, line):
     self.it += 3
 
 
-def change_line(model,bus_j,bus_k, *args,**kwagrs):
-    line = kwagrs
-    S_base = model.get_value('S_base')
-    
-    line_name = f"{bus_j}_{bus_k}"
-    if 'X_pu' in line:
-        if 'S_mva' in line: S_line = 1e6*line['S_mva']
-        R = line['R_pu']*S_base/S_line  # in pu of the model base
-        X = line['X_pu']*S_base/S_line  # in pu of the model base
-    if 'X' in line:
-        U_base = model.get_value(f'U_{bus_j}_n') 
-        Z_base = U_base**2/S_base
-        R = line['R']/Z_base  # in pu of the model base
-        X = line['X']/Z_base  # in pu of the model base
-    if 'X_km' in line:
-        U_base = model.get_value(f'U_{bus_j}_n')
-        Z_base = U_base**2/S_base
-        R = line['R_km']*line['km']/Z_base  # in pu of the model base
-        X = line['X_km']*line['km']/Z_base  # in pu of the model base
-    if 'Bs_km' in line:
-        U_base = model.get_value(f'U_{bus_j}_n')
-        Z_base = U_base**2/S_base
-        Y_base = 1.0/Z_base
-        Bs = line['Bs_km']*line['km']/Y_base  # in pu of the model base
-        bs = Bs
-        model.set_value(f'bs_{line_name}',bs)
+def change_line(model, line_dict):
+    """
+    Update line admittance parameters at runtime.
 
-    G =  R/(R**2+X**2)
-    B = -X/(R**2+X**2)
-    model.set_value(f"g_{line_name}",G)
-    model.set_value(f"b_{line_name}",B)
+    *line_dict* mirrors the HJSON ``lines[]`` entry format exactly, so the
+    same dict used to describe the line at build time can be passed here to
+    change it during a simulation:
+
+        change_line(model, {
+            "bus_j": "2", "bus_k": "3",
+            "X_pu": 0.01, "R_pu": 0.0,
+            "Bs_pu": 0.0, "S_mva": 100
+        })
+
+    Supported impedance formats (same as the builder):
+        ``X_pu`` / ``R_pu`` / ``S_mva``   — per-unit on S_mva base
+        ``X``    / ``R``                    — ohms (absolute)
+        ``X_km`` / ``R_km`` / ``km``       — specific impedance * length
+
+    Shunt susceptance is updated when ``Bs_pu`` or ``Bs_km`` is present;
+    omit either key to leave the existing shunt value unchanged.
+
+    The function resolves the parameter name in both orderings
+    (``bus_j_bus_k`` and ``bus_k_bus_j``) so it works regardless of the
+    order in which the builder stored the parameters.
+    """
+    line   = line_dict
+    bus_j  = str(line['bus_j'])
+    bus_k  = str(line['bus_k'])
+    S_base = model.get_value('S_base')
+
+    # Resolve stored parameter name (builder may have swapped j/k ordering).
+    line_name = f"{bus_j}_{bus_k}"
+    if f"g_{line_name}" not in model.params_list:
+        alt = f"{bus_k}_{bus_j}"
+        if f"g_{alt}" in model.params_list:
+            line_name = alt
+        # If neither is found, keep the forward name and let set_value raise.
+
+    # ── series admittance ──────────────────────────────────────────────
+    if 'X_pu' in line:
+        S_line = 1e6 * line.get('S_mva', S_base / 1e6)
+        R = line['R_pu'] * S_base / S_line
+        X = line['X_pu'] * S_base / S_line
+    elif 'X' in line:
+        U_base = model.get_value(f'U_{bus_j}_n')
+        Z_base = U_base ** 2 / S_base
+        R = line['R'] / Z_base
+        X = line['X'] / Z_base
+    elif 'X_km' in line:
+        U_base = model.get_value(f'U_{bus_j}_n')
+        Z_base = U_base ** 2 / S_base
+        R = line['R_km'] * line['km'] / Z_base
+        X = line['X_km'] * line['km'] / Z_base
+    else:
+        raise ValueError(
+            f"change_line: no impedance key (X_pu / X / X_km) found "
+            f"in line_dict for branch {bus_j}-{bus_k}"
+        )
+
+    G =  R / (R ** 2 + X ** 2)
+    B = -X / (R ** 2 + X ** 2)
+    model.set_value(f"g_{line_name}", G)
+    model.set_value(f"b_{line_name}", B)
+
+    # ── shunt susceptance (optional) ───────────────────────────────────
+    if 'Bs_pu' in line:
+        S_line = 1e6 * line.get('S_mva', S_base / 1e6)
+        bs = line['Bs_pu'] * S_line / S_base
+        model.set_value(f'bs_{line_name}', bs)
+    elif 'Bs_km' in line:
+        U_base = model.get_value(f'U_{bus_j}_n')
+        Z_base = U_base ** 2 / S_base
+        Y_base = 1.0 / Z_base
+        bs = line['Bs_km'] * line['km'] / Y_base
+        model.set_value(f'bs_{line_name}', bs)
 
 def get_line_current(model,bus_j,bus_k, units='A'):
     V_j_m,theta_j = model.get_mvalue([f'V_{bus_j}',f'theta_{bus_j}'])

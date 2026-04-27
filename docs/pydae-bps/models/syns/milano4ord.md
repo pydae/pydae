@@ -30,17 +30,24 @@ $$0 = e'_q - R_a i_q - X'_d i_d - v_q$$
 $$0 = e'_d - R_a i_d + X'_q i_q - v_d$$
 $$0 = i_d v_d + i_q v_q - p_g$$$$0 = i_d v_q - i_q v_d - q_g$$
 
+## Block diagram
+
+![milano4ord block diagram](svg/sm_milano4ord.svg)
+
 ## Usage
 
-```python
-from pydae.bps import BpsBuilder
-
-grid = BpsBuilder("my_network.json")
-grid.construct("my_system")
+```hjson
+syns: [{
+  bus: "1", type: "milano4ord",
+  S_n: 200e6, H: 5.0, D: 0.0,
+  X_d: 1.8,  X_q: 1.7,
+  X1d: 0.3,  X1q: 0.55,
+  T1d0: 8.0, T1q0: 0.4,
+  R_a: 0.01,
+  S_10: 0.0, S_12: 0.0,
+  K_delta: 0.01, K_sec: 0.0
+}]
 ```
-
-The `milano4ord` model is instantiated by including an entry in the relevant
-section of the network JSON (see [Overview](../../overview.md)).
 
 ## Parameters, inputs, states, outputs
 

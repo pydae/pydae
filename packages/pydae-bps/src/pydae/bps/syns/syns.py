@@ -18,6 +18,7 @@ from pydae.bps.syns.pai6ord import pai6
 from pydae.bps.avrs.avrs import add_avr
 from pydae.bps.govs.govs import add_gov
 from pydae.bps.psss.psss import add_pss
+from pydae.bps.miscellaneous.load_controller import add_lc
 
 
 def add_syns(grid):
@@ -87,10 +88,26 @@ def add_syns(grid):
             grid.dae['u_run_dict'].pop(str(p_m))
             grid.dae['xy_0_dict'].update({str(p_m):0.5})
         if 'pss' in item:
-            add_pss(grid.dae,item,name,bus_name)  
+            add_pss(grid.dae,item,name,bus_name)
             grid.dae['u_ini_dict'].pop(str(v_pss))
             grid.dae['u_run_dict'].pop(str(v_pss))
             grid.dae['xy_0_dict'].update({str(v_pss):0.0})
+        # ── MW → pu normalisation (done once, before LC trigger checks) ──────
+        # Top-level: p_c_lc_mw → p_c_lc (pu on machine base)
+        s_n = item.get('S_n', 100e6)
+        if 'p_c_lc_mw' in item and 'p_c_lc' not in item:
+            item['p_c_lc'] = item['p_c_lc_mw'] * 1e6 / s_n
+        #print(f"Added syn {name} at bus {bus_name} with S_n={s_n/1e6:.2f} MVA, p_W={p_W}, q_var={q_var}, p_c_lc={item.get('p_c_lc', 'N/A')}")
+        # Explicit lc sub-dict: lc.p_c_lc_mw → lc.p_c_lc
+        if 'lc' in item and 'p_c_lc_mw' in item['lc'] and 'p_c_lc' not in item['lc']:
+            item['lc']['p_c_lc'] = item['lc']['p_c_lc_mw'] * 1e6 / s_n
+
+        if 'lc' in item:
+            add_lc(grid.dae, item, name, bus_name)
+        elif 'p_c_lc' in item and 'p_m' not in item:
+            # Bare p_c_lc at the syn level means "desired p_g" → auto-wrap with LC.
+            item['lc'] = {'K_i': 0.001, 'p_c_lc': item['p_c_lc']}
+            add_lc(grid.dae, item, name, bus_name)
 
 
 # from pydae.utils import read_data

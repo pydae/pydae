@@ -66,7 +66,7 @@ def agov1(dae,syn_data,name,bus_name):
     dae['params_dict'].update({str(K_sec):syn_data['K_sec']})
     dae['params_dict'].update({str(omega_ref):1.0})
 
-    dae['u_ini_dict'].update({str(p_c):gov_data['p_c']})
-    dae['u_run_dict'].update({str(p_c):gov_data['p_c']})
+    dae['u_ini_dict'].update({str(p_c):gov_data.get('p_c', 0.5)})
+    dae['u_run_dict'].update({str(p_c):gov_data.get('p_c', 0.5)})
     dae['u_ini_dict'].update({str(p_r):0.0})
     dae['u_run_dict'].update({str(p_r):0.0})

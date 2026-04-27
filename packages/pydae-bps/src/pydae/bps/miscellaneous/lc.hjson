@@ -1,0 +1,27 @@
+{
+system:{name:"lc", S_base:100e6},
+buses:[{name:"1", P_W:0.0, Q_var:0.0, U_kV:20.0},
+       {name:"2", P_W:0.0, Q_var:0.0, U_kV:20.0}
+      ],
+lines:[{bus_j:"1", bus_k:"2", X_pu:0.05, R_pu:0.01, Bs_pu:1e-6, S_mva:200}],
+syns:[
+      {bus:"1", S_n:200e6, K_delta:0.01,
+        X_d:1.8, X1d:0.3, T1d0:8.0,
+        X_q:1.7, X1q:0.55, T1q0:0.4,
+        R_a:0.01, X_l:0.2,
+        H:5.0, D:0.0,
+        Omega_b:314.1592653589793, omega_s:1.0, K_sec:0.0,
+        avr:{type:"sexs", K_a:200.0, T_a:0.015, T_b:10.0, T_e:0.1,
+             E_min:-5, E_max:5, v_ref:1.0},
+        gov:{type:"tgov1",
+             R:0.05,
+             T_1:0.5,
+             V_max:1.0, V_min:0.0,
+             T_2:2.1, T_3:7.0,
+             D_t:0.0,
+             p_c:0.8},
+        lc:{K_i:0.01, p_c_lc:0.8}
+      }
+     ],
+"sources":[{"type":"vsource", "bus":"2"}]
+}

@@ -43,8 +43,11 @@
       
       // Control & Reference Parameters
       "K_sec": 0.0,
-      "K_delta": 0.0
-      
+      "K_delta": 0.0,
+
+      // Desired grid injection (LC auto-triggered; p_m computed including losses)
+      "p_c_lc": 0.5
+
       // Controllers (Commented out for bare machine testing)
       #"avr":{"type":"ntsst4","bus":2,"K_pr":3.15,"K_ir":3.15,"V_rmax":1.0,"V_rmin":-0.87,"T_a":0.02,"K_pm":1.0,"K_im":1e-6,"K_p":6.5,"v_ref":1.0}, 
       #"gov":{"type":"tgov1","Droop":100.0,"T_1":1.0,"T_2":1.0,"T_3":1.0, "p_c":0.9,"omega_ref":1.0, "D_t":0.0,"K_sec":0.0},

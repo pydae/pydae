@@ -24,13 +24,15 @@
       "X1q": 0.55, 
       
       // Resistances, Inertia, and Damping
-      "R_a": 0.01, 
+      "R_a": 0.1, 
       "H": 5.0, 
       "D": 0.0,
       
       // Control & Reference Parameters
       "K_delta": 0.0,
-      "K_sec": 0.0
+      "K_sec": 0.0,
+
+      "p_c_lc":0.8
       
     }
   ],

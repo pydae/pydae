@@ -132,7 +132,7 @@ def diagnose_dae_model(jac_flat, fg, Nx, Ny,
             raise ValueError("Ap and Ai must be provided for sparse diagnostics")
         J = _sparse_to_dense(jac_flat, Ap, Ai, N, sparse_backend)
     else:
-        J = jac_flat.reshape((N, N))
+        J = jac_flat[:N * N].reshape((N, N))  # strip PAD guard elements
 
     # Variable names
     if x_names is None: x_names = [f"x[{i}]" for i in range(Nx)]

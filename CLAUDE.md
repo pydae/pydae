@@ -124,7 +124,15 @@ On `ini()` failure, diagnostics run automatically — outputs a Jacobian heatmap
 
 ### Power Systems Builders (pydae-bps, pydae-uds)
 
-These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`), AVRs (`avrs/`), governors (`govs/`), wind turbines (`wecs/`), loads, lines.
+These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), loads, lines, reactive power banks (`miscellaneous/`). In `pydae-uds`: lines (`lines/`), grid-forming VSCs (`vsgs/`).
+
+**AGC (Automatic Generation Control)**: activated by an `agc` key in the HJSON data dict. `BpsBuilder.construct()` calls `add_agc(self)` after all other builders, so the governor's `p_c_{gen}` (or `p_m_{gen}`) already exists in `u_ini_dict`/`u_run_dict` — `add_agc` pops it and replaces it with an algebraic variable driven by a PI on rotor speed. Config format:
+
+```hjson
+agc: {gen: "2", K_p_agc: 10.0, K_i_agc: 2.0}
+```
+
+`gen` is the generator name (matches the bus name used in `syns`). Outputs `p_agc` and `xi_agc` in `h_dict`.
 
 ### SSA Module (pydae.ssa)
 
@@ -143,6 +151,7 @@ from pydae.core import Builder, Model
 from pydae.bps import BpsBuilder
 from pydae.uds import UdsBuilder
 from pydae.ssa import eval_ss, eval_A
+from pydae import utils   # shared helpers (e.g., unit conversions, grid utilities)
 ```
 
 Old-style imports (`import pydae.build_cffi`, `from pydae.bmapu import ...`) no longer work. See `MIGRATION_GUIDE.md` for full mapping.
@@ -186,7 +195,7 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 
 - `packages/pydae-core/src/pydae/core/` — engine. `builder/`, `codegen/`, `model_class.py`, `ssa.py`.
 - `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `wecs/`, `loads/`, `lines/`, `psss/`, `pods/`, `sources/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`.
-- `packages/pydae-uds/src/pydae/uds/` — unbalanced distribution builder.
+- `packages/pydae-uds/src/pydae/uds/` — unbalanced distribution builder. Component families: `lines/`, `vsgs/` (grid-forming VSCs).
 - `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
 - `examples/` — standalone scripts (`pendulum.py`, `milano*ord*.py`). Build artefacts (`*_data.json`, `*.svg`) are gitignored.
 - `docs/pydae-{core,bps,uds}/` — three independent Sphinx projects (each with its own `conf.py` and `.readthedocs.yaml`).
@@ -199,6 +208,12 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 - **In-module tests**: component files carry a `def test():` at the bottom that builds a minimal network from the sibling `.hjson`, runs `ini()` and `run()`, and asserts on observables. Pattern: reuse for any new component.
 - **Namespace packages**: never add `__init__.py` under `packages/*/src/pydae/` — only inside the subpackage (`pydae/core/`, `pydae/bps/`, etc.).
 - **Commit style**: use conventional-commit prefixes (`feat:`, `fix:`, `docs:`, `chore:`). Do not add `Co-Authored-By: Claude` trailers in this repo.
+- **Active-power dispatch**: use `p_c_lc` (desired grid injection in machine pu) at the syn level, not `p_m`. The LC integrator (`load_controller.py`) wraps the governor setpoint and compensates armature losses automatically so that `p_g = p_c_lc` at steady state. `p_m` is kept as a direct input only when no LC is used. See `pydae.bps.miscellaneous.load_controller`.
+- **Three-level active-power control**: LC (slow, ~100 s) compensates losses → `p_c_lc` → `ctrl_sym`. AGC (secondary, seconds) drives `dp_lc` (fast additive channel on the AGC-designated generator). All other generators use LC. Never attach both LC and AGC to the same machine.
+- **vsource (infinite bus)**: `sources:[{type:"vsource",bus:"N",...}]` pins V and θ at bus N, replaces the AGC machine, and contributes H=10⁶ to the COI. When a vsource is present all generators use LC; remove the `agc:` key. Seed `v_ref_{name}` near the expected bus voltage in `model.ini()` to keep the AVR out of saturation during the cold start.
+- **Parallel codegen**: set `PYDAE_PARALLEL=1` (not `'8'`) and `PYDAE_MAX_WORKERS=N` as separate env-vars before importing pydae. The check is `os.environ.get("PYDAE_PARALLEL") == "1"`.
+- **UTF-8 data files**: `BpsBuilder`, `read_data()`, `reporter._load_data()`, and `model_class._load_metadata()` all open files with `encoding='utf-8'`. HJSON files may contain non-ASCII characters in comments without issues.
+- **damp() sort**: `ssa.damp(A, sort='damp')` or `sort='freq'` sorts the printed table and the returned dict by damping ratio or frequency.
 
 ## Docs
 

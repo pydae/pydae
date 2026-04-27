@@ -11,6 +11,7 @@ from pydae.bps.psss.pss_kundur_1 import pss_kundur_1
 from pydae.bps.psss.pss_pss2 import pss_pss2
 from pydae.bps.psss.pss_kundur_2 import pss_kundur_2
 from pydae.bps.psss.pss2a import pss2a
+from pydae.bps.psss.pss1a import pss1a
 
 def add_pss(dae,syn_data,name,bus_name):
 
@@ -22,5 +23,7 @@ def add_pss(dae,syn_data,name,bus_name):
         pss_kundur_2(dae,syn_data,name,bus_name)
     elif syn_data['pss']['type'] == 'pss2a':
         pss2a(dae,syn_data,name,bus_name)
+    elif syn_data['pss']['type'] == 'pss1a':
+        pss1a(dae,syn_data,name,bus_name)
     else:
         print(f"PSS type {syn_data['pss']['type']} not found.")
