@@ -150,7 +150,9 @@ def genape(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"alpha_{name}":alpha})
     grid.dae['h_dict'].update({f"Dv_{name}":Dv})
     grid.dae['h_dict'].update({f"theta_v_{name}":theta_v})
-    
+    grid.dae['h_dict'].update({f"p_g_{name}":p_pu})
+    grid.dae['h_dict'].update({f"q_g_{name}":q_pu})
+
     for item in params_list:       
         grid.dae['params_dict'].update({f"{item}_{name}":data_dict[item]}) 
 

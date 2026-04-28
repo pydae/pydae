@@ -1,58 +1,88 @@
+// ==============================================================================
+// Milano 6th-Order Synchronous Machine — in-module test fixture
+//
+// Full subtransient model with PSAT saturation.
+// Both transient AND subtransient dynamics included for d and q axes.
+// Differential states: delta, omega, e'q, e''q, e'd, e''d.
+// Algebraic states: i_d, i_q, p_g, q_g.
+// Inputs: p_m (from LC), v_f (from AVR).
+//
+// Network: single machine — infinite bus via step-up transformer.
+// Bus 2 is the infinite bus (vsource, V=1 pu, theta=0).
+// Line rated at 20 GVA to handle the 1500 MVA machine.
+//
+// Parameters: NTS REE benchmark (Iberdrola 1500 MVA unit, Pai 6th-order form).
+// Saturation activated: S_10=0.05, S_12=0.20.
+//
+// LC: p_c_lc sets the desired p_g; p_m is solved by NR including losses.
+//     R_a = 0 here → losses are zero → p_m = p_g exactly at steady state.
+// ==============================================================================
+
 {
-  system: {name: "milano6ord", S_base: 1000e6, K_p_agc: 0.0, K_i_agc: 0.0, K_xif: 0.01},       
-  buses: [
-    {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
-    {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
-  ],
-  lines: [
-    {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 20000}
-  ],
-  shunts: [
-    {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
-  ],
-  syns: [
-    {
-      "bus": "1",
-      "type": "milano6ord",
-      
-      // Base Parameters
-      "S_n": 1500e6,
-      "F_n": 50.0, 
-      
-      // Synchronous and Leakage Reactances
-      "X_d": 2.135, "X_q": 2.046, "X_l": 0.234,
-      
-      // Transient Parameters
-      "X1d": 0.34,  "T1d0": 6.47,  
-      "X1q": 0.573, "T1q0": 0.61,  
-      
-      // Subtransient Parameters
-      "X2d": 0.269, "T2d0": 0.022,  
-      "X2q": 0.269, "T2q0": 0.034, 
-      "T_AA": 0.0,
-      
-      // Resistances, Inertia, and Damping
-      "R_a": 0.0,
-      "H": 6.3, 
-      "D": 0.0,
-      
-      // Saturation Parameters 
-      // (Set to > 0.0 to activate nonlinear saturation)
-      "S_10": 0.05, 
-      "S_12": 0.20, 
-      
-      // Control & Reference Parameters
-      "K_sec": 0.0,
-      "K_delta": 0.0,
+system: {name: "milano6ord", S_base: 1000e6},
 
-      // Desired grid injection (LC auto-triggered; p_m computed including losses)
-      "p_c_lc": 0.5
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},    // generator terminal
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}     // infinite bus
+],
 
-      // Controllers (Commented out for bare machine testing)
-      #"avr":{"type":"ntsst4","bus":2,"K_pr":3.15,"K_ir":3.15,"V_rmax":1.0,"V_rmin":-0.87,"T_a":0.02,"K_pm":1.0,"K_im":1e-6,"K_p":6.5,"v_ref":1.0}, 
-      #"gov":{"type":"tgov1","Droop":100.0,"T_1":1.0,"T_2":1.0,"T_3":1.0, "p_c":0.9,"omega_ref":1.0, "D_t":0.0,"K_sec":0.0},
-      #"pss":{"type":"pss2","K_s3":1.0,"T_wo1":2.0,"T_wo2":2.0,"T_9":0.1,"K_s1":17.069,"T_1":0.28,"T_2":0.04,"T_3":0.28,"T_4":0.12,"T_wo3":2.0,"K_s2": 0.158,"T_7":2.0}
-    }
-  ],
-  "sources": [{"type": "vsource", "bus": "2"}]
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 20000}
+],
+
+shunts: [
+  {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
+],
+
+syns: [
+  {
+    bus: "1",
+    type: "milano6ord",
+
+    // Base
+    S_n: 1500e6,
+    F_n: 50.0,
+
+    // Synchronous reactances and leakage
+    X_d: 2.135,  X_q: 2.046,  X_l: 0.234,
+
+    // Transient parameters
+    X1d: 0.34,   T1d0: 6.47,
+    X1q: 0.573,  T1q0: 0.61,
+
+    // Subtransient parameters
+    X2d: 0.269,  T2d0: 0.022,
+    X2q: 0.269,  T2q0: 0.034,
+    T_AA: 0.0,
+
+    // Resistance, inertia, damping
+    R_a: 0.0,   // lossless → p_m = p_g at steady state
+    H:   6.3,
+    D:   0.0,
+
+    // PSAT two-point saturation (A_sat/B_sat computed from S_10/S_12)
+    S_10: 0.05,
+    S_12: 0.20,
+
+    // Angle / COI reference
+    K_sec:   0.0,
+    K_delta: 0.0,
+
+    // Load controller — desired p_g = 0.5 pu on machine base (750 MW)
+    lc: {K_i: 0.01, p_c_lc: 0.5}
+
+    // Optionally add AVR + PSS + governor:
+    // avr: {type: "st4b", K_PR: 3.15, K_IR: 3.15, V_RMAX: 1.0, V_RMIN: -0.87,
+    //       T_A: 0.02, K_PM: 1.0, K_IM: 0.0, K_P: 6.5, V_BMAX: 8.0, v_ref: 1.0}
+    // gov: {type: "tgov1", R: 0.05, T_1: 0.5, V_max: 1.0, V_min: 0.0,
+    //       T_2: 2.1, T_3: 7.0, D_t: 0.0}
+    // pss: {type: "pss2a", T_w1: 2.0, T_w2: 2.0, T_w3: 2.0, T_w4: 0.0,
+    //       T_6: 0.0, T_7: 2.0, T_8: 0.0, T_9: 0.1, M: 5, N: 1,
+    //       K_s1: 17.069, K_s2: 0.158, K_s3: 1.0,
+    //       T_1: 0.28, T_2: 0.04, T_3: 0.28, T_4: 0.12,
+    //       V_STmax: 0.1, V_STmin: -0.1}
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
 }

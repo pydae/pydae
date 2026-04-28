@@ -1,8 +1,72 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu August 10 23:52:55 2022
+r"""
+Transmission line builders for pydae-bps.
 
-@author: jmmauricio
+This module provides three public functions:
+
+``add_lines(grid)``
+    Dispatcher called by :class:`BpsBuilder` — iterates over the
+    ``lines[]`` section of the system HJSON and routes each entry to
+    :func:`add_line` (standard π model) or
+    :func:`pydae.bps.lines.line_dtr.add_line_dtr` (dynamic thermal
+    rating variant).
+
+``add_line(grid, line)``
+    Registers one transmission branch in the BpsBuilder DAE structures.
+    Supports three impedance formats and two shunt-susceptance formats
+    (see :func:`add_line` for details).
+
+``change_line(model, line_dict)``
+    Updates the admittance parameters of an existing branch at runtime
+    without rebuilding the model.  Accepts the same HJSON-style dict as
+    the builder.
+
+``get_line_current(model, bus_j, bus_k)``
+    Returns the complex current phasor flowing from ``bus_j`` to
+    ``bus_k`` in amperes (or per unit).
+
+**π-model convention**
+
+Each branch j→k is represented by a series admittance
+:math:`Y_{jk} = G_{jk} + jB_{jk}` and a total shunt susceptance
+:math:`Bs_{jk}` split equally at both ends:
+
+.. math::
+
+   \frac{Bs_{jk}}{2} \text{ at bus } j, \qquad
+   \frac{Bs_{jk}}{2} \text{ at bus } k
+
+The stored parameters are ``g_{name}``, ``b_{name}``, ``bs_{name}``
+where *name* is ``{bus_j}_{bus_k}`` (or an explicit ``name`` / ``sub_name``
+override from the HJSON entry).
+
+**Impedance format priority** (``add_line`` and ``change_line``)
+
++------------------------------+-----------------------------------------+
+| Keys present                 | Conversion                              |
++==============================+=========================================+
+| ``X_pu``, ``R_pu``, ``S_mva``| Per-unit on ``S_mva`` base →            |
+|                              | system base via ``S_base / S_mva``      |
++------------------------------+-----------------------------------------+
+| ``X``, ``R`` (ohms)          | Converted via ``Z_base = U_kV² / S_base``|
++------------------------------+-----------------------------------------+
+| ``X_km``, ``R_km``, ``km``   | Ω/km × km → Z_base conversion          |
++------------------------------+-----------------------------------------+
+
+**Shunt susceptance format priority**
+
++-------------------+-------------------------------------------------------+
+| Key               | Meaning                                               |
++===================+=======================================================+
+| ``Bs_pu``         | Total charging in pu on ``S_mva`` base (both halves) |
++-------------------+-------------------------------------------------------+
+| ``B_pu``          | Identical to ``Bs_pu`` — alternative name used in    |
+|                   | some standard datasets (e.g. IEEE 39-bus PESTR18)    |
++-------------------+-------------------------------------------------------+
+| ``Bs_km``         | Charging susceptance in S/km × length                |
++-------------------+-------------------------------------------------------+
+
+When none of the shunt keys is present ``bs_{name}`` defaults to 0.
 """
 
 import numpy as np
@@ -12,12 +76,18 @@ from pydae.bps.lines.line_dtr import add_line_dtr
 
 
 def add_lines(self):
-    sys = self.system
+    """
+    Dispatch all ``lines[]`` entries in the system HJSON to the
+    appropriate builder.
 
+    Called by :meth:`BpsBuilder.construct` after the bus network has been
+    assembled.  Entries that contain ``"dtr": true`` are routed to the
+    dynamic thermal rating variant; all others use the standard
+    :func:`add_line` π-model builder.
+    """
     for line in self.lines:
-
-        if not 'dtr' in line: line.update({'dtr':False})
-
+        if 'dtr' not in line:
+            line['dtr'] = False
         if line['dtr']:
             add_line_dtr(self, line)
         else:
@@ -25,6 +95,48 @@ def add_lines(self):
 
 
 def add_line(self, line):
+    r"""
+    Register one transmission branch in the BpsBuilder DAE structures.
+
+    The branch is modelled as a standard π section:
+
+    - Series admittance :math:`Y_{jk} = G_{jk} + jB_{jk}` from the
+      specified impedance.
+    - Total shunt susceptance :math:`Bs_{jk}` split equally at both
+      terminals.
+
+    Three rows of the primitive incidence matrix ``A`` are claimed
+    (``self.it``, ``self.it+1``, ``self.it+2``), and
+    ``self.it`` is incremented by 3 on exit.
+
+    Parameters
+    ----------
+    line : dict
+        A single entry from the ``lines[]`` HJSON array.  Required keys:
+        ``bus_j``, ``bus_k``, and at least one impedance key
+        (``X_pu``/``R_pu``, ``X``/``R``, or ``X_km``/``R_km``/``km``).
+        Optional keys: ``S_mva``, ``Bs_pu``, ``B_pu``, ``Bs_km``,
+        ``name``, ``sub_name``, ``thermal``.
+
+    Stored parameters
+    -----------------
+    ``g_{name}``
+        Series conductance in pu on the system base.
+    ``b_{name}``
+        Series susceptance in pu on the system base (negative for
+        inductive lines).
+    ``bs_{name}``
+        Total shunt charging susceptance in pu on the system base.
+        The π model places ``bs/2`` at each terminal.
+
+    Notes
+    -----
+    - If ``S_mva`` is omitted when using ``X_pu`` / ``R_pu``, ``S_line``
+      from a previous iteration is reused — always include ``S_mva`` for
+      unambiguous scaling.
+    - ``B_pu`` and ``Bs_pu`` are equivalent; ``B_pu`` is provided for
+      compatibility with standard IEEE datasets (e.g. PESTR18 ieee39).
+    """
         
     sys = self.system
 
@@ -98,6 +210,12 @@ def add_line(self, line):
         Bs = line['Bs_pu']*S_line/sys['S_base']  # in pu of the system base
         bs = Bs
         self.dae['params_dict'][f'bs_{line_name}'] = bs
+
+    elif 'B_pu' in line:
+        # B_pu: total line charging (both pi-halves), same scaling as Bs_pu
+        if 'S_mva' in line: S_line = 1e6*line['S_mva']
+        Bs = line['B_pu']*S_line/sys['S_base']
+        self.dae['params_dict'][f'bs_{line_name}'] = Bs
 
     if 'Bs_km' in line:
         bus_idx = self.buses_list.index(line['bus_j'])
@@ -181,6 +299,11 @@ def change_line(model, line_dict):
         S_line = 1e6 * line.get('S_mva', S_base / 1e6)
         bs = line['Bs_pu'] * S_line / S_base
         model.set_value(f'bs_{line_name}', bs)
+    elif 'B_pu' in line:
+        # B_pu: total line charging (same scaling as Bs_pu)
+        S_line = 1e6 * line.get('S_mva', S_base / 1e6)
+        bs = line['B_pu'] * S_line / S_base
+        model.set_value(f'bs_{line_name}', bs)
     elif 'Bs_km' in line:
         U_base = model.get_value(f'U_{bus_j}_n')
         Z_base = U_base ** 2 / S_base
@@ -188,8 +311,45 @@ def change_line(model, line_dict):
         bs = line['Bs_km'] * line['km'] / Y_base
         model.set_value(f'bs_{line_name}', bs)
 
-def get_line_current(model,bus_j,bus_k, units='A'):
-    V_j_m,theta_j = model.get_mvalue([f'V_{bus_j}',f'theta_{bus_j}'])
+def get_line_current(model, bus_j, bus_k, units='A'):
+    r"""
+    Return the complex current phasor flowing from *bus_j* to *bus_k*.
+
+    The current is computed from the π-model at the sending end:
+
+    .. math::
+
+        \underline{I}_{jk} =
+            (\underline{V}_j - \underline{V}_k)\,Y_{jk}
+            + j\,\underline{V}_j\,\frac{Bs_{jk}}{2}
+
+    where :math:`Y_{jk} = G_{jk} + jB_{jk}` is the series admittance and
+    :math:`Bs_{jk}` is the total shunt charging susceptance stored in the
+    model parameters.
+
+    The function looks up the admittance in both orderings
+    (``bus_j_bus_k`` and ``bus_k_bus_j``) so it works regardless of the
+    direction in which the branch was registered.
+
+    Parameters
+    ----------
+    model : pydae.core.Model
+        Initialised model instance (after ``ini()``).
+    bus_j : str
+        Sending-end bus name.
+    bus_k : str
+        Receiving-end bus name.
+    units : {'A', 'pu'}
+        ``'A'``  — convert to amperes using ``I_base = S_base / (√3 · U_n)``.
+        ``'pu'`` — return the dimensionless per-unit phasor (not yet
+        implemented; pass ``'A'`` for now).
+
+    Returns
+    -------
+    complex
+        Complex current phasor in the requested units.
+    """
+    V_j_m, theta_j = model.get_mvalue([f'V_{bus_j}', f'theta_{bus_j}'])
     V_k_m,theta_k = model.get_mvalue([f'V_{bus_k}',f'theta_{bus_k}'])
     name = f'b_{bus_j}_{bus_k}'
     if name in model.params_list:

@@ -1,40 +1,63 @@
-{
-  system: {name: "milano2ord", S_base: 100e6, K_p_agc: 0.0, K_i_agc: 0.0, K_xif: 0.01},       
-  buses: [
-    {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
-    {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
-  ],
-  lines: [
-    {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 200}
-  ],
-  shunts: [
-    {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
-  ],
-  syns: [
-    {
-      "bus": "1",
-      "type": "milano2ord",
-      
-      // Base Parameters
-      "S_n": 200e6,
-      "F_n": 50.0,
-      
-      // Transient Reactances (Constant Flux Linkage Model)
-      "X1d": 0.3,   
-      "X1q": 0.55, 
-      
-      // Resistances, Inertia, and Damping
-      "R_a": 0.1, 
-      "H": 5.0, 
-      "D": 0.0,
-      
-      // Control & Reference Parameters
-      "K_delta": 0.0,
-      "K_sec": 0.0,
+// ==============================================================================
+// Milano 2nd-Order Synchronous Machine — in-module test fixture
+//
+// Classical model: constant flux linkage (e'q fixed), no transient dynamics.
+// Only the swing equations (delta, omega) are differential.
+// Algebraic states: i_d, i_q, p_g, q_g.
+// Inputs: p_m (from LC), e1q (field flux, constant).
+//
+// Network: single machine — infinite bus via step-up transformer.
+// Bus 2 is the infinite bus (vsource, V=1 pu, theta=0).
+//
+// LC: p_c_lc is the desired active-power injection p_g in machine pu.
+//     The LC integrator compensates armature losses so p_g = p_c_lc exactly
+//     at steady state (note: R_a = 0.1 here produces significant losses —
+//     intentional for testing loss compensation).
+// ==============================================================================
 
-      "p_c_lc":0.8
-      
-    }
-  ],
-  "sources": [{"type": "vsource", "bus": "2"}]
+{
+system: {name: "milano2ord", S_base: 100e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},   // generator terminal
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}    // infinite bus
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 200}
+],
+
+shunts: [
+  {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
+],
+
+syns: [
+  {
+    bus: "1",
+    type: "milano2ord",
+
+    // Base
+    S_n: 200e6,
+    F_n: 50.0,
+
+    // Transient reactances (constant flux-linkage; q-axis algebraic)
+    X1d: 0.3,
+    X1q: 0.55,
+
+    // Resistance, inertia, damping
+    R_a: 0.1,   // high R_a to exercise LC loss-compensation test
+    H:   5.0,
+    D:   0.0,
+
+    // Angle / COI reference
+    K_delta: 0.0,
+    K_sec:   0.0,
+
+    // Load controller — desired p_g = 0.8 pu on machine base
+    // p_m = p_g + R_a*(i_d^2 + i_q^2) is found automatically by NR
+    lc: {K_i: 0.01, p_c_lc: 0.8}
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
 }

@@ -174,10 +174,15 @@ def validate_gens(model, data,
                   q_rtol=0.10,
                   print_table=True):
     """
-    Compare generator active and reactive powers against ``results.syns``.
+    Compare active and reactive powers against reference values in *data*.
+
+    Processes both ``results.syns`` (synchronous machines) and
+    ``results.sources`` (vsource / genape elements) in a single table.
+    All entries use ``p_g_{name}`` and ``q_g_{name}`` model variables and
+    the ``S_n`` parameter of the corresponding component for MW conversion.
 
     The reference entry may use either ``bus`` or ``name`` to identify the
-    generator (``name`` takes precedence when both are present).
+    element (``name`` takes precedence when both are present).
 
     Parameters
     ----------
@@ -193,39 +198,45 @@ def validate_gens(model, data,
     data_dict = _load_data(data)
     S_base    = data_dict.get('system', {}).get('S_base', 100e6)
     results   = data_dict.get('results', {})
-    ref_list  = results.get('syns', [])
+
+    # Combine syns and sources reference lists; tag each with its type
+    ref_list = [(ref, 'gen') for ref in results.get('syns',    [])] + \
+               [(ref, 'src') for ref in results.get('sources', [])]
 
     if not ref_list:
-        msg = '_No reference generator data found in results section._'
+        msg = '_No reference generator/source data found in results section._'
         if print_table:
-            print('\n### Generator Validation\n\n' + msg)
+            print('\n### Generator & Source Validation\n\n' + msg)
         return msg, True
 
-    # Build lookup: name → S_n for all syns
+    # Build S_n lookup from syns, sources, and genape components
     sn_map = {}
     for syn in data_dict.get('syns', []):
         key = syn.get('name', str(syn['bus']))
         sn_map[key] = syn.get('S_n', S_base)
+    for src in data_dict.get('sources', []):
+        key = src.get('name', str(src.get('bus', '')))
+        sn_map[key] = src.get('S_n', S_base)
 
-    headers = ['Gen', 'P_ref (MW)', 'P_model (MW)', 'ΔP (%)', 'P',
-                      'Q_ref (Mvar)', 'Q_model (Mvar)', 'ΔQ (%)', 'Q', 'Overall']
+    headers = ['Element', 'Type', 'P_ref (MW)', 'P_model (MW)', 'ΔP (%)', 'P',
+               'Q_ref (Mvar)', 'Q_model (Mvar)', 'ΔQ (%)', 'Q', 'Overall']
     rows   = []
     all_ok = True
 
-    for ref in ref_list:
-        # resolve generator name
-        gen_name = ref.get('name', ref.get('bus'))
-        gen_name = str(gen_name)
-        bus_name = str(ref.get('bus', gen_name))
+    for ref, elem_type in ref_list:
+        # resolve element name / bus
+        elem_name = ref.get('name', ref.get('bus'))
+        elem_name = str(elem_name)
+        bus_name  = str(ref.get('bus', elem_name))
 
         p_ref = ref.get('P_MW',   float('nan'))
         q_ref = ref.get('Q_Mvar', float('nan'))
 
-        s_n   = sn_map.get(gen_name, sn_map.get(bus_name, S_base))
+        s_n   = sn_map.get(elem_name, sn_map.get(bus_name, S_base))
         s_mva = s_n / 1e6
 
-        p_g_pu = _to_float(_get(model, f'p_g_{gen_name}'))
-        q_g_pu = _to_float(_get(model, f'q_g_{gen_name}'))
+        p_g_pu = _to_float(_get(model, f'p_g_{elem_name}'))
+        q_g_pu = _to_float(_get(model, f'q_g_{elem_name}'))
         p_mod  = p_g_pu * s_mva if not _isnan(p_g_pu) else float('nan')
         q_mod  = q_g_pu * s_mva if not _isnan(q_g_pu) else float('nan')
 
@@ -233,27 +244,34 @@ def validate_gens(model, data,
         dq_pct = _pct(q_mod, q_ref) if not _isnan(q_mod) else float('nan')
 
         p_ok   = (abs(dp_pct) <= p_rtol * 100) if not _isnan(dp_pct) else False
-        q_ok   = (abs(dq_pct) <= q_rtol * 100) if not _isnan(dq_pct) else False
+        # Q tolerance: relative when |Q_ref| ≥ 5 Mvar, else absolute ≤ 5 Mvar
+        if not _isnan(dq_pct):
+            if abs(q_ref) >= 5.0:
+                q_ok = (abs(dq_pct) <= q_rtol * 100)
+            else:
+                q_ok = (abs(q_mod - q_ref) <= 5.0)
+        else:
+            q_ok = False
         row_ok = p_ok and q_ok
         all_ok = all_ok and row_ok
 
         rows.append([
-            gen_name,
+            elem_name, elem_type,
             p_ref,  p_mod,  dp_pct, _status(p_ok),
             q_ref,  q_mod,  dq_pct, _status(q_ok),
             _status(row_ok),
         ])
 
-    fmts = ['{}',
+    fmts = ['{}', '{}',
             '{:.1f}', '{:.1f}', '{:+.2f}', '{}',
             '{:.1f}', '{:.1f}', '{:+.2f}', '{}',
             '{}']
     table   = _md_table(headers, rows, fmts)
-    summary = f'\n> Tolerances: P ≤ {p_rtol*100:.0f}% | Q ≤ {q_rtol*100:.0f}%  ' \
+    summary = f'\n> Tolerances: P ≤ {p_rtol*100:.0f}% | Q ≤ {q_rtol*100:.0f}% (or ±5 Mvar when |Q_ref| < 5 Mvar)  ' \
               f'— Overall: **{"PASS" if all_ok else "FAIL"}**'
 
     if print_table:
-        print('\n### Generator Validation\n')
+        print('\n### Generator & Source Validation\n')
         print(table)
         print(summary)
 

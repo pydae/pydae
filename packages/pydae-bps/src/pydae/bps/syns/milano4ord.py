@@ -188,12 +188,49 @@ def milano4ord(grid, name, bus_name, data_dict):
     grid.dae['u_ini_dict'].update({f'{p_m}': val_p_m})
     grid.dae['u_run_dict'].update({f'{p_m}': val_p_m})
 
-    # Initialization hints
-    grid.dae['xy_0_dict'].update({str(omega): 1.0})
-    grid.dae['xy_0_dict'].update({str(e1q): 1.0})
-    grid.dae['xy_0_dict'].update({str(e1d): 0.0}) 
-    grid.dae['xy_0_dict'].update({str(i_q): 0.5}) 
+# Initialization hints
+    if 'p_c_lc' in data_dict:
+        p_c_N = data_dict['p_c_lc']
+    elif 'p_m' in data_dict:
+        p_c_N = data_dict['p_m']
+    elif 'lc' in data_dict:
+        p_c_N = data_dict['lc']['p_c_lc']
+    else:
+        p_c_N = 0.8  
+
+    q_c_N = 0.0
+    X_q_N = data_dict.get('X_q', default_map.get('X_q', 1.0))
+    X1q_N = data_dict.get('X1q', default_map.get('X1q', 0.3))
+
+    # --- Simplified Initialization Calculations ---
     
+    # 1. Initial Angle (Simplified from the quadratic root)
+    delta_N = float(np.arctan(X_q_N * p_c_N))
+    
+    # Cache trig functions for performance
+    sin_d = np.sin(delta_N)
+    cos_d = np.cos(delta_N)
+
+    # 2. Field Voltage (Simplified from sin^2/cos + cos)
+    v_f_N = 1.0 / cos_d
+    
+    # 3. Currents (Reduces beautifully to active power projections)
+    i_d_N = p_c_N * sin_d  # Equivalent to: (v_f_N - cos_d)/X_q_N
+    i_q_N = p_c_N * cos_d  # Equivalent to: sin_d/X_q_N
+    
+    # 4. Internal Voltages (Factored for readability)
+    e1d_N = (X_q_N - X1q_N) * sin_d / X_q_N
+    e1q_N = (X1q_N * v_f_N + (X_q_N - X1q_N) * cos_d) / X_q_N
+
+    grid.dae['xy_0_dict'].update({str(delta): delta_N})
+    grid.dae['xy_0_dict'].update({str(omega): 1.0})
+    grid.dae['xy_0_dict'].update({str(e1q): e1q_N})
+    grid.dae['xy_0_dict'].update({str(e1d): e1d_N}) 
+    grid.dae['xy_0_dict'].update({str(i_q): i_q_N}) 
+    grid.dae['xy_0_dict'].update({str(i_d): i_d_N}) 
+    grid.dae['xy_0_dict'].update({str(p_g): p_c_N}) 
+    grid.dae['xy_0_dict'].update({str(q_g): q_c_N}) 
+      
     # Outputs (Appending S_at for visibility)
     grid.dae['h_dict'].update({f"p_e_{name}": p_e})
     grid.dae['h_dict'].update({f"v_f_{name}": v_f})
@@ -268,21 +305,113 @@ def generate_sphinx_tables():
 
 __doc__ += generate_sphinx_tables()
 
+
+def symbolic_dev():
+    sin = sym.sin
+    cos = sym.cos  
+
+    # 2. Inputs
+    V = sym.Symbol(f"V", real=True)
+    theta = sym.Symbol(f"theta", real=True)
+    p_m = sym.Symbol(f"p_m", real=True)
+    v_f = sym.Symbol(f"v_f", real=True) 
+    omega_coi = sym.Symbol("omega_coi", real=True)   
+        
+    # 3. Dynamic states
+    delta = sym.Symbol(f"delta", real=True)
+    omega = sym.Symbol(f"omega", real=True)
+    e1q = sym.Symbol(f"e1q", real=True)
+    e1d = sym.Symbol(f"e1d", real=True)
+
+    # 4. Algebraic states
+    i_d = sym.Symbol(f"i_d", real=True)
+    i_q = sym.Symbol(f"i_q", real=True)            
+    p_g = sym.Symbol(f"p_g", real=True)
+    q_g = sym.Symbol(f"q_g", real=True)
+
+    # 5. Standard Parameters
+    S_n = sym.Symbol(f"S_n", real=True)
+    Omega_b = sym.Symbol(f"Omega_b", real=True)            
+    H = sym.Symbol(f"H", real=True)
+    T1d0 = sym.Symbol(f"T1d0", real=True)
+    T1q0 = sym.Symbol(f"T1q0", real=True)
+    X_d = sym.Symbol(f"X_d", real=True)
+    X_q = sym.Symbol(f"X_q", real=True)
+    X1d = sym.Symbol(f"X1d", real=True)
+    X1q = sym.Symbol(f"X1q", real=True)
+    D = sym.Symbol(f"D", real=True)
+    R_a = sym.Symbol(f"R_a", real=True)
+    K_delta = sym.Symbol(f"K_delta", real=True)
+    p_c = sym.Symbol(f"p_c", real=True)
+
+    omega = 1
+    omega_s = 1
+    V = 1
+    theta = 0
+    S_d = 0
+    S_q = 0
+    p_m = p_c
+    p_g = p_c
+    q_g = 0
+    R_a = 0
+    X_d = X_q
+    X1d = X1q
+ 
+    v_d = V*sin(delta - theta) 
+    v_q = V*cos(delta - theta) 
+    p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q)     
+
+    # 7. Dynamic equations            
+    ddelta = Omega_b*(omega - omega_s) 
+    domega = 1/(2*H)*(p_m - p_e - D*(omega - omega_s))
+    de1q   = 1/T1d0*(-e1q*(1 + S_d) - (X_d - X1d)*i_d + v_f)
+    de1d   = 1/T1q0*(-e1d*(1 + S_q) + (X_q - X1q)*i_q)
+
+    # 8. Algebraic equations   
+    g_i_d  = e1q - R_a*i_q - X1d*i_d - v_q
+    g_i_q  = e1d - R_a*i_d + X1q*i_q - v_d 
+    g_p_g  = i_d*v_d + i_q*v_q - p_g  
+    g_q_g  = i_d*v_q - i_q*v_d - q_g 
+
+    unknown = [e1q, e1d, i_d, i_q]
+    solution =sym.solve([de1q, de1d, g_i_d, g_i_q], unknown)
+    # unknown = [i_d, i_q]
+    # solution =sym.solve([g_p_g, g_q_g], unknown)
+    print(solution)
+
+    print("Symbolic solution for steady state:")
+    for item in solution:
+        print(sym.simplify(item))    
+        print('\n') 
+
+
+
+
 # =============================================================================
 # Testing Block
 # =============================================================================
 def test_build():
     from pydae.bps import BpsBuilder
-    from pydae.builder.core import Builder
+    from pydae.core import Builder
     import pytest
 
     grid = BpsBuilder('milano4ord.hjson')
     grid.checker()
     grid.uz_jacs = False
     grid.construct('temp_m4')
-    bld = Builder(grid.sys_dict, target='ctypes')
+    bld = Builder(grid.sys_dict, target='ctypes', sparse=False)
     bld.build()
- 
+
+def test_ini():
+    from pydae.core import Model
+    
+    model = Model('temp_m4')
+
+    # Initialization
+    model.ini({}, 'xy_0.json')
+    model.report_x()
+    model.report_y()
+
 def test_run():
     import matplotlib.pyplot as plt
     from pydae.builder.model_class import Model
@@ -291,6 +420,8 @@ def test_run():
 
     # Initialization
     model.ini({'p_m_1': 0.5, 'v_ref_1': 1}, 'xy_0.json')
+    model.report_x()
+    model.report_y()
 
     # Run to steady state
     model.run(1.0, {})
@@ -324,5 +455,7 @@ def test_run():
     print("Test completed. Plot saved as 'milano4ord_saturation.svg'.")
 
 if __name__ == '__main__':
+    #symbolic_dev()
     test_build()
-    test_run()
+    test_ini()
+    #test_run()
