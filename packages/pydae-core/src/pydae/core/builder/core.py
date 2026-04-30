@@ -98,7 +98,16 @@ class Builder:
         self.h_list = []
         
         self.jac_ini_list, self.jac_run_list, self.jac_trap_list = [], [], []
-        self.Fu_list, self.Gu_list, self.Hx_list = [], [], []
+        # Initialize UZ Jacobian lists (for Small Signal Analysis)
+        self.Fu_ini_list = []
+        self.Fu_run_list = []
+        self.Gu_ini_list = []
+        self.Gu_run_list = []
+        self.Hx_list = []
+        self.Hy_ini_list = []
+        self.Hy_run_list = []
+        self.Hu_ini_list = []
+        self.Hu_run_list = []
         
         # Build output folder
         self.matrices_folder = 'build'
@@ -139,7 +148,7 @@ class Builder:
         self.h_list     = [{'sym': eq} for eq in self.sys['h']]
         
         # --- Symbolic Math Phase ---
-        self.sys = compute_base_jacobians(self.sys, self.inirun)
+        self.sys = compute_base_jacobians(self.sys, uz_jacs=self.uz_jacs)
         build_large_jacobians(self) 
 
         # ------------------------------------------------------------------
@@ -193,6 +202,19 @@ class Builder:
         sym2xyup_fn(self.sys, self.jac_ini_list, 'ini')
         sym2xyup_fn(self.sys, self.jac_run_list, 'run')
         sym2xyup_fn(self.sys, self.jac_trap_list, 'run')
+
+        # UZ Jacobians (need both ini and run patterns to cover all y/u vars)
+        if getattr(self, 'uz_jacs', False):
+            uz_lists = [self.Fu_ini_list, self.Fu_run_list, self.Gu_ini_list,
+                        self.Gu_run_list, self.Hx_list, self.Hy_ini_list,
+                        self.Hy_run_list, self.Hu_ini_list, self.Hu_run_list]
+            for uz_list in uz_lists:
+                sym2c_fn(uz_list)
+            
+            # Apply both ini and run patterns so y_ini, y_run, u_ini, u_run all get replaced
+            for uz_list in uz_lists:
+                sym2xyup_fn(self.sys, uz_list, 'ini')
+                sym2xyup_fn(self.sys, uz_list, 'run')
 
         logging.info("End translating symbolic equations to C strings.")
 

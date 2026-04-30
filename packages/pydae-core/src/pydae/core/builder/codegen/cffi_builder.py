@@ -226,6 +226,24 @@ def generate_and_compile_cffi(builder_obj):
         d, s = _get_c_funcs(name, eq_list, is_sparse=is_sparse)
         all_defs += d; all_sources += s
 
+    # 5. Generate UZ Jacobian functions (for SSA)
+    # These are always generated as dense arrays in C for simplicity
+    if getattr(builder_obj, 'uz_jacs', False):
+        uz_jacs = [
+            ('Fu_ini_eval', builder_obj.Fu_ini_list),
+            ('Fu_run_eval', builder_obj.Fu_run_list),
+            ('Gu_ini_eval', builder_obj.Gu_ini_list),
+            ('Gu_run_eval', builder_obj.Gu_run_list),
+            ('Hx_eval', builder_obj.Hx_list),
+            ('Hy_ini_eval', builder_obj.Hy_ini_list),
+            ('Hy_run_eval', builder_obj.Hy_run_list),
+            ('Hu_ini_eval', builder_obj.Hu_ini_list),
+            ('Hu_run_eval', builder_obj.Hu_run_list),
+        ]
+        for name, eq_list in uz_jacs:
+            d, s = _get_c_funcs(name, eq_list, is_sparse=False)
+            all_defs += d; all_sources += s
+
     # 5. CDEF: Define the signatures of the functions Python is allowed to call.
     # These are backend-agnostic — the C signatures are identical for all backends.
     ffi.cdef("""
@@ -239,6 +257,17 @@ def generate_and_compile_cffi(builder_obj):
                 double *X, double *Y, double *Z, int N_z, int N_store, double *f, double *g, double *fg);
 
         void jac_trap_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        
+        // UZ Jacobian functions (generated if uz_jacs is True)
+        void Fu_ini_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Fu_run_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Gu_ini_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Gu_run_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Hx_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Hy_ini_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Hy_run_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Hu_ini_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+        void Hu_run_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
     """)
 
     # 6. Paths and OS detection

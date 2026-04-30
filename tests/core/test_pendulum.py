@@ -132,7 +132,16 @@ class TestSymbolic:
 
         class FakeBuilder:
             jac_ini_list, jac_run_list, jac_trap_list = [], [], []
-            Fu_list, Gu_list, Hx_list = [], [], []
+            # Initialize UZ Jacobian lists (matching Builder.__init__)
+            Fu_ini_list = []
+            Fu_run_list = []
+            Gu_ini_list = []
+            Gu_run_list = []
+            Hx_list = []
+            Hy_ini_list = []
+            Hy_run_list = []
+            Hu_ini_list = []
+            Hu_run_list = []
             uz_jacs = True
 
         fb = FakeBuilder()
@@ -263,6 +272,59 @@ class TestBuildKLU:
         A_klu2 = model.A_eval()
         assert np.isfinite(A_klu2).all()
 
+    def test_BCD_eval_klu(self, pendulum_sys):
+        """BCD_eval from KLU build matches BCD_eval from dense build."""
+        from pydae.core import Builder, Model
+
+        bld = Builder(pendulum_sys, target='cffi', sparse='klu')
+        bld.build()
+
+        L, M = 5.21, 30.0
+        deg = 10
+        model = Model('test_pendulum')
+        model.ini(
+            {'M': M, 'L': L, 'K_lam': 1e-6, 'theta': np.deg2rad(deg)},
+            xy_0={'p_x': L*np.sin(np.deg2rad(deg)),
+                  'p_y': -L*np.cos(np.deg2rad(deg)),
+                  'lam': 50.0, 'f_x': 0.0, 'v_x': 0.0, 'v_y': 0.0}
+        )
+        model.run(0.1, {})
+        B_klu, C_klu, D_klu = model.BCD_eval()
+
+        assert B_klu.shape == (4, 2)
+        assert C_klu.shape == (4, 4)
+        assert D_klu.shape == (4, 2)
+        assert np.isfinite(B_klu).all(), "KLU B has NaN/Inf"
+        assert np.isfinite(C_klu).all(), "KLU C has NaN/Inf"
+        assert np.isfinite(D_klu).all(), "KLU D has NaN/Inf"
+
+        # Dense build for comparison
+        bld_dense = Builder(pendulum_sys, target='ctypes', sparse=False)
+        bld_dense.build()
+        model_dense = Model('test_pendulum')
+        model_dense.ini(
+            {'M': M, 'L': L, 'K_lam': 1e-6, 'theta': np.deg2rad(deg)},
+            xy_0={'p_x': L*np.sin(np.deg2rad(deg)),
+                  'p_y': -L*np.cos(np.deg2rad(deg)),
+                  'lam': 50.0, 'f_x': 0.0, 'v_x': 0.0, 'v_y': 0.0}
+        )
+        model_dense.run(0.1, {})
+        B_dense, C_dense, D_dense = model_dense.BCD_eval()
+
+        np.testing.assert_allclose(B_klu, B_dense, rtol=1e-6,
+                                   err_msg="KLU and dense B matrices differ")
+        np.testing.assert_allclose(C_klu, C_dense, rtol=1e-6,
+                                   err_msg="KLU and dense C matrices differ")
+        np.testing.assert_allclose(D_klu, D_dense, rtol=1e-6,
+                                   err_msg="KLU and dense D matrices differ")
+
+        # Re-evaluate after another run
+        model.run(0.5, {'f_x': 1.0})
+        B2, C2, D2 = model.BCD_eval()
+        assert np.isfinite(B2).all()
+        assert np.isfinite(C2).all()
+        assert np.isfinite(D2).all()
+
 
 # ─── 6. Model tests (end-to-end) ──────────────────────────────────────
 
@@ -351,3 +413,50 @@ class TestModel:
         A3 = model.A_eval()
         assert A3.shape == (4, 4)
         assert np.isfinite(A3).all()
+
+    def test_BCD_eval_dense(self):
+        """BCD_eval returns real (N_x,N_u), (N_z,N_x), (N_z,N_u) matrices
+        with finite entries.  Also verifies that B has the expected structure
+        for the pendulum: only v_x equation depends on f_x input."""
+        from pydae.core import Model
+        L, M = 5.21, 30.0
+        deg = 10
+        model = Model('test_pendulum')
+        model.ini(
+            {'M': M, 'L': L, 'K_lam': 1e-6, 'theta': np.deg2rad(deg)},
+            xy_0={'p_x': L*np.sin(np.deg2rad(deg)),
+                  'p_y': -L*np.cos(np.deg2rad(deg)),
+                  'lam': 50.0, 'f_x': 0.0, 'v_x': 0.0, 'v_y': 0.0}
+        )
+        model.run(0.1, {})
+
+        B, C, D = model.BCD_eval()
+
+        # u_run = [f_x, u_dummy] -> N_u=2; x has 4 states; h has 4 outputs
+        assert B.shape == (4, 2), f"B shape {B.shape} != (4,2)"
+        assert C.shape == (4, 4), f"C shape {C.shape} != (4,4)"
+        assert D.shape == (4, 2), f"D shape {D.shape} != (4,2)"
+
+        assert np.isfinite(B).all(), "B contains NaN or Inf"
+        assert np.isfinite(C).all(), "C contains NaN or Inf"
+        assert np.isfinite(D).all(), "D contains NaN or Inf"
+
+        # Symbolic check: f equations are [v_x, v_y, (-2*px*lam+f_x-Kd*vx)/M, ...]
+        # So dF/df_x = [0, 0, 1/M, 0]^T  (column 0 of B)
+        np.testing.assert_allclose(B[:, 0], [0, 0, 1/M, 0], atol=1e-10)
+        # u_dummy only appears in algebraic g equation, not in f
+        np.testing.assert_allclose(B[:, 1], [0, 0, 0, 0], atol=1e-10)
+
+        # C matrix: h = [M*G*(p_y+L), 0.5*M*(vx^2+vy^2), f_x, lam]
+        # dh/dx = [0, M*G, 0, 0] for E_p
+        #         [0, 0, M*vx, M*vy] for E_k
+        #         [0, 0, 0, 0] for f_x (output equals input, no state dep)
+        #         [0, 0, 0, 0] for lam (algebraic var, not state)
+        # So C[0,:] should be [0, M*G, 0, 0]
+        np.testing.assert_allclose(C[0, :], [0, M*9.81, 0, 0], atol=1e-10)
+
+        # Re-evaluate after another run — must reflect new operating point
+        model.run(0.5, {'f_x': 1.0})
+        B2, C2, D2 = model.BCD_eval()
+        assert B2.shape == (4, 2)
+        assert np.isfinite(B2).all()

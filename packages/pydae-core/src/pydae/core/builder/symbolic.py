@@ -89,26 +89,59 @@ def build_large_jacobians(builder_obj):
         builder_obj.jac_ini_sp  = _process_sparse(jac_ini, builder_obj.jac_ini_list, N_total, 'ini')
         builder_obj.jac_trap_sp = _process_sparse(jac_trap, builder_obj.jac_trap_list, N_total, 'trap')
     else:
-        builder_obj.jac_ini_sp  = _process_dense(jac_ini, builder_obj.jac_ini_list, N_total)
-        builder_obj.jac_trap_sp = _process_dense(jac_trap, builder_obj.jac_trap_list, N_total)
+        builder_obj.jac_ini_sp  = _extract_dense_matrix(jac_ini, builder_obj.jac_ini_list, N_total)
+        builder_obj.jac_trap_sp = _extract_dense_matrix(jac_trap, builder_obj.jac_trap_list, N_total)
+
+    # ------------------------------------------------------------------
+    # UZ Jacobians (for Small Signal Analysis)
+    # ------------------------------------------------------------------
+    if getattr(builder_obj, 'uz_jacs', False):
+        logging.info('Extracting UZ Jacobians...')
+        
+        # Dimensions
+        N_x = len(sys['x'])
+        N_y_ini = len(sys['y_ini'])
+        N_y_run = len(sys['y_run'])
+        N_u_ini = len(sys['u_ini'])
+        N_u_run = len(sys['u_run'])
+
+        # Helper to call extraction
+        def extract_if_exists(sym_key, target_list, stride):
+            if sym_key in sys:
+                _extract_dense_matrix(sys[sym_key], target_list, stride)
+            else:
+                logging.warning(f'Symbolic key {sym_key} not found, skipping.')
+
+        extract_if_exists('Fu_ini', builder_obj.Fu_ini_list, N_u_ini)
+        extract_if_exists('Fu_run', builder_obj.Fu_run_list, N_u_run)
+        extract_if_exists('Gu_ini', builder_obj.Gu_ini_list, N_u_ini)
+        extract_if_exists('Gu_run', builder_obj.Gu_run_list, N_u_run)
+        extract_if_exists('Hx', builder_obj.Hx_list, N_x)
+        extract_if_exists('Hy_ini', builder_obj.Hy_ini_list, N_y_ini)
+        extract_if_exists('Hy_run', builder_obj.Hy_run_list, N_y_run)
+        extract_if_exists('Hu_ini', builder_obj.Hu_ini_list, N_u_ini)
+        extract_if_exists('Hu_run', builder_obj.Hu_run_list, N_u_run)
 
 
 # ---------------------------------------------------------------------------
 # Dense extraction
 # ---------------------------------------------------------------------------
-def _process_dense(matrix, target_list, N_total):
-    """Extract nonzero entries with flat dense indexing (row*N+col)."""
+def _extract_dense_matrix(matrix, target_list, stride):
+    """Extract nonzero entries with flat dense indexing (row*stride+col)."""
     dok = dict(SparseMatrix(matrix).todok())
     
     for (row, col), expr in sorted(dok.items()):
         target_list.append({
             'sym': expr,
-            'de_idx': row * N_total + col,
+            'de_idx': row * stride + col,
             'ij': (row, col),
         })
     
     # Return CSR tuple for compatibility (not used in dense mode)
-    sp = _doktocsr(SparseMatrix(matrix))
+    if dok:
+        sp = _doktocsr(SparseMatrix(matrix))
+    else:
+        sp = ([], [], [0] * (matrix.rows + 1))
     return sp
 
 

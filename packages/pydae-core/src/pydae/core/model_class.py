@@ -207,6 +207,7 @@ class Model:
         # Dimensions
         self.N_x, self.N_y, self.N_z = len(self.x_list), len(self.y_ini_list), len(self.z_list)
         self.N_xy = self.N_x + self.N_y
+        self.N_u = len(self.u_run_list)
 
         # ------------------------------------------------------------------
         # Jacobian buffer sizes: NNZ for sparse backends, N_xy² for dense
@@ -531,6 +532,19 @@ class Model:
         fn.argtypes = [c_double_p, c_double_p, c_double_p,
                        c_double_p, c_double_p, ctypes.c_double]
 
+    def _ensure_uz_jac_argtypes(self):
+        """Lazy ctypes argtypes setup for UZ Jacobian evaluation functions."""
+        if self.is_cffi:
+            return
+        c_double_p = ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS')
+        uz_sig = [c_double_p, c_double_p, c_double_p,
+                  c_double_p, c_double_p, ctypes.c_double]
+        for func_name in ['Fu_run_eval', 'Gu_run_eval', 'Hx_eval',
+                          'Hy_run_eval', 'Hu_run_eval']:
+            fn = getattr(self.solver_lib, func_name, None)
+            if fn and not fn.argtypes:
+                fn.argtypes = uz_sig
+
     def jac_run_eval(self):
         """Evaluate the run Jacobian ``jac_run = [[F_x, F_y], [G_x, G_y]]``.
 
@@ -609,6 +623,61 @@ class Model:
             self.A = self.F_x.copy()
 
         return self.A
+
+    def _eval_uz_jac(self, func_name, rows, cols):
+        """Evaluate a UZ Jacobian C function and return it as a NumPy array."""
+        self._ensure_uz_jac_argtypes()
+        data = np.zeros(rows * cols, dtype=np.float64)
+        self._ffi_pins.clear()
+        getattr(self.solver_lib, func_name)(
+            self._d(data),
+            self._d(self.x), self._d(self.y_run),
+            self._d(self.u_run), self._d(self.p),
+            self.Dt,
+        )
+        self._ffi_pins.clear()
+        return data.reshape((rows, cols))
+
+    def BCD_eval(self):
+        """Compute the input-output matrices ``B``, ``C``, and ``D``.
+
+        Requires that ``jac_run_eval`` has been called (or calls it lazily)
+        so that ``F_y`` and ``G_y`` are available, and that the model was
+        built with ``uz_jacs=True`` so the UZ Jacobian C functions exist.
+
+        Computes::
+
+            B = F_u - F_y @ inv(G_y) @ G_u
+            C = H_x - H_y @ inv(G_y) @ G_x
+            D = H_u - H_y @ inv(G_y) @ G_u
+
+        Returns
+        -------
+        tuple
+            ``(B, C, D)`` where:
+            - B is ``(N_x, N_u_run)``
+            - C is ``(N_z, N_x)``
+            - D is ``(N_z, N_u_run)``
+        """
+        self.jac_run_eval()  # Ensures F_y, G_y, G_x are populated
+
+        # Evaluate UZ Jacobians from C
+        self.F_u = self._eval_uz_jac('Fu_run_eval', self.N_x, self.N_u)
+        self.G_u = self._eval_uz_jac('Gu_run_eval', self.N_y, self.N_u)
+        self.H_x = self._eval_uz_jac('Hx_eval', self.N_z, self.N_x)
+        self.H_y = self._eval_uz_jac('Hy_run_eval', self.N_z, self.N_y)
+        self.H_u = self._eval_uz_jac('Hu_run_eval', self.N_z, self.N_u)
+
+        # Solve G_y * Z_u = G_u  ->  Z_u = inv(G_y) @ G_u
+        Z_u = np.linalg.solve(self.G_y, self.G_u)
+        # Solve G_y * Z_x = G_x  ->  Z_x = inv(G_y) @ G_x
+        Z_x = np.linalg.solve(self.G_y, self.G_x)
+
+        self.B = self.F_u - self.F_y @ Z_u
+        self.C = self.H_x - self.H_y @ Z_x
+        self.D = self.H_u - self.H_y @ Z_u
+
+        return self.B, self.C, self.D
 
     def post(self):
         """Extract safe public arrays from internal buffers.

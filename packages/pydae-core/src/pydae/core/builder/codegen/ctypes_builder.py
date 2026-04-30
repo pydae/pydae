@@ -126,6 +126,24 @@ def generate_and_compile_ctypes(builder_obj):
         d, s = _get_c_funcs(name, eq_list, is_sparse=is_sparse)
         all_defs += d; all_sources += s
 
+    # 5. Generate UZ Jacobian functions (for SSA)
+    # These are always generated as dense arrays in C for simplicity
+    if getattr(builder_obj, 'uz_jacs', False):
+        uz_jacs = [
+            ('Fu_ini_eval', builder_obj.Fu_ini_list),
+            ('Fu_run_eval', builder_obj.Fu_run_list),
+            ('Gu_ini_eval', builder_obj.Gu_ini_list),
+            ('Gu_run_eval', builder_obj.Gu_run_list),
+            ('Hx_eval', builder_obj.Hx_list),
+            ('Hy_ini_eval', builder_obj.Hy_ini_list),
+            ('Hy_run_eval', builder_obj.Hy_run_list),
+            ('Hu_ini_eval', builder_obj.Hu_ini_list),
+            ('Hu_run_eval', builder_obj.Hu_run_list),
+        ]
+        for name, eq_list in uz_jacs:
+            d, s = _get_c_funcs(name, eq_list, is_sparse=False)
+            all_defs += d; all_sources += s
+
     all_sources += "\n#ifdef __cplusplus\n}\n#endif\n"
 
     # 5. File Paths

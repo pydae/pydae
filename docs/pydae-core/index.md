@@ -38,6 +38,7 @@ architecture
 :caption: Reference
 
 api
+ssa
 ```
 
 ## Related packages

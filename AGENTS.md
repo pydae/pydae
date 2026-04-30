@@ -1,44 +1,33 @@
 # AGENTS.md
 
-Compact instructions for OpenCode sessions in this monorepo. See `CLAUDE.md` for full technical documentation.
+Compact instructions for OpenCode sessions in `pydae`. See `CLAUDE.md` for full technical details.
 
 ## Workflow & Commands
-*   **Setup**: `uv sync --all-packages`. Never use `pip install`.
-*   **Testing**: `uv run pytest`.
-    *   Fast (no compiler): `uv run pytest -m "parse or symbolic or codegen"`
-    *   Full (GCC/MinGW required): `uv run pytest -m "build or model"`
-*   **Linting**: `uv run ruff check .`
+- **Setup**: `uv sync --all-packages`. NEVER use `pip install`.
+- **Testing**: `uv run pytest`.
+  - **Fast** (no compiler): `uv run pytest -m "parse or symbolic or codegen"`
+  - **Full** (requires GCC/MinGW): `uv run pytest -m "build or model"`
+- **Linting**: `uv run ruff check .`
 
-## Architecture
-*   **Monorepo**: Workspace with three independent packages (`pydae-core`, `pydae-bps`, `pydae-uds`).
-*   **Namespace**: `packages/*/src/pydae/` MUST NOT have `__init__.py`. Only subpackages (e.g., `core/`, `bps/`) have them.
-*   **Pipeline**: `Builder(sys_dict)` → `build()` → `Model.load()`.
-*   **Parallel Codegen**: Set `PYDAE_PARALLEL=1` for > 200 expressions.
+## Architecture & Monorepo
+- **Packages**: `pydae-core` (published as `pydae`), `pydae-bps`, `pydae-uds`.
+- **Namespace Constraint**: `packages/*/src/pydae/` MUST NOT contain `__init__.py`. Adding one breaks the namespace merging of the three packages.
+- **Pipeline**: `Builder(sys_dict)` → `build()` → `Model.load()`.
+- **Parallel Codegen**: Set `PYDAE_PARALLEL=1` for systems with > 200 expressions to speed up SymPy translation.
+
+## Windows & Environment Gotchas
+- **Build Backend**: On Windows, `Builder(..., target='ctypes')` is more reliable than `cffi`.
+- **Python 3.13 Warning**: `ctypes` and `cffi` can trigger heap corruption (`0xc0000374`) during codegen on Windows 3.13.
+- **Sparse Solvers**: Sparse solvers (KLU) via `ctypes` are unstable on Windows. Use `sparse=False` (dense) for local development on Windows.
+- **Line Endings**: Force LF. Do not convert to CRLF, as it breaks CFFI caching hashes.
+
+## Physics & Solver Stability
+- **Initial Guesses**: Never set `lam=0` (causes singular Jacobian). Use `lam >= 10.0` (50.0 is better).
+- **Steady State**: Always include velocities (e.g., `v_x=0, v_y=0`) in initial guesses.
+- **Diagnostics**: If `model.ini()` fails, it automatically prints a **DAE SOLVER DIAGNOSTIC REPORT** and saves `jacobian_diagnostic.png`. Check for zero rows/columns or large residuals.
+- **ini/run Swap**: When initializing PV buses, replace variables in `y_ini` in-place at the same index to keep downstream integer-index references stable.
 
 ## Conventions
-*   **Docstrings**: Use raw strings `r"""..."""` for LaTeX support.
-*   **Component Tests**: Include `def test():` at the bottom of component modules; verify against sibling `.hjson`.
-*   **Paths**: Use `pathlib.Path` or `/`. No hard-coded backslashes for cross-platform compatibility.
-*   **ini/run swap**: Swap variable values in-place at the same index in `y_ini`. Never delete/re-append to keep indices stable for component reference.
-
-## Environment & Gotchas
-
-### Windows Build Backend
-*   **Codegen crashes**: On Windows Python 3.13, both ctypes and cffi fail in `sym2xyup` (regex heap corruption `0xc0000374`).
-*   **CI skips builds**: `ci.yml` explicitly skips build/model tests on Windows. Fast tests only (`parse`, `symbolic`, `codegen`) run.
-*   **Use `sparse=False`**: If building locally on Windows, use dense backend.
-
-### Initial Guess Physics
-*   **Never set `lam=0`**: Causes singular Jacobian (`dFx/dlam = -2*p_x` becomes exactly zero).
-*   Use `lam >= 10.0` (50.0 is more robust) and include velocities: `v_x=0, v_y=0`.
-
-### Sparse Solvers on Windows
-*   KLU with ctypes may fail even when cffi+KLU passes.
-*   **Fix**: Use `dense` backend on Windows (no sparse solver).
-
-### Buffer Overflow Shield
-*   `model_class.py` has `PAD = 50` guard band.
-*   `STATUS_HEAP_CORRUPTION` on Windows indicates C array index-out-of-bounds.
-
-### Line Endings
-*   Force LF via `.gitattributes`. Do not override.
+- **Docstrings**: Use raw strings `r"""..."""` to avoid LaTeX escape sequence errors (e.g., `\xi`).
+- **Component Tests**: New components in `bps`/`uds` should have a `test()` function at the bottom and a sibling `.hjson` fixture.
+- **Paths**: Use `pathlib.Path` or forward slashes `/`. No hard-coded backslashes.
