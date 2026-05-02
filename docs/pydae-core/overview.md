@@ -3,24 +3,31 @@
 ## What pydae-core does
 
 `pydae-core` takes a symbolic description of a DAE system and turns it into a
-fast, standalone simulation object. Internally the pipeline is:
+fast, standalone simulation object. The package supports **two independent
+pipelines** — a compiled C pipeline and a CasADi-native pipeline — each with
+its own Builder and Model:
 
 ```{mermaid}
-flowchart LR
-    A[sys_dict<br/>SymPy expressions] --> B[Builder]
-    B --> C[Generated C code]
-    C --> D[Compiled .so / .dll<br/>ctypes or CFFI]
-    D --> E[Model<br/>runtime API]
-    E --> F[ini / run / post<br/>analysis]
+flowchart TD
+    A[sys_dict] --> B{Choose backend}
+    B -->|SymPy| C[SymPyBuilder]
+    B -->|CasADi| D[CasadiBuilder]
+    C --> E[Generated C code]
+    E --> F[Compiled .so / .dll]
+    F --> G[CtypesModel / CasadiModel\nbinary load]
+    D --> H[CasADi SX graph]
+    H --> I[CasadiModel\nsymbolic or precompiled]
+    G --> J[ini / run / post]
+    I --> J
 ```
 
 The key idea is that **building is symbolic and slow, simulation is numerical
-and fast**. You pay the compilation cost once and then run arbitrarily many
-scenarios through the compiled binary.
+and fast**. You pay the compilation or graph-construction cost once and then
+run arbitrarily many scenarios.
 
 ## Main objects
 
-### `Builder`
+### `Builder` (SymPy → C)
 
 Consumes a `sys_dict` of SymPy expressions and produces compiled C code plus a
 Python wrapper.
@@ -32,10 +39,22 @@ bld = Builder(sys_dict, target="ctypes")
 bld.build()
 ```
 
-### `Model`
+### `CasadiBuilder` (CasADi → SX graph)
 
-The runtime interface to a built system. Supports steady-state initialisation
-(`ini`), time-domain simulation (`run`), and post-processing (`post`).
+Consumes a `sys_dict` of CasADi SX expressions and builds a CasADi rootfinder
+and IDAS integrator.
+
+```python
+from pydae.core.builder import CasadiBuilder
+
+bld = CasadiBuilder(sys_dict).build()
+```
+
+### `Model` (ctypes/CFFI runtime)
+
+The runtime interface to a C-compiled system. Supports steady-state
+initialisation (`ini`), time-domain simulation (`run`), and post-processing
+(`post`).
 
 ```python
 from pydae.core import Model
@@ -43,6 +62,19 @@ from pydae.core import Model
 model = Model("my_system")
 model.ini({...}, xy_0={...})
 model.run(10.0, {"u_1": 1.0})
+model.post()
+```
+
+### `CasadiModel` (CasADi runtime)
+
+The runtime interface for the CasADi pipeline. Same API as `Model`.
+
+```python
+from pydae.core.model import CasadiModel
+
+model = CasadiModel(bld)
+model.ini({...}, xy_0={...})
+model.run(10.0)
 model.post()
 ```
 

@@ -85,6 +85,7 @@ autodoc_mock_imports = [
     "numpy",
     "scipy",
     "sympy",
+    "casadi",
     "matplotlib",
     "pandas",
     "cffi",

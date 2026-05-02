@@ -15,6 +15,14 @@ Compact instructions for OpenCode sessions in `pydae`. See `CLAUDE.md` for full 
 - **Pipeline**: `Builder(sys_dict)` → `build()` → `Model.load()`.
 - **Parallel Codegen**: Set `PYDAE_PARALLEL=1` for systems with > 200 expressions to speed up SymPy translation.
 
+## CasADi Backend
+- **Location**: `pydae.core.builder.casadi.{CasadiBuilder, CasadiModel}`
+- **No C compiler needed** — uses CasADi JIT and IDAS integrator.
+- **API parity**: `CasadiModel` exposes `ini()`, `run()`, `post()`, `A_eval()`, `BCD_eval()`, `eval_eigenvalues()`.
+- **Initialization**: `ca.rootfinder('newton')` for algebraic solves.
+- **Integration**: `ca.integrator('idas')` for DAE time-stepping.
+- **Shadowing fix**: Builder stores evaluators as `A_eval_fn`, `B_eval_fn`, etc. to avoid `self.A_eval` shadowing the method.
+
 ## Windows & Environment Gotchas
 - **Build Backend**: On Windows, `Builder(..., target='ctypes')` is more reliable than `cffi`.
 - **Python 3.13 Warning**: `ctypes` and `cffi` can trigger heap corruption (`0xc0000374`) during codegen on Windows 3.13.

@@ -2,8 +2,9 @@
 
 **The DAE solver engine at the heart of the pydae ecosystem.**
 
-`pydae-core` combines [SymPy](https://www.sympy.org) symbolic computation with
-compiled C code (via `ctypes` / `CFFI`) to provide a fast, user-friendly solver
+`pydae-core` combines symbolic computation ([SymPy](https://www.sympy.org) or
+[CasADi](https://web.casadi.org)) with compiled C code (via `ctypes` / `CFFI`)
+or native CasADi integrators (IDAS) to provide a fast, user-friendly solver
 for Differential-Algebraic Equation (DAE) systems of the form:
 
 $$

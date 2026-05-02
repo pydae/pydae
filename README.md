@@ -2,7 +2,7 @@
 
 **Environment to solve and analyze Differential-Algebraic Equation (DAE) systems**
 
-pydae combines SymPy symbolic computation with compiled C code (via ctypes/CFFI) to provide a fast, user-friendly DAE solver. It is oriented toward power systems analysis but can be used in any field requiring DAE solutions.
+pydae combines symbolic computation (SymPy or CasADi) with compiled C code (via ctypes/CFFI) or native CasADi integrators to provide a fast, user-friendly DAE solver. It is oriented toward power systems analysis but can be used in any field requiring DAE solutions.
 
 ## Repository Structure
 
@@ -16,10 +16,17 @@ pydae/
 │   ├── pydae-core/             ← Core DAE solver engine
 │   │   ├── pyproject.toml      ← Published as "pydae" on PyPI
 │   │   ├── src/pydae/core/
-│   │   │   ├── builder/        ← Symbolic → C code pipeline
-│   │   │   ├── solver/         ← C source (daesolver_dense, LAPACK)
-│   │   │   ├── diagnostics/    ← Jacobian health checks
-│   │   │   └── model_class.py  ← Runtime Model API
+│   │   │   ├── builder/        ← Builder backends
+│   │   │   │   ├── sympy_builder.py    ← SymPy → C pipeline
+│   │   │   │   ├── casadi_builder.py   ← CasADi backend
+│   │   │   │   └── codegen/            ← CFFI / ctypes codegen
+│   │   │   ├── model/          ← Model runtimes
+│   │   │   │   ├── ctypes_model.py     ← ctypes/CFFI Model
+│   │   │   │   └── casadi_model.py     ← CasADi Model (IDAS)
+│   │   │   ├── common/         ← Shared utilities
+│   │   │   │   ├── parser.py           ← system dict parsing
+│   │   │   │   └── symbolic.py         ← symbolic Jacobians
+│   │   │   └── diagnostics/    ← Jacobian health checks
 │   │   └── src/pydae/daesolver/  ← daesolver.h and daesolver.c source files
 │   │
 │   ├── pydae-bps/              ← Balanced Power Systems (was "bmapu")
@@ -128,12 +135,35 @@ model.run(20.0, {'f_x': 0.0})
 model.post()
 ```
 
+### CasADi Backend (no C compiler required)
+
+```python
+from pydae.core.builder import CasadiBuilder, CasadiModel
+import casadi as ca
+
+# 1. Define system with CasADi SX symbols
+L, G, M = [ca.SX.sym(n) for n in ['L', 'G', 'M']]
+# ... build sys_dict with CasADi expressions ...
+
+# 2. Build and simulate (uses CasADi rootfinder + IDAS integrator)
+bld = CasadiBuilder(sys_dict).build()
+model = CasadiModel(bld)
+model.ini({'theta': np.deg2rad(10)}, xy_0={...})
+model.run(10.0)
+model.post()
+```
+
 ## Migration Guide (from old structure)
 
 | Old import | New import |
 |---|---|
 | `import pydae.build_cffi as db` | `from pydae.core import Builder` |
 | `db.builder(sys_dict)` | `Builder(sys_dict)` |
+| `from pydae.core.builder.casadi.casadi_builder import CasadiBuilder` | `from pydae.core.builder import CasadiBuilder` |
+| `from pydae.core.builder.casadi.casadi_model import CasadiModel` | `from pydae.core.model import CasadiModel` |
+| `from pydae.core.model_class import Model` | `from pydae.core import Model` |
+| `from pydae.core.builder.parser import ...` | `from pydae.core.common.parser import ...` |
+| `from pydae.core.builder.symbolic import ...` | `from pydae.core.common.symbolic import ...` |
 | `from pydae.bmapu import bmapu_builder` | `from pydae.bps import BpsBuilder` |
 | `from pydae.urisi import urisi_builder` | `from pydae.uds import UdsBuilder` |
 

@@ -9,7 +9,9 @@ It is the canonical "hello world" for the library.
 pip install pydae
 ```
 
-You will also need a working C compiler on the PATH (`gcc` or MSVC on Windows).
+For the default SymPy → C pipeline you will also need a working C compiler on
+the PATH (`gcc` or MSVC on Windows). If you prefer to skip compilation, use
+the CasADi backend (see [Overview](overview.md) — no compiler required).
 
 ## 2. Describe the system symbolically
 

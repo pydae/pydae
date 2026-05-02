@@ -12,9 +12,14 @@ This is a scaffold. To enable auto-generated API docs from docstrings:
 
 The main public names are:
 
-- **`pydae.core.Builder`** — builds compiled DAE models from a `sys_dict`.
-- **`pydae.core.Model`** — runtime interface for a built model
+- **`pydae.core.Builder`** — SymPy → C pipeline. Builds compiled DAE models
+  from a `sys_dict`.
+- **`pydae.core.Model`** — ctypes/CFFI runtime interface for a built model
   (`ini`, `run`, `post`, `get_values`).
+- **`pydae.core.builder.CasadiBuilder`** — CasADi → SX graph pipeline.
+  No C compiler required.
+- **`pydae.core.model.CasadiModel`** — CasADi runtime (IDAS integrator).
+- **`pydae.core.common`** — shared parser and symbolic utilities.
 - **`pydae.core.diagnostics`** — Jacobian health checks and structural
   analysis helpers.
 
@@ -25,6 +30,13 @@ The main public names are:
     :recursive:
 
     pydae.core
+    pydae.core.builder.sympy_builder
+    pydae.core.builder.casadi_builder
+    pydae.core.model.ctypes_model
+    pydae.core.model.casadi_model
+    pydae.core.common.parser
+    pydae.core.common.symbolic
+    pydae.core.diagnostics
 ```
 
 ## pydae.ssa
