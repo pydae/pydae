@@ -1,0 +1,335 @@
+{
+"system":{name:"ieee39","S_base":100e6},       
+"agc":{"K_p_agc":0.0, "K_i_agc":0.01, "gen":"G01"}
+"buses":[
+  {name:"01",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"02",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"03",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"04",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"05",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"06",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"07",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"08",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"09",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"10",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"11",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"12",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"13",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"14",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"15",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"16",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"17",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"18",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"19",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"20",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"21",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"22",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"23",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"24",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"25",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"26",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"27",P_W:0, Q_var:0, U_kV:400.0},   
+  {name:"28",P_W:0, Q_var:0, U_kV:400.0},   
+  {name:"29",P_W:0, Q_var:0, U_kV:400.0},   
+  {name:"30",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"31",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"32",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"33",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"34",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"35",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"36",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"37",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"38",P_W:0, Q_var:0, U_kV:400.0},  
+  {name:"39",P_W:0, Q_var:0, U_kV:400.0}     
+    ],
+loads:[ 
+  {bus:"03", type:"zip", p_mw:   322, q_mvar:  2.4, K_zp: 0.0, K_zq:0.0},  
+  {bus:"04", type:"zip", p_mw:   500, q_mvar:  184, K_zp: 0.0, K_zq:0.0},  
+  {bus:"07", type:"zip", p_mw: 233.8, q_mvar:   84, K_zp: 0.0, K_zq:0.0},  
+  {bus:"08", type:"zip", p_mw:   522, q_mvar:  176, K_zp: 0.0, K_zq:0.0},  
+  {bus:"12", type:"zip", p_mw:   7.5, q_mvar:   88, K_zp: 0.0, K_zq:0.0},   
+  {bus:"15", type:"zip", p_mw:   320, q_mvar:  153, K_zp: 0.0, K_zq:0.0},  
+  {bus:"16", type:"zip", p_mw:   329, q_mvar: 32.3, K_zp: 0.0, K_zq:0.0},    
+  {bus:"18", type:"zip", p_mw:   158, q_mvar:   30, K_zp: 0.0, K_zq:0.0},    
+  {bus:"20", type:"zip", p_mw:   628, q_mvar:  103, K_zp: 0.0, K_zq:0.0},  
+  {bus:"21", type:"zip", p_mw:   274, q_mvar:  115, K_zp: 0.0, K_zq:0.0},   
+  {bus:"23", type:"zip", p_mw: 274.5, q_mvar: 84.6, K_zp: 0.0, K_zq:0.0},  
+  {bus:"24", type:"zip", p_mw: 308.6, q_mvar:  -92, K_zp: 0.0, K_zq:0.0},  
+  {bus:"25", type:"zip", p_mw:   224, q_mvar: 47.2, K_zp: 0.0, K_zq:0.0},  
+  {bus:"26", type:"zip", p_mw:   139, q_mvar:   17, K_zp: 0.0, K_zq:0.0},  
+  {bus:"27", type:"zip", p_mw:   281, q_mvar: 75.5, K_zp: 0.0, K_zq:0.0},   
+  {bus:"28", type:"zip", p_mw:   206, q_mvar: 27.6, K_zp: 0.0, K_zq:0.0},   
+  {bus:"29", type:"zip", p_mw: 283.5, q_mvar: 26.9, K_zp: 0.0, K_zq:0.0},   
+  {bus:"31", type:"zip", p_mw:   9.2, q_mvar:  4.6, K_zp: 0.0, K_zq:0.0},  
+  {bus:"39", type:"zip", p_mw:  1104, q_mvar:  250, K_zp: 0.0, K_zq:0.0}
+],
+"lines":[
+{bus_j:"01",bus_k: "02", R_pu: 0.0035, X_pu: 0.0411, B_pu: 0.6987, S_mva:100.0},
+{bus_j:"01",bus_k: "39", R_pu:  0.001, X_pu:  0.025, B_pu:   0.75, S_mva:100.0},
+{bus_j:"02",bus_k: "03", R_pu: 0.0013, X_pu: 0.0151, B_pu: 0.2572, S_mva:100.0},
+{bus_j:"02",bus_k: "25", R_pu:  0.007, X_pu: 0.0086, B_pu:  0.146, S_mva:100.0},
+{bus_j:"03",bus_k: "04", R_pu: 0.0013, X_pu: 0.0213, B_pu: 0.2214, S_mva:100.0},
+{bus_j:"03",bus_k: "18", R_pu: 0.0011, X_pu: 0.0133, B_pu: 0.2138, S_mva:100.0},
+{bus_j:"04",bus_k: "05", R_pu: 0.0008, X_pu: 0.0128, B_pu: 0.1342, S_mva:100.0},
+{bus_j:"04",bus_k: "14", R_pu: 0.0008, X_pu: 0.0129, B_pu: 0.1382, S_mva:100.0},
+{bus_j:"05",bus_k: "06", R_pu: 0.0002, X_pu: 0.0026, B_pu: 0.0434, S_mva:100.0},
+{bus_j:"05",bus_k: "08", R_pu: 0.0008, X_pu: 0.0112, B_pu: 0.1476, S_mva:100.0},
+{bus_j:"06",bus_k: "07", R_pu: 0.0006, X_pu: 0.0092, B_pu:  0.113, S_mva:100.0},
+{bus_j:"06",bus_k: "11", R_pu: 0.0007, X_pu: 0.0082, B_pu: 0.1389, S_mva:100.0},
+{bus_j:"07",bus_k: "08", R_pu: 0.0004, X_pu: 0.0046, B_pu:  0.078, S_mva:100.0},
+{bus_j:"08",bus_k: "09", R_pu: 0.0023, X_pu: 0.0363, B_pu: 0.3804, S_mva:100.0},
+{bus_j:"09",bus_k: "39", R_pu:  0.001, X_pu:  0.025, B_pu:    1.2, S_mva:100.0},
+{bus_j:"10",bus_k: "11", R_pu: 0.0004, X_pu: 0.0043, B_pu: 0.0729, S_mva:100.0},
+{bus_j:"10",bus_k: "13", R_pu: 0.0004, X_pu: 0.0043, B_pu: 0.0729, S_mva:100.0},
+{bus_j:"13",bus_k: "14", R_pu: 0.0009, X_pu: 0.0101, B_pu: 0.1723, S_mva:100.0},
+{bus_j:"14",bus_k: "15", R_pu: 0.0018, X_pu: 0.0217, B_pu:  0.366, S_mva:100.0},
+{bus_j:"15",bus_k: "16", R_pu: 0.0009, X_pu: 0.0094, B_pu:  0.171, S_mva:100.0},
+{bus_j:"16",bus_k: "17", R_pu: 0.0007, X_pu: 0.0089, B_pu: 0.1342, S_mva:100.0},
+{bus_j:"16",bus_k: "19", R_pu: 0.0016, X_pu: 0.0195, B_pu:  0.304, S_mva:100.0},
+{bus_j:"16",bus_k: "21", R_pu: 0.0008, X_pu: 0.0135, B_pu: 0.2548, S_mva:100.0},
+{bus_j:"16",bus_k: "24", R_pu: 0.0003, X_pu: 0.0059, B_pu:  0.068, S_mva:100.0},
+{bus_j:"17",bus_k: "18", R_pu: 0.0007, X_pu: 0.0082, B_pu: 0.1319, S_mva:100.0},
+{bus_j:"17",bus_k: "27", R_pu: 0.0013, X_pu: 0.0173, B_pu: 0.3216, S_mva:100.0},
+{bus_j:"21",bus_k: "22", R_pu: 0.0008, X_pu:  0.014, B_pu: 0.2565, S_mva:100.0},
+{bus_j:"22",bus_k: "23", R_pu: 0.0006, X_pu: 0.0096, B_pu: 0.1846, S_mva:100.0},
+{bus_j:"23",bus_k: "24", R_pu: 0.0022, X_pu:  0.035, B_pu:  0.361, S_mva:100.0},
+{bus_j:"25",bus_k: "26", R_pu: 0.0032, X_pu: 0.0323, B_pu:  0.513, S_mva:100.0},
+{bus_j:"26",bus_k: "27", R_pu: 0.0014, X_pu: 0.0147, B_pu: 0.2396, S_mva:100.0},
+{bus_j:"26",bus_k: "28", R_pu: 0.0043, X_pu: 0.0474, B_pu: 0.7802, S_mva:100.0},
+{bus_j:"26",bus_k: "29", R_pu: 0.0057, X_pu: 0.0625, B_pu:  1.029, S_mva:100.0},
+{bus_j:"28",bus_k: "29", R_pu: 0.0014, X_pu: 0.0151, B_pu:  0.249, S_mva:100.0},
+],
+transformers: [
+    {bus_j:"12",bus_k: "11", R_pu: 0.0016, X_pu: 0.0435, S_mva:100.0, "tap_m": 1.006},
+    {bus_j:"12",bus_k: "13", R_pu: 0.0016, X_pu: 0.0435, S_mva:100.0, "tap_m": 1.006},
+    {bus_j:"06",bus_k: "31", R_pu:      0, X_pu:  0.025, S_mva:100.0, "tap_m":  1.07},
+    {bus_j:"10",bus_k: "32", R_pu:      0, X_pu:   0.02, S_mva:100.0, "tap_m":  1.07},
+    {bus_j:"19",bus_k: "33", R_pu: 0.0007, X_pu: 0.0142, S_mva:100.0, "tap_m":  1.07},
+    {bus_j:"20",bus_k: "34", R_pu: 0.0009, X_pu:  0.018, S_mva:100.0, "tap_m": 1.009},
+    {bus_j:"22",bus_k: "35", R_pu:      0, X_pu: 0.0143, S_mva:100.0, "tap_m": 1.025},
+    {bus_j:"23",bus_k: "36", R_pu: 0.0005, X_pu: 0.0272, S_mva:100.0, "tap_m":     1},
+    {bus_j:"25",bus_k: "37", R_pu: 0.0006, X_pu: 0.0232, S_mva:100.0, "tap_m": 1.025},
+    {bus_j:"02",bus_k: "30", R_pu:      0, X_pu: 0.0181, S_mva:100.0, "tap_m": 1.025},
+    {bus_j:"29",bus_k: "38", R_pu: 0.0008, X_pu: 0.0156, S_mva:100.0, "tap_m": 1.025},
+    {bus_j:"19",bus_k: "20", R_pu: 0.0007, X_pu: 0.0138, S_mva:100.0, "tap_m":  1.06}
+],
+shunts: [{bus:"16", X_pu:1e6, R_pu:0.0, S_mva:100}],
+"syns":[
+          {bus:"30",name:"G10", type: "milano4ord", S_n: 312.5e6,F_n:60,H:13.44,D:0,R_a:0.0,X1d:0.0969,X1q:0.0250,X_d:0.3125,X_q:0.2156,T1d0:10.2,T1q0:0.10,X_l:0.0391,K_sec:0,K_delta:0,
+          avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0475},
+          gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+          pss:{type:"pss_kundur_2", K_stab:1.0, T_w:10.0, T_1:1.0, T_2:0.05, T_3:3.0, T_4:0.50, V_Smax: 0.2, V_Smin: -0.2},
+          lc: {K_i: 0.01, p_c_lc: 0.8}
+             },
+        // {bus:"31", name:"G02",  type: "milano4ord", S_n:100e6, F_n:60, H: 30.3, D:0, R_a:0, X1d: 0.0697, X1q:   0.17, X_d:  0.295, X_q: 0.282, T1d0:  6.56, T1q0:   1.5, X_l:  0.035, K_sec:1.0, K_delta:0.0,
+          {bus:"31",name:"G02", type: "milano4ord", S_n: 651.0e6,F_n:60,H: 4.65,D:0,R_a:0.0,X1d:0.4538,X1q:1.1067,X_d:1.9205,X_q:1.8359,T1d0:6.56,T1q0:1.50,X_l:0.2279,K_sec:1,K_delta:0.0,
+            avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:0.9820},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:0.5, T_w:10.0, T_1:5.0, T_2:0.40, T_3:1.0, T_4:0.10, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+            },
+        // {bus:"32", name:"G03",  type: "milano4ord", S_n:100e6, F_n:60, H: 35.8, D:0, R_a:0, X1d: 0.0531, X1q: 0.0876, X_d: 0.2495, X_q: 0.237, T1d0:   5.7, T1q0:   1.5, X_l: 0.0304, K_sec:0.0, K_delta:0.0,
+          {bus:"32",name:"G03", type: "milano4ord", S_n: 812.5e6,F_n:60,H: 4.41,D:0,R_a:0.0,X1d:0.4314,X1q:0.7118,X_d:2.0272,X_q:1.9256,T1d0:5.70,T1q0:1.50,X_l:0.2470,K_sec:0,K_delta:0,
+            avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:0.9831},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:0.5, T_w:10.0, T_1:3.0, T_2:0.20, T_3:2.0, T_4:0.20, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+             },
+        // {bus:"33", name:"G04",  type: "milano4ord", S_n:100e6, F_n:60, H: 28.6, D:0, R_a:0, X1d: 0.0436, X1q:  0.166, X_d:  0.262, X_q: 0.258, T1d0:  5.69, T1q0:   1.5, X_l: 0.0295, K_sec:0.0, K_delta:0.0,
+          {bus:"33",name:"G04", type: "milano4ord", S_n: 790.0e6,F_n:60,H: 3.62,D:0,R_a:0.0,X1d:0.3444,X1q:1.3114,X_d:2.0698,X_q:2.0382,T1d0:5.69,T1q0:1.50,X_l:0.2330,K_sec:0,K_delta:0,
+            avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:0.9972}
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:2.0, T_w:10.0, T_1:1.0, T_2:0.10, T_3:1.0, T_4:0.30, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+             },
+     //    {bus:"34", name:"G05",  type: "milano4ord", S_n:100e6, F_n:60, H: 26.0, D:0, R_a:0, X1d:  0.132, X1q:  0.166, X_d:   0.67, X_q:  0.62, T1d0:   5.4, T1q0:  0.44, X_l:  0.054, K_sec:0.0, K_delta:0.0,
+          {bus:"34",name:"G05", type: "milano4ord", S_n: 635.0e6,F_n:60,H: 4.09,D:0,R_a:0.0,X1d:0.8382,X1q:1.0541,X_d:4.2545,X_q:3.9370,T1d0:5.40,T1q0:0.44,X_l:0.3429,K_sec:0,K_delta:0,
+            avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0123},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:1.0, T_w:10.0, T_1:1.5, T_2:0.20, T_3:1.0, T_4:0.10, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+             },
+      //  {bus:"35", name:"G06",  type: "milano4ord", S_n:100e6, F_n:60, H: 34.8, D:0, R_a:0, X1d:   0.05, X1q: 0.0814, X_d:  0.254, X_q: 0.241, T1d0:   7.3, T1q0:   0.4, X_l: 0.0224, K_sec:0.0, K_delta:0.0,
+          {bus:"35",name:"G06", type: "milano4ord", S_n: 812.5e6,F_n:60,H: 4.28,D:0,R_a:0.0,X1d:0.4062,X1q:0.6614,X_d:2.0638,X_q:1.9581,T1d0:7.30,T1q0:0.40,X_l:0.1820,K_sec:0,K_delta:0,
+              avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0493},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:4.0, T_w:10.0, T_1:0.5, T_2:0.10, T_3:0.5, T_4:0.05, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+             },
+     //    {bus:"36", name:"G07",  type: "milano4ord", S_n:100e6, F_n:60, H: 26.4, D:0, R_a:0, X1d:  0.049, X1q:  0.186, X_d:  0.295, X_q: 0.292, T1d0:  5.66, T1q0:   1.5, X_l: 0.0322, K_sec:0.0, K_delta:0.0,
+          {bus:"36",name:"G07", type: "milano4ord", S_n: 700.0e6,F_n:60,H: 3.77,D:0,R_a:0.0,X1d:0.3430,X1q:1.3020,X_d:2.0650,X_q:2.0440,T1d0:5.66,T1q0:1.50,X_l:0.2254,K_sec:0,K_delta:0,
+             avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0635},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:7.5, T_w:10.0, T_1:0.2, T_2:0.02, T_3:0.5, T_4:0.10, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+             },
+     //    {bus:"37", name:"G08",  type: "milano4ord", S_n:100e6, F_n:60, H: 24.3, D:0, R_a:0, X1d:  0.057, X1q: 0.0911, X_d:   0.29, X_q:  0.28, T1d0:   6.7, T1q0:  0.41, X_l:  0.028, K_sec:0.0, K_delta:0.0,
+          {bus:"37",name:"G08", type: "milano4ord", S_n: 675.0e6,F_n:60,H: 3.60,D:0,R_a:0.0,X1d:0.3848,X1q:0.6149,X_d:1.9575,X_q:1.8900,T1d0:6.70,T1q0:0.41,X_l:0.1890,K_sec:0,K_delta:0,
+            avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0278},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:2.0, T_w:10.0, T_1:1.0, T_2:0.20, T_3:1.0, T_4:0.10, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8}
+            },
+     //    {bus:"38", name:"G09",  type: "milano4ord", S_n:100e6, F_n:60, H: 34.5, D:0, R_a:0, X1d:  0.057, X1q: 0.0587, X_d: 0.2106, X_q: 0.205, T1d0:  4.79, T1q0:  1.96, X_l: 0.0298, K_sec:0.0, K_delta:0.0,
+          {bus:"38",name:"G09", type: "milano4ord", S_n:1037.5e6,F_n:60,H: 3.33,D:0,R_a:0.0,X1d:0.5914,X1q:0.6090,X_d:2.1850,X_q:2.1269,T1d0:4.79,T1q0:1.96,X_l:0.3092,K_sec:0,K_delta:0,
+             avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0265},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:2.0, T_w:10.0, T_1:1.0, T_2:0.50, T_3:2.0, T_4:0.10, V_Smax: 0.2, V_Smin: -0.2},
+            lc: {K_i: 0.01, p_c_lc: 0.8} 
+            },
+     //    {bus:"39", name:"G01",  type: "milano4ord", S_n:100e6, F_n:60, H:  500, D:0, R_a:0, X1d:  0.006, X1q:  0.008, X_d:   0.02, X_q: 0.019, T1d0:     7, T1q0:   0.7, X_l:  0.003, K_sec:0.0, K_delta:0.0,
+          {bus:"39",name:"G01", type: "milano4ord", S_n:1250.0e6,F_n:60,H: 500.0,D:0,R_a:0.0,X1d:0.0750,X1q:0.1000,X_d:0.2500,X_q:0.2375,T1d0:7.00,T1q0:0.70,X_l:0.0375,K_sec:0,K_delta:0.001,Delta_ref:0,
+             avr: {type: "sexs", K_a: 200.0, T_a: 0.015, T_b: 10.0, T_e: 0.1,E_min: -5.0, E_max: 5.0,v_ref:1.0300},
+            gov: {type: "tgov1", R: 0.05, T_1: 0.5,V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+            pss:{type:"pss_kundur_2", K_stab:1.0, T_w:10.0, T_1:5.0, T_2:0.60, T_3:3.0, T_4:0.50, V_Smax: 0.2, V_Smin: -0.2}
+            }
+        ],
+"faults":[{bus:"16"}]
+
+// ── VALIDATION RESULTS (PESTR18 §5.4, MATLAB-based implementation) ────────
+// Power flow: PESTR18 Table 5.32  |  Eigenvalues: Tables 5.39–5.41
+// All bus voltages and angles are from the PESTR18 power flow solution.
+// Generator P/Q are the scheduled injections at the reference operating point.
+results: {
+
+  // PESTR18 Table 5.32 — bus voltages and angles
+  buses: [
+    {name: "01", V_pu: 1.047, theta_deg:  -8.4},
+    {name: "02", V_pu: 1.049, theta_deg:  -5.8},
+    {name: "03", V_pu: 1.030, theta_deg:  -8.6},
+    {name: "04", V_pu: 1.004, theta_deg:  -9.6},
+    {name: "05", V_pu: 1.005, theta_deg:  -8.6},
+    {name: "06", V_pu: 1.008, theta_deg:  -7.9},
+    {name: "07", V_pu: 0.997, theta_deg: -10.1},
+    {name: "08", V_pu: 0.996, theta_deg: -10.6},
+    {name: "09", V_pu: 1.028, theta_deg: -10.3},
+    {name: "10", V_pu: 1.017, theta_deg:  -5.4},
+    {name: "11", V_pu: 1.013, theta_deg:  -6.3},
+    {name: "12", V_pu: 1.000, theta_deg:  -6.2},
+    {name: "13", V_pu: 1.014, theta_deg:  -6.1},
+    {name: "14", V_pu: 1.012, theta_deg:  -7.7},
+    {name: "15", V_pu: 1.015, theta_deg:  -7.7},
+    {name: "16", V_pu: 1.032, theta_deg:  -6.2},
+    {name: "17", V_pu: 1.034, theta_deg:  -7.3},
+    {name: "18", V_pu: 1.031, theta_deg:  -8.2},
+    {name: "19", V_pu: 1.050, theta_deg:  -1.0},
+    {name: "20", V_pu: 0.991, theta_deg:  -2.0},
+    {name: "21", V_pu: 1.032, theta_deg:  -3.8},
+    {name: "22", V_pu: 1.050, theta_deg:   0.7},
+    {name: "23", V_pu: 1.045, theta_deg:   0.5},
+    {name: "24", V_pu: 1.037, theta_deg:  -6.1},
+    {name: "25", V_pu: 1.058, theta_deg:  -4.4},
+    {name: "26", V_pu: 1.052, theta_deg:  -5.5},
+    {name: "27", V_pu: 1.038, theta_deg:  -7.5},
+    {name: "28", V_pu: 1.051, theta_deg:  -2.0},
+    {name: "29", V_pu: 1.050, theta_deg:   0.7},
+    {name: "30", V_pu: 1.048, theta_deg:  -3.3},
+    {name: "31", V_pu: 0.982, theta_deg:   0.0},
+    {name: "32", V_pu: 0.983, theta_deg:   2.6},
+    {name: "33", V_pu: 0.997, theta_deg:   4.2},
+    {name: "34", V_pu: 1.012, theta_deg:   3.2},
+    {name: "35", V_pu: 1.049, theta_deg:   5.6},
+    {name: "36", V_pu: 1.064, theta_deg:   8.3},
+    {name: "37", V_pu: 1.028, theta_deg:   2.4},
+    {name: "38", V_pu: 1.027, theta_deg:   7.8},
+    {name: "39", V_pu: 1.030, theta_deg: -10.1}
+  ],
+
+  // PESTR18 Table 5.32 — generator scheduled output (9 machines; G01/bus39 → vsource)
+  // Note: G02 (bus 31) net generation = 520.8 - 9.2 = 511.6 MW (has local load)
+  syns: [
+    {bus: "30", name: "G10", P_MW:  250.0, Q_Mvar: 147.6},
+    {bus: "31", name: "G02", P_MW:  520.8, Q_Mvar: 198.2},
+    {bus: "32", name: "G03", P_MW:  650.0, Q_Mvar: 204.7},
+    {bus: "33", name: "G04", P_MW:  632.0, Q_Mvar: 109.6},
+    {bus: "34", name: "G05", P_MW:  508.0, Q_Mvar: 165.3},
+    {bus: "35", name: "G06", P_MW:  650.0, Q_Mvar: 210.6},
+    {bus: "36", name: "G07", P_MW:  560.0, Q_Mvar: 102.9},
+    {bus: "37", name: "G08", P_MW:  540.0, Q_Mvar:   0.2},
+    {bus: "38", name: "G09", P_MW:  830.0, Q_Mvar:  23.2},
+    {bus: "39", name: "G01", P_MW: 1000.0, Q_Mvar: 87.8}
+  ],
+
+  // PESTR18 Table 5.32 — source/genape (G01 equivalent at bus 39)
+  // G01 is modelled as genape (infinite bus); P and Q are from PESTR18.
+  // P_MW = net generation from G01 (1000 MW); Q_Mvar = 87.8 from PESTR18.
+  // The load at bus 39 (1104 MW, 250 Mvar) is a separate element.
+  sources: [
+    
+  ],
+
+  // PESTR18 Tables 5.39–5.41 — 9 electromechanical modes (MATLAB implementation)
+  // freq_Hz = |imag| / (2*pi)    zeta = -real / sqrt(real^2 + imag^2)
+  eigenvalues: [
+    {id: "Mode 1", real: -2.553, imag: 10.566, freq_Hz: 1.682, zeta: 0.235},
+    {id: "Mode 2", real: -1.849, imag: 10.028, freq_Hz: 1.596, zeta: 0.181},
+    {id: "Mode 3", real: -1.582, imag:  8.550, freq_Hz: 1.361, zeta: 0.182},
+    {id: "Mode 4", real: -2.563, imag:  8.671, freq_Hz: 1.380, zeta: 0.283},
+    {id: "Mode 5", real: -1.863, imag:  7.439, freq_Hz: 1.184, zeta: 0.243},
+    {id: "Mode 6", real: -1.312, imag:  7.108, freq_Hz: 1.131, zeta: 0.181},
+    {id: "Mode 7", real: -1.844, imag:  7.081, freq_Hz: 1.127, zeta: 0.252},
+    {id: "Mode 8", real: -1.523, imag:  6.318, freq_Hz: 1.005, zeta: 0.234},
+    {id: "Mode 9", real: -0.498, imag:  3.682, freq_Hz: 0.586, zeta: 0.134}
+  ]
+}
+
+}
+
+// Generators:
+// 30 PV 1.0475    0   0  250 - G10
+// 31 PV 0.9820  9.2 4.6    - - G02
+// 32 PV 0.9831    0   0  650 - G03
+// 33 PV 0.9972    0   0  632 - G04
+// 34 PV 1.0123    0   0  508 - G05
+// 35 PV 1.0493    0   0  650 - G06
+// 36 PV 1.0635    0   0  560 - G07
+// 37 PV 1.0278    0   0  540 - G08
+// 38 PV 1.0265    0   0  830 - G09
+// 39 PV 1.0300 1104 250 1000 - G01
+
+//syns raw
+// 01    500     0   0.006   0.008    0.02   0.019     7   0.7    0.003
+// 02   30.3     0  0.0697    0.17   0.295   0.282  6.56   1.5    0.035
+// 03   35.8     0  0.0531  0.0876  0.2495   0.237   5.7   1.5   0.0304
+// 04   28.6     0  0.0436   0.166   0.262   0.258  5.69   1.5   0.0295
+// 05   26.0     0   0.132   0.166    0.67    0.62   5.4  0.44    0.054
+// 06   34.8     0    0.05  0.0814   0.254   0.241   7.3   0.4   0.0224
+// 07   26.4     0   0.049   0.186   0.295   0.292  5.66   1.5   0.0322
+// 08   24.3     0   0.057  0.0911    0.29    0.28   6.7  0.41    0.028
+// 09   34.5     0   0.057  0.0587  0.2106   0.205  4.79  1.96   0.0298
+// 10     42     0   0.031   0.008     0.1   0.069  10.2     0   0.0125
+
+//syns hjson
+// {bus:"39", name:"G01", S_n:100e6, F_n:60, H:  500, D:0, R_a:0, X1d:  0.006, X1q:  0.008, X_d:   0.02, X_q: 0.019, T1d0:     7, T1q0:   0.7, X_l:  0.003, K_sec:0.0, K_delta:0.0,
+// {bus:"31", name:"G02", S_n:100e6, F_n:60, H: 30.3, D:0, R_a:0, X1d: 0.0697, X1q:   0.17, X_d:  0.295, X_q: 0.282, T1d0:  6.56, T1q0:   1.5, X_l:  0.035, K_sec:0.0, K_delta:0.0,
+// {bus:"32", name:"G03", S_n:100e6, F_n:60, H: 35.8, D:0, R_a:0, X1d: 0.0531, X1q: 0.0876, X_d: 0.2495, X_q: 0.237, T1d0:   5.7, T1q0:   1.5, X_l: 0.0304, K_sec:0.0, K_delta:0.0,
+// {bus:"33", name:"G04", S_n:100e6, F_n:60, H: 28.6, D:0, R_a:0, X1d: 0.0436, X1q:  0.166, X_d:  0.262, X_q: 0.258, T1d0:  5.69, T1q0:   1.5, X_l: 0.0295, K_sec:0.0, K_delta:0.0,
+// {bus:"34", name:"G05", S_n:100e6, F_n:60, H: 26.0, D:0, R_a:0, X1d:  0.132, X1q:  0.166, X_d:   0.67, X_q:  0.62, T1d0:   5.4, T1q0:  0.44, X_l:  0.054, K_sec:0.0, K_delta:0.0,
+// {bus:"35", name:"G06", S_n:100e6, F_n:60, H: 34.8, D:0, R_a:0, X1d:   0.05, X1q: 0.0814, X_d:  0.254, X_q: 0.241, T1d0:   7.3, T1q0:   0.4, X_l: 0.0224, K_sec:0.0, K_delta:0.0,
+// {bus:"36", name:"G07", S_n:100e6, F_n:60, H: 26.4, D:0, R_a:0, X1d:  0.049, X1q:  0.186, X_d:  0.295, X_q: 0.292, T1d0:  5.66, T1q0:   1.5, X_l: 0.0322, K_sec:0.0, K_delta:0.0,
+// {bus:"37", name:"G08", S_n:100e6, F_n:60, H: 24.3, D:0, R_a:0, X1d:  0.057, X1q: 0.0911, X_d:   0.29, X_q:  0.28, T1d0:   6.7, T1q0:  0.41, X_l:  0.028, K_sec:0.0, K_delta:0.0,
+// {bus:"38", name:"G09", S_n:100e6, F_n:60, H: 34.5, D:0, R_a:0, X1d:  0.057, X1q: 0.0587, X_d: 0.2106, X_q: 0.205, T1d0:  4.79, T1q0:  1.96, X_l: 0.0298, K_sec:0.0, K_delta:0.0,
+// {bus:"30", name:"G10", S_n:100e6, F_n:60, H:   42, D:0, R_a:0, X1d:  0.031, X1q:  0.008, X_d:    0.1, X_q: 0.069, T1d0:  10.2, T1q0:   0.1, X_l: 0.0125, K_sec:0.0, K_delta:0.0,
+
+// {bus:"30",name:"G10",S_n: 312.5e6,F_n:60,H:13.44,D:0,R_a:0.0,X1d:0.0969,X1q:0.0250,X_d:0.3125,X_q:0.2156,T1d0:10.2,T1q0:0.10,X_l:0.0391,K_sec:0,K_delta:0,
+// {bus:"31",name:"G02",S_n: 651.0e6,F_n:60,H: 4.65,D:0,R_a:0.0,X1d:0.4538,X1q:1.1067,X_d:1.9205,X_q:1.8359,T1d0:6.56,T1q0:1.50,X_l:0.2279,K_sec:1,K_delta:0.01,
+// {bus:"32",name:"G03",S_n: 812.5e6,F_n:60,H: 4.41,D:0,R_a:0.0,X1d:0.4314,X1q:0.7118,X_d:2.0272,X_q:1.9256,T1d0:5.70,T1q0:1.50,X_l:0.2470,K_sec:0,K_delta:0,
+// {bus:"33",name:"G04",S_n: 790.0e6,F_n:60,H: 3.62,D:0,R_a:0.0,X1d:0.3444,X1q:1.3114,X_d:2.0698,X_q:2.0382,T1d0:5.69,T1q0:1.50,X_l:0.2330,K_sec:0,K_delta:0,
+// {bus:"34",name:"G05",S_n: 635.0e6,F_n:60,H: 4.09,D:0,R_a:0.0,X1d:0.8382,X1q:1.0541,X_d:4.2545,X_q:3.9370,T1d0:5.40,T1q0:0.44,X_l:0.3429,K_sec:0,K_delta:0,
+// {bus:"35",name:"G06",S_n: 812.5e6,F_n:60,H: 4.28,D:0,R_a:0.0,X1d:0.4062,X1q:0.6614,X_d:2.0638,X_q:1.9581,T1d0:7.30,T1q0:0.40,X_l:0.1820,K_sec:0,K_delta:0,
+// {bus:"36",name:"G07",S_n: 700.0e6,F_n:60,H: 3.77,D:0,R_a:0.0,X1d:0.3430,X1q:1.3020,X_d:2.0650,X_q:2.0440,T1d0:5.66,T1q0:1.50,X_l:0.2254,K_sec:0,K_delta:0,
+// {bus:"37",name:"G08",S_n: 675.0e6,F_n:60,H: 3.60,D:0,R_a:0.0,X1d:0.3848,X1q:0.6149,X_d:1.9575,X_q:1.8900,T1d0:6.70,T1q0:0.41,X_l:0.1890,K_sec:0,K_delta:0,
+// {bus:"38",name:"G09",S_n:1037.5e6,F_n:60,H: 3.33,D:0,R_a:0.0,X1d:0.5914,X1q:0.6090,X_d:2.1850,X_q:2.1269,T1d0:4.79,T1q0:1.96,X_l:0.3092,K_sec:0,K_delta:0,
+// {bus:"39",name:"G01",S_n:1250.0e6,F_n:60,H: 40.0,D:0,R_a:0.0,X1d:0.0750,X1q:0.1000,X_d:0.2500,X_q:0.2375,T1d0:7.00,T1q0:0.70,X_l:0.0375,K_sec:0,K_delta:0,
+
+// PSSs:
+// 01 pss:{type:"pss_kundur_2", T_w:10.0, T_1:5.0, T_2:0.60, T_3:3.0, T_4:0.50, V_lim: 0.2}
+// 02 pss:{type:"pss_kundur_2", T_w:10.0, T_1:5.0, T_2:0.40, T_3:1.0, T_4:0.10, V_lim: 0.2}
+// 03 pss:{type:"pss_kundur_2", T_w:10.0, T_1:3.0, T_2:0.20, T_3:2.0, T_4:0.20, V_lim: 0.2}
+// 04 pss:{type:"pss_kundur_2", T_w:10.0, T_1:1.0, T_2:0.10, T_3:1.0, T_4:0.30, V_lim: 0.2}
+// 05 pss:{type:"pss_kundur_2", T_w:10.0, T_1:1.5, T_2:0.20, T_3:1.0, T_4:0.10, V_lim: 0.2}
+// 06 pss:{type:"pss_kundur_2", T_w:10.0, T_1:0.5, T_2:0.10, T_3:0.5, T_4:0.05, V_lim: 0.2}
+// 07 pss:{type:"pss_kundur_2", T_w:10.0, T_1:0.2, T_2:0.02, T_3:0.5, T_4:0.10, V_lim: 0.2}
+// 08 pss:{type:"pss_kundur_2", T_w:10.0, T_1:1.0, T_2:0.20, T_3:1.0, T_4:0.10, V_lim: 0.2}
+// 09 pss:{type:"pss_kundur_2", T_w:10.0, T_1:1.0, T_2:0.50, T_3:2.0, T_4:0.10, V_lim: 0.2}
+// 10 pss:{type:"pss_kundur_2", T_w:10.0, T_1:1.0, T_2:0.05, T_3:3.0, T_4:0.50, V_lim: 0.2}
