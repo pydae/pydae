@@ -29,7 +29,7 @@ try:
 except PackageNotFoundError:
     __version__ = "unknown"
 
-from pydae.core.builder.core import Builder
-from pydae.core.model_class import Model
+from pydae.core.builder.sympy_builder import Builder
+from pydae.core.model.ctypes_model import Model
 
 __all__ = ["Builder", "Model", "__version__"]

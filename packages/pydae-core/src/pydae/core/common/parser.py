@@ -1,5 +1,6 @@
-# pydae/core/builder/parser.py
+# pydae/core/common/parser.py
 import logging
+
 import sympy as sym
 
 
@@ -24,7 +25,7 @@ def check_system(sys):
     """
     logging.debug('Checking system dictionary structure...')
     inirun = True
-    
+
     # 1. Check for dynamic equations
     if len(sys.get('f_list', [])) == 0:
         logging.warning('System without dynamic equations. Adding dummy dynamic equation.')
@@ -39,11 +40,11 @@ def check_system(sys):
         logging.warning('System without algebraic equations. Adding dummy algebraic equations.')
         y_dummy, u_dummy = sym.symbols('y_dummy, u_dummy')
         y_dummy2, u_dummy2 = sym.symbols('y_dummy2, u_dummy2')
-        
+
         sys.setdefault('g_list', []).extend([u_dummy - y_dummy, u_dummy2 - y_dummy2])
         sys.setdefault('y_ini_list', []).extend(['y_dummy', 'y_dummy2'])
         sys.setdefault('y_run_list', []).extend(['y_dummy', 'y_dummy2'])
-        
+
         sys.setdefault('u_ini_dict', {}).update({'u_dummy': 1.0, 'u_dummy2': 1.0})
         sys.setdefault('u_run_dict', {}).update({'u_dummy': 1.0, 'u_dummy2': 1.0})
 
@@ -57,10 +58,10 @@ def check_system(sys):
     # 4. Check if initialization variables are identical to run variables
     if sys['y_run_list'] == sys['y_ini_list']:
         inirun = False
-        
+
     return sys, inirun
 
- 
+
 def process_system_dict(sys):
     """
     Parses the raw user dictionary. It handles cases where the variables 
@@ -69,21 +70,21 @@ def process_system_dict(sys):
     derivatives compute correctly.
     """
     logging.debug('Parsing dictionary: converting lists to SymPy matrices and vectors')
-    
+
     # 1. Collect all equations to extract their original symbols
     all_exprs = sys.get('f_list', []) + sys.get('g_list', [])
     if 'h_dict' in sys:
         all_exprs += list(sys['h_dict'].values())
     elif 'h_list' in sys:
         all_exprs += sys['h_list']
-        
+
     # Dictionary with the exact symbols used in the expressions (keyed by their string name)
     exact_symbols = {}
     for expr in all_exprs:
         if hasattr(expr, 'free_symbols'):
             for s in expr.free_symbols:
                 exact_symbols[s.name] = s
-                
+
     def get_sym(item):
         """
         If the item is already a SymPy Symbol, return it directly.
@@ -100,18 +101,18 @@ def process_system_dict(sys):
     # 2. Convert equations to row matrices (.T)
     sys['f'] = sym.Matrix(sys['f_list']).T
     sys['g'] = sym.Matrix(sys['g_list']).T
-    
+
     # 3. Build state and input vectors dynamically
     sys['x'] = sym.Matrix([get_sym(item) for item in sys['x_list']]).T
     sys['y_ini'] = sym.Matrix([get_sym(item) for item in sys['y_ini_list']]).T
     sys['y_run'] = sym.Matrix([get_sym(item) for item in sys['y_run_list']]).T
-    
-    sys['u_ini'] = sym.Matrix([get_sym(item) for item in sys['u_ini_dict'].keys()]).T 
-    sys['u_run'] = sym.Matrix([get_sym(item) for item in sys['u_run_dict'].keys()]).T 
-    
+
+    sys['u_ini'] = sym.Matrix([get_sym(item) for item in sys['u_ini_dict'].keys()]).T
+    sys['u_run'] = sym.Matrix([get_sym(item) for item in sys['u_run_dict'].keys()]).T
+
     # 4. Outputs (h)
     if 'h_dict' in sys:
-        sys['h'] = sym.Matrix(list(sys['h_dict'].values())).T   
+        sys['h'] = sym.Matrix(list(sys['h_dict'].values())).T
     elif 'h_list' in sys:
         sys['h'] = sym.Matrix(sys['h_list']).T
     else:

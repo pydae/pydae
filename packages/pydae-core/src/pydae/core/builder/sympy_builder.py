@@ -1,4 +1,4 @@
-# pydae/core/builder/core.py
+# pydae/core/builder/sympy_builder.py
 """
 The Builder orchestrates the full pipeline:
   1. Parse & validate the symbolic system dictionary
@@ -24,15 +24,13 @@ Usage
   Builder(sys_dict, sparse=True)
 """
 
-from pydae.core.builder.parser import process_system_dict, check_system
-from pydae.core.builder.symbolic import compute_base_jacobians, build_large_jacobians
-
-import sympy as sym
-import numpy as np
-import os
-import logging
 import json
-from sympy import Symbol, Expr
+import logging
+import os
+
+from pydae.core.common.parser import check_system, process_system_dict
+from pydae.core.common.symbolic import build_large_jacobians, compute_base_jacobians
+from sympy import Expr, Symbol
 
 # Canonical names for the sparse backends
 VALID_SPARSE_BACKENDS = {'klu', 'pardiso', 'accelerate'}
@@ -46,7 +44,7 @@ class SympyEncoder(json.JSONEncoder):
         return super().default(obj)
 
 
-class Builder:   
+class Builder:
     def __init__(self, system_dict, verbose=False, API=False, target='cffi', sparse=True):
         """
         Parameters
@@ -62,17 +60,17 @@ class Builder:
             * ``'accelerate'``     → Apple Accelerate (0-based CSC, macOS)
         """
         logging.basicConfig(
-            format='%(asctime)s %(message)s', 
+            format='%(asctime)s %(message)s',
             level=logging.INFO if not verbose else logging.DEBUG
         )
-        
+
         self.verbose = verbose
         self.raw_sys = system_dict
         self.name = self.raw_sys.get('name', 'unknown_system')
         self.target = target.lower()
         self.API = API
         self.save_sources = True
-        self.uz_jacs = True 
+        self.uz_jacs = True
 
         # ------------------------------------------------------------------
         # Normalise the sparse setting
@@ -88,15 +86,15 @@ class Builder:
                 f"Invalid sparse backend '{sparse}'. "
                 f"Choose from: False, True, {VALID_SPARSE_BACKENDS}"
             )
-        
-        if not 'alpha_solver' in self.raw_sys['params_dict']:
+
+        if 'alpha_solver' not in self.raw_sys['params_dict']:
             self.raw_sys['params_dict'].update({'alpha_solver': 0.5})
-        
+
         # Initialize ALL lists (Dynamic, Algebraic, Outputs, Jacobians)
         self.f_ini_list, self.f_run_list = [], []
         self.g_ini_list, self.g_run_list = [], []
         self.h_list = []
-        
+
         self.jac_ini_list, self.jac_run_list, self.jac_trap_list = [], [], []
         # Initialize UZ Jacobian lists (for Small Signal Analysis)
         self.Fu_ini_list = []
@@ -108,7 +106,7 @@ class Builder:
         self.Hy_run_list = []
         self.Hu_ini_list = []
         self.Hu_run_list = []
-        
+
         # Build output folder
         self.matrices_folder = 'build'
         if not os.path.exists(self.matrices_folder):
@@ -118,7 +116,7 @@ class Builder:
         """The main orchestration pipeline."""
         logging.info(f"Starting build pipeline for {self.name} "
                      f"(target={self.target}, sparse={self.sparse})...")
-        
+
         # --- Parsing Phase ---
         self.sys, self.inirun = check_system(self.raw_sys)
         self.sys = process_system_dict(self.sys)
@@ -139,17 +137,17 @@ class Builder:
         # ------------------------------------------------------------------
         self.system_dict_to_json['sparse_backend'] = self.sparse if self.sparse else None
         self.system_dict_to_json['target'] = self.target
-            
+
         # Create dictionaries for the code generator with the symbolic equations
         self.f_ini_list = [{'sym': eq} for eq in self.sys['f']]
         self.f_run_list = [{'sym': eq} for eq in self.sys['f']]
         self.g_ini_list = [{'sym': eq} for eq in self.sys['g']]
         self.g_run_list = [{'sym': eq} for eq in self.sys['g']]
         self.h_list     = [{'sym': eq} for eq in self.sys['h']]
-        
+
         # --- Symbolic Math Phase ---
         self.sys = compute_base_jacobians(self.sys, uz_jacs=self.uz_jacs)
-        build_large_jacobians(self) 
+        build_large_jacobians(self)
 
         # ------------------------------------------------------------------
         # NNZ is known only after Jacobians are built — write it now
@@ -171,7 +169,7 @@ class Builder:
         # Write the JSON metadata file
         with open(f"{self.name}_data.json", "w") as fobj:
             json.dump(self.system_dict_to_json, fobj, cls=SympyEncoder, indent=4)
-        
+
         # --- Translation & Code Generation Phase ---
         if self.target == 'cffi':
             self._build_cffi()
@@ -179,26 +177,26 @@ class Builder:
             self._build_ctypes()
         else:
             raise ValueError(f"Target '{self.target}' is not supported. Use 'cffi' or 'ctypes'.")
-            
+
         logging.info("Build pipeline completed successfully!")
 
     def _translate_all(self, sym2c_fn, sym2xyup_fn):
         """Common translation step for both backends."""
         logging.info("Translating symbolic equations to C strings...")
-        
-        for eq_list in [self.f_ini_list, self.f_run_list, self.g_ini_list, 
+
+        for eq_list in [self.f_ini_list, self.f_run_list, self.g_ini_list,
                         self.g_run_list, self.h_list]:
             sym2c_fn(eq_list)
-        
+
         sym2xyup_fn(self.sys, self.f_ini_list, 'ini')
         sym2xyup_fn(self.sys, self.f_run_list, 'run')
         sym2xyup_fn(self.sys, self.g_ini_list, 'ini')
         sym2xyup_fn(self.sys, self.g_run_list, 'run')
         sym2xyup_fn(self.sys, self.h_list, 'run')
-        
+
         for jac_list in [self.jac_ini_list, self.jac_run_list, self.jac_trap_list]:
             sym2c_fn(jac_list)
-        
+
         sym2xyup_fn(self.sys, self.jac_ini_list, 'ini')
         sym2xyup_fn(self.sys, self.jac_run_list, 'run')
         sym2xyup_fn(self.sys, self.jac_trap_list, 'run')
@@ -210,7 +208,7 @@ class Builder:
                         self.Hy_run_list, self.Hu_ini_list, self.Hu_run_list]
             for uz_list in uz_lists:
                 sym2c_fn(uz_list)
-            
+
             # Apply both ini and run patterns so y_ini, y_run, u_ini, u_run all get replaced
             for uz_list in uz_lists:
                 sym2xyup_fn(self.sys, uz_list, 'ini')
@@ -219,11 +217,12 @@ class Builder:
         logging.info("End translating symbolic equations to C strings.")
 
     def _build_cffi(self):
-        from pydae.core.builder.codegen.cffi_builder import sym2c, sym2xyup, generate_and_compile_cffi
+        from pydae.core.builder.codegen.cffi_builder import generate_and_compile_cffi, sym2c, sym2xyup
         self._translate_all(sym2c, sym2xyup)
         generate_and_compile_cffi(self)
 
     def _build_ctypes(self):
-        from pydae.core.builder.codegen.ctypes_builder import sym2c, sym2xyup, generate_and_compile_ctypes
+        from pydae.core.builder.codegen.cffi_builder import sym2c, sym2xyup
+        from pydae.core.builder.codegen.ctypes_builder import generate_and_compile_ctypes
         self._translate_all(sym2c, sym2xyup)
         generate_and_compile_ctypes(self)

@@ -1,12 +1,13 @@
 # codegen/cffi_builder.py
+import logging
 import os
+import platform
 import re
 import sys
-import platform
-import logging
+from concurrent.futures import ProcessPoolExecutor
+
 import sympy as sym
 from cffi import FFI
-from concurrent.futures import ProcessPoolExecutor
 
 # ---------------------------------------------------------------------------
 # Windows Python 3.12 + MinGW ABI incompatibility workaround
@@ -165,22 +166,22 @@ def generate_and_compile_cffi(builder_obj):
     else:
         is_sparse = False
         sparse_backend = None
-    
+
     all_defs, all_sources = "", ""
-    
+
     # 1. Start C source string
     all_sources += "#include <math.h>\n"
     all_sources += '#include "daesolver.h"\n\n'
-    
+
     # 2. Inject Sparse Definitions and Constants
     if is_sparse:
         c_define = SPARSE_BACKENDS[sparse_backend]
         all_sources += f"#define {c_define} 1\n\n"
-        
+
         # Separate sparsity patterns for ini and trap
         _, Ai_ini, Ap_ini = builder_obj.jac_ini_sp[:3]
         _, Ai_trap, Ap_trap = builder_obj.jac_trap_sp[:3]
-        
+
         nnz_ini = len(builder_obj.jac_ini_list)
         nnz_trap = len(builder_obj.jac_trap_list)
 
@@ -196,7 +197,7 @@ def generate_and_compile_cffi(builder_obj):
             else:  # klu
                 ap_str = ", ".join(map(str, ap))
                 src += f"int Ap_{suffix}[] = {{{ap_str}}};\n"
-            
+
             if backend == 'pardiso':
                 ai_str = ", ".join(str(v + 1) for v in ai)
             else:
@@ -273,10 +274,10 @@ def generate_and_compile_cffi(builder_obj):
     # 6. Paths and OS detection
     output_dir = os.path.abspath('build')
     os.makedirs(output_dir, exist_ok=True)
-    
+
     dae_dense_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'daesolver', 'daesolver.c'))
     dae_include_dir = os.path.dirname(dae_dense_path)
-    
+
     sys_os = platform.system()
     is_windows = sys_os == 'Windows'
     is_mac = sys_os == 'Darwin'
@@ -333,7 +334,7 @@ def generate_and_compile_cffi(builder_obj):
     # ------------------------------------------------------------------
     backend_tag = sparse_backend or 'dense'
     module_name = f"{builder_obj.name}_cffi_{backend_tag}"
-    
+
     ffi.set_source(
         module_name,
         all_sources,                      # Generated string with model equations + sparse arrays
@@ -352,7 +353,8 @@ def generate_and_compile_cffi(builder_obj):
     # overwriting it while the handle is still alive corrupts the DLL and
     # causes nondeterministic crashes.  Renaming (not deleting) the old file
     # releases the name so the new .pyd can be written safely.
-    import hashlib, glob
+    import glob
+    import hashlib
 
     src_hash = hashlib.sha256(all_sources.encode()).hexdigest()[:16]
     hash_file = os.path.join(output_dir, f"{module_name}.hash")

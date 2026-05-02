@@ -54,19 +54,19 @@ def pendulum_sys(tmp_path):
 class TestParser:
 
     def test_check_system_detects_inirun(self, pendulum_sys):
-        from pydae.core.builder.parser import check_system
+        from pydae.core.common.parser import check_system
         sys_out, inirun = check_system(pendulum_sys)
         assert inirun is True  # y_ini != y_run
 
     def test_check_system_no_inirun(self, pendulum_sys):
-        from pydae.core.builder.parser import check_system
+        from pydae.core.common.parser import check_system
         # Make y_ini == y_run
         pendulum_sys['y_ini_list'] = pendulum_sys['y_run_list'].copy()
         _, inirun = check_system(pendulum_sys)
         assert inirun is False
 
     def test_process_dimensions(self, pendulum_sys):
-        from pydae.core.builder.parser import check_system, process_system_dict
+        from pydae.core.common.parser import check_system, process_system_dict
         sys_out, _ = check_system(pendulum_sys)
         sys_out = process_system_dict(sys_out)
         assert sys_out['N_x'] == 4
@@ -75,7 +75,7 @@ class TestParser:
 
     def test_dummy_added_when_no_algebraic(self):
         """System with f but no g should get dummy algebraic eqs."""
-        from pydae.core.builder.parser import check_system
+        from pydae.core.common.parser import check_system
         x, u = sym.symbols('x, u')
         sys_in = {
             'f_list': [u - x],
@@ -97,8 +97,8 @@ class TestParser:
 class TestSymbolic:
 
     def test_base_jacobians_shapes(self, pendulum_sys):
-        from pydae.core.builder.parser import check_system, process_system_dict
-        from pydae.core.builder.symbolic import compute_base_jacobians
+        from pydae.core.common.parser import check_system, process_system_dict
+        from pydae.core.common.symbolic import compute_base_jacobians
 
         sys_out, inirun = check_system(pendulum_sys)
         sys_out = process_system_dict(sys_out)
@@ -111,8 +111,8 @@ class TestSymbolic:
 
     def test_jacobian_sparsity(self, pendulum_sys):
         """Fx should be sparse — v_x doesn't depend on v_y, etc."""
-        from pydae.core.builder.parser import check_system, process_system_dict
-        from pydae.core.builder.symbolic import compute_base_jacobians
+        from pydae.core.common.parser import check_system, process_system_dict
+        from pydae.core.common.symbolic import compute_base_jacobians
 
         sys_out, inirun = check_system(pendulum_sys)
         sys_out = process_system_dict(sys_out)
@@ -123,8 +123,8 @@ class TestSymbolic:
         assert nnz < total, f"Fx should be sparse, got {nnz}/{total} nonzeros"
 
     def test_large_jacobian_assembly(self, pendulum_sys):
-        from pydae.core.builder.parser import check_system, process_system_dict
-        from pydae.core.builder.symbolic import build_large_jacobians, compute_base_jacobians
+        from pydae.core.common.parser import check_system, process_system_dict
+        from pydae.core.common.symbolic import build_large_jacobians, compute_base_jacobians
 
         sys_out, inirun = check_system(pendulum_sys)
         sys_out = process_system_dict(sys_out)
@@ -161,7 +161,7 @@ class TestCodegen:
 
     def test_sym2c_produces_ccode(self, pendulum_sys):
         from pydae.core.builder.codegen.cffi_builder import sym2c
-        from pydae.core.builder.parser import check_system, process_system_dict
+        from pydae.core.common.parser import check_system, process_system_dict
 
         sys_out, _ = check_system(pendulum_sys)
         sys_out = process_system_dict(sys_out)
@@ -176,7 +176,7 @@ class TestCodegen:
 
     def test_sym2xyup_replaces_variables(self, pendulum_sys):
         from pydae.core.builder.codegen.cffi_builder import sym2c, sym2xyup
-        from pydae.core.builder.parser import check_system, process_system_dict
+        from pydae.core.common.parser import check_system, process_system_dict
 
         sys_out, _ = check_system(pendulum_sys)
         sys_out = process_system_dict(sys_out)

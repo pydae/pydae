@@ -1,8 +1,10 @@
-# pydae/core/builder/symbolic.py
+# pydae/core/common/symbolic.py
 import logging
+
 import sympy as sym
-from sympy.matrices.sparsetools import _doktocsr
 from sympy import SparseMatrix
+from sympy.matrices.sparsetools import _doktocsr
+
 
 def sym_jac(f, x):
     """
@@ -11,7 +13,7 @@ def sym_jac(f, x):
     N_f = len(f)
     N_x = len(x)
     J = sym.MutableSparseMatrix(N_f, N_x, {})
-    
+
     for irow in range(N_f):
         str_f = str(f[irow])
         for icol in range(N_x):
@@ -25,7 +27,7 @@ def compute_base_jacobians(sys, uz_jacs=True):
     Computes the fundamental sub-Jacobians (Fx, Fy, Gx, Gy, etc.).
     """
     logging.info('Computing base symbolic Jacobians...')
-    
+
     sys['Fx'] = sym_jac(sys['f'], sys['x'])
     sys['Fy_ini'] = sym_jac(sys['f'], sys['y_ini'])
     sys['Fy_run'] = sym_jac(sys['f'], sys['y_run'])
@@ -38,14 +40,14 @@ def compute_base_jacobians(sys, uz_jacs=True):
         sys['Fu_run'] = sym_jac(sys['f'], sys['u_run'])
         sys['Gu_ini'] = sym_jac(sys['g'], sys['u_ini'])
         sys['Gu_run'] = sym_jac(sys['g'], sys['u_run'])
-        
+
         if 'h' in sys:
             sys['Hx'] = sym_jac(sys['h'], sys['x'])
             sys['Hy_ini'] = sym_jac(sys['h'], sys['y_ini'])
             sys['Hy_run'] = sym_jac(sys['h'], sys['y_run'])
             sys['Hu_ini'] = sym_jac(sys['h'], sys['u_ini'])
             sys['Hu_run'] = sym_jac(sys['h'], sys['u_run'])
-            
+
     return sys
 
 
@@ -61,7 +63,7 @@ def build_large_jacobians(builder_obj):
     logging.info('Building large global Jacobians...')
     sys = builder_obj.sys
     is_sparse = getattr(builder_obj, 'sparse', False)
-    
+
     N_x = len(sys['x'])
     N_y = len(sys['y_ini'])
     N_total = N_x + N_y
@@ -70,12 +72,12 @@ def build_large_jacobians(builder_obj):
     ini_top = sys['Fx'].row_join(sys['Fy_ini'])
     ini_bot = sys['Gx'].row_join(sys['Gy_ini'])
     jac_ini = ini_top.col_join(ini_bot)
-    
+
     # --- 2. Trapezoidal Run Jacobian ---
     Dt = sym.Symbol('Dt', real=True)
     alpha = sym.Symbol('alpha_solver', real=True)
     eye_sparse = sym.eye(N_x)
-    
+
     trap_top = (eye_sparse - alpha * Dt * sys['Fx']).row_join(-alpha * Dt * sys['Fy_run'])
     trap_bot = sys['Gx'].row_join(sys['Gy_run'])
     jac_trap = trap_top.col_join(trap_bot)
@@ -97,7 +99,7 @@ def build_large_jacobians(builder_obj):
     # ------------------------------------------------------------------
     if getattr(builder_obj, 'uz_jacs', False):
         logging.info('Extracting UZ Jacobians...')
-        
+
         # Dimensions
         N_x = len(sys['x'])
         N_y_ini = len(sys['y_ini'])
@@ -129,14 +131,14 @@ def build_large_jacobians(builder_obj):
 def _extract_dense_matrix(matrix, target_list, stride):
     """Extract nonzero entries with flat dense indexing (row*stride+col)."""
     dok = dict(SparseMatrix(matrix).todok())
-    
+
     for (row, col), expr in sorted(dok.items()):
         target_list.append({
             'sym': expr,
             'de_idx': row * stride + col,
             'ij': (row, col),
         })
-    
+
     # Return CSR tuple for compatibility (not used in dense mode)
     if dok:
         sp = _doktocsr(SparseMatrix(matrix))
@@ -158,31 +160,31 @@ def _process_sparse(matrix, target_list, N_total, label):
     """
     dok = dict(SparseMatrix(matrix).todok())
     positions = sorted(dok.keys())
-    
+
     logging.info(f'  jac_{label}: {len(positions)} nonzeros')
-    
+
     # Build CSC: Ap (column pointers), Ai (row indices)
     Ap = [0] * (N_total + 1)
     Ai = []
-    
+
     col_to_rows = {}
     for (row, col) in positions:
         col_to_rows.setdefault(col, []).append(row)
-    
+
     idx = 0
     for col in range(N_total):
         rows = sorted(col_to_rows.get(col, []))
         Ai.extend(rows)
         idx += len(rows)
         Ap[col + 1] = idx
-    
+
     # Lookup: (row, col) -> packed index
     pos_to_sp_idx = {}
     for col in range(N_total):
         for sp_idx in range(Ap[col], Ap[col + 1]):
             row = Ai[sp_idx]
             pos_to_sp_idx[(row, col)] = sp_idx
-    
+
     # Map entries
     for (row, col), expr in sorted(dok.items()):
         sp_idx = pos_to_sp_idx[(row, col)]
@@ -192,8 +194,8 @@ def _process_sparse(matrix, target_list, N_total, label):
             'de_idx': row * N_total + col,
             'ij': (row, col),
         })
-    
+
     # Sort by sp_idx so C function fills Ax[] in order
     target_list.sort(key=lambda x: x['sp_idx'])
-    
+
     return ([], Ai, Ap)

@@ -1,11 +1,11 @@
 # codegen/ctypes_builder.py
+import logging
 import os
 import platform
 import subprocess
-import logging
 
 # Reusing string generation functions from cffi_builder
-from pydae.core.builder.codegen.cffi_builder import sym2c, sym2xyup, _get_c_funcs
+from pydae.core.builder.codegen.cffi_builder import _get_c_funcs
 
 # ---------------------------------------------------------------------------
 # Supported sparse solver backends (value used as the C preprocessor define)
@@ -33,7 +33,7 @@ def generate_and_compile_ctypes(builder_obj):
     """
     logging.info(f"[ctypes] Generating C code for system: {builder_obj.name}")
     all_defs, all_sources = "", ""
-    
+
     # ------------------------------------------------------------------
     # Normalise the sparse setting into (is_sparse: bool, backend: str)
     # ------------------------------------------------------------------
@@ -72,16 +72,16 @@ def generate_and_compile_ctypes(builder_obj):
     # 1. Start C source string
     all_sources += "#include <math.h>\n\n"
     all_sources += "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n"
-    
+
     # 2. Inject Sparse Definitions and Constants
     if is_sparse:
         c_define = SPARSE_BACKENDS[sparse_backend]
         all_sources += f"#define {c_define} 1\n\n"
-        
+
         # Separate sparsity patterns for ini and trap
         _, Ai_ini, Ap_ini = builder_obj.jac_ini_sp[:3]
         _, Ai_trap, Ap_trap = builder_obj.jac_trap_sp[:3]
-        
+
         nnz_ini = len(builder_obj.jac_ini_list)
         nnz_trap = len(builder_obj.jac_trap_list)
 
@@ -96,7 +96,7 @@ def generate_and_compile_ctypes(builder_obj):
             else:
                 ap_str = ", ".join(map(str, ap))
                 src += f"int Ap_{suffix}[] = {{{ap_str}}};\n"
-            
+
             if backend == 'pardiso':
                 ai_str = ", ".join(str(v + 1) for v in ai)
             else:
@@ -107,7 +107,7 @@ def generate_and_compile_ctypes(builder_obj):
 
         all_sources += _emit_arrays(Ap_ini, Ai_ini, nnz_ini, 'ini', sparse_backend)
         all_sources += _emit_arrays(Ap_trap, Ai_trap, nnz_trap, 'trap', sparse_backend)
-    
+
     # 3. Generate Standard Dense functions (f, g, h)
     for name, eq_list in [('f_ini_eval', builder_obj.f_ini_list), ('f_run_eval', builder_obj.f_run_list)]:
         d, s = _get_c_funcs(name, eq_list, is_sparse=False)
@@ -159,7 +159,7 @@ def generate_and_compile_ctypes(builder_obj):
     backend_tag = sparse_backend or 'dense'
     c_file_path = os.path.join(output_dir, f"{builder_obj.name}_ctypes_{backend_tag}.c")
     lib_path = os.path.join(output_dir, f"{builder_obj.name}_ctypes_{backend_tag}{lib_ext}")
-    
+
     dae_dense_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'daesolver', 'daesolver.c'))
     dae_include_dir = os.path.dirname(dae_dense_path)
 
@@ -178,7 +178,7 @@ def generate_and_compile_ctypes(builder_obj):
         compiler = 'clang'
     else:
         compiler = 'gcc'
-    
+
     if is_windows:
         # -O2 avoids aggressive SIMD vectorisation from -O3 that can cause
         # stack-misalignment corruption when Python (MSVC) calls into a
@@ -220,17 +220,17 @@ def generate_and_compile_ctypes(builder_obj):
     # ------------------------------------------------------------------
     # Math library on POSIX
     if not is_windows:
-        compile_cmd.append('-lm')      
-        
+        compile_cmd.append('-lm')
+
     if is_sparse and sparse_backend == 'klu':
         compile_cmd.extend(['-lklu', '-lamd', '-lcolamd', '-lbtf', '-lsuitesparseconfig'])
-    
+
     elif is_sparse and sparse_backend == 'pardiso':
         if is_windows:
             compile_cmd.extend(['-lmkl_intel_lp64_dll', '-lmkl_sequential_dll', '-lmkl_core_dll'])
         else:
             compile_cmd.extend(['-lmkl_intel_lp64', '-lmkl_sequential', '-lmkl_core', '-lpthread'])
-    
+
     elif is_sparse and sparse_backend == 'accelerate':
         compile_cmd.extend(['-framework', 'Accelerate'])
 
@@ -238,7 +238,7 @@ def generate_and_compile_ctypes(builder_obj):
     cmd_str = ' '.join(compile_cmd)
     logging.info(f"[ctypes] Invoking compiler for {sys_os} (backend: {sparse_backend or 'dense'}) from: {os.getcwd()}")
     logging.info(f"[ctypes] Command: {cmd_str}")
-    
+
     try:
         subprocess.run(cmd_str, shell=True, check=True)
         logging.info(f"[ctypes] Compilation successful. Library saved at {lib_path}")
@@ -254,7 +254,7 @@ def generate_and_compile_ctypes(builder_obj):
 def _append_klu_paths(compile_cmd, is_windows, is_mac, is_linux):
     """Resolve SuiteSparse/KLU include and library paths."""
     klu_includes, klu_libs = [], []
-    
+
     # Priority 1: Conda Environment
     if 'CONDA_PREFIX' in os.environ:
         prefix = os.environ['CONDA_PREFIX']
@@ -264,7 +264,7 @@ def _append_klu_paths(compile_cmd, is_windows, is_mac, is_linux):
         else:
             klu_includes.append(os.path.join(prefix, 'include', 'suitesparse'))
             klu_libs.append(os.path.join(prefix, 'lib'))
-    
+
     # Priority 2: System-wide installations
     if is_mac:
         klu_includes.extend(['/opt/homebrew/include/suitesparse', '/usr/local/include/suitesparse'])
@@ -276,7 +276,7 @@ def _append_klu_paths(compile_cmd, is_windows, is_mac, is_linux):
         if os.path.exists(inc_dir):
             compile_cmd.append(f'-I"{inc_dir}"')
             break
-            
+
     for lib_dir in klu_libs:
         if os.path.exists(lib_dir):
             compile_cmd.append(f'-L"{lib_dir}"')
