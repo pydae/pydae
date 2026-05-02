@@ -105,9 +105,6 @@ match the original ``sst1`` defaults.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for sst1 parameters, inputs, states, and outputs."""
     descriptions_list = []
@@ -181,39 +178,49 @@ def descriptions():
     return descriptions_list
 
 
-def sst1(dae, data, name, bus_name):
+def sst1(dae, data, name, bus_name, backend=None):
     """
     Example data entry::
 
         "avr": {"type": "sst1", "K_a": 200.0, "T_r": 0.02, "T_b": 10.0,
-                "T_c": 1.0, "V_f_min": -100.0, "V_f_max": 100.0,
-                "v_ref": 1.0}
+                 "T_c": 1.0, "V_f_min": -100.0, "V_f_max": 100.0,
+                 "v_ref": 1.0}
 
     The ``v_ref`` value supplied in data is used as the **bus voltage
     setpoint during ini()** (since v_ref is unknown there) and as the
     **initial guess / starting input during run()**.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)
 
-    v_r = sym.Symbol(f"v_r_{name}", real=True)
-    x_cb = sym.Symbol(f"x_cb_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
+    v_r = backend.symbols(f"v_r_{name}", real=True)
+    x_cb = backend.symbols(f"x_cb_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)
 
-    K_a = sym.Symbol(f"K_a_{name}", real=True)
-    T_r = sym.Symbol(f"T_r_{name}", real=True)
-    T_b = sym.Symbol(f"T_b_{name}", real=True)
-    T_c = sym.Symbol(f"T_c_{name}", real=True)
-    V_f_min = sym.Symbol(f"V_f_min_{name}", real=True)
-    V_f_max = sym.Symbol(f"V_f_max_{name}", real=True)
+    K_a = backend.symbols(f"K_a_{name}", real=True)
+    T_r = backend.symbols(f"T_r_{name}", real=True)
+    T_b = backend.symbols(f"T_b_{name}", real=True)
+    T_c = backend.symbols(f"T_c_{name}", real=True)
+    V_f_min = backend.symbols(f"V_f_min_{name}", real=True)
+    V_f_max = backend.symbols(f"V_f_max_{name}", real=True)
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     v_s = v_pss
 
@@ -229,7 +236,7 @@ def sst1(dae, data, name, bus_name):
 
     # Main regulator gain with hard field-voltage limits.
     v_f_nosat = K_a * z_cb
-    v_f_sat = sym.Piecewise((V_f_max, v_f_nosat > V_f_max),
+    v_f_sat = backend.Piecewise((V_f_max, v_f_nosat > V_f_max),
                             (V_f_min, v_f_nosat < V_f_min),
                             (v_f_nosat, True))
 

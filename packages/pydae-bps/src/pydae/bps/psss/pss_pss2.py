@@ -6,51 +6,60 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
-
-def pss_pss2(dae,syn_data,name,bus_name):
+def pss_pss2(dae,syn_data,name,bus_name,backend=None):
     '''
     PSS as IEEE PSS2
     'K_s3':1.0,'T_wo1':2.0,'T_wo2':2.0,'T_9': 0.1,'K_s1':17.069,'T_1': 0.28,'T_2':0.04,'T_3':0.28,'T_4':0.12,'T_wo3':2.0,'K_s2': 0.158,'T_7':2.0
 
     '''
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
+
     pss_data = syn_data['pss']
     
 
-    omega = sym.Symbol(f"omega_{name}", real=True)   
-    p_g   = sym.Symbol(f"p_g_{name}", real=True) 
+    omega = backend.symbols(f"omega_{name}", real=True)   
+    p_g   = backend.symbols(f"p_g_{name}", real=True) 
 
     # states
-    x_wo1 = sym.Symbol(f"x_wo1_{name}", real=True)
-    x_wo2 = sym.Symbol(f"x_wo2_{name}", real=True)
-    x_wo3 = sym.Symbol(f"x_wo3_{name}", real=True)
-    x_lpf7= sym.Symbol(f"x_lpf7_{name}", real=True)
-    x_9_1 = sym.Symbol(f"x_9_1_{name}", real=True)
-    x_9_2 = sym.Symbol(f"x_9_2_{name}", real=True)
-    x_9_3 = sym.Symbol(f"x_9_3_{name}", real=True)
-    x_9_4 = sym.Symbol(f"x_9_4_{name}", real=True)
-    x_9_5 = sym.Symbol(f"x_9_5_{name}", real=True)
-    x_ll1 = sym.Symbol(f"x_ll1_{name}", real=True)
-    x_ll3 = sym.Symbol(f"x_ll3_{name}", real=True)
+    x_wo1 = backend.symbols(f"x_wo1_{name}", real=True)
+    x_wo2 = backend.symbols(f"x_wo2_{name}", real=True)
+    x_wo3 = backend.symbols(f"x_wo3_{name}", real=True)
+    x_lpf7= backend.symbols(f"x_lpf7_{name}", real=True)
+    x_9_1 = backend.symbols(f"x_9_1_{name}", real=True)
+    x_9_2 = backend.symbols(f"x_9_2_{name}", real=True)
+    x_9_3 = backend.symbols(f"x_9_3_{name}", real=True)
+    x_9_4 = backend.symbols(f"x_9_4_{name}", real=True)
+    x_9_5 = backend.symbols(f"x_9_5_{name}", real=True)
+    x_ll1 = backend.symbols(f"x_ll1_{name}", real=True)
+    x_ll3 = backend.symbols(f"x_ll3_{name}", real=True)
 
  
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True) 
+    v_pss = backend.symbols(f"v_pss_{name}", real=True) 
     
-    T_1   = sym.Symbol(f"T_pss_1_{name}", real=True)    
-    T_2   = sym.Symbol(f"T_pss_2_{name}", real=True)    
-    T_3   = sym.Symbol(f"T_pss_3_{name}", real=True)    
-    T_4   = sym.Symbol(f"T_pss_4_{name}", real=True) 
-    T_7   = sym.Symbol(f"T_pss_7_{name}", real=True)   
-    T_9   = sym.Symbol(f"T_pss_9_{name}", real=True) 
+    T_1   = backend.symbols(f"T_pss_1_{name}", real=True)    
+    T_2   = backend.symbols(f"T_pss_2_{name}", real=True)    
+    T_3   = backend.symbols(f"T_pss_3_{name}", real=True)    
+    T_4   = backend.symbols(f"T_pss_4_{name}", real=True) 
+    T_7   = backend.symbols(f"T_pss_7_{name}", real=True)   
+    T_9   = backend.symbols(f"T_pss_9_{name}", real=True) 
 
-    T_wo1 = sym.Symbol(f"T_wo1_{name}", real=True)  
-    T_wo2 = sym.Symbol(f"T_wo2_{name}", real=True)  
-    T_wo3 = sym.Symbol(f"T_wo3_{name}", real=True) 
+    T_wo1 = backend.symbols(f"T_wo1_{name}", real=True)  
+    T_wo2 = backend.symbols(f"T_wo2_{name}", real=True)  
+    T_wo3 = backend.symbols(f"T_wo3_{name}", real=True) 
 
-    K_s1  = sym.Symbol(f"K_s1_{name}", real=True)   
-    K_s2  = sym.Symbol(f"K_s2_{name}", real=True)   
-    K_s3  = sym.Symbol(f"K_s3_{name}", real=True) 
+    K_s1  = backend.symbols(f"K_s1_{name}", real=True)   
+    K_s2  = backend.symbols(f"K_s2_{name}", real=True)   
+    K_s3  = backend.symbols(f"K_s3_{name}", real=True) 
 
     u_1 = omega
     u_2 = p_g

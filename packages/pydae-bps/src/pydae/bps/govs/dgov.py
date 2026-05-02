@@ -76,7 +76,6 @@ Example data entry (typical diesel-genset defaults)::
 """
 
 from pydae import ssa
-import sympy as sym
 
 
 def descriptions():
@@ -163,7 +162,7 @@ def descriptions():
     return descriptions_list
 
 
-def dgov(dae, data, name, _bus_name):
+def dgov(dae, data, name, _bus_name, backend=None):
     r"""
     Example data entry::
 
@@ -182,36 +181,42 @@ def dgov(dae, data, name, _bus_name):
     At steady state ($\omega = 1$):
     $p_m = K_{turb}\,(p_c - W_{fnl})$.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+        })()
 
     gov_data = data['gov']
 
     # Input from the rest of the system.
-    omega = sym.Symbol(f"omega_{name}", real=True)
+    omega = backend.symbols(f"omega_{name}")
 
     # External input (fuel valve / load reference setpoint).
-    p_c = sym.Symbol(f"p_c_{name}", real=True)
+    p_c = backend.symbols(f"p_c_{name}")
 
     # Dynamic states.
-    x_gov = sym.Symbol(f"x_gov_gov_{name}", real=True)
-    x_act = sym.Symbol(f"x_act_gov_{name}", real=True)
-    x_eng = sym.Symbol(f"x_eng_gov_{name}", real=True)
+    x_gov = backend.symbols(f"x_gov_gov_{name}")
+    x_act = backend.symbols(f"x_act_gov_{name}")
+    x_eng = backend.symbols(f"x_eng_gov_{name}")
 
     # Algebraic state.
-    p_m = sym.Symbol(f"p_m_{name}", real=True)
+    p_m = backend.symbols(f"p_m_{name}")
 
     # Parameters.
-    R       = sym.Symbol(f"R_gov_{name}",       real=True)
-    K       = sym.Symbol(f"K_gov_{name}",       real=True)
-    T_1     = sym.Symbol(f"T_1_gov_{name}",     real=True)
-    T_2     = sym.Symbol(f"T_2_gov_{name}",     real=True)
-    R_open  = sym.Symbol(f"R_open_gov_{name}",  real=True)
-    R_close = sym.Symbol(f"R_close_gov_{name}", real=True)
-    V_max   = sym.Symbol(f"V_max_gov_{name}",   real=True)
-    V_min   = sym.Symbol(f"V_min_gov_{name}",   real=True)
-    T_3     = sym.Symbol(f"T_3_gov_{name}",     real=True)
-    K_turb  = sym.Symbol(f"K_turb_gov_{name}",  real=True)
-    W_fnl   = sym.Symbol(f"W_fnl_gov_{name}",   real=True)
-    D_m     = sym.Symbol(f"D_m_gov_{name}",     real=True)
+    R       = backend.symbols(f"R_gov_{name}")
+    K       = backend.symbols(f"K_gov_{name}")
+    T_1     = backend.symbols(f"T_1_gov_{name}")
+    T_2     = backend.symbols(f"T_2_gov_{name}")
+    R_open  = backend.symbols(f"R_open_gov_{name}")
+    R_close = backend.symbols(f"R_close_gov_{name}")
+    V_max   = backend.symbols(f"V_max_gov_{name}")
+    V_min   = backend.symbols(f"V_min_gov_{name}")
+    T_3     = backend.symbols(f"T_3_gov_{name}")
+    K_turb  = backend.symbols(f"K_turb_gov_{name}")
+    W_fnl   = backend.symbols(f"W_fnl_gov_{name}")
+    D_m     = backend.symbols(f"D_m_gov_{name}")
 
     # Speed error: proportional droop + governor gain.
     e_speed = K * (1 - omega) / R
@@ -221,15 +226,15 @@ def dgov(dae, data, name, _bus_name):
 
     # Fuel demand: governor correction + load reference, position-clamped.
     u_fuel_dem = p_c + x_gov
-    u_fuel = sym.Piecewise((V_min, u_fuel_dem < V_min),
-                           (V_max, u_fuel_dem > V_max),
-                           (u_fuel_dem, True))
+    u_fuel = backend.Piecewise((V_min, u_fuel_dem < V_min),
+                               (V_max, u_fuel_dem > V_max),
+                               (u_fuel_dem, True))
 
     # Fuel valve actuator: rate-limited integrator.
     v_act_nosat = (u_fuel - x_act) / T_2
-    v_act = sym.Piecewise((R_close, v_act_nosat < R_close),
-                          (R_open,  v_act_nosat > R_open),
-                          (v_act_nosat, True))
+    v_act = backend.Piecewise((R_close, v_act_nosat < R_close),
+                              (R_open,  v_act_nosat > R_open),
+                              (v_act_nosat, True))
     dx_act = v_act
 
     # Engine combustion lag.

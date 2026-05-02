@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def pv_1(grid,name,bus_name,data_dict):
     '''
@@ -22,7 +21,7 @@ def pv_1(grid,name,bus_name,data_dict):
     K_alpha: alpha gain to obtain Domega integral 
 
     inputs
-    ------
+    -----
 
     alpha: RoCoF in pu if K_alpha = 1.0
     omega_ref: frequency in pu
@@ -66,56 +65,55 @@ def pv_1(grid,name,bus_name,data_dict):
     0 =               (- R_s_pu*i_md_pu/V_dq_b - omega_r*L_m_pu*i_mq_pu*Z_b/Omega_rb/(V_dq_b*Z_b) - v_md_pu/(I_dq_b*Z_b))*I_dq_b*V_dq_b*Z_b
     0 =               (- R_s_pu*i_md_pu/V_dq_b - omega_r_pu*L_m_pu*i_mq_pu/(V_dq_b) - v_md_pu/(I_dq_b*Z_b))*I_dq_b*V_dq_b*Z_b
 
-
     v_t_pu*v_b_ac = m*V_dc_b*sqrt(2)*U_b/sqrt(6)
     v_t_pu = m*V_dc_b*sqrt(2)/sqrt(6) = m*V_dc_b*sqrt(3)
-
 
     
 
     '''
 
-    sin = sym.sin
-    cos = sym.cos
+    backend = grid.backend
+    sin = backend.sin
+    cos = backend.cos
 
     # inputs
-    V_s = sym.Symbol(f"V_{bus_name}", real=True)
-    theta_s = sym.Symbol(f"theta_{bus_name}", real=True)
-    m = sym.Symbol(f"m_{name}", real=True)
-    theta_t = sym.Symbol(f"theta_t_{name}", real=True)
-    v_dc = sym.Symbol(f"v_dc_{name}", real=True)
-    Dp_e_ref = sym.Symbol(f"Dp_e_ref_{name}", real=True)
-    u_dummy = sym.Symbol(f"u_dummy_{name}", real=True)
+    V_s = backend.symbols(f"V_{bus_name}")
+    theta_s = backend.symbols(f"theta_{bus_name}")
+    m = backend.symbols(f"m_{name}")
+    theta_t = backend.symbols(f"theta_t_{name}")
+    v_dc = backend.symbols(f"v_dc_{name}")
+    Dp_e_ref = backend.symbols(f"Dp_e_ref_{name}")
+    u_dummy = backend.symbols(f"u_dummy_{name}")
       
     # dynamic states
 
     # algebraic states
-    i_si = sym.Symbol(f"i_si_{name}", real=True)
-    i_sr = sym.Symbol(f"i_sr_{name}", real=True)       
-    p_s = sym.Symbol(f"p_s_{name}", real=True)
-    q_s = sym.Symbol(f"q_s_{name}", real=True)
-    p_s_ref = sym.Symbol(f"p_s_ref_{name}", real=True)
-    nu_w = sym.Symbol(f"nu_w_{name}", real=True)
+    i_si = backend.symbols(f"i_si_{name}")
+    i_sr = backend.symbols(f"i_sr_{name}")       
+    p_s = backend.symbols(f"p_s_{name}")
+    q_s = backend.symbols(f"q_s_{name}")
+    p_s_ref = backend.symbols(f"p_s_ref_{name}")
+    nu_w = backend.symbols(f"nu_w_{name}")
     
     # parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
-    F_n = sym.Symbol(f"F_n_{name}", real=True)            
-    X_s = sym.Symbol(f"X_s_{name}", real=True)
-    R_s = sym.Symbol(f"R_s_{name}", real=True)
-    A_l = sym.Symbol(f"A_l_{name}", real=True)
-    B_l = sym.Symbol(f"B_l_{name}", real=True)
-    C_l = sym.Symbol(f"C_l_{name}", real=True)
+    S_n = backend.symbols(f"S_n_{name}")
+    F_n = backend.symbols(f"F_n_{name}")            
+    X_s = backend.symbols(f"X_s_{name}")
+    R_s = backend.symbols(f"R_s_{name}")
+    A_l = backend.symbols(f"A_l_{name}")
+    B_l = backend.symbols(f"B_l_{name}")
+    C_l = backend.symbols(f"C_l_{name}")
 
     # AUXILIAR
     Omega_b = 2*np.pi*F_n
     grid.dae['params_dict'].update({f"S_n_{name}":data_dict['S_n']})
 
     ## PV model
-    I_sc,I_mpp,V_mpp,V_oc = sym.symbols(f'I_sc_{name},I_mpp_{name},V_mpp_{name},V_oc_{name}', real=True)
-    N_s,K_vt,K_it = sym.symbols(f'N_s_{name},K_vt_{name},K_it_{name}', real=True)
-    K_d,R_pv_s,R_pv_sh = sym.symbols(f'K_d_{name},R_pv_s_{name},R_pv_sh_{name}', real=True)
+    I_sc,I_mpp,V_mpp,V_oc = backend.symbols(f'I_sc_{name}, I_mpp_{name}, V_mpp_{name}, V_oc_{name}')
+    N_s,K_vt,K_it = backend.symbols(f'N_s_{name}, K_vt_{name}, K_it_{name}')
+    K_d,R_pv_s,R_pv_sh = backend.symbols(f'K_d_{name}, R_pv_s_{name}, R_pv_sh_{name}')
 
-    temp_deg,irrad,i_pv,v_pv,p_pv = sym.symbols(f'temp_deg_{name},irrad_{name},i_pv_{name},v_pv_{name},p_pv_{name}', real=True)
+    temp_deg,irrad,i_pv,v_pv,p_pv = backend.symbols(f'temp_deg_{name}, irrad_{name}, i_pv_{name}, v_pv_{name}, p_pv_{name}')
     
     T_stc = 25 + 273.4
     E_c = 1.6022e-19 # Elementary charge
@@ -135,7 +133,7 @@ def pv_1(grid,name,bus_name,data_dict):
     
     temp_k = temp_deg +273.4
 
-    N_ms,N_mp = sym.symbols(f'N_ms_{name},N_mp_{name}', real=True)
+    N_ms,N_mp = backend.symbols(f'N_ms_{name}, N_mp_{name}')
 
     I_rrad_sts = 1000
 
@@ -148,20 +146,18 @@ def pv_1(grid,name,bus_name,data_dict):
 
     grid.dae['params_dict'].update({str(N_ms):data_dict['N_ms'],str(N_mp):data_dict['N_mp'] })
 
-
     # I_sc_t = I_sc*irrad/I_rrad_sts*(1 + K_it/100*(temp_k - T_stc))
-    # I_0 = (I_sc - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*sym.exp(-V_oc_t/(N_s*V_t))
+    # I_0 = (I_sc - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*backend.exp(-V_oc_t/(N_s*V_t))
+    # I_ph = (I_0*backend.exp(V_oc_t/(N_s*V_t)) + V_oc_t/R_pv_sh)*irrad/I_rrad_sts
 
-    # I_ph = (I_0*sym.exp(V_oc_t/(N_s*V_t)) + V_oc_t/R_pv_sh)*irrad/I_rrad_sts
-
-    # eq_i_pv = -i_pv + I_ph - I_0 * (sym.exp((v_pv + i_pv*R_pv_s)/(N_s*V_t))-1)-(v_pv+i_pv*R_pv_s)/R_pv_sh 
+    # eq_i_pv = -i_pv + I_ph - I_0 * (backend.exp((v_pv + i_pv*R_pv_s)/(N_s*V_t))-1)-(v_pv+i_pv*R_pv_s)/R_pv_sh 
 
     V_t = K_d*Boltzmann*T_stc/E_c
     V_oc_t = V_oc * (1+K_vt/100.0*( temp_k - T_stc))
 
     I_sc_t = I_sc*(1 + K_it/100*(temp_k - T_stc))
-    I_0 = (I_sc_t - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*sym.exp(-V_oc_t/(N_s*V_t))
-    I_d = I_0*(sym.exp((v_pv+i_pv*R_pv_s)/(V_t*N_s))-1)
+    I_0 = (I_sc_t - (V_oc_t - I_sc_t*R_pv_s)/R_pv_sh)*backend.exp(-V_oc_t/(N_s*V_t))
+    I_d = I_0*(backend.exp((v_pv+i_pv*R_pv_s)/(V_t*N_s))-1)
     I_ph = I_sc_t*irrad/I_rrad_sts
     
     eq_i_pv = -i_pv + I_ph - I_d - (v_pv+i_pv*R_pv_s)/R_pv_sh 
@@ -172,7 +168,6 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['u_ini_dict'].update({f'irrad_{name}':1000,f'temp_deg_{name}':25})  # input for the initialization problem
     grid.dae['u_run_dict'].update({f'irrad_{name}':1000,f'temp_deg_{name}':25})  # input for the running problem, its value is updated
 
-
     grid.dae['g'] += [eq_i_pv]
     grid.dae['y_ini'] += [  i_pv]  
     grid.dae['y_run'] += [  i_pv]  
@@ -181,14 +176,13 @@ def pv_1(grid,name,bus_name,data_dict):
 
     grid.dae['xy_0_dict'].update({str(i_pv):data_dict['I_sc']})
 
-
     ## grid side VSC control  
-    i_sd_pq_ref,i_sq_pq_ref,v_td_ref,v_tq_ref = sym.symbols(f'i_sd_pq_ref_{name},i_sq_pq_ref_{name},v_td_ref_{name},v_tq_ref_{name}', real=True)
-    v_dc_ref,q_s_ref = sym.symbols(f'v_dc_ref_{name},q_s_ref_{name}', real=True)
-    K_pdc,K_idc = sym.symbols(f'K_pdc_{name},K_idc_{name}', real=True)
-    omega_coi = sym.symbols(f'omega_coi_{name}', real=True)
-    mode,i_sd_i_ref,i_sq_i_ref = sym.symbols(f'mode_{name},i_sd_i_ref_{name},i_sq_i_ref_{name}', real=True)
-    p_ppc_ref,q_ppc_ref = sym.symbols(f'p_ppc_ref_{name},q_ppc_ref_{name}', real=True)
+    i_sd_pq_ref,i_sq_pq_ref,v_td_ref,v_tq_ref = backend.symbols(f'i_sd_pq_ref_{name}, i_sq_pq_ref_{name}, v_td_ref_{name}, v_tq_ref_{name}')
+    v_dc_ref,q_s_ref = backend.symbols(f'v_dc_ref_{name}, q_s_ref_{name}')
+    K_pdc,K_idc = backend.symbols(f'K_pdc_{name}, K_idc_{name}')
+    omega_coi = backend.symbols(f'omega_coi_{name}')
+    mode,i_sd_i_ref,i_sq_i_ref = backend.symbols(f'mode_{name}, i_sd_i_ref_{name}, i_sq_i_ref_{name}')
+    p_ppc_ref,q_ppc_ref = backend.symbols(f'p_ppc_ref_{name}, q_ppc_ref_{name}')
 
     delta = theta_s # ideal PLL
     v_sD = V_s*sin(theta_s)  # v_si   e^(-j)
@@ -200,15 +194,15 @@ def pv_1(grid,name,bus_name,data_dict):
     v_tQ_ref =-v_td_ref * sin(delta) + v_tq_ref * cos(delta)    
     v_ti_ref = v_tD_ref
     v_tr_ref = v_tQ_ref   
-    m_ref = sym.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
-    theta_t_ref = sym.atan2(v_ti_ref,v_tr_ref) 
+    m_ref = backend.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
+    theta_t_ref = backend.atan2(v_ti_ref,v_tr_ref) 
     
     i_sd_ref = i_sd_i_ref + i_sd_pq_ref
     i_sq_ref = i_sq_i_ref + i_sq_pq_ref
 
     p_s_vdc_ref = - K_pdc*(v_dc_ref - v_dc) 
     
-    eq_p_s_ref = -p_s_ref + sym.Piecewise((p_ppc_ref,p_ppc_ref<p_s_vdc_ref),(p_s_vdc_ref,True))
+    eq_p_s_ref = -p_s_ref + backend.Piecewise((p_ppc_ref,p_ppc_ref<p_s_vdc_ref),(p_s_vdc_ref,True))
     eq_i_sd_pq_ref  = i_sd_pq_ref*v_sd + i_sq_pq_ref*v_sq - p_s_ref  
     eq_i_sq_pq_ref  = i_sq_pq_ref*v_sd - i_sd_pq_ref*v_sq - q_s_ref - q_ppc_ref
     eq_v_td_ref  = v_td_ref - R_s*i_sd_ref - X_s*i_sq_ref - v_sd  
@@ -244,8 +238,8 @@ def pv_1(grid,name,bus_name,data_dict):
     v_si =  V_s*sin(theta_s)  # v_D, e^(-j)
     i_tr = i_sr
     i_ti = i_si
-    v_tr = v_tr_ref
-    v_ti = v_ti_ref
+    v_tr = v_td_ref
+    v_ti = v_tq_ref
     i_tdc = (i_ti*v_ti + i_tr*v_tr)/v_dc
     g_i_si = v_ti - R_s*i_si - X_s*i_sr - v_si  
     g_i_sr = v_tr - R_s*i_sr + X_s*i_si - v_sr 
@@ -277,7 +271,7 @@ def pv_1(grid,name,bus_name,data_dict):
     grid.dae['h_dict'].update({f"theta_t_ref_{name}":theta_t_ref}) 
 
     ## DC link   
-    C_dc,i_dc = sym.symbols(f'C_dc_{name},i_dc_{name}', real=True)
+    C_dc,i_dc = backend.symbols(f'C_dc_{name}, i_dc_{name}')
     i_tdc = (i_ti*v_ti + i_tr*v_tr)/(v_dc + 1e-6)
     i_pv_pu = i_pv/I_dc_b*N_mp
     dv_dc = 0.5*(i_pv_pu - i_tdc)/(C_dc)
@@ -297,7 +291,7 @@ def pv_1(grid,name,bus_name,data_dict):
         grid.dae['params_dict'].update({f"A_l_{name}":0.005}) 
         grid.dae['params_dict'].update({f"B_l_{name}":0.005}) 
         grid.dae['params_dict'].update({f"C_l_{name}":0.005})         
-
+    
     p_W   = p_s * S_n
     q_var = q_s * S_n
     return p_W,q_var

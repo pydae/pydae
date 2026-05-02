@@ -98,9 +98,6 @@ required.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for pss2a parameters, inputs, states, and outputs."""
     descriptions_list = []
@@ -230,66 +227,76 @@ def descriptions():
     return descriptions_list
 
 
-def pss2a(dae, data, name, bus_name):
+def pss2a(dae, data, name, bus_name, backend=None):
     """
     Example data entry (REE NTS parameter set)::
 
         "pss": {"type": "pss2a",
-                "T_w1": 2.0, "T_w2": 2.0, "T_w3": 2.0, "T_w4": 0.0,
-                "T_6": 0.0, "T_7": 2.0, "T_8": 0.0, "T_9": 0.1,
-                "K_s1": 17.069, "K_s2": 0.158, "K_s3": 1.0,
-                "T_1": 0.28, "T_2": 0.04, "T_3": 0.28, "T_4": 0.12,
-                "V_STmax": 0.1, "V_STmin": -0.1,
-                "M": 5, "N": 1}
+                 "T_w1": 2.0, "T_w2": 2.0, "T_w3": 2.0, "T_w4": 0.0,
+                 "T_6": 0.0, "T_7": 2.0, "T_8": 0.0, "T_9": 0.1,
+                 "K_s1": 17.069, "K_s2": 0.158, "K_s3": 1.0,
+                 "T_1": 0.28, "T_2": 0.04, "T_3": 0.28, "T_4": 0.12,
+                 "V_STmax": 0.1, "V_STmin": -0.1,
+                 "M": 5, "N": 1}
 
     All states initialise to zero — at steady state the PSS output
     $v_{pss} = 0$ and only transients produce a non-zero signal.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     pss_data = data['pss']
 
     # Inputs from the rest of the system.
-    omega = sym.Symbol(f"omega_{name}", real=True)
-    p_g = sym.Symbol(f"p_g_{name}", real=True)
+    omega = backend.symbols(f"omega_{name}", real=True)
+    p_g = backend.symbols(f"p_g_{name}", real=True)
 
     # Dynamic states — speed channel.
-    x_w1 = sym.Symbol(f"x_w1_pss_{name}", real=True)
-    x_w2 = sym.Symbol(f"x_w2_pss_{name}", real=True)
+    x_w1 = backend.symbols(f"x_w1_pss_{name}", real=True)
+    x_w2 = backend.symbols(f"x_w2_pss_{name}", real=True)
 
     # Dynamic states — power channel.
-    x_w3 = sym.Symbol(f"x_w3_pss_{name}", real=True)
-    x_p = sym.Symbol(f"x_p_pss_{name}", real=True)
+    x_w3 = backend.symbols(f"x_w3_pss_{name}", real=True)
+    x_p = backend.symbols(f"x_p_pss_{name}", real=True)
 
     # Dynamic states — ramp-tracking filter (6 cascaded lags).
-    x_r1 = sym.Symbol(f"x_r1_pss_{name}", real=True)
-    x_r2 = sym.Symbol(f"x_r2_pss_{name}", real=True)
-    x_r3 = sym.Symbol(f"x_r3_pss_{name}", real=True)
-    x_r4 = sym.Symbol(f"x_r4_pss_{name}", real=True)
-    x_r5 = sym.Symbol(f"x_r5_pss_{name}", real=True)
-    x_r6 = sym.Symbol(f"x_r6_pss_{name}", real=True)
+    x_r1 = backend.symbols(f"x_r1_pss_{name}", real=True)
+    x_r2 = backend.symbols(f"x_r2_pss_{name}", real=True)
+    x_r3 = backend.symbols(f"x_r3_pss_{name}", real=True)
+    x_r4 = backend.symbols(f"x_r4_pss_{name}", real=True)
+    x_r5 = backend.symbols(f"x_r5_pss_{name}", real=True)
+    x_r6 = backend.symbols(f"x_r6_pss_{name}", real=True)
 
     # Dynamic states — lead-lag stages.
-    x_l1 = sym.Symbol(f"x_l1_pss_{name}", real=True)
-    x_l2 = sym.Symbol(f"x_l2_pss_{name}", real=True)
+    x_l1 = backend.symbols(f"x_l1_pss_{name}", real=True)
+    x_l2 = backend.symbols(f"x_l2_pss_{name}", real=True)
 
     # Algebraic state.
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     # Parameters.
-    T_w1 = sym.Symbol(f"T_w1_pss_{name}", real=True)
-    T_w2 = sym.Symbol(f"T_w2_pss_{name}", real=True)
-    T_w3 = sym.Symbol(f"T_w3_pss_{name}", real=True)
-    T_7 = sym.Symbol(f"T_7_pss_{name}", real=True)
-    T_9 = sym.Symbol(f"T_9_pss_{name}", real=True)
-    K_s1 = sym.Symbol(f"K_s1_pss_{name}", real=True)
-    K_s2 = sym.Symbol(f"K_s2_pss_{name}", real=True)
-    K_s3 = sym.Symbol(f"K_s3_pss_{name}", real=True)
-    T_1 = sym.Symbol(f"T_1_pss_{name}", real=True)
-    T_2 = sym.Symbol(f"T_2_pss_{name}", real=True)
-    T_3 = sym.Symbol(f"T_3_pss_{name}", real=True)
-    T_4 = sym.Symbol(f"T_4_pss_{name}", real=True)
-    V_STmax = sym.Symbol(f"V_STmax_pss_{name}", real=True)
-    V_STmin = sym.Symbol(f"V_STmin_pss_{name}", real=True)
+    T_w1 = backend.symbols(f"T_w1_pss_{name}", real=True)
+    T_w2 = backend.symbols(f"T_w2_pss_{name}", real=True)
+    T_w3 = backend.symbols(f"T_w3_pss_{name}", real=True)
+    T_7 = backend.symbols(f"T_7_pss_{name}", real=True)
+    T_9 = backend.symbols(f"T_9_pss_{name}", real=True)
+    K_s1 = backend.symbols(f"K_s1_pss_{name}", real=True)
+    K_s2 = backend.symbols(f"K_s2_pss_{name}", real=True)
+    K_s3 = backend.symbols(f"K_s3_pss_{name}", real=True)
+    T_1 = backend.symbols(f"T_1_pss_{name}", real=True)
+    T_2 = backend.symbols(f"T_2_pss_{name}", real=True)
+    T_3 = backend.symbols(f"T_3_pss_{name}", real=True)
+    T_4 = backend.symbols(f"T_4_pss_{name}", real=True)
+    V_STmax = backend.symbols(f"V_STmax_pss_{name}", real=True)
+    V_STmin = backend.symbols(f"V_STmin_pss_{name}", real=True)
 
     # Speed channel: V_1 = omega - 1; two washouts; T_6 = 0 skips transducer.
     V_1 = omega - 1.0
@@ -329,7 +336,7 @@ def pss2a(dae, data, name, bus_name):
 
     # Output saturation.
     v_pss_nosat = z_l2
-    v_pss_sat = sym.Piecewise((V_STmin, v_pss_nosat < V_STmin),
+    v_pss_sat = backend.Piecewise((V_STmin, v_pss_nosat < V_STmin),
                               (V_STmax, v_pss_nosat > V_STmax),
                               (v_pss_nosat, True))
     g_v_pss = v_pss_sat - v_pss

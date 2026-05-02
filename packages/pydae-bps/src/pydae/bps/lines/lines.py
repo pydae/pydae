@@ -70,7 +70,6 @@ When none of the shunt keys is present ``bs_{name}`` defaults to 0.
 """
 
 import numpy as np
-import sympy as sym
 
 from pydae.bps.lines.line_dtr import add_line_dtr
 
@@ -161,9 +160,9 @@ def add_line(self, line):
             line_name = f"{line_name}_{line['sub_name']}"
 
 
-    g_jk = sym.Symbol(f"g_{line_name}", real=True) 
-    b_jk = sym.Symbol(f"b_{line_name}", real=True) 
-    bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
+    g_jk = self.backend.symbols(f"g_{line_name}")
+    b_jk = self.backend.symbols(f"b_{line_name}")
+    bs_jk = self.backend.symbols(f"bs_{line_name}") 
     self.G_primitive[self.it,self.it] = g_jk
     self.B_primitive[self.it,self.it] = b_jk
     self.B_primitive[self.it+1,self.it+1] = bs_jk/2
@@ -182,7 +181,7 @@ def add_line(self, line):
         self.dae['params_dict'].update({f'b_{line_name}':B})
 
     if 'X' in line:
-        bus_idx = buses_list.index(line['bus_j'])
+        bus_idx = self.buses_list.index(line['bus_j'])
         U_base = self.buses[bus_idx]['U_kV']*1000
         Z_base = U_base**2/sys['S_base']
         R = line['R']/Z_base  # in pu of the system base
@@ -377,8 +376,8 @@ def get_line_current(model, bus_j, bus_k, units='A'):
 def test_line_pu_build():
     
     from pydae.bps import BpsBuilder
-    from pydae.build_v2 import build_mkl,build_numba
-
+    from pydae.core import Model,Builder
+    
     data = {
         "system":{"name":"temp","S_base":100e6, "K_p_agc":0.01,"K_i_agc":0.01, "K_xif":0.01},       
         "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0},

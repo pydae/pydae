@@ -56,9 +56,6 @@ model is structurally identical but uses the Kundur textbook names
 (``K_stab``, ``T_w``, symmetric ``V_lim``).
 """
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for pss1a parameters, inputs, states, outputs."""
     descriptions_list = []
@@ -122,30 +119,40 @@ def descriptions():
     return descriptions_list
 
 
-def pss1a(dae, data, name, bus_name):
+def pss1a(dae, data, name, bus_name, backend=None):
     r"""
     Attach the PSS1A stabiliser to *dae* for generator *name*.
 
     T_6 (output filter) is read from data but not modelled as a state;
     set T_6 = 0 (default) for the standard two-lag configuration.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     pss_data = data['pss']
 
-    omega  = sym.Symbol(f"omega_{name}",      real=True)
-    x_wo   = sym.Symbol(f"x_wo_pss_{name}",   real=True)
-    x_12   = sym.Symbol(f"x_12_pss_{name}",   real=True)
-    x_34   = sym.Symbol(f"x_34_pss_{name}",   real=True)
-    v_pss  = sym.Symbol(f"v_pss_{name}",       real=True)
+    omega  = backend.symbols(f"omega_{name}",      real=True)
+    x_wo   = backend.symbols(f"x_wo_pss_{name}",   real=True)
+    x_12   = backend.symbols(f"x_12_pss_{name}",   real=True)
+    x_34   = backend.symbols(f"x_34_pss_{name}",   real=True)
+    v_pss  = backend.symbols(f"v_pss_{name}",       real=True)
 
-    K_s    = sym.Symbol(f"K_s_pss_{name}",    real=True)
-    T_5    = sym.Symbol(f"T_5_pss_{name}",    real=True)
-    T_1    = sym.Symbol(f"T_1_pss_{name}",    real=True)
-    T_2    = sym.Symbol(f"T_2_pss_{name}",    real=True)
-    T_3    = sym.Symbol(f"T_3_pss_{name}",    real=True)
-    T_4    = sym.Symbol(f"T_4_pss_{name}",    real=True)
-    V_stmax = sym.Symbol(f"V_stmax_pss_{name}", real=True)
-    V_stmin = sym.Symbol(f"V_stmin_pss_{name}", real=True)
+    K_s    = backend.symbols(f"K_s_pss_{name}",    real=True)
+    T_5    = backend.symbols(f"T_5_pss_{name}",    real=True)
+    T_1    = backend.symbols(f"T_1_pss_{name}",    real=True)
+    T_2    = backend.symbols(f"T_2_pss_{name}",    real=True)
+    T_3    = backend.symbols(f"T_3_pss_{name}",    real=True)
+    T_4    = backend.symbols(f"T_4_pss_{name}",    real=True)
+    V_stmax = backend.symbols(f"V_stmax_pss_{name}", real=True)
+    V_stmin = backend.symbols(f"V_stmin_pss_{name}", real=True)
 
     Domega = omega - 1.0
 
@@ -163,7 +170,7 @@ def pss1a(dae, data, name, bus_name):
 
     # Gain + output limiter
     v_nosat = K_s * z_34
-    v_sat   = sym.Piecewise((V_stmin, v_nosat < V_stmin),
+    v_sat   = backend.Piecewise((V_stmin, v_nosat < V_stmin),
                             (V_stmax, v_nosat > V_stmax),
                             (v_nosat, True))
     g_v_pss = v_sat - v_pss

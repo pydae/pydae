@@ -87,9 +87,6 @@ whose voltage is regulated; if omitted the generator bus is used.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for kundur parameters, inputs, states, and outputs."""
     descriptions_list = []
@@ -147,35 +144,45 @@ def descriptions():
     return descriptions_list
 
 
-def kundur(dae, data, name, bus_name):
+def kundur(dae, data, name, bus_name, backend=None):
     """
     Example data entry::
 
         "avr": {"type": "kundur", "K_a": 100.0, "T_r": 0.02,
-                "E_fmin": -5.0, "E_fmax": 5.0, "v_ref": 1.0}
+                 "E_fmin": -5.0, "E_fmax": 5.0, "v_ref": 1.0}
 
     The ``v_ref`` value supplied in data is used as the **bus voltage
     setpoint during ini()** (since v_ref is unknown there) and as the
     **initial guess / starting input during run()**.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)
 
-    v_1 = sym.Symbol(f"v_1_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
+    v_1 = backend.symbols(f"v_1_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)
 
-    K_a = sym.Symbol(f"K_a_{name}", real=True)
-    T_r = sym.Symbol(f"T_r_{name}", real=True)
-    E_fmin = sym.Symbol(f"E_fmin_{name}", real=True)
-    E_fmax = sym.Symbol(f"E_fmax_{name}", real=True)
+    K_a = backend.symbols(f"K_a_{name}", real=True)
+    T_r = backend.symbols(f"T_r_{name}", real=True)
+    E_fmin = backend.symbols(f"E_fmin_{name}", real=True)
+    E_fmax = backend.symbols(f"E_fmax_{name}", real=True)
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     v_s = v_pss
 
@@ -187,7 +194,7 @@ def kundur(dae, data, name, bus_name):
     dv_1 = (v_t - v_1) / T_r
 
     # Algebraic: v_f = saturated command.
-    g_v_f = sym.Piecewise((E_fmin, v_f_nosat < E_fmin),
+    g_v_f = backend.Piecewise((E_fmin, v_f_nosat < E_fmin),
                           (E_fmax, v_f_nosat > E_fmax),
                           (v_f_nosat, True)) - v_f
 

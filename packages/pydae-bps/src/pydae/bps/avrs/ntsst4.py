@@ -6,10 +6,7 @@ Created on Thu August 10 23:52:55 2022
 """
 
 
-import sympy as sym
-
-
-def ntsst4(dae,data,name,bus_name):
+def ntsst4(dae,data,name,bus_name,backend=None):
     '''
 
     .. table:: Constants
@@ -18,6 +15,7 @@ def ntsst4(dae,data,name,bus_name):
         ================== =========== ============================================= =========== 
         Variable           Code        Description                                   Units
         ================== =========== ============================================= ===========
+
         :math:`T_A`        ``T_a``     Time Constant                                 s
         ================== =========== ============================================= ===========
 
@@ -26,39 +24,49 @@ def ntsst4(dae,data,name,bus_name):
     ``"avr":{"type":"ntsst4","K_pr":3.15,"K_ir":3.15,"V_rmax":1.0,"V_rmin":-0.87,"T_a":0.02,"K_pm":1.0,"K_im":0.0,"K_p": 6.5,"v_ref":1.0},``
 
     '''
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
     
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)   
-    v_c = sym.Symbol(f"v_c_{remote_bus_name}", real=True)  
-    xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
-    x_a   = sym.Symbol(f"x_a_{name}", real=True)
-    xi_m  = sym.Symbol(f"xi_m_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)  
-    K_pr   = sym.Symbol(f'K_pr_{name}', real=True) 
-    K_ir   = sym.Symbol(f'K_ir_{name}', real=True) 
-    T_a    = sym.Symbol(f'T_a_{name}', real=True) 
-    K_pm   = sym.Symbol(f'K_pm_{name}', real=True) 
-    K_im   = sym.Symbol(f'K_im_{name}', real=True) 
-    K_p    = sym.Symbol(f'K_p_{name}', real=True)  
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)   
+    v_c = backend.symbols(f"v_c_{remote_bus_name}", real=True)  
+    xi_v  = backend.symbols(f"xi_v_{name}", real=True)
+    x_a   = backend.symbols(f"x_a_{name}", real=True)
+    xi_m  = backend.symbols(f"xi_m_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)  
+    K_pr   = backend.symbols(f'K_pr_{name}', real=True) 
+    K_ir   = backend.symbols(f'K_ir_{name}', real=True) 
+    T_a    = backend.symbols(f'T_a_{name}', real=True) 
+    K_pm   = backend.symbols(f'K_pm_{name}', real=True) 
+    K_im   = backend.symbols(f'K_im_{name}', real=True) 
+    K_p    = backend.symbols(f'K_p_{name}', real=True)  
 
-    #V_rmax = sym.Symbol('V_rmax ', real=True) 
-    #V_rmin = sym.Symbol('V_rmin ', real=True) 
-    #V_mmax = sym.Symbol('V_mmax ', real=True) 
-    #V_mmin = sym.Symbol('V_mmin ', real=True) 
-    #K_g    = sym.Symbol('K_g    ', real=True) 
-    #K_i    = sym.Symbol('K_i    ', real=True) 
-    #T_r    = sym.Symbol('T_r    ', real=True) 
-    #V_bmax = sym.Symbol('V_bmax ', real=True) 
-    #K_c    = sym.Symbol('K_c    ', real=True) 
-    #X_l    = sym.Symbol('X_l    ', real=True) 
-    #theta_p= sym.Symbol('theta_p', real=True) 
+    #V_rmax = backend.symbols('V_rmax ', real=True) 
+    #V_rmin = backend.symbols('V_rmin ', real=True) 
+    #V_mmax = backend.symbols('V_mmax ', real=True) 
+    #V_mmin = backend.symbols('V_mmin ', real=True) 
+    #K_g    = backend.symbols('K_g    ', real=True) 
+    #K_i    = backend.symbols('K_i    ', real=True) 
+    #T_r    = backend.symbols('T_r    ', real=True) 
+    #V_bmax = backend.symbols('V_bmax ', real=True) 
+    #K_c    = backend.symbols('K_c    ', real=True) 
+    #X_l    = backend.symbols('X_l    ', real=True) 
+    #theta_p= backend.symbols('theta_p', real=True) 
     
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True) 
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True) 
+    v_ref = backend.symbols(f"v_ref_{name}", real=True) 
+    v_pss = backend.symbols(f"v_pss_{name}", real=True) 
 
     v_s = v_pss # v_oel and v_uel are not considered
     #v_ini = K_ai*xi_v

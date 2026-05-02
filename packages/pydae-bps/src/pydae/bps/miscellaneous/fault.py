@@ -6,30 +6,30 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def add_fault(grid,data):
     """
     # auxiliar
     
     """
+    backend = grid.backend
 
     bus_name = data['bus']
     name = bus_name
 
-    fault_b = sym.Symbol(f'fault_b_{name}', real=True)
-    fault_g = sym.Symbol(f'fault_g_{name}', real=True)
-    fault_g_ref= sym.Symbol(f'fault_g_ref_{name}', real=True)
-    RampDown = sym.Symbol(f'RampDown_{name}', real=True)
-    RampUp = sym.Symbol(f'RampUp_{name}', real=True)
-    K_fault = sym.Symbol(f'K_fault_{name}', real=True)
+    fault_b = backend.symbols(f'fault_b_{name}')
+    fault_g = backend.symbols(f'fault_g_{name}')
+    fault_g_ref= backend.symbols(f'fault_g_ref_{name}')
+    RampDown = backend.symbols(f'RampDown_{name}')
+    RampUp = backend.symbols(f'RampUp_{name}')
+    K_fault = backend.symbols(f'K_fault_{name}')
 
-    V = sym.Symbol(f'V_{name}', real=True)
+    V = backend.symbols(f'V_{name}')
 
 
     epsilon_g = fault_g_ref - fault_g
     dfault_g_nosat = K_fault*(fault_g_ref - fault_g)
-    dfault_g_sat = sym.Piecewise((RampDown,dfault_g_nosat<RampDown),
+    dfault_g_sat = backend.Piecewise((RampDown,dfault_g_nosat<RampDown),
                                 (RampUp,dfault_g_nosat>RampUp),
                                 (dfault_g_nosat,True))
     grid.dae['f'] += [dfault_g_sat]
@@ -55,7 +55,7 @@ def add_fault(grid,data):
     if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
     buses[idx_bus]['idx_powers'] += 1
 
-    S_base = sym.Symbol('S_base', real = True)
+    S_base = backend.symbols('S_base')
     grid.dae['g'][idx_bus*2]   += -p_pu
     grid.dae['g'][idx_bus*2+1] += -q_pu
 

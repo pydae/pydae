@@ -189,7 +189,7 @@ the ``dp_lc`` fast channel.
 import sympy as sym
 
 
-def add_lc(dae, syn_data, name, _bus_name):
+def add_lc(dae, syn_data, name, _bus_name, backend=None):
     r"""
     Attach the per-machine load controller to *dae* for generator *name*.
 
@@ -205,25 +205,31 @@ def add_lc(dae, syn_data, name, _bus_name):
     governor builder has run, so the governor's ``p_c_lc`` is already in
     ``u_ini_dict`` when this function executes.
     """
-    lc_data    = syn_data['lc']
-    p_c_ini    = lc_data.get('p_c_lc', 0.5)   # desired p_g setpoint
-    K_i_val    = lc_data.get('K_i', 0.01)  # integrator gain (pu/s per pu error)
+    if backend is None:
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'use_casadi': False,
+        })()
 
-    p_g    = sym.Symbol(f"p_g_{name}",    real=True)
-    x_lc   = sym.Symbol(f"x_lc_{name}",   real=True)
-    p_c_lc = sym.Symbol(f"p_c_lc_{name}", real=True)
-    dp_lc  = sym.Symbol(f"dp_lc_{name}",  real=True)  # fast additive channel (AGC)
-    K_i_lc = sym.Symbol(f"K_i_lc_{name}", real=True)
+    lc_data = syn_data['lc']
+    p_c_ini = lc_data.get('p_c_lc', 0.5)   # desired p_g setpoint
+    K_i_val = lc_data.get('K_i', 0.01)  # integrator gain (pu/s per pu error)
+
+    p_g = backend.symbols(f"p_g_{name}")
+    x_lc = backend.symbols(f"x_lc_{name}")
+    p_c_lc = backend.symbols(f"p_c_lc_{name}")
+    dp_lc = backend.symbols(f"dp_lc_{name}")  # fast additive channel (AGC)
+    K_i_lc = backend.symbols(f"K_i_lc_{name}")
 
     # Priority: governor p_c > direct p_m.
     p_c_key = f'p_c_{name}'
     p_m_key = f'p_m_{name}'
     if p_c_key in dae['u_ini_dict']:
-        ctrl_sym = sym.Symbol(p_c_key, real=True)
+        ctrl_sym = backend.symbols(p_c_key)
         dae['u_ini_dict'].pop(p_c_key)
         dae['u_run_dict'].pop(p_c_key, None)
     else:
-        ctrl_sym = sym.Symbol(p_m_key, real=True)
+        ctrl_sym = backend.symbols(p_m_key)
         dae['u_ini_dict'].pop(p_m_key, None)
         dae['u_run_dict'].pop(p_m_key, None)
 
@@ -259,9 +265,9 @@ def add_lc(dae, syn_data, name, _bus_name):
 
 
 def test():
-    from pydae.core import Builder, Model
-    from pydae.bps import BpsBuilder
     import pytest
+    from pydae.bps import BpsBuilder
+    from pydae.core import Builder, Model
 
     # --- governor + LC ---
     grid = BpsBuilder('lc.hjson')

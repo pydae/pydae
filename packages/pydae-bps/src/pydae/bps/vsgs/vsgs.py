@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 from pydae.bps.vsgs.leon_gvsg import leon_gvsg
 from pydae.bps.vsgs.leon_vsg_ll import leon_vsg_ll
@@ -42,7 +41,7 @@ def add_vsgs(grid):
         if not 'idx_powers' in grid.buses[idx_bus]: grid.buses[idx_bus].update({'idx_powers':0})
         grid.buses[idx_bus]['idx_powers'] += 1
 
-        S_base = sym.Symbol('S_base', real = True)
+        S_base = grid.backend.symbols('S_base')
         grid.dae['g'][idx_bus*2]   += -p_W/S_base
         grid.dae['g'][idx_bus*2+1] += -q_var/S_base
 

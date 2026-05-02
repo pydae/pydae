@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def load_zip(grid,name,bus_name,data_dict):
     """
@@ -14,14 +13,16 @@ def load_zip(grid,name,bus_name,data_dict):
     
     """
 
-    V = sym.Symbol(f"V_{bus_name}", real=True)
+    backend = grid.backend
+
+    V = backend.symbols(f"V_{bus_name}")
         
 
     # algebraic states
-    p_z = sym.Symbol(f"p_z_{name}", real=True)
-    q_z = sym.Symbol(f"q_z_{name}", real=True)
-    g_load = sym.Symbol(f"g_load_{name}", real=True)
-    b_load = sym.Symbol(f"b_load_{name}", real=True)
+    p_z = backend.symbols(f"p_z_{name}")
+    q_z = backend.symbols(f"q_z_{name}")
+    g_load = backend.symbols(f"g_load_{name}")
+    b_load = backend.symbols(f"b_load_{name}")
 
     # parameters
     

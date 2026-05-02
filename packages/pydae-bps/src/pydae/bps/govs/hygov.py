@@ -75,7 +75,6 @@ Example data entry (typical defaults)::
 """
 
 from pydae import ssa
-import sympy as sym
 
 
 def descriptions():
@@ -166,7 +165,7 @@ def descriptions():
     return descriptions_list
 
 
-def hygov(dae, data, name, _bus_name):
+def hygov(dae, data, name, _bus_name, backend=None):
     r"""
     Example data entry::
 
@@ -187,45 +186,51 @@ def hygov(dae, data, name, _bus_name):
     ``p_c`` is the gate position setpoint.  At steady state
     ($\omega = 1$) the mechanical power is $p_m = A_t\,(p_c - Q_{nl})$.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+        })()
 
     gov_data = data['gov']
 
     # Input from the rest of the system.
-    omega = sym.Symbol(f"omega_{name}", real=True)
+    omega = backend.symbols(f"omega_{name}")
 
     # External input (gate/power setpoint).
-    p_c = sym.Symbol(f"p_c_{name}", real=True)
+    p_c = backend.symbols(f"p_c_{name}")
 
     # Dynamic states.
-    c_pv = sym.Symbol(f"c_pv_gov_{name}", real=True)   # pilot valve filter
-    c_d  = sym.Symbol(f"c_d_gov_{name}",  real=True)   # dashpot
-    x_g  = sym.Symbol(f"x_g_gov_{name}",  real=True)   # gate servo integrator
-    q    = sym.Symbol(f"q_gov_{name}",     real=True)   # water flow
+    c_pv = backend.symbols(f"c_pv_gov_{name}")
+    c_d  = backend.symbols(f"c_d_gov_{name}")
+    x_g  = backend.symbols(f"x_g_gov_{name}")
+    q    = backend.symbols(f"q_gov_{name}")
 
     # Algebraic state.
-    p_m = sym.Symbol(f"p_m_{name}", real=True)
+    p_m = backend.symbols(f"p_m_{name}")
 
     # Parameters.
-    R       = sym.Symbol(f"R_gov_{name}",       real=True)
-    R_r     = sym.Symbol(f"R_r_gov_{name}",     real=True)
-    T_r     = sym.Symbol(f"T_r_gov_{name}",     real=True)
-    T_f     = sym.Symbol(f"T_f_gov_{name}",     real=True)
-    T_g     = sym.Symbol(f"T_g_gov_{name}",     real=True)
-    V_g_max = sym.Symbol(f"V_g_max_gov_{name}", real=True)
-    G_max   = sym.Symbol(f"G_max_gov_{name}",   real=True)
-    G_min   = sym.Symbol(f"G_min_gov_{name}",   real=True)
-    T_w     = sym.Symbol(f"T_w_gov_{name}",     real=True)
-    A_t     = sym.Symbol(f"A_t_gov_{name}",     real=True)
-    D_turb  = sym.Symbol(f"D_turb_gov_{name}",  real=True)
-    Q_nl    = sym.Symbol(f"Q_nl_gov_{name}",    real=True)
-    K_awu   = sym.Symbol(f"K_awu_gov_{name}",   real=True)
+    R       = backend.symbols(f"R_gov_{name}")
+    R_r     = backend.symbols(f"R_r_gov_{name}")
+    T_r     = backend.symbols(f"T_r_gov_{name}")
+    T_f     = backend.symbols(f"T_f_gov_{name}")
+    T_g     = backend.symbols(f"T_g_gov_{name}")
+    V_g_max = backend.symbols(f"V_g_max_gov_{name}")
+    G_max   = backend.symbols(f"G_max_gov_{name}")
+    G_min   = backend.symbols(f"G_min_gov_{name}")
+    T_w     = backend.symbols(f"T_w_gov_{name}")
+    A_t     = backend.symbols(f"A_t_gov_{name}")
+    D_turb  = backend.symbols(f"D_turb_gov_{name}")
+    Q_nl    = backend.symbols(f"Q_nl_gov_{name}")
+    K_awu   = backend.symbols(f"K_awu_gov_{name}")
 
     # Speed deviation.
     delta_omega = omega - 1
 
     # Dashpot: tracks gate integrator, produces transient droop correction.
     dc_d    = (x_g - c_d) / T_r
-    c_d_out = R_r * dc_d   # = R_r * (x_g - c_d) / T_r
+    c_d_out = R_r * dc_d
 
     # Pilot valve demand: load reference + permanent droop + transient droop.
     u_pv = p_c - delta_omega / R - c_d_out
@@ -235,14 +240,14 @@ def hygov(dae, data, name, _bus_name):
 
     # Gate servomotor: rate-limited integrator with position limits.
     y_g_nosat = x_g
-    y_g = sym.Piecewise((G_min, y_g_nosat < G_min),
-                        (G_max, y_g_nosat > G_max),
-                        (y_g_nosat, True))
+    y_g = backend.Piecewise((G_min, y_g_nosat < G_min),
+                            (G_max, y_g_nosat > G_max),
+                            (y_g_nosat, True))
 
     v_g_nosat = (c_pv - x_g) / T_g
-    v_g = sym.Piecewise((-V_g_max, v_g_nosat < -V_g_max),
-                        ( V_g_max, v_g_nosat >  V_g_max),
-                        (v_g_nosat, True))
+    v_g = backend.Piecewise((-V_g_max, v_g_nosat < -V_g_max),
+                            ( V_g_max, v_g_nosat >  V_g_max),
+                            (v_g_nosat, True))
 
     dx_g = v_g + K_awu * (y_g - y_g_nosat)
 

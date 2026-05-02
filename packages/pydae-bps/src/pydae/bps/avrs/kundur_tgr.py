@@ -97,9 +97,6 @@ whose voltage is regulated; if omitted the generator bus is used.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for kundur_tgr parameters, inputs, states, and outputs."""
     descriptions_list = []
@@ -160,36 +157,46 @@ def descriptions():
     return descriptions_list
 
 
-def kundur_tgr(dae, data, name, bus_name):
+def kundur_tgr(dae, data, name, bus_name, backend=None):
     """
     Example data entry::
 
         "avr": {"type": "kundur_tgr", "K_a": 200.0, "T_r": 0.01,
-                "T_a": 1.0, "T_b": 10.0, "v_ref": 1.0}
+                 "T_a": 1.0, "T_b": 10.0, "v_ref": 1.0}
 
     The ``v_ref`` value supplied in data is used as the **bus voltage
     setpoint during ini()** (since v_ref is unknown there) and as the
     **initial guess / starting input during run()**.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)
 
-    v_r = sym.Symbol(f"v_r_{name}", real=True)
-    x_ab = sym.Symbol(f"x_ab_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
+    v_r = backend.symbols(f"v_r_{name}", real=True)
+    x_ab = backend.symbols(f"x_ab_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)
 
-    K_a = sym.Symbol(f"K_a_{name}", real=True)
-    T_r = sym.Symbol(f"T_r_{name}", real=True)
-    T_a = sym.Symbol(f"T_a_{name}", real=True)
-    T_b = sym.Symbol(f"T_b_{name}", real=True)
+    K_a = backend.symbols(f"K_a_{name}", real=True)
+    T_r = backend.symbols(f"T_r_{name}", real=True)
+    T_a = backend.symbols(f"T_a_{name}", real=True)
+    T_b = backend.symbols(f"T_b_{name}", real=True)
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     v_s = v_pss
 

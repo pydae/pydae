@@ -92,7 +92,6 @@ states.
 
 
 from pydae import ssa
-import sympy as sym
 
 
 def descriptions():
@@ -226,7 +225,7 @@ def descriptions():
     return descriptions_list
 
 
-def ieeeg1(dae, data, name, bus_name):
+def ieeeg1(dae, data, name, bus_name, backend=None):
     """
     Example data entry (REE NTS parameter set)::
 
@@ -245,61 +244,67 @@ def ieeeg1(dae, data, name, bus_name):
     mechanical power output equals ``p_c`` when the HP+LP fractions sum
     to unity.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+        })()
 
     gov_data = data['gov']
 
     # Inputs from the rest of the system.
-    omega = sym.Symbol(f"omega_{name}", real=True)
-    p_agc = sym.Symbol(f"p_agc", real=True)
+    omega = backend.symbols(f"omega_{name}")
+    p_agc = backend.symbols(f"p_agc")
 
     # External input (dispatch setpoint).
-    p_c = sym.Symbol(f"p_c_{name}", real=True)
+    p_c = backend.symbols(f"p_c_{name}")
 
     # Secondary-control gain carried by the synchronous machine.
-    K_sec = sym.Symbol(f"K_sec_{name}", real=True)
+    K_sec = backend.symbols(f"K_sec_{name}")
 
     # Dynamic states.
-    x_3 = sym.Symbol(f"x_3_gov_{name}", real=True)
-    x_4 = sym.Symbol(f"x_4_gov_{name}", real=True)
-    x_5 = sym.Symbol(f"x_5_gov_{name}", real=True)
-    x_6 = sym.Symbol(f"x_6_gov_{name}", real=True)
+    x_3 = backend.symbols(f"x_3_gov_{name}")
+    x_4 = backend.symbols(f"x_4_gov_{name}")
+    x_5 = backend.symbols(f"x_5_gov_{name}")
+    x_6 = backend.symbols(f"x_6_gov_{name}")
 
     # Algebraic state.
-    p_m = sym.Symbol(f"p_m_{name}", real=True)
+    p_m = backend.symbols(f"p_m_{name}")
 
     # Parameters.
-    K = sym.Symbol(f"K_gov_{name}", real=True)
-    K_1 = sym.Symbol(f"K_1_gov_{name}", real=True)
-    K_3 = sym.Symbol(f"K_3_gov_{name}", real=True)
-    K_5 = sym.Symbol(f"K_5_gov_{name}", real=True)
-    K_7 = sym.Symbol(f"K_7_gov_{name}", real=True)
-    K_2 = sym.Symbol(f"K_2_gov_{name}", real=True)
-    K_4 = sym.Symbol(f"K_4_gov_{name}", real=True)
-    K_6 = sym.Symbol(f"K_6_gov_{name}", real=True)
-    K_8 = sym.Symbol(f"K_8_gov_{name}", real=True)
-    T_3 = sym.Symbol(f"T_3_gov_{name}", real=True)
-    T_4 = sym.Symbol(f"T_4_gov_{name}", real=True)
-    T_5 = sym.Symbol(f"T_5_gov_{name}", real=True)
-    T_6 = sym.Symbol(f"T_6_gov_{name}", real=True)
-    U_o = sym.Symbol(f"U_o_gov_{name}", real=True)
-    U_c = sym.Symbol(f"U_c_gov_{name}", real=True)
-    P_max = sym.Symbol(f"P_max_gov_{name}", real=True)
-    P_min = sym.Symbol(f"P_min_gov_{name}", real=True)
-    K_awu = sym.Symbol(f"K_awu_gov_{name}", real=True)
+    K = backend.symbols(f"K_gov_{name}")
+    K_1 = backend.symbols(f"K_1_gov_{name}")
+    K_3 = backend.symbols(f"K_3_gov_{name}")
+    K_5 = backend.symbols(f"K_5_gov_{name}")
+    K_7 = backend.symbols(f"K_7_gov_{name}")
+    K_2 = backend.symbols(f"K_2_gov_{name}")
+    K_4 = backend.symbols(f"K_4_gov_{name}")
+    K_6 = backend.symbols(f"K_6_gov_{name}")
+    K_8 = backend.symbols(f"K_8_gov_{name}")
+    T_3 = backend.symbols(f"T_3_gov_{name}")
+    T_4 = backend.symbols(f"T_4_gov_{name}")
+    T_5 = backend.symbols(f"T_5_gov_{name}")
+    T_6 = backend.symbols(f"T_6_gov_{name}")
+    U_o = backend.symbols(f"U_o_gov_{name}")
+    U_c = backend.symbols(f"U_c_gov_{name}")
+    P_max = backend.symbols(f"P_max_gov_{name}")
+    P_min = backend.symbols(f"P_min_gov_{name}")
+    K_awu = backend.symbols(f"K_awu_gov_{name}")
 
     # Servo valve — position limiter with anti-windup feedback on the
     # integrator state.
     Domega = 1.0 - omega
     y_g_nosat = x_3
-    y_g = sym.Piecewise((P_min, y_g_nosat < P_min),
-                        (P_max, y_g_nosat > P_max),
-                        (y_g_nosat, True))
+    y_g = backend.Piecewise((P_min, y_g_nosat < P_min),
+                            (P_max, y_g_nosat > P_max),
+                            (y_g_nosat, True))
 
     u_3 = K * Domega + p_c - y_g # + K_sec * p_agc
     u_g_nosat = u_3 / T_3
-    u_g = sym.Piecewise((U_c, u_g_nosat < U_c),
-                        (U_o, u_g_nosat > U_o),
-                        (u_g_nosat, True))
+    u_g = backend.Piecewise((U_c, u_g_nosat < U_c),
+                            (U_o, u_g_nosat > U_o),
+                            (u_g_nosat, True))
     u_awu = K_awu * (y_g - y_g_nosat)
 
     dx_3 = u_g + u_awu

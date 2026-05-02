@@ -81,8 +81,6 @@ override the operating-point setpoints at runtime.
     model.run(10.0, {"v_ref_39": 1.05})
 """
 
-import numpy as np
-import sympy as sym
 
 
 def vsource(grid, name, bus_name, data_dict):
@@ -93,54 +91,53 @@ def vsource(grid, name, bus_name, data_dict):
     adds a dummy state ``V_dummy_{name}`` for consistent vector sizing.
     """
 
-    sin = sym.sin
-    cos = sym.cos
+    sin = grid.backend.sin
+    cos = grid.backend.cos
 
-    
     # inputs
-    V = sym.Symbol(f"V_{bus_name}", real=True)
-    theta = sym.Symbol(f"theta_{bus_name}", real=True)
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    theta_ref = sym.Symbol(f"theta_ref_{name}", real=True)
-    V_dummy = sym.Symbol(f"V_dummy_{name}", real=True)
+    V = grid.backend.symbols(f"V_{bus_name}")
+    theta = grid.backend.symbols(f"theta_{bus_name}")
+    v_ref = grid.backend.symbols(f"v_ref_{name}")
+    theta_ref = grid.backend.symbols(f"theta_ref_{name}")
+    V_dummy = grid.backend.symbols(f"V_dummy_{name}")
 
-    
+
     # dynamic states
 
     # algebraic states
     # V = sym.Symbol(f"V_{name}", real=True)
-    # theta = sym.Symbol(f"theta_{name}", real=True)            
+    # theta = sym.Symbol(f"theta_{name}", real=True)
 
 
     # parameters
     params_list = []
-    
+
     # auxiliar
 
-    # dynamic equations            
+    # dynamic equations
     grid.dae['f'] += [v_ref - V_dummy]
     grid.dae['x'] += [V_dummy]
 
-    # algebraic equations   
+    # algebraic equations
     g_V = V - v_ref
     g_theta = theta - theta_ref
-    
-    
-    # dae 
+
+
+    # dae
 
     H = 1e6
     grid.H_total += H
     grid.omega_coi_numerator += H
     grid.omega_coi_denominator += H
 
-    idx_V = grid.dae['y_ini'].index(V)
-    idx_theta = grid.dae['y_ini'].index(theta)
+    idx_V = next(i for i, y in enumerate(grid.dae['y_ini']) if str(y) == str(V))
+    idx_theta = next(i for i, y in enumerate(grid.dae['y_ini']) if str(y) == str(theta))
 
     grid.dae['g'][idx_V] = g_V
     grid.dae['g'][idx_theta] = g_theta
 
-    # grid.dae['y_ini'] += [V, theta]  
-    # grid.dae['y_run'] += [V, theta]  
+    # grid.dae['y_ini'] += [V, theta]
+    # grid.dae['y_run'] += [V, theta]
 
     grid.dae['u_ini_dict'].update({f'{str(v_ref)}':1.0})
     grid.dae['u_run_dict'].update({f'{str(v_ref)}':1.0})
@@ -150,7 +147,7 @@ def vsource(grid, name, bus_name, data_dict):
 
     grid.dae['xy_0_dict'].update({str(V):1.0})
     grid.dae['xy_0_dict'].update({str(theta):0.0})
-       
+
     grid.dae['h_dict'].update({f"V_dummy_{name}":V_dummy})
 
     # outputs
@@ -158,14 +155,11 @@ def vsource(grid, name, bus_name, data_dict):
 
 def test_mkl():
 
-    import numpy as np
+
     from pydae.bps import BpsBuilder
-    from pydae.build_v2 import builder
-    from pydae.utils import read_data
-    import json
 
     grid = BpsBuilder('vsource.hjson')
-    grid.construct(f'temp')
+    grid.construct('temp')
     grid.compile_mkl('temp')
 
     import temp
@@ -178,10 +172,10 @@ def test_mkl():
 def test():
 
     from pydae.bps import BpsBuilder
-    
+
     grid = BpsBuilder('vsource.hjson')
     grid.checker()
-    grid.verbose = True 
+    grid.verbose = True
     grid.build('temp')
 
     import temp
@@ -191,7 +185,7 @@ def test():
     model.report_y()
 
 
- 
+
 if __name__=='__main__':
     test_mkl()
 

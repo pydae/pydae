@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 from pydae.bps.pvs.pv_1 import pv_1
 from pydae.bps.pvs.pv_dq import pv_dq
@@ -62,7 +61,7 @@ def add_pvs(grid):
         if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
         buses[idx_bus]['idx_powers'] += 1
 
-        S_base = sym.Symbol('S_base', real = True)
+        S_base = grid.backend.symbols('S_base')
         grid.dae['g'][idx_bus*2]   += -p_W/S_base
         grid.dae['g'][idx_bus*2+1] += -q_var/S_base
 

@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def load_zip(grid,name,bus_name,data_dict):
     """
@@ -14,26 +13,28 @@ def load_zip(grid,name,bus_name,data_dict):
     
     """
 
-    V = sym.Symbol(f"V_{bus_name}", real=True)
-    S_base = sym.Symbol(f"S_base", real=True)    
+    backend = grid.backend
 
-    T_pz = sym.Symbol(f"T_pz_{name}", real=True)
-    T_qz = sym.Symbol(f"T_qz_{name}", real=True)
+    V = backend.symbols(f"V_{bus_name}")
+    S_base = backend.symbols(f"S_base")    
+
+    T_pz = backend.symbols(f"T_pz_{name}")
+    T_qz = backend.symbols(f"T_qz_{name}")
     
     # inputs and algebraic states
-    p_z_f = sym.Symbol(f"p_z_f_{name}", real=True)
-    q_z_f = sym.Symbol(f"q_z_f_{name}", real=True)
-    p_z = sym.Symbol(f"p_z_{name}", real=True)
-    q_z = sym.Symbol(f"q_z_{name}", real=True)
-    p_i = sym.Symbol(f"p_i_{name}", real=True)
-    q_i = sym.Symbol(f"q_i_{name}", real=True)
-    p_p = sym.Symbol(f"p_p_{name}", real=True)
-    q_p = sym.Symbol(f"q_p_{name}", real=True)
+    p_z_f = backend.symbols(f"p_z_f_{name}")
+    q_z_f = backend.symbols(f"q_z_f_{name}")
+    p_z = backend.symbols(f"p_z_{name}")
+    q_z = backend.symbols(f"q_z_{name}")
+    p_i = backend.symbols(f"p_i_{name}")
+    q_i = backend.symbols(f"q_i_{name}")
+    p_p = backend.symbols(f"p_p_{name}")
+    q_p = backend.symbols(f"q_p_{name}")
 
-    i_p = sym.Symbol(f"i_p_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)
-    g_load = sym.Symbol(f"g_load_{name}", real=True)
-    b_load = sym.Symbol(f"b_load_{name}", real=True)
+    i_p = backend.symbols(f"i_p_{name}")
+    i_q = backend.symbols(f"i_q_{name}")
+    g_load = backend.symbols(f"g_load_{name}")
+    b_load = backend.symbols(f"b_load_{name}")
 
     # parameters
     

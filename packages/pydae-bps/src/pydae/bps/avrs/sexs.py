@@ -96,9 +96,6 @@ whose voltage is regulated; if omitted the generator bus is used.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for sexs parameters, inputs, states, and outputs."""
     descriptions_list = []
@@ -170,115 +167,108 @@ def descriptions():
     return descriptions_list
 
 
-def sexs(dae, data, name, bus_name):
+def sexs(dae, data, name, bus_name, backend=None):
     """
-    Example data entry::
-
-        "avr": {"type": "sexs", "K_a": 200.0, "T_a": 0.015, "T_b": 10.0,
-                "T_e": 0.1, "E_min": -5.0, "E_max": 5.0, "v_ref": 1.0}
-
-    The ``v_ref`` value supplied in data is used as the **bus voltage
-    setpoint during ini()** (since v_ref is unknown there) and as the
-    **initial guess / starting input during run()**.
+    Optimized SEXS AVR for CasADi and SymPy.
     """
+    if backend is None:
+        # Default fallback to SymPy if no backend is provided
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'use_casadi': False,
+        })()
 
     avr_data = data['avr']
-    remote_bus_name = bus_name
-    if 'bus' in avr_data:
-        remote_bus_name = avr_data['bus']
+    remote_bus_name = avr_data.get('bus', bus_name)
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
+    # 1. Define Symbols
+    v_t = backend.symbols(f"V_{remote_bus_name}")
+    x_ab = backend.symbols(f"x_ab_{name}")
+    x_e = backend.symbols(f"x_e_{name}")
+    v_f = backend.symbols(f"v_f_{name}")
 
-    x_ab = sym.Symbol(f"x_ab_{name}", real=True)
-    x_e = sym.Symbol(f"x_e_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
+    K_a = backend.symbols(f"K_a_{name}")
+    T_a = backend.symbols(f"T_a_{name}")
+    T_b = backend.symbols(f"T_b_{name}")
+    T_e = backend.symbols(f"T_e_{name}")
+    E_min = backend.symbols(f"E_min_{name}")
+    E_max = backend.symbols(f"E_max_{name}")
 
-    K_a = sym.Symbol(f"K_a_{name}", real=True)
-    T_a = sym.Symbol(f"T_a_{name}", real=True)
-    T_b = sym.Symbol(f"T_b_{name}", real=True)
-    T_e = sym.Symbol(f"T_e_{name}", real=True)
-    E_min = sym.Symbol(f"E_min_{name}", real=True)
-    E_max = sym.Symbol(f"E_max_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}")
+    v_pss = backend.symbols(f"v_pss_{name}")
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
-
+    # 2. AVR Equations
     v_s = v_pss
-
-    # Summing junction — no artificial v_ini / xi_v integrator.
     v_2 = v_ref - v_t + v_s
 
-    # Lead-lag block.
+    # Lead-Lag Block
     dx_ab = (v_2 - x_ab) / T_b
     z_ab = (v_2 - x_ab) * T_a / T_b + x_ab
 
-    # First-order exciter.
+    # Gain and Time Constant
     dx_e = (K_a * z_ab - x_e) / T_e
 
-    # Field-voltage command with hard limits.
     efd_nosat = x_e + 1.0
-    efd = sym.Piecewise((E_min, efd_nosat < E_min),
-                        (E_max, efd_nosat > E_max),
-                        (efd_nosat, True))
+       
+    efd = backend.hard_limit(efd_nosat, E_min, E_max)
+     
+    # Algebraic constraint: v_f must equal the limited output
     g_v_f = efd - v_f
 
-    # --- ini/run variable partition ------------------------------------
-    # Swap V_bus <-> v_ref at the same y_ini position. Replacing in place
-    # keeps downstream index-based code (e.g. vsource's g[idx_V]=...) from
-    # targeting the wrong equation when V_bus was just removed.
-    #   ini: V_bus is u_ini (pinned), v_ref is y_ini (unknown)
-    #   run: V_bus is y_run (unknown), v_ref is u_run (input, seeded from ini)
-
+    # 3. Initialization Logic (Inverse Initialization)
+    # We swap V_t (bus voltage) for v_ref in the algebraic variables list.
+    # This means during ini(), we set V_t = 1.0 and solve for the required v_ref.
     v_setpoint = avr_data['v_ref']
-    if v_t in dae['y_ini']:
-        idx_V = dae['y_ini'].index(v_t)
-        dae['y_ini'][idx_V] = v_ref
+    v_t_str = str(v_t)
+    
+    # Replace V_t with v_ref in the initialization algebraic variables
+    if v_t_str in [str(y) for y in dae['y_ini']]:
+        dae['y_ini'] = [v_ref if str(y) == v_t_str else y for y in dae['y_ini']]
     else:
         dae['y_ini'] += [v_ref]
 
+    # 4. Update DAE Dictionary
     dae['f'] += [dx_ab, dx_e]
     dae['x'] += [x_ab, x_e]
     dae['g'] += [g_v_f]
-
     dae['y_ini'] += [v_f]
     dae['y_run'] += [v_f]
 
-    dae['params_dict'].update({str(K_a): avr_data['K_a']})
-    dae['params_dict'].update({str(T_a): avr_data['T_a']})
-    dae['params_dict'].update({str(T_b): avr_data['T_b']})
-    dae['params_dict'].update({str(T_e): avr_data['T_e']})
-    dae['params_dict'].update({str(E_min): avr_data['E_min']})
-    dae['params_dict'].update({str(E_max): avr_data['E_max']})
+    # 5. Parameters and Inputs
+    dae['params_dict'].update({
+        str(K_a): avr_data['K_a'], str(T_a): avr_data['T_a'],
+        str(T_b): avr_data['T_b'], str(T_e): avr_data['T_e'],
+        str(E_min): avr_data['E_min'], str(E_max): avr_data['E_max']
+    })
 
-    # During ini, V_bus is pinned at the setpoint; v_ref is solved for.
-    dae['u_ini_dict'].update({str(v_t): v_setpoint})
-    dae['u_ini_dict'].update({str(v_pss): 0.0})
+    # Set initialization inputs (Bus voltage target)
+    dae['u_ini_dict'].update({str(v_t): v_setpoint, str(v_pss): 0.0})
 
-    # During run, v_ref is the input (value auto-transferred from ini by
-    # ini2run because v_ref is in y_ini and u_run).
-    dae['u_run_dict'].update({str(v_ref): v_setpoint})
-    dae['u_run_dict'].update({str(v_pss): 0.0})
+    # Set runtime inputs (Reference voltage starts at setpoint)
+    dae['u_run_dict'].update({str(v_ref): v_setpoint, str(v_pss): 0.0})
 
-    dae['h_dict'].update({str(v_pss): v_pss})
-    dae['h_dict'].update({str(v_ref): v_ref})
+    dae['h_dict'].update({str(v_pss): v_pss, str(v_ref): v_ref, str(v_f): v_f})
+
+    # 6. Critical: Robust Initial Guesses (xy_0)
+    # To avoid the Newton solver failing on the limiter, we start in the linear region.
+    v_f_guess = 1.5 
+    x_e_guess = v_f_guess - 1.0
+    z_ab_guess = x_e_guess / avr_data['K_a']
     
-
-    # Steady-state relation: x_ab = v_2, z_ab = v_2, x_e = K_a * v_2,
-    # v_f = x_e + 1 = K_a * (v_ref - V) + 1. So an initial v_f ≈ 1.5
-    # implies a tiny v_2 ≈ 0.5/K_a.
-    v_f_guess = 1.5
-    dae['xy_0_dict'].update({str(v_f): v_f_guess})
-    dae['xy_0_dict'].update({str(x_e): v_f_guess - 1.0})
-    dae['xy_0_dict'].update({str(x_ab): (v_f_guess - 1.0) / avr_data['K_a']})
-    dae['xy_0_dict'].update({str(v_ref): v_setpoint
-                             + (v_f_guess - 1.0) / avr_data['K_a']})
+    dae['xy_0_dict'].update({
+        str(v_f): v_f_guess,
+        str(x_e): x_e_guess,
+        str(x_ab): z_ab_guess,
+        str(v_ref): v_setpoint + z_ab_guess  # Consistent with lead-lag steady state
+    })
 
 
 def test():
-    import hjson
-    from pydae.core import Builder, Model
-    from pydae.bps import BpsBuilder
     import pytest
+    from pydae.bps import BpsBuilder
+    from pydae.core import Builder, Model
 
     grid = BpsBuilder('sexs.hjson')
     grid.uz_jacs = False
@@ -303,13 +293,13 @@ def test():
     model.run(1.0, {})
     model.run(5.0, {'v_ref_1': 1.05})
     model.post()
-  
+
     string = f'{model.Time[0]:0.2f}, '
     string += f'{model.get_values("V_1")[0]:0.2f}'
     print(string)
 
     string = f'{model.Time[-1]:0.2f}, '
-    string += f'{model.get_values("V_1")[-1]:0.2f}'    
+    string += f'{model.get_values("V_1")[-1]:0.2f}'
     print(string)
 
 

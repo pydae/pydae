@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def add_pll(grid,data):
     """
@@ -15,31 +14,32 @@ def add_pll(grid,data):
     "plls":[{bus:"1","K_p_pll": 180, "K_i_pll": 3200, "T_pll": 0.02}]
     """
 
+    backend = grid.backend
     bus_name = data['bus']
 
     name = bus_name
     if 'name' in data:
         name = data['name']
 
-    sin = sym.sin
-    cos = sym.cos
+    sin = backend.sin
+    cos = backend.cos
 
     # inputs
-    V_s = sym.Symbol(f"V_{bus_name}", real=True)
-    theta_s = sym.Symbol(f"theta_{bus_name}", real=True)
-    omega_coi = sym.Symbol(f"omega_coi", real=True) 
+    V_s = backend.symbols(f"V_{bus_name}")
+    theta_s = backend.symbols(f"theta_{bus_name}")
+    omega_coi = backend.symbols(f"omega_coi") 
 
     # PLL
     # dynamic states
-    theta_pll,xi_pll,omega_pll_f, rocof_pll_f = sym.symbols(f'theta_pll_{name},xi_pll_{name},omega_pll_f_{name}, rocof_pll_f_{name}', real=True)
+    theta_pll,xi_pll,omega_pll_f, rocof_pll_f = backend.symbols(f'theta_pll_{name}, xi_pll_{name}, omega_pll_f_{name}, rocof_pll_f_{name}')
 
     # algebraic statate
-    rocof_pll = sym.symbols(f'rocof_pll_{name}', real=True)
+    rocof_pll = backend.symbols(f'rocof_pll_{name}')
 
 
     # parameters
-    T_pll,K_f = sym.symbols(f'T_pll_{name},K_f_{name}', real=True)
-    K_p_pll,K_i_pll,K_theta_pll = sym.symbols(f'K_p_pll_{name},K_i_pll_{name},K_theta_pll_{name}', real=True)
+    T_pll,K_f = backend.symbols(f'T_pll_{name}, K_f_{name}')
+    K_p_pll,K_i_pll,K_theta_pll = backend.symbols(f'K_p_pll_{name}, K_i_pll_{name}, K_theta_pll_{name}')
 
     delta = theta_s # ideal PLL
     v_sD = V_s*sin(theta_s)  # v_si   e^(-j)

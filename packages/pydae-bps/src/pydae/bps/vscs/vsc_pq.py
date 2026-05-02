@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def vsc_pq(grid,name,bus_name,data_dict):
     """
@@ -14,31 +13,31 @@ def vsc_pq(grid,name,bus_name,data_dict):
     
     """
 
-    p_in = sym.Symbol(f"p_in_{name}", real=True)
-    Dp_r = sym.Symbol(f"Dp_r_{name}", real=True)
-    Dq_r = sym.Symbol(f"Dq_r_{name}", real=True)
+    backend = grid.backend
+
+    p_in = backend.symbols(f"p_in_{name}")
+    Dp_r = backend.symbols(f"Dp_r_{name}")
+    Dq_r = backend.symbols(f"Dq_r_{name}")
 
         
     # dynamic states
-    p_out = sym.Symbol(f"p_out_{name}", real=True)
-    q_out = sym.Symbol(f"q_out_{name}", real=True)
+    p_out = backend.symbols(f"p_out_{name}")
+    q_out = backend.symbols(f"q_out_{name}")
 
     # algebraic states
 
-
     # parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
+    S_n = backend.symbols(f"S_n_{name}")
     
     # auxiliar
     
-                
+               
     # dynamic equations            
 
-
     # algebraic equations   
-    p_out_sat = sym.Piecewise((0.0,p_in + Dp_r<0.0),(p_in,p_in + Dp_r>p_in),(p_in + Dp_r,True))         
+    p_out_sat = backend.Piecewise((0.0,p_in + Dp_r<0.0),(p_in,p_in + Dp_r>p_in),(p_in + Dp_r,True))         
     q_out_max = (1**2 - p_out_sat**2)**0.5
-    q_out_sat = sym.Piecewise((-q_out_max,Dq_r<-q_out_max),(q_out_max,Dq_r>q_out_max),(Dq_r,True))     
+    q_out_sat = backend.Piecewise((-q_out_max,Dq_r<-q_out_max),(q_out_max,Dq_r>q_out_max),(Dq_r,True))     
     g_p_out = -p_out + p_out_sat
     g_q_out = -q_out + q_out_sat
 

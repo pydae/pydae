@@ -10,6 +10,8 @@ import sympy as sym
 import json
 import os
 import hjson
+from pydae.core.builder.casadi_builder import MathBackend
+from pydae.core.builder.sympy_builder import Builder as db
 from pydae.bps.syns.syns import add_syns
 from pydae.bps.vscs.vscs import add_vscs
 from pydae.bps.vsgs.vsgs import add_vsgs
@@ -34,6 +36,9 @@ class BpsBuilder:
     ----------
     data_input : string or dict
         File path to the system data information or dictionary with the information.
+    use_casadi : bool
+        If True, use CasADi SX symbols instead of SymPy symbols for the DAE.
+        Enables the CasADi backend (no C compiler needed).
 
     Returns
     -------
@@ -52,7 +57,7 @@ class BpsBuilder:
 
     '''
 
-    def __init__(self,data_input='',testing=False):
+    def __init__(self, data_input='', testing=False, use_casadi=False):
         
         if type(data_input) == str:
             if 'http' in data_input:
@@ -66,8 +71,10 @@ class BpsBuilder:
                 if os.path.splitext(data_input)[1] == '.hjson':
                     with open(data_input, 'r', encoding='utf-8') as fobj:
                         data = hjson.loads(fobj.read().replace("'", '"'))
-        elif type(data_input) == dict:
+        elif isinstance(data_input, dict):
             data = data_input
+        else:
+            raise ValueError(f"data_input must be a str (file path or URL) or dict, got {type(data_input)}")
             
         self.data = data
 
@@ -87,20 +94,21 @@ class BpsBuilder:
         self.transformers = data['transformers']
         self.loads = data['loads']
 
-   
-        
-        self.S_base = sym.Symbol("S_base", real=True) 
+        self.use_casadi = use_casadi
+        self.backend = MathBackend(use_casadi)
+
+        self.S_base = self.backend.symbols("S_base")
         self.N_bus = len(self.buses)
         self.N_branch = 3*len(self.lines) + len(self.shunts) + 2*len(self.transformers)
- 
+
         self.dae = {'f':[],'g':[],'x':[],'y_ini':[],'y_run':[],
                     'u_ini_dict':{},'u_run_dict':{},'params_dict':{},
                     'h_dict':{},'xy_0_dict':{}}
-        
-        self.dae['params_dict'].update({'S_base':self.system['S_base']})
 
-        self.uz_jacs = True     
-        self.verbose = False   
+        self.dae['params_dict'].update({'S_base': self.system['S_base']})
+
+        self.uz_jacs = True
+        self.verbose = False
         self.testing = testing
                 
     def contruct_grid(self):
@@ -109,12 +117,11 @@ class BpsBuilder:
         N_bus = self.N_bus
         sys = self.system
         
-        S_base = sym.Symbol('S_base', real=True)
-        
-       
-        self.A = sym.zeros(N_branch,N_bus)
-        self.G_primitive = sym.zeros(N_branch,N_branch)
-        self.B_primitive = sym.zeros(N_branch,N_branch)
+        S_base = self.backend.symbols('S_base')
+
+        self.A = self.backend.zeros(N_branch, N_bus)
+        self.G_primitive = self.backend.zeros(N_branch, N_branch)
+        self.B_primitive = self.backend.zeros(N_branch, N_branch)
         self.buses_list = [bus['name'] for bus in self.buses]
         self.it = 0
 
@@ -211,22 +218,43 @@ class BpsBuilder:
             self.A[self.it+1,idx_k] = 1  
             
             trafo_name = f"{bus_j}_{bus_k}"
-            g_jk = sym.Symbol(f"g_cc_{trafo_name}", real=True) 
-            b_jk = sym.Symbol(f"b_cc_{trafo_name}", real=True) 
-            tap = sym.Symbol(f"tap_{trafo_name}", real=True) 
-            ang = sym.Symbol(f"ang_{trafo_name}", real=True) 
-            a_s = tap*sym.cos(ang)
-            b_s = tap*sym.sin(ang)
+            g_jk = self.backend.symbols(f"g_cc_{trafo_name}")
+            b_jk = self.backend.symbols(f"b_cc_{trafo_name}")
+            tap = self.backend.symbols(f"tap_{trafo_name}")
+            ang = self.backend.symbols(f"ang_{trafo_name}")
+            a_s = tap * self.backend.cos(ang)
+            b_s = tap * self.backend.sin(ang)
 
-            Y_cc = g_jk + sym.I*b_jk
+            if self.backend.use_casadi:
+                denom = a_s**2 + b_s**2
+                Y_cc_re = g_jk
+                Y_cc_im = b_jk
+                Yp_00_re = Y_cc_re / denom
+                Yp_00_im = Y_cc_im / denom
+                Yp_01_re = -(Y_cc_re * a_s + Y_cc_im * b_s) / denom
+                Yp_01_im = -(Y_cc_im * a_s - Y_cc_re * b_s) / denom
+                Yp_10_re = -(Y_cc_re * a_s - Y_cc_im * b_s) / denom
+                Yp_10_im = -(Y_cc_im * a_s + Y_cc_re * b_s) / denom
+                Yp_11_re = Y_cc_re
+                Yp_11_im = Y_cc_im
+                self.G_primitive[self.it:self.it+2, self.it:self.it+2] = self.backend.Matrix([
+                    [Yp_00_re, Yp_01_re],
+                    [Yp_10_re, Yp_11_re],
+                ])
+                self.B_primitive[self.it:self.it+2, self.it:self.it+2] = self.backend.Matrix([
+                    [Yp_00_im, Yp_01_im],
+                    [Yp_10_im, Yp_11_im],
+                ])
+            else:
+                Y_cc = g_jk + self.backend.I * b_jk
 
-            
-            Y_primitive =sym.Matrix([[ Y_cc/(a_s**2+b_s**2),-Y_cc/(a_s-sym.I*b_s)],
-                                     [-Y_cc/(a_s+sym.I*b_s),                 Y_cc]])
+                Y_primitive = self.backend.Matrix([
+                    [Y_cc / (a_s**2 + b_s**2), -Y_cc / (a_s - self.backend.I * b_s)],
+                    [-Y_cc / (a_s + self.backend.I * b_s), Y_cc]
+                ])
 
-
-            self.G_primitive[self.it:self.it+2,self.it:self.it+2] = sym.re(Y_primitive)
-            self.B_primitive[self.it:self.it+2,self.it:self.it+2] = sym.im(Y_primitive)
+                self.G_primitive[self.it:self.it+2, self.it:self.it+2] = self.backend.re(Y_primitive)
+                self.B_primitive[self.it:self.it+2, self.it:self.it+2] = self.backend.im(Y_primitive)
 
 
             if 'X_pu' in trafo:
@@ -268,8 +296,8 @@ class BpsBuilder:
             self.A[self.it,idx_j] = 1
              
             shunt_name = f"{bus_j}"
-            g_j = sym.Symbol(f"g_shunt_{shunt_name}", real=True) 
-            b_j = sym.Symbol(f"b_shunt_{shunt_name}", real=True) 
+            g_j = self.backend.symbols(f"g_shunt_{shunt_name}")
+            b_j = self.backend.symbols(f"b_shunt_{shunt_name}") 
             self.G_primitive[self.it,self.it] = g_j
             self.B_primitive[self.it,self.it] = b_j
 
@@ -295,29 +323,27 @@ class BpsBuilder:
                 
             self.it += 1    
     
-        G = self.A.T * self.G_primitive * self.A
-        B = self.A.T * self.B_primitive * self.A    
-        
-        sin = sym.sin
-        cos = sym.cos
-        g = sym.zeros(2*N_bus,1)
+        G = self.A.T @ self.G_primitive @ self.A
+        B = self.A.T @ self.B_primitive @ self.A
+
+        g = self.backend.zeros(2 * N_bus, 1)
 
         for j in range(N_bus):
             bus_j_name = self.buses_list[j]
-            P_j = sym.Symbol(f"P_{bus_j_name}", real=True)
-            Q_j = sym.Symbol(f"Q_{bus_j_name}", real=True)
-            g[2*j]   = -P_j/S_base
-            g[2*j+1] = -Q_j/S_base
-            for k in range(N_bus): 
-    
+            P_j = self.backend.symbols(f"P_{bus_j_name}")
+            Q_j = self.backend.symbols(f"Q_{bus_j_name}")
+            g[2*j]   = -P_j / S_base
+            g[2*j+1] = -Q_j / S_base
+            for k in range(N_bus):
+
                 bus_k_name = self.buses_list[k]
-                V_j = sym.Symbol(f"V_{bus_j_name}", real=True) 
-                V_k = sym.Symbol(f"V_{bus_k_name}", real=True) 
-                theta_j = sym.Symbol(f"theta_{bus_j_name}", real=True) 
-                theta_k = sym.Symbol(f"theta_{bus_k_name}", real=True) 
-                g[2*j]   += V_j*V_k*(G[j,k]*cos(theta_j - theta_k) + B[j,k]*sin(theta_j - theta_k)) 
-                g[2*j+1] += V_j*V_k*(G[j,k]*sin(theta_j - theta_k) - B[j,k]*cos(theta_j - theta_k))        
-                self.dae['h_dict'].update({f"V_{bus_j_name}":V_j})
+                V_j = self.backend.symbols(f"V_{bus_j_name}")
+                V_k = self.backend.symbols(f"V_{bus_k_name}")
+                theta_j = self.backend.symbols(f"theta_{bus_j_name}")
+                theta_k = self.backend.symbols(f"theta_{bus_k_name}")
+                g[2*j]   += V_j * V_k * (G[j,k] * self.backend.cos(theta_j - theta_k) + B[j,k] * self.backend.sin(theta_j - theta_k))
+                g[2*j+1] += V_j * V_k * (G[j,k] * self.backend.sin(theta_j - theta_k) - B[j,k] * self.backend.cos(theta_j - theta_k))
+                self.dae['h_dict'].update({f"V_{bus_j_name}": V_j})
             bus = self.buses[j]
             bus_name = bus['name']
             if 'type' in bus:
@@ -326,23 +352,27 @@ class BpsBuilder:
                     self.dae['y_ini'] += [Q_j]
                     self.dae['y_run'] += [P_j]
                     self.dae['y_run'] += [Q_j]
-                    self.dae['u_ini_dict'].update({f"V_{bus_name}":1.0})
-                    self.dae['u_ini_dict'].update({f"theta_{bus_name}":0.0})  
-                    self.dae['u_run_dict'].update({f"V_{bus_name}":1.0})
-                    self.dae['u_run_dict'].update({f"theta_{bus_name}":0.0})  
+                    self.dae['u_ini_dict'].update({f"V_{bus_name}": 1.0})
+                    self.dae['u_ini_dict'].update({f"theta_{bus_name}": 0.0})
+                    self.dae['u_run_dict'].update({f"V_{bus_name}": 1.0})
+                    self.dae['u_run_dict'].update({f"theta_{bus_name}": 0.0})
             else:
                 self.dae['y_ini'] += [V_j]
-                self.dae['y_ini'] += [theta_j]     
+                self.dae['y_ini'] += [theta_j]
                 self.dae['y_run'] += [V_j]
-                self.dae['y_run'] += [theta_j]       
-                self.dae['u_ini_dict'].update({f"P_{bus_name}":bus['P_W']})
-                self.dae['u_ini_dict'].update({f"Q_{bus_name}":bus['Q_var']})    
-                self.dae['u_run_dict'].update({f"P_{bus_name}":bus['P_W']})
-                self.dae['u_run_dict'].update({f"Q_{bus_name}":bus['Q_var']})  
-                self.dae['xy_0_dict'].update({str(V_j):1.0,str(theta_j):0.0})
+                self.dae['y_run'] += [theta_j]
+                self.dae['u_ini_dict'].update({f"P_{bus_name}": bus['P_W']})
+                self.dae['u_ini_dict'].update({f"Q_{bus_name}": bus['Q_var']})
+                self.dae['u_run_dict'].update({f"P_{bus_name}": bus['P_W']})
+                self.dae['u_run_dict'].update({f"Q_{bus_name}": bus['Q_var']})
+                self.dae['xy_0_dict'].update({str(V_j): 1.0, str(theta_j): 0.0})
                 
-            self.dae['params_dict'].update({f'U_{bus_name}_n':bus['U_kV']*1000})
-        self.dae['g'] += list(g)     
+            self.dae['params_dict'].update({f'U_{bus_name}_n': bus['U_kV'] * 1000})
+
+        if self.use_casadi:
+            self.dae['g'] += [g[i] for i in range(g.size1())]
+        else:
+            self.dae['g'] += list(g)     
     
         if False:
             v_sym_list = []
@@ -378,10 +408,10 @@ class BpsBuilder:
             idx_j = self.buses_list.index(bus_j)
             idx_k = self.buses_list.index(bus_k)  
 
-            V_j = sym.Symbol(f"V_{bus_j}", real=True) 
-            V_k = sym.Symbol(f"V_{bus_k}", real=True) 
-            theta_j = sym.Symbol(f"theta_{bus_j}", real=True) 
-            theta_k = sym.Symbol(f"theta_{bus_k}", real=True)
+            V_j = self.backend.symbols(f"V_{bus_j}")
+            V_k = self.backend.symbols(f"V_{bus_k}")
+            theta_j = self.backend.symbols(f"theta_{bus_j}")
+            theta_k = self.backend.symbols(f"theta_{bus_k}")
 
             b_ij_p = 0.0
             if f'bs_{line_name}' in self.dae['params_dict']:
@@ -400,13 +430,13 @@ class BpsBuilder:
                     G_jk = G[idx_j,idx_k] 
                     B_jk = B[idx_j,idx_k] 
                     theta_jk = theta_j - theta_k
-                    P_line_to   = V_j*V_k*(G_jk*sym.cos(theta_jk) + B_jk*sym.sin(theta_jk)) - V_j**2*(G_jk) 
-                    Q_line_to   = V_j*V_k*(G_jk*sym.sin(theta_jk) - B_jk*sym.cos(theta_jk)) + V_j**2*(B_jk) 
-                    P_line_from = V_j*V_k*(G_jk*sym.cos(-theta_jk) + B_jk*sym.sin(-theta_jk)) - V_k**2*(G_jk) 
-                    Q_line_from = V_j*V_k*(G_jk*sym.sin(-theta_jk) - B_jk*sym.cos(-theta_jk)) + V_k**2*(B_jk) 
+                    P_line_to   = V_j*V_k*(G_jk*self.backend.cos(theta_jk) + B_jk*self.backend.sin(theta_jk)) - V_j**2*(G_jk)
+                    Q_line_to   = V_j*V_k*(G_jk*self.backend.sin(theta_jk) - B_jk*self.backend.cos(theta_jk)) + V_j**2*(B_jk)
+                    P_line_from = V_j*V_k*(G_jk*self.backend.cos(-theta_jk) + B_jk*self.backend.sin(-theta_jk)) - V_k**2*(G_jk)
+                    Q_line_from = V_j*V_k*(G_jk*self.backend.sin(-theta_jk) - B_jk*self.backend.cos(-theta_jk)) + V_k**2*(B_jk)
 
-                    p_line_to_pu,q_line_to_pu = sym.symbols(f"p_line_pu_{bus_j}_{bus_k},q_line_pu_{bus_j}_{bus_k}", real=True)
-                    p_line_from_pu,q_line_from_pu = sym.symbols(f"p_line_pu_{bus_k}_{bus_j},q_line_pu_{bus_k}_{bus_j}", real=True)
+                    p_line_to_pu, q_line_to_pu = self.backend.symbols(f"p_line_pu_{bus_j}_{bus_k}, q_line_pu_{bus_j}_{bus_k}")
+                    p_line_from_pu, q_line_from_pu = self.backend.symbols(f"p_line_pu_{bus_k}_{bus_j}, q_line_pu_{bus_k}_{bus_j}")
 
                     self.dae['g'] += [p_line_to_pu - P_line_to]
                     self.dae['g'] += [q_line_to_pu - Q_line_to]
@@ -424,7 +454,7 @@ class BpsBuilder:
                     self.dae['h_dict'].update({f'p_line_{bus_k}_{bus_j}':p_line_from_pu*S_base})
                     self.dae['h_dict'].update({f'q_line_{bus_k}_{bus_j}':q_line_from_pu*S_base})
 
-                    I_j_k,I_k_j = sym.symbols(f"I_{bus_j}_{bus_k},I_{bus_k}_{bus_j}", real=True)
+                    I_j_k, I_k_j = self.backend.symbols(f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
 
                     I_j_k_eq = (  p_line_to_pu**2 +   q_line_to_pu**2)**0.5/V_j*I_base
                     I_k_j_eq = (p_line_from_pu**2 + q_line_from_pu**2)**0.5/V_k*I_base
@@ -452,7 +482,7 @@ class BpsBuilder:
             if 'monitor' in bus:
                 if bus['monitor']:
                     U_base = bus['U_kV']*1000
-                    V = sym.Symbol(f"V_{bus['name']}", real=True) 
+                    V = self.backend.symbols(f"V_{bus['name']}") 
                     self.dae['h_dict'].update({f"U_{bus['name']}":V*U_base})
  
 
@@ -479,7 +509,7 @@ class BpsBuilder:
         self.generators_id_list = []
         
         # COI 
-        omega_coi = sym.Symbol("omega_coi", real=True)  
+        omega_coi = self.backend.symbols("omega_coi")
         
         self.H_total = 0
         self.omega_coi_numerator = 0.0
@@ -527,12 +557,11 @@ class BpsBuilder:
 
         add_miscellaneous(self)
 
-        #add_vsgs(grid)
-        omega_coi = sym.Symbol("omega_coi", real=True)  
+        omega_coi = self.backend.symbols("omega_coi")
 
-        self.dae['g'] += [ -omega_coi + self.omega_coi_numerator/self.omega_coi_denominator]
-        self.dae['y_ini'] += [ omega_coi]
-        self.dae['y_run'] += [ omega_coi]
+        self.dae['g'] += [-omega_coi + self.omega_coi_numerator / self.omega_coi_denominator]
+        self.dae['y_ini'] += [omega_coi]
+        self.dae['y_run'] += [omega_coi]
 
         # # secondary frequency control
         # xi_freq = sym.Symbol("xi_freq", real=True) 
@@ -566,28 +595,29 @@ class BpsBuilder:
         with open(f'{name}_xy_0.json','w') as fobj:
             fobj.write(json.dumps(self.dae['xy_0_dict'],indent=4))
 
-        self.sys_dict = {'name':name,'uz_jacs':self.uz_jacs,
-                'params_dict':self.dae['params_dict'],
-                'f_list':self.dae['f'],
-                'g_list':self.dae['g'] ,
-                'x_list':self.dae['x'],
-                'y_ini_list':self.dae['y_ini'],
-                'y_run_list':self.dae['y_run'],
-                'u_run_dict':self.dae['u_run_dict'],
-                'u_ini_dict':self.dae['u_ini_dict'],
-                'h_dict':self.dae['h_dict']}
+        self.sys_dict = {'name': name, 'uz_jacs': self.uz_jacs,
+                         'params_dict': self.dae['params_dict'],
+                         'f_list': self.dae['f'],
+                         'g_list': self.dae['g'],
+                         'x_list': self.dae['x'],
+                         'y_ini_list': self.dae['y_ini'],
+                         'y_run_list': self.dae['y_run'],
+                         'u_run_dict': self.dae['u_run_dict'],
+                         'u_ini_dict': self.dae['u_ini_dict'],
+                         'h_dict': self.dae['h_dict'],
+                         'xy_0_dict': self.dae['xy_0_dict']}
         if self.testing:
             self.sys_dict.update({'testing':True})
 
 
     def compile(self, API=False):
 
-        bldr = db.builder(self.sys_dict,verbose=self.verbose);
-        bldr.build(API=API)    
+        bldr = db(self.sys_dict, verbose=self.verbose)
+        bldr.build()    
 
     def compile_mkl(self, name):
 
-        b = builder(self.sys_dict,verbose=self.verbose)
+        b = db(self.sys_dict, verbose=self.verbose)
         b.sparse = True
         b.mkl = True
         b.uz_jacs = False

@@ -6,10 +6,7 @@ Created on Thu August 10 23:52:55 2022
 """
 
 
-import sympy as sym
-
-
-def ntsst1(dae,syn_data,name,bus_name):
+def ntsst1(dae,syn_data,name,bus_name,backend=None):
     '''
 
     .. table:: Constants
@@ -20,33 +17,42 @@ def ntsst1(dae,syn_data,name,bus_name):
     ``"avr":{"type":"ntsst1","K_a":200.0,"T_c":1.0,"T_b":10.0,"v_ref":1.0},``
 
     '''
-
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = syn_data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)  
-    v_r = sym.Symbol(f"v_r_{name}", real=True)   
-    v_c = sym.Symbol(f"v_c_{remote_bus_name}", real=True)  
-    x_cb  = sym.Symbol(f"x_cb_{name}", real=True)
-    xi_v  = sym.Symbol(f"xi_v_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)  
-    T_r = sym.Symbol(f"T_r_{name}", real=True) 
-    T_b = sym.Symbol(f"T_b_{name}", real=True) 
-    T_c = sym.Symbol(f"T_c_{name}", real=True) 
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)  
+    v_r = backend.symbols(f"v_r_{name}", real=True)   
+    v_c = backend.symbols(f"v_c_{remote_bus_name}", real=True)  
+    x_cb  = backend.symbols(f"x_cb_{name}", real=True)
+    xi_v  = backend.symbols(f"xi_v_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)  
+    T_r = backend.symbols(f"T_r_{name}", real=True) 
+    T_b = backend.symbols(f"T_b_{name}", real=True) 
+    T_c = backend.symbols(f"T_c_{name}", real=True) 
 
-    K_a = sym.Symbol(f"K_a_{name}", real=True)
-    K_ai = sym.Symbol(f"K_ai_{name}", real=True)
+    K_a = backend.symbols(f"K_a_{name}", real=True)
+    K_ai = backend.symbols(f"K_ai_{name}", real=True)
 
-    V_f_min = sym.Symbol(f"V_f_min_{name}", real=True)
-    V_f_max = sym.Symbol(f"V_f_max_{name}", real=True)
+    V_f_min = backend.symbols(f"V_f_min_{name}", real=True)
+    V_f_max = backend.symbols(f"V_f_max_{name}", real=True)
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True) 
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True) 
+    v_ref = backend.symbols(f"v_ref_{name}", real=True) 
+    v_pss = backend.symbols(f"v_pss_{name}", real=True) 
 
-    k_sat = sym.Symbol(f"k_sat_{name}", real=True) 
+    k_sat = backend.symbols(f"k_sat_{name}", real=True) 
 
     v_s = v_pss # v_oel and v_uel are not considered
     v_ini = K_ai*xi_v
@@ -62,7 +68,7 @@ def ntsst1(dae,syn_data,name,bus_name):
     dxi_v = epsilon_v  # this integrator is added in pydae to force V = v_ref in the initialization
     
     v_f_nosat = K_a*z_cb
-    v_f_sat = sym.Piecewise((V_f_max,v_f_nosat>V_f_max),
+    v_f_sat = backend.Piecewise((V_f_max,v_f_nosat>V_f_max),
                             (V_f_min,v_f_nosat<V_f_min),
                             (v_f_nosat,True))
     #v_f_sat = v_f_nosat

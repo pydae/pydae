@@ -58,9 +58,6 @@ Reference: Kundur, *Power System Stability and Control*, Example 12.6
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for pss_kundur_2 parameters, inputs, states, outputs."""
     descriptions_list = []
@@ -134,43 +131,53 @@ def descriptions():
     return descriptions_list
 
 
-def pss_kundur_2(dae, data, name, bus_name):
+def pss_kundur_2(dae, data, name, bus_name, backend=None):
     """
     Example data entry::
 
         "pss": {"type": "pss_kundur_2",
-                "K_stab": 20.0,
-                "T_w": 10.0,
-                "T_1": 0.05, "T_2": 0.02,
-                "T_3": 3.0,  "T_4": 5.4,
-                "V_Smax": 0.1, "V_Smin": -0.1}
+                 "K_stab": 20.0,
+                 "T_w": 10.0,
+                 "T_1": 0.05, "T_2": 0.02,
+                 "T_3": 3.0,  "T_4": 5.4,
+                 "V_Smax": 0.1, "V_Smin": -0.1}
 
     At steady state every state is zero and $v_{pss} = 0$; the
     stabiliser only produces a signal during speed transients.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     pss_data = data['pss']
 
     # Inputs from the rest of the system.
-    omega = sym.Symbol(f"omega_{name}", real=True)
+    omega = backend.symbols(f"omega_{name}", real=True)
 
     # Dynamic states.
-    x_wo = sym.Symbol(f"x_wo_pss_{name}", real=True)
-    x_12 = sym.Symbol(f"x_12_pss_{name}", real=True)
-    x_34 = sym.Symbol(f"x_34_pss_{name}", real=True)
+    x_wo = backend.symbols(f"x_wo_pss_{name}", real=True)
+    x_12 = backend.symbols(f"x_12_pss_{name}", real=True)
+    x_34 = backend.symbols(f"x_34_pss_{name}", real=True)
 
     # Algebraic state.
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     # Parameters.
-    K_stab = sym.Symbol(f"K_stab_pss_{name}", real=True)
-    T_w = sym.Symbol(f"T_w_pss_{name}", real=True)
-    T_1 = sym.Symbol(f"T_1_pss_{name}", real=True)
-    T_2 = sym.Symbol(f"T_2_pss_{name}", real=True)
-    T_3 = sym.Symbol(f"T_3_pss_{name}", real=True)
-    T_4 = sym.Symbol(f"T_4_pss_{name}", real=True)
-    V_Smax = sym.Symbol(f"V_Smax_pss_{name}", real=True)
-    V_Smin = sym.Symbol(f"V_Smin_pss_{name}", real=True)
+    K_stab = backend.symbols(f"K_stab_pss_{name}", real=True)
+    T_w = backend.symbols(f"T_w_pss_{name}", real=True)
+    T_1 = backend.symbols(f"T_1_pss_{name}", real=True)
+    T_2 = backend.symbols(f"T_2_pss_{name}", real=True)
+    T_3 = backend.symbols(f"T_3_pss_{name}", real=True)
+    T_4 = backend.symbols(f"T_4_pss_{name}", real=True)
+    V_Smax = backend.symbols(f"V_Smax_pss_{name}", real=True)
+    V_Smin = backend.symbols(f"V_Smin_pss_{name}", real=True)
 
     # Speed deviation and washout.
     Domega = omega - 1.0
@@ -187,7 +194,7 @@ def pss_kundur_2(dae, data, name, bus_name):
 
     # Gain and output saturation.
     v_pss_nosat = K_stab * z_34
-    v_pss_sat = sym.Piecewise((V_Smin, v_pss_nosat < V_Smin),
+    v_pss_sat = backend.Piecewise((V_Smin, v_pss_nosat < V_Smin),
                               (V_Smax, v_pss_nosat > V_Smax),
                               (v_pss_nosat, True))
     g_v_pss = v_pss_sat - v_pss

@@ -24,7 +24,6 @@ $$0 = i_d v_q - i_q v_d - q_g$$
 """
 
 import numpy as np
-import sympy as sym
 import io
 
 def descriptions():
@@ -72,45 +71,46 @@ def descriptions():
     return descriptions_list 
 
 def milano3ord(grid, name, bus_name, data_dict):
-    sin = sym.sin
-    cos = sym.cos  
+    backend = grid.backend
+    sin = backend.sin
+    cos = backend.cos
 
     # 1. Fetch metadata and defaults (filter only for Parameters and Inputs)
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if 'data' in item and item['data']}
 
     # 2. Inputs
-    V = sym.Symbol(f"V_{bus_name}", real=True)
-    theta = sym.Symbol(f"theta_{bus_name}", real=True)
-    p_m = sym.Symbol(f"p_m_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True) 
-    omega_coi = sym.Symbol("omega_coi", real=True)   
-        
+    V = backend.symbols(f"V_{bus_name}")
+    theta = backend.symbols(f"theta_{bus_name}")
+    p_m = backend.symbols(f"p_m_{name}")
+    v_f = backend.symbols(f"v_f_{name}")
+    omega_coi = backend.symbols("omega_coi")
+
     # 3. Dynamic states
-    delta = sym.Symbol(f"delta_{name}", real=True)
-    omega = sym.Symbol(f"omega_{name}", real=True)
-    e1q = sym.Symbol(f"e1q_{name}", real=True)
+    delta = backend.symbols(f"delta_{name}")
+    omega = backend.symbols(f"omega_{name}")
+    e1q = backend.symbols(f"e1q_{name}")
 
     # 4. Algebraic states
-    i_d = sym.Symbol(f"i_d_{name}", real=True)
-    i_q = sym.Symbol(f"i_q_{name}", real=True)            
-    p_g = sym.Symbol(f"p_g_{name}", real=True)
-    q_g = sym.Symbol(f"q_g_{name}", real=True)
+    i_d = backend.symbols(f"i_d_{name}")
+    i_q = backend.symbols(f"i_q_{name}")
+    p_g = backend.symbols(f"p_g_{name}")
+    q_g = backend.symbols(f"q_g_{name}")
 
     # 5. Parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
-    Omega_b = sym.Symbol(f"Omega_b_{name}", real=True)            
-    H = sym.Symbol(f"H_{name}", real=True)
-    T1d0 = sym.Symbol(f"T1d0_{name}", real=True)
-    T1q0 = sym.Symbol(f"T1q0_{name}", real=True)
-    X_d = sym.Symbol(f"X_d_{name}", real=True)
-    X_q = sym.Symbol(f"X_q_{name}", real=True)
-    X1d = sym.Symbol(f"X1d_{name}", real=True)
-    X1q = sym.Symbol(f"X1q_{name}", real=True)
-    D = sym.Symbol(f"D_{name}", real=True)
-    R_a = sym.Symbol(f"R_a_{name}", real=True)
-    K_delta = sym.Symbol(f"K_delta_{name}", real=True)
-    K_sat = sym.Symbol(f"K_sat_{name}", real=True)
+    S_n = backend.symbols(f"S_n_{name}")
+    Omega_b = backend.symbols(f"Omega_b_{name}")
+    H = backend.symbols(f"H_{name}")
+    T1d0 = backend.symbols(f"T1d0_{name}")
+    T1q0 = backend.symbols(f"T1q0_{name}")
+    X_d = backend.symbols(f"X_d_{name}")
+    X_q = backend.symbols(f"X_q_{name}")
+    X1d = backend.symbols(f"X1d_{name}")
+    X1q = backend.symbols(f"X1q_{name}")
+    D = backend.symbols(f"D_{name}")
+    R_a = backend.symbols(f"R_a_{name}")
+    K_delta = backend.symbols(f"K_delta_{name}")
+    K_sat = backend.symbols(f"K_sat_{name}")
     
     params_list = ['S_n', 'H', 'T1d0', 'T1q0', 'X_d', 'X_q', 'X1d', 'X1q', 'D', 'R_a', 'K_delta', 'K_sat', 'K_sec']
     

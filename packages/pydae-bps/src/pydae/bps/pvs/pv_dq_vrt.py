@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 
 def pv_dq_vrt(grid, name, bus_name, data_dict):
@@ -15,32 +14,33 @@ def pv_dq_vrt(grid, name, bus_name, data_dict):
     Core dynamics are extremely simple, but internal variables (DC link, 
     filter voltages, MPPT) are analytically reconstructed as optional outputs.
     '''
-    sin = sym.sin
-    cos = sym.cos
+    backend = grid.backend
+    sin = backend.sin
+    cos = backend.cos
 
     ## Common Bus Variables
-    V_s = sym.Symbol(f"V_{bus_name}", real=True)
-    theta_s = sym.Symbol(f"theta_{bus_name}", real=True)
+    V_s = backend.symbols(f"V_{bus_name}")
+    theta_s = backend.symbols(f"theta_{bus_name}")
 
     ## Inputs (u)
-    p_s_ppc = sym.Symbol(f"p_s_ppc_{name}", real=True)
-    q_s_ppc = sym.Symbol(f"q_s_ppc_{name}", real=True)
-    lvrt_ext = sym.Symbol(f"lvrt_ext_{name}", real=True)
-    i_sa_ref = sym.Symbol(f"i_sa_ref_{name}", real=True)  
-    i_sr_ref = sym.Symbol(f"i_sr_ref_{name}", real=True)  
+    p_s_ppc = backend.symbols(f"p_s_ppc_{name}")
+    q_s_ppc = backend.symbols(f"q_s_ppc_{name}")
+    lvrt_ext = backend.symbols(f"lvrt_ext_{name}")
+    i_sa_ref = backend.symbols(f"i_sa_ref_{name}")  
+    i_sr_ref = backend.symbols(f"i_sr_ref_{name}")  
 
     ## Dynamic States (x)
-    lvrt_ext_ramp = sym.Symbol(f"lvrt_ext_ramp_{name}", real=True) 
+    lvrt_ext_ramp = backend.symbols(f"lvrt_ext_ramp_{name}") 
 
     ## Algebraic States (y)
-    p_s = sym.Symbol(f"p_s_{name}", real=True)
-    q_s = sym.Symbol(f"q_s_{name}", real=True)
+    p_s = backend.symbols(f"p_s_{name}")
+    q_s = backend.symbols(f"q_s_{name}")
 
     ## Parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
-    I_max = sym.Symbol(f"I_max_{name}", real=True)
-    T_lvrt = sym.Symbol(f"T_lvrt_{name}", real=True)
-    Epsilon = sym.Symbol(f"Epsilon_{name}", real=True)
+    S_n = backend.symbols(f"S_n_{name}")
+    I_max = backend.symbols(f"I_max_{name}")
+    T_lvrt = backend.symbols(f"T_lvrt_{name}")
+    Epsilon = backend.symbols(f"Epsilon_{name}")
 
     ## 1. Dynamic Equation for the LVRT Ramp
     f_lvrt_ext_ramp = (lvrt_ext - lvrt_ext_ramp) / T_lvrt

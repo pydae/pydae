@@ -67,9 +67,6 @@ whose voltage is regulated; if omitted the generator bus is used.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for avr_1 parameters, inputs, and outputs."""
     descriptions_list = []
@@ -109,7 +106,7 @@ def descriptions():
     return descriptions_list
 
 
-def avr_1(dae, data, name, bus_name):
+def avr_1(dae, data, name, bus_name, backend=None):
     """
     Example data entry::
 
@@ -119,17 +116,27 @@ def avr_1(dae, data, name, bus_name):
     setpoint during ini()** (since v_ref is unknown there) and as the
     **initial guess / starting input during run()**.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
-    K_a = sym.Symbol(f"K_a_{name}", real=True)
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)
+    K_a = backend.symbols(f"K_a_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     v_s = v_pss
 

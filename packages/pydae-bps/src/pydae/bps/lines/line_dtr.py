@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 
 def DTR_Symbolic(self, line_name, bus_j, bus_k):
@@ -14,32 +13,33 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     Symbolic implementation of the IEEE 738 Dynamic Thermal Rating model.
     Designed for integration with PyDAE or other symbolic solvers.
     """
+    backend = self.backend
     name = line_name
 
     # --- 1. Define State Variables and Inputs (Symbols) ---
     # Algebraic State (Unknown to solve for) - Lowercase
-    self.t_conductor = sym.Symbol(f't_conductor_{name}', real=True)
+    self.t_conductor = backend.symbols(f't_conductor_{name}')
 
     # Inputs (Control or Disturbance) - Lowercase
-    I_j_k,I_k_j = sym.symbols(f"I_{bus_j}_{bus_k},I_{bus_k}_{bus_j}", real=True)
-    #I_j_k,I_k_j = sym.symbols(f"I_{bus_j}_{bus_k}_aux,I_{bus_k}_{bus_j}_aux", real=True)
+    I_j_k,I_k_j = backend.symbols(f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
+    #I_j_k,I_k_j = backend.symbols(f"I_{bus_j}_{bus_k}_aux, I_{bus_k}_{bus_j}_aux")
 
-    self.K_dtr = sym.Symbol(f'K_dtr_{name}', real=True)
+    self.K_dtr = backend.symbols(f'K_dtr_{name}')
 
     self.i_line = I_j_k*self.K_dtr
-    self.t_ambient = sym.Symbol(f't_ambient_{name}', real=True)
-    self.v_wind = sym.Symbol(f'v_wind_{name}', real=True)
-    self.angle_wind = sym.Symbol(f'angle_wind_{name}', real=True)
-    self.irradiance = sym.Symbol(f'irradiance_{name}', real=True)
+    self.t_ambient = backend.symbols(f't_ambient_{name}')
+    self.v_wind = backend.symbols(f'v_wind_{name}')
+    self.angle_wind = backend.symbols(f'angle_wind_{name}')
+    self.irradiance = backend.symbols(f'irradiance_{name}')
 
     # Physical Parameters (Fixed constants) - Initial Capital
-    self.D_conductor = sym.Symbol(f'D_conductor_{name}', real=True, positive=True)
-    self.D_core = sym.Symbol(f'D_core_{name}', real=True, positive=True)
-    self.Emissivity = sym.Symbol(f'Emissivity_{name}', real=True)
-    self.Absorptivity = sym.Symbol(f'Absorptivity_{name}', real=True)
-    self.Elevation = sym.Symbol(f'Elevation_{name}', real=True)
-    self.Mass_linear = sym.Symbol(f'Mass_linear_{name}', real=True, positive=True) # [kg/m]
-    self.Cp = sym.Symbol(f'Cp_{name}', real=True, positive=True)                   # [J/(kg*C)]
+    self.D_conductor = backend.symbols(f'D_conductor_{name}')
+    self.D_core = backend.symbols(f'D_core_{name}')
+    self.Emissivity = backend.symbols(f'Emissivity_{name}')
+    self.Absorptivity = backend.symbols(f'Absorptivity_{name}')
+    self.Elevation = backend.symbols(f'Elevation_{name}')
+    self.Mass_linear = backend.symbols(f'Mass_linear_{name}') # [kg/m]
+    self.Cp = backend.symbols(f'Cp_{name}')                   # [J/(kg*C)]
 
     # Constants - Initial Capital
     self.Sigma = 5.670373e-8  # Stefan-Boltzmann constant
@@ -112,7 +112,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     # Intermediate variable for PyDAE (lowercase)
 
     if 'dens' in y_list_considered:
-        dens = sym.Symbol(f'dens_{line_name}', real=True)
+        dens = backend.symbols(f'dens_{line_name}')
         self.dae['g'] += [self.dens - dens]
         self.dae['y_ini'] += [dens]
         self.dae['y_run'] += [dens]
@@ -130,7 +130,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     # Reynolds Number
     self.reynolds = self.v_wind * self.D_conductor / uf
     if 'reynolds' in y_list_considered:
-        reynolds = sym.Symbol(f'reynolds_{line_name}', real=True)
+        reynolds = backend.symbols(f'reynolds_{line_name}')
         self.dae['g'] += [self.reynolds - reynolds]
         self.dae['y_ini'] += [reynolds]
         self.dae['y_run'] += [reynolds]
@@ -141,16 +141,16 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     Rs = self.D_core / (2 * (self.D_conductor - self.D_core))
 
     # Forced Convection Logic
-    cond_high_smooth = sym.And(reynolds > 2650, Rs <= 0.05)
+    cond_high_smooth = backend.And(reynolds > 2650, Rs <= 0.05)
     cond_high_rough  = reynolds > 2650
 
-    B = sym.Piecewise(
+    B = backend.Piecewise(
         (0.178, cond_high_smooth),
         (0.048, cond_high_rough),
         (0.641, True)
     )
 
-    n = sym.Piecewise(
+    n = backend.Piecewise(
         (0.633, cond_high_smooth),
         (0.800, cond_high_rough),
         (0.471, True)
@@ -160,10 +160,10 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
 
     # Wind Angle Correction
     phi_rad = self.angle_wind/180*np.pi
-    seno = sym.Abs(sym.sin(phi_rad))
-    eff_angle = sym.Mod(self.angle_wind, 180)
+    seno = backend.Abs(backend.sin(phi_rad))
+    eff_angle = backend.Mod(self.angle_wind, 180)
 
-    delta = sym.Piecewise(
+    delta = backend.Piecewise(
         (0.42 + 0.68 * seno**1.08, eff_angle <= 24),
         (0.42 + 0.58 * seno**0.9, True)
     )
@@ -176,19 +176,26 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
 
     self.rayleigh = Gr * Pr_num
     if 'rayleigh' in y_list_considered:
-        rayleigh = sym.Symbol(f'rayleigh_{line_name}', real=True)
+        rayleigh = backend.symbols(f'rayleigh_{line_name}')
         self.dae['g'] += [self.rayleigh - rayleigh]
         self.dae['y_ini'] += [rayleigh]
         self.dae['y_run'] += [rayleigh]
     else:
         rayleigh = self.rayleigh
 
+    A_nat = backend.Piecewise(
+        (1.02,  backend.And(rayleigh > 0.1, rayleigh < 1e2)),
+        (0.85,  backend.And(rayleigh >= 1e2, rayleigh < 1e4)),
+        (0.48,  backend.And(rayleigh >= 1e4, rayleigh < 1e7)),
+        (0.125, backend.And(rayleigh >= 1e7, rayleigh < 1e12)),
+        (0.0, True)
+    )
 
-    A_nat = sym.Piecewise(
-        (1.02,  sym.And(rayleigh > 0.1, rayleigh < 1e2)),
-        (0.85,  sym.And(rayleigh >= 1e2, rayleigh < 1e4)),
-        (0.48,  sym.And(rayleigh >= 1e4, rayleigh < 1e7)),
-        (0.125, sym.And(rayleigh >= 1e7, rayleigh < 1e12)),
+    m_nat = backend.Piecewise(
+        (0.148, backend.And(rayleigh > 0.1, rayleigh < 1e2)),
+        (0.188, backend.And(rayleigh >= 1e2, rayleigh < 1e4)),
+        (0.25,  backend.And(rayleigh >= 1e4, rayleigh < 1e7)),
+        (0.333, backend.And(rayleigh >= 1e7, rayleigh < 1e12)),
         (0.0, True)
     )
 
@@ -203,9 +210,9 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     nu_nat = A_nat * rayleigh**m_nat
 
     # Total Cooling Nusselt
-    self.nu = sym.Max(nu_nat, nu_forz)
+    self.nu = backend.Max(nu_nat, nu_forz)
     if 'nu' in y_list_considered:
-        nu = sym.Symbol(f'nu_{line_name}', real=True)
+        nu = backend.symbols(f'nu_{line_name}')
         self.dae['g'] += [self.nu - nu]
         self.dae['y_ini'] += [nu]
         self.dae['y_run'] += [nu]
@@ -215,7 +222,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     # Heat Loss Terms
     self.p_c = np.pi * lmb * (self.t_conductor - self.t_ambient) * nu
     if 'p_c' in y_list_considered:
-        p_c = sym.Symbol(f'p_c_{line_name}', real=True)
+        p_c = backend.symbols(f'p_c_{line_name}')
         self.dae['g'] += [self.p_c - p_c]
         self.dae['y_ini'] += [p_c]
         self.dae['y_run'] += [p_c]
@@ -224,7 +231,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
 
     self.p_r = np.pi * self.D_conductor * self.Sigma * self.Emissivity * ((self.t_conductor + 273.15)**4 - (self.t_ambient + 273.15)**4)
     if 'p_r' in y_list_considered:
-        p_r = sym.Symbol(f'p_r_{line_name}', real=True)
+        p_r = backend.symbols(f'p_r_{line_name}')
         self.dae['g'] += [self.p_r - p_r]
         self.dae['y_ini'] += [p_r]
         self.dae['y_run'] += [p_r]
@@ -233,7 +240,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
 
     self.p_s = self.Absorptivity * self.irradiance * self.D_conductor
     if 'p_s' in y_list_considered:
-        p_s = sym.Symbol(f'p_s_{line_name}', real=True)
+        p_s = backend.symbols(f'p_s_{line_name}')
         self.dae['g'] += [self.p_s - p_s]
         self.dae['y_ini'] += [p_s]
         self.dae['y_run'] += [p_s]
@@ -244,7 +251,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
     R_ref_const = 1.04 * 0.000071873143
     self.R_ac = R_ref_const * (1 + 0.000937474 * (self.t_conductor - 20))
     if 'R_ac' in y_list_considered:
-        R_ac = sym.Symbol(f'R_ac_{line_name}', real=True)
+        R_ac = backend.symbols(f'R_ac_{line_name}')
         self.dae['g'] += [self.R_ac - R_ac]
         self.dae['y_ini'] += [R_ac]
         self.dae['y_run'] += [R_ac]
@@ -253,7 +260,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
 
     self.p_j = self.i_line**2 * self.R_ac
     if 'p_j' in y_list_considered:
-        p_j = sym.Symbol(f'p_j_{line_name}', real=True)
+        p_j = backend.symbols(f'p_j_{line_name}')
         self.dae['g'] += [self.p_j - p_j]
         self.dae['y_ini'] += [p_j]
         self.dae['y_run'] += [p_j]
@@ -299,6 +306,7 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k):
 
 def add_line_dtr(self, line):
         
+    backend = self.backend
     sys = self.system
    
     bus_j = line['bus_j']
@@ -317,9 +325,9 @@ def add_line_dtr(self, line):
     DTR_Symbolic(self, line_name, bus_j, bus_k)
     
     
-    g_jk = sym.Symbol(f"g_{line_name}", real=True) 
-    b_jk = sym.Symbol(f"b_{line_name}", real=True) 
-    bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
+    g_jk = backend.symbols(f"g_{line_name}") 
+    b_jk = backend.symbols(f"b_{line_name}") 
+    bs_jk = backend.symbols(f"bs_{line_name}") 
     self.G_primitive[self.it,self.it] = g_jk
     self.B_primitive[self.it,self.it] = b_jk
     self.B_primitive[self.it+1,self.it+1] = bs_jk/2

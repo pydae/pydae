@@ -142,9 +142,6 @@ signal path.
 """
 
 
-import sympy as sym
-
-
 _EPS_LEAK = 1e-6
 
 
@@ -266,55 +263,65 @@ def descriptions():
     return descriptions_list
 
 
-def st4b(dae, data, name, bus_name):
+def st4b(dae, data, name, bus_name, backend=None):
     """
     Example data entry::
 
         "avr": {"type": "st4b",
-                "T_R": 0.02,
-                "K_PR": 3.15, "K_IR": 3.15,
-                "V_RMAX": 1.0, "V_RMIN": -0.87,
-                "T_A": 0.02,
-                "K_PM": 1.0, "K_IM": 0.0,
-                "V_MMAX": 1.0, "V_MMIN": -0.87,
-                "K_G": 0.0, "K_P": 6.5,
-                "V_BMAX": 8.0,
-                "v_ref": 1.0}
+                 "T_R": 0.02,
+                 "K_PR": 3.15, "K_IR": 3.15,
+                 "V_RMAX": 1.0, "V_RMIN": -0.87,
+                 "T_A": 0.02,
+                 "K_PM": 1.0, "K_IM": 0.0,
+                 "V_MMAX": 1.0, "V_MMIN": -0.87,
+                 "K_G": 0.0, "K_P": 6.5,
+                 "V_BMAX": 8.0,
+                 "v_ref": 1.0}
 
     The ``v_ref`` value supplied in data is used as the **bus voltage
     setpoint during ini()** (since v_ref is unknown there) and as the
     **initial guess / starting input during run()**.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)
 
-    v_c = sym.Symbol(f"v_c_{name}", real=True)
-    xi_r = sym.Symbol(f"xi_r_{name}", real=True)
-    x_a = sym.Symbol(f"x_a_{name}", real=True)
-    xi_m = sym.Symbol(f"xi_m_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
+    v_c = backend.symbols(f"v_c_{name}", real=True)
+    xi_r = backend.symbols(f"xi_r_{name}", real=True)
+    x_a = backend.symbols(f"x_a_{name}", real=True)
+    xi_m = backend.symbols(f"xi_m_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)
 
-    T_R = sym.Symbol(f"T_R_{name}", real=True)
-    K_PR = sym.Symbol(f"K_PR_{name}", real=True)
-    K_IR = sym.Symbol(f"K_IR_{name}", real=True)
-    V_RMAX = sym.Symbol(f"V_RMAX_{name}", real=True)
-    V_RMIN = sym.Symbol(f"V_RMIN_{name}", real=True)
-    T_A = sym.Symbol(f"T_A_{name}", real=True)
-    K_PM = sym.Symbol(f"K_PM_{name}", real=True)
-    K_IM = sym.Symbol(f"K_IM_{name}", real=True)
-    V_MMAX = sym.Symbol(f"V_MMAX_{name}", real=True)
-    V_MMIN = sym.Symbol(f"V_MMIN_{name}", real=True)
-    K_G = sym.Symbol(f"K_G_{name}", real=True)
-    K_P = sym.Symbol(f"K_P_{name}", real=True)
-    V_BMAX = sym.Symbol(f"V_BMAX_{name}", real=True)
+    T_R = backend.symbols(f"T_R_{name}", real=True)
+    K_PR = backend.symbols(f"K_PR_{name}", real=True)
+    K_IR = backend.symbols(f"K_IR_{name}", real=True)
+    V_RMAX = backend.symbols(f"V_RMAX_{name}", real=True)
+    V_RMIN = backend.symbols(f"V_RMIN_{name}", real=True)
+    T_A = backend.symbols(f"T_A_{name}", real=True)
+    K_PM = backend.symbols(f"K_PM_{name}", real=True)
+    K_IM = backend.symbols(f"K_IM_{name}", real=True)
+    V_MMAX = backend.symbols(f"V_MMAX_{name}", real=True)
+    V_MMIN = backend.symbols(f"V_MMIN_{name}", real=True)
+    K_G = backend.symbols(f"K_G_{name}", real=True)
+    K_P = backend.symbols(f"K_P_{name}", real=True)
+    V_BMAX = backend.symbols(f"V_BMAX_{name}", real=True)
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     v_s = v_pss
 
@@ -325,7 +332,7 @@ def st4b(dae, data, name, bus_name):
     # anchors the state when K_IR = 0 — negligible otherwise).
     epsilon_v = v_ref - v_c + v_s
     v_r_nosat = K_PR * epsilon_v + xi_r
-    v_r = sym.Piecewise((V_RMAX, v_r_nosat > V_RMAX),
+    v_r = backend.Piecewise((V_RMAX, v_r_nosat > V_RMAX),
                         (V_RMIN, v_r_nosat < V_RMIN),
                         (v_r_nosat, True))
     dxi_r = K_IR * epsilon_v - _EPS_LEAK * xi_r
@@ -336,7 +343,7 @@ def st4b(dae, data, name, bus_name):
     # Inner PI (same convention; leakage is what makes K_IM = 0 non-singular).
     epsilon_m = x_a - K_G * v_f
     v_m_nosat = K_PM * epsilon_m + xi_m
-    v_m = sym.Piecewise((V_MMAX, v_m_nosat > V_MMAX),
+    v_m = backend.Piecewise((V_MMAX, v_m_nosat > V_MMAX),
                         (V_MMIN, v_m_nosat < V_MMIN),
                         (v_m_nosat, True))
     dxi_m = K_IM * epsilon_m - _EPS_LEAK * xi_m
@@ -346,7 +353,7 @@ def st4b(dae, data, name, bus_name):
 
     # Field-voltage command with rectifier ceiling (F_EX = 1 assumption).
     v_f_nosat = v_m * v_e
-    efd = sym.Piecewise((V_BMAX, v_f_nosat > V_BMAX),
+    efd = backend.Piecewise((V_BMAX, v_f_nosat > V_BMAX),
                         (v_f_nosat, True))
     g_v_f = efd - v_f
 

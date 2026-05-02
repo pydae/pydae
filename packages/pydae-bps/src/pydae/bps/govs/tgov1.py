@@ -116,7 +116,7 @@ def descriptions():
     return descriptions_list
 
 
-def tgov1(dae, data, name, _bus_name):
+def tgov1(dae, data, name, _bus_name, backend=None):
     r"""
     Example data entry::
 
@@ -132,40 +132,44 @@ def tgov1(dae, data, name, _bus_name):
     the mechanical power output equals ``p_c``.
 
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+        })()
 
     gov_data = data['gov']
 
     # Inputs from the rest of the system.
-    omega = sym.Symbol(f"omega_{name}", real=True)
+    omega = backend.symbols(f"omega_{name}")
 
     # External input (dispatch setpoint).
-    p_c = sym.Symbol(f"p_c_{name}", real=True)
+    p_c = backend.symbols(f"p_c_{name}")
 
     # Dynamic states.
-    x_1 = sym.Symbol(f"x_1_gov_{name}", real=True)
-    x_2 = sym.Symbol(f"x_2_gov_{name}", real=True)
+    x_1 = backend.symbols(f"x_1_gov_{name}")
+    x_2 = backend.symbols(f"x_2_gov_{name}")
 
     # Algebraic state.
-    p_m = sym.Symbol(f"p_m_{name}", real=True)
+    p_m = backend.symbols(f"p_m_{name}")
 
     # Parameters.
-    R     = sym.Symbol(f"R_gov_{name}",     real=True)
-    T_1   = sym.Symbol(f"T_1_gov_{name}",   real=True)
-    V_max = sym.Symbol(f"V_max_gov_{name}", real=True)
-    V_min = sym.Symbol(f"V_min_gov_{name}", real=True)
-    T_2   = sym.Symbol(f"T_2_gov_{name}",   real=True)
-    T_3   = sym.Symbol(f"T_3_gov_{name}",   real=True)
-    D_t   = sym.Symbol(f"D_t_gov_{name}",   real=True)
-    K_awu = sym.Symbol(f"K_awu_gov_{name}", real=True)
+    R     = backend.symbols(f"R_gov_{name}")
+    T_1   = backend.symbols(f"T_1_gov_{name}")
+    V_max = backend.symbols(f"V_max_gov_{name}")
+    V_min = backend.symbols(f"V_min_gov_{name}")
+    T_2   = backend.symbols(f"T_2_gov_{name}")
+    T_3   = backend.symbols(f"T_3_gov_{name}")
+    D_t   = backend.symbols(f"D_t_gov_{name}")
+    K_awu = backend.symbols(f"K_awu_gov_{name}")
 
     # Valve reference: load reference + speed droop.
     u_1 = p_c + (1.0 / R) * (1 - omega)
 
     # Valve position lag with position limits and anti-windup.
     y_1_nosat = x_1
-    y_1 = sym.Piecewise((V_min, y_1_nosat < V_min),
-                        (V_max, y_1_nosat > V_max),
-                        (y_1_nosat, True))
+    y_1 = backend.hard_limit(y_1_nosat, V_min, V_max)
     dx_1 = (u_1 - x_1) / T_1 + K_awu * (y_1 - y_1_nosat)
 
     # Lead-lag turbine lag state.

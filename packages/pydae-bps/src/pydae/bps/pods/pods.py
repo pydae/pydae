@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 
 from pydae.bps.pods.pod_2wo_3ll import add_pod_2wo_3ll

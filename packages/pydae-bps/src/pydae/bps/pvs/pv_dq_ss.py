@@ -6,9 +6,8 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 #from pydae.utils.ss_num2sym import ss_num2sym
-
+ 
 def pv_dq_ss(grid,name,bus_name,data_dict):
     '''
 
@@ -35,40 +34,41 @@ def pv_dq_ss(grid,name,bus_name,data_dict):
     -------
 
     "vscs": [{"bus":bus_name,"type":"pv_pq",
-                 "S_n":1e6,"U_n":400.0,"F_n":50.0,
-                 "X_s":0.1,"R_s":0.01,"monitor":True,
-                 "I_sc":3.87,"V_oc":42.1,"I_mp":3.56,"V_mp":33.7,
-                 "K_vt":-0.160,"K_it":0.065,
-                 "N_pv_s":25,"N_pv_p":250}]
+                  "S_n":1e6,"U_n":400.0,"F_n":50.0,
+                  "X_s":0.1,"R_s":0.01,"monitor":True,
+                  "I_sc":3.87,"V_oc":42.1,"I_mp":3.56,"V_mp":33.7,
+                  "K_vt":-0.160,"K_it":0.065,
+                  "N_pv_s":25,"N_pv_p":250}]
     
     '''
 
-    sin = sym.sin
-    cos = sym.cos
+    backend = grid.backend
+    sin = backend.sin
+    cos = backend.cos
 
     ## Common
     ### inputs
-    V_s = sym.Symbol(f"V_{bus_name}", real=True)
-    p_s = sym.Symbol(f"p_s_{name}", real=True)
-    theta_s = sym.Symbol(f"theta_{bus_name}", real=True)
-    v_dc = sym.Symbol(f"v_dc_{name}", real=True)
-    p_s_ppc = sym.Symbol(f"p_s_ppc_{name}", real=True)
-    q_s_ppc = sym.Symbol(f"q_s_ppc_{name}", real=True)
+    V_s = backend.symbols(f"V_{bus_name}")
+    p_s = backend.symbols(f"p_s_{name}")
+    theta_s = backend.symbols(f"theta_{bus_name}")
+    v_dc = backend.symbols(f"v_dc_{name}")
+    p_s_ppc = backend.symbols(f"p_s_ppc_{name}")
+    q_s_ppc = backend.symbols(f"q_s_ppc_{name}")
 
     ### parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
-    U_n = sym.Symbol(f"U_n_{name}", real=True)
+    S_n = backend.symbols(f"S_n_{name}")
+    U_n = backend.symbols(f"U_n_{name}")
     V_dc_b = U_n*np.sqrt(2)
-    X_s = sym.Symbol(f"X_s_{name}", real=True)
-    R_s = sym.Symbol(f"R_s_{name}", real=True)
+    X_s = backend.symbols(f"X_s_{name}")
+    R_s = backend.symbols(f"R_s_{name}")
 
     ## PV
-    K_vt,K_it = sym.symbols(f"K_vt_{name},K_it_{name}", real=True)
-    V_oc,V_mp,I_sc,I_mp = sym.symbols(f"V_oc_{name},V_mp_{name},I_sc_{name},I_mp_{name}", real=True)
-    temp_deg,irrad = sym.symbols(f"temp_deg_{name},irrad_{name}", real=True)
-    T_stc_k,i,v = sym.symbols(f"T_stc_k_{name},i_{name},v_{name}", real=True)
-    v_dc,v_dc_v,K_it = sym.symbols(f"v_dc_{name},v_dc_v_{name},K_it_{name}", real=True)
-    N_pv_s,N_pv_p = sym.symbols(f"N_pv_s_{name},N_pv_p_{name}", real=True)
+    K_vt,K_it = backend.symbols(f"K_vt_{name}, K_it_{name}")
+    V_oc,V_mp,I_sc,I_mp = backend.symbols(f"V_oc_{name}, V_mp_{name}, I_sc_{name}, I_mp_{name}")
+    temp_deg,irrad = backend.symbols(f"temp_deg_{name}, irrad_{name}")
+    T_stc_k,i,v = backend.symbols(f"T_stc_k_{name}, i_{name}, v_{name}")
+    v_dc,v_dc_v,K_it = backend.symbols(f"v_dc_{name}, v_dc_v_{name}, K_it_{name}")
+    N_pv_s,N_pv_p = backend.symbols(f"N_pv_s_{name}, N_pv_p_{name}")
 
     T_stc_deg = 25.0
 

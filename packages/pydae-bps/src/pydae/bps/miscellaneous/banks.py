@@ -6,10 +6,10 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def add_banks(grid):
 
+    backend = grid.backend
     buses = grid.data['buses']
     buses_list = [bus['name'] for bus in buses]
 
@@ -24,9 +24,9 @@ def add_banks(grid):
         else:
             name = bus_name
             
-
-        q_cap,B_cap,V,S_n_cap,S_base = sym.symbols(f'q_cap_{name},B_cap_{name},V_{bus_name},S_n_cap_{name},S_base', real=True)
-        B_cap_ref,T_cap = sym.symbols(f'B_cap_ref_{name},T_cap_{name}', real=True)
+    
+        q_cap,B_cap,V,S_n_cap,S_base = backend.symbols(f'q_cap_{name}, B_cap_{name}, V_{bus_name}, S_n_cap_{name}, S_base')
+        B_cap_ref,T_cap = backend.symbols(f'B_cap_ref_{name}, T_cap_{name}')
 
 
         dB_cap = 1/T_cap*(B_cap_ref - B_cap)
@@ -49,7 +49,7 @@ def add_banks(grid):
         if not 'idx_powers' in buses[idx_bus]: buses[idx_bus].update({'idx_powers':0})
         buses[idx_bus]['idx_powers'] += 1
 
-        S_base = sym.Symbol('S_base', real = True)
+        S_base = backend.symbols('S_base')
         grid.dae['g'][idx_bus*2]   += -0/S_base
         grid.dae['g'][idx_bus*2+1] += -q_cap/S_base*S_n_cap
 

@@ -104,9 +104,6 @@ whose voltage is regulated; if omitted the generator bus is used.
 """
 
 
-import sympy as sym
-
-
 def descriptions():
     """Single source of truth for st1 parameters, inputs, states, and outputs."""
     descriptions_list = []
@@ -191,44 +188,54 @@ def descriptions():
     return descriptions_list
 
 
-def st1(dae, data, name, bus_name):
+def st1(dae, data, name, bus_name, backend=None):
     """
     Example data entry (REE NTS parameter set)::
 
         "avr": {"type": "st1",
-                "T_R": 0.01, "T_B": 10.0, "T_C": 1.0,
-                "K_A": 200.0, "T_A": 0.0,
-                "V_Imax": 999.0, "V_Imin": -999.0,
-                "V_Rmax": 999.0, "V_Rmin": -999.0,
-                "v_ref": 1.0}
+                 "T_R": 0.01, "T_B": 10.0, "T_C": 1.0,
+                 "K_A": 200.0, "T_A": 0.0,
+                 "V_Imax": 999.0, "V_Imin": -999.0,
+                 "V_Rmax": 999.0, "V_Rmin": -999.0,
+                 "v_ref": 1.0}
 
     The ``v_ref`` value supplied in data is used as the **bus voltage
     setpoint during ini()** (since v_ref is unknown there) and as the
     **initial guess / starting input during run()**.
     """
+    if backend is None:
+        import sympy as sym
+        backend = type('Backend', (), {
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'Piecewise': sym.Piecewise,
+            'sin': sym.sin,
+            'cos': sym.cos,
+            'sqrt': sym.sqrt,
+            'exp': sym.exp,
+        })()
 
     avr_data = data['avr']
     remote_bus_name = bus_name
     if 'bus' in avr_data:
         remote_bus_name = avr_data['bus']
 
-    v_t = sym.Symbol(f"V_{remote_bus_name}", real=True)
+    v_t = backend.symbols(f"V_{remote_bus_name}", real=True)
 
-    v_c = sym.Symbol(f"v_c_{name}", real=True)
-    x_lead = sym.Symbol(f"x_lead_{name}", real=True)
-    v_f = sym.Symbol(f"v_f_{name}", real=True)
+    v_c = backend.symbols(f"v_c_{name}", real=True)
+    x_lead = backend.symbols(f"x_lead_{name}", real=True)
+    v_f = backend.symbols(f"v_f_{name}", real=True)
 
-    T_R = sym.Symbol(f"T_R_{name}", real=True)
-    T_B = sym.Symbol(f"T_B_{name}", real=True)
-    T_C = sym.Symbol(f"T_C_{name}", real=True)
-    K_A = sym.Symbol(f"K_A_{name}", real=True)
-    V_Imax = sym.Symbol(f"V_Imax_{name}", real=True)
-    V_Imin = sym.Symbol(f"V_Imin_{name}", real=True)
-    V_Rmax = sym.Symbol(f"V_Rmax_{name}", real=True)
-    V_Rmin = sym.Symbol(f"V_Rmin_{name}", real=True)
+    T_R = backend.symbols(f"T_R_{name}", real=True)
+    T_B = backend.symbols(f"T_B_{name}", real=True)
+    T_C = backend.symbols(f"T_C_{name}", real=True)
+    K_A = backend.symbols(f"K_A_{name}", real=True)
+    V_Imax = backend.symbols(f"V_Imax_{name}", real=True)
+    V_Imin = backend.symbols(f"V_Imin_{name}", real=True)
+    V_Rmax = backend.symbols(f"V_Rmax_{name}", real=True)
+    V_Rmin = backend.symbols(f"V_Rmin_{name}", real=True)
 
-    v_ref = sym.Symbol(f"v_ref_{name}", real=True)
-    v_pss = sym.Symbol(f"v_pss_{name}", real=True)
+    v_ref = backend.symbols(f"v_ref_{name}", real=True)
+    v_pss = backend.symbols(f"v_pss_{name}", real=True)
 
     v_s = v_pss
 
@@ -237,7 +244,7 @@ def st1(dae, data, name, bus_name):
 
     # Summing junction and input limiter.
     epsilon = v_ref - v_c + v_s
-    epsilon_lim = sym.Piecewise((V_Imin, epsilon < V_Imin),
+    epsilon_lim = backend.Piecewise((V_Imin, epsilon < V_Imin),
                                 (V_Imax, epsilon > V_Imax),
                                 (epsilon, True))
 
@@ -249,7 +256,7 @@ def st1(dae, data, name, bus_name):
     v_r_nosat = K_A * y_lead
 
     # Output limiter.
-    v_r = sym.Piecewise((V_Rmin, v_r_nosat < V_Rmin),
+    v_r = backend.Piecewise((V_Rmin, v_r_nosat < V_Rmin),
                         (V_Rmax, v_r_nosat > V_Rmax),
                         (v_r_nosat, True))
 

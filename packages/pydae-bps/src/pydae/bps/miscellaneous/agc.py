@@ -130,7 +130,7 @@ See also
 provides the slow base setpoint and the ``dp_lc`` fast channel.
 """
 
-import sympy as sym
+
 
 
 def add_agc(grid):
@@ -151,15 +151,16 @@ def add_agc(grid):
     builders.
     """
 
+    backend = grid.backend
     agc_data = grid.data['agc']
     gen_name  = agc_data['gen']
     K_p_val   = agc_data.get('K_p_agc', 0.0)
     K_i_val   = agc_data.get('K_i_agc', 1.0)
 
-    omega   = sym.Symbol(f"omega_{gen_name}", real=True)
-    K_p     = sym.Symbol(f"K_p_agc",          real=True)
-    K_i     = sym.Symbol(f"K_i_agc",          real=True)
-    xi_agc  = sym.Symbol(f"xi_agc",           real=True)
+    omega   = backend.symbols(f"omega_{gen_name}")
+    K_p     = backend.symbols(f"K_p_agc")
+    K_i     = backend.symbols(f"K_i_agc")
+    xi_agc  = backend.symbols(f"xi_agc")
 
     # Priority: LC fast channel (dp_lc) > governor setpoint (p_c) > direct p_m.
     # When a load controller is present, AGC drives dp_lc so its signal reaches
@@ -168,15 +169,15 @@ def add_agc(grid):
     p_c_key   = f'p_c_{gen_name}'
     p_m_key   = f'p_m_{gen_name}'
     if dp_lc_key in grid.dae['u_ini_dict']:
-        ctrl_sym = sym.Symbol(dp_lc_key, real=True)
+        ctrl_sym = backend.symbols(dp_lc_key)
         p_ini    = grid.dae['u_ini_dict'].pop(dp_lc_key)
         grid.dae['u_run_dict'].pop(dp_lc_key, None)
     elif p_c_key in grid.dae['u_ini_dict']:
-        ctrl_sym = sym.Symbol(p_c_key, real=True)
+        ctrl_sym = backend.symbols(p_c_key)
         p_ini    = grid.dae['u_ini_dict'].pop(p_c_key)
         grid.dae['u_run_dict'].pop(p_c_key, None)
     else:
-        ctrl_sym = sym.Symbol(p_m_key, real=True)
+        ctrl_sym = backend.symbols(p_m_key)
         p_ini    = grid.dae['u_ini_dict'].pop(p_m_key, 0.5)
         grid.dae['u_run_dict'].pop(p_m_key, None)
 

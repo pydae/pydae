@@ -6,7 +6,6 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
 
 def add_pll(grid,data):
     """
@@ -14,31 +13,32 @@ def add_pll(grid,data):
     
     """
 
+    backend = grid.backend
     bus_name = data['bus']
 
     name = bus_name
     if 'name' in data:
         name = data['name']
 
-    sin = sym.sin
-    cos = sym.cos
+    sin = backend.sin
+    cos = backend.cos
 
     # inputs
-    V_s = sym.Symbol(f"V_{bus_name}", real=True)
-    theta_s = sym.Symbol(f"theta_{bus_name}", real=True)
-    omega_coi = sym.Symbol(f"omega_coi", real=True) 
+    V_s = backend.symbols(f"V_{bus_name}")
+    theta_s = backend.symbols(f"theta_{bus_name}")
+    omega_coi = backend.symbols(f"omega_coi") 
 
     # PLL
     # dynamic states
-    theta_pll,xi_pll,omega_pll_f = sym.symbols(f'theta_pll_{name},xi_pll_{name},omega_pll_f_{name}', real=True)
+    theta_pll,xi_pll,omega_pll_f = backend.symbols(f'theta_pll_{name}, xi_pll_{name}, omega_pll_f_{name}')
 
     # algebraic statate
-    rocof = sym.symbols(f'rocof_{name}', real=True)
+    rocof = backend.symbols(f'rocof_{name}')
 
 
     # parameters
-    T_pll,K_f = sym.symbols(f'T_pll_{name},K_f_{name}', real=True)
-    K_p_pll,K_i_pll,K_theta_pll = sym.symbols(f'K_p_pll_{name},K_i_pll_{name},K_theta_pll_{name}', real=True)
+    T_pll,K_f = backend.symbols(f'T_pll_{name}, K_f_{name}')
+    K_p_pll,K_i_pll,K_theta_pll = backend.symbols(f'K_p_pll_{name}, K_i_pll_{name}, K_theta_pll_{name}')
 
     delta = theta_s # ideal PLL
     v_sD = V_s*sin(theta_s)  # v_si   e^(-j)
@@ -69,22 +69,22 @@ def add_pll(grid,data):
     grid.dae['h_dict'].update({f"rocof_{name}":rocof})
 
     # PSS/POD
-    x_wo  = sym.Symbol(f"x_wo_pss_{name}", real=True)
-    x_lead  = sym.Symbol(f"x_lead_pss_{name}", real=True)
+    x_wo  = backend.symbols(f"x_wo_pss_{name}")
+    x_lead  = backend.symbols(f"x_lead_pss_{name}")
 
-    z_wo  = sym.Symbol(f"z_wo_pss_{name}", real=True)
-    x_12  = sym.Symbol(f"x_12_pss_{name}", real=True)
-    x_34  = sym.Symbol(f"x_34_pss_{name}", real=True)  
+    z_wo  = backend.symbols(f"z_wo_pss_{name}")
+    x_12  = backend.symbols(f"x_12_pss_{name}")
+    x_34  = backend.symbols(f"x_34_pss_{name}")  
 
-    T_wo = sym.Symbol(f"T_wo_pss_{name}", real=True)  
-    T_1 = sym.Symbol(f"T_1_pss_{name}", real=True) 
-    T_2 = sym.Symbol(f"T_2_pss_{name}", real=True)
-    T_3 = sym.Symbol(f"T_3_pss_{name}", real=True) 
-    T_4 = sym.Symbol(f"T_4_pss_{name}", real=True)
-    K_stab = sym.Symbol(f"K_stab_{name}", real=True)
-    V_lim = sym.Symbol(f"V_lim_pss_{name}", real=True)
-    v_s = sym.Symbol(f"v_pss_{name}", real=True) 
-    u_pll_probe = sym.Symbol(f"u_pll_probe_{name}", real=True) 
+    T_wo = backend.symbols(f"T_wo_pss_{name}")  
+    T_1 = backend.symbols(f"T_1_pss_{name}") 
+    T_2 = backend.symbols(f"T_2_pss_{name}")
+    T_3 = backend.symbols(f"T_3_pss_{name}") 
+    T_4 = backend.symbols(f"T_4_pss_{name}")
+    K_stab = backend.symbols(f"K_stab_{name}")
+    V_lim = backend.symbols(f"V_lim_pss_{name}")
+    v_s = backend.symbols(f"v_pss_{name}") 
+    u_pll_probe = backend.symbols(f"u_pll_probe_{name}") 
     print('u_pll_probe')
 
     # auxiliar
@@ -102,7 +102,7 @@ def add_pll(grid,data):
     dx_12 =  (z_wo - x_12)/T_2      # lead compensator state
     dx_34 =  (z_12 - x_34)/T_4      # lead compensator state
 
-    g_v_s = -v_s + sym.Piecewise((-V_lim,v_s_nosat<-V_lim),(V_lim,v_s_nosat>V_lim),(v_s_nosat,True))  
+    g_v_s = -v_s + backend.Piecewise((-V_lim,v_s_nosat<-V_lim),(V_lim,v_s_nosat>V_lim),(v_s_nosat,True))  
     
     grid.dae['f'] += [dx_wo,dx_12,dx_34]
     grid.dae['x'] += [ x_wo, x_12, x_34]
