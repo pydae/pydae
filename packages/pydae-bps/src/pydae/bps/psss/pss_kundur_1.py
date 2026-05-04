@@ -169,10 +169,7 @@ def pss_kundur_1(dae, data, name, bus_name, backend=None):
     z_lead = (z_wo - x_lead) * T_1 / T_2 + x_lead
 
     # Gain and output saturation.
-    v_pss_nosat = K_stab * z_lead
-    v_pss_sat = backend.Piecewise((V_Smin, v_pss_nosat < V_Smin),
-                              (V_Smax, v_pss_nosat > V_Smax),
-                              (v_pss_nosat, True))
+    v_pss_sat = backend.hard_limit(K_stab * z_lead, V_Smin, V_Smax)
     g_v_pss = v_pss_sat - v_pss
 
     # --- ini/run variable partition (no swap) ---------------------------

@@ -138,9 +138,18 @@ def add_agc(grid):
     Attach the system-level AGC integrator to *grid.dae* for the designated
     generator.
 
-    Resolves the controlled variable (``dp_lc``, ``p_c``, or ``p_m``) by
-    inspecting ``u_ini_dict`` and pops it, replacing it with an algebraic
-    variable driven by the PI law
+    The controlled variable is determined by the generator's configuration:
+
+    - **With governor, no LC**: AGC drives ``p_c_{gen}`` (governor load
+      reference). ``p_c`` is removed from inputs and becomes an algebraic
+      variable solved by the AGC equation.
+    - **With governor AND LC**: AGC drives ``dp_lc_{gen}`` (LC fast channel).
+      The LC already owns ``p_c``; AGC provides the fast frequency-response
+      signal that bypasses the slow LC integrator.
+    - **Without governor**: AGC drives ``p_m_{gen}`` (mechanical power).
+      ``p_m`` is removed from inputs and becomes an algebraic variable.
+
+    The PI control law is:
 
     .. math::
 
@@ -157,29 +166,34 @@ def add_agc(grid):
     K_p_val   = agc_data.get('K_p_agc', 0.0)
     K_i_val   = agc_data.get('K_i_agc', 1.0)
 
-    omega   = backend.symbols(f"omega_{gen_name}")
+    # omega   = backend.symbols(f"omega_{gen_name}")
+    omega   = backend.symbols(f"omega_coi")
+
     K_p     = backend.symbols(f"K_p_agc")
     K_i     = backend.symbols(f"K_i_agc")
     xi_agc  = backend.symbols(f"xi_agc")
 
-    # Priority: LC fast channel (dp_lc) > governor setpoint (p_c) > direct p_m.
-    # When a load controller is present, AGC drives dp_lc so its signal reaches
-    # the governor/machine immediately, bypassing the slow LC integrator.
+    # Determine the controlled variable based on what is available.
     dp_lc_key = f'dp_lc_{gen_name}'
     p_c_key   = f'p_c_{gen_name}'
     p_m_key   = f'p_m_{gen_name}'
+
     if dp_lc_key in grid.dae['u_ini_dict']:
-        ctrl_sym = backend.symbols(dp_lc_key)
-        p_ini    = grid.dae['u_ini_dict'].pop(dp_lc_key)
-        grid.dae['u_run_dict'].pop(dp_lc_key, None)
+        # LC is present — AGC drives the fast channel.
+        ctrl_key = dp_lc_key
     elif p_c_key in grid.dae['u_ini_dict']:
-        ctrl_sym = backend.symbols(p_c_key)
-        p_ini    = grid.dae['u_ini_dict'].pop(p_c_key)
-        grid.dae['u_run_dict'].pop(p_c_key, None)
+        # Governor present, no LC — AGC drives p_c directly.
+        ctrl_key = p_c_key
     else:
-        ctrl_sym = backend.symbols(p_m_key)
-        p_ini    = grid.dae['u_ini_dict'].pop(p_m_key, 0.5)
-        grid.dae['u_run_dict'].pop(p_m_key, None)
+        # No governor — AGC drives p_m directly.
+        ctrl_key = p_m_key
+
+    ctrl_sym = backend.symbols(ctrl_key)
+    grid.dae['u_ini_dict'].pop(ctrl_key)
+    grid.dae['u_run_dict'].pop(ctrl_key)
+
+    # Remove from xy_0_dict too (it was an input, now it's algebraic).
+    grid.dae['xy_0_dict'].pop(ctrl_key, None)
 
     epsilon = 1 - omega
 
@@ -189,10 +203,37 @@ def add_agc(grid):
     grid.dae['y_ini'] += [ctrl_sym]
     grid.dae['y_run'] += [ctrl_sym]
 
+    print("agc: ctrl_key=", ctrl_key)
+    print("grid.dae['g'] AGC", grid.dae['g'][-1]) 
+
     grid.dae['params_dict'].update({str(K_p): K_p_val, str(K_i): K_i_val})
 
-    xi_0 = p_ini / K_i_val if K_i_val != 0.0 else 0.0
-    grid.dae['xy_0_dict'].update({str(xi_agc): xi_0, str(ctrl_sym): p_ini})
+    # Auto-compute consistent initial guesses for AGC integrator and governor states.
+    # When AGC drives p_c directly (no LC), we need:
+    #   xi_agc ≈ p_c_expected / K_i_agc  (from steady-state AGC equation)
+    #   x_1_gov = x_2_gov = p_m = p_c_expected  (governor steady state)
+    # We infer p_c_expected from existing xy_0_dict seeds set by tgov1/LC.
+    if ctrl_key == p_c_key:
+        # Look for any existing power guess for this generator.
+        p_c_guess = grid.dae['u_ini_dict'].get(ctrl_key, 0.5)
+        # Also check xy_0_dict for governor states that may have better seeds.
+        x_1_key = f'x_1_gov_{gen_name}'
+        x_2_key = f'x_2_gov_{gen_name}'
+        p_m_key_full = f'p_m_{gen_name}'
+        existing_gov_guess = max(
+            grid.dae['xy_0_dict'].get(x_1_key, 0.0),
+            grid.dae['xy_0_dict'].get(x_2_key, 0.0),
+            grid.dae['xy_0_dict'].get(p_m_key_full, 0.0),
+            p_c_guess,
+        )
+        if existing_gov_guess > 0:
+            p_c_expected = existing_gov_guess
+        else:
+            p_c_expected = 0.5
+        xi_0 = p_c_expected / K_i_val if K_i_val != 0.0 else 0.0
+        grid.dae['xy_0_dict'].update({str(xi_agc): xi_0, ctrl_key: p_c_expected})
+        # Ensure governor states match expected power at steady state.
+        grid.dae['xy_0_dict'].update({x_1_key: p_c_expected, x_2_key: p_c_expected, p_m_key_full: p_c_expected})
 
     grid.dae['h_dict'].update({
         'p_agc':  ctrl_sym,

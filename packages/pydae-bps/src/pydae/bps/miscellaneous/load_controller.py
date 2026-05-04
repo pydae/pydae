@@ -226,10 +226,12 @@ def add_lc(dae, syn_data, name, _bus_name, backend=None):
     p_m_key = f'p_m_{name}'
     if p_c_key in dae['u_ini_dict']:
         ctrl_sym = backend.symbols(p_c_key)
+        ctrl_key = p_c_key
         dae['u_ini_dict'].pop(p_c_key)
         dae['u_run_dict'].pop(p_c_key, None)
     else:
         ctrl_sym = backend.symbols(p_m_key)
+        ctrl_key = p_m_key
         dae['u_ini_dict'].pop(p_m_key, None)
         dae['u_run_dict'].pop(p_m_key, None)
 
@@ -256,6 +258,15 @@ def add_lc(dae, syn_data, name, _bus_name, backend=None):
     # Initial guess: start at desired p_g, not the old governor setpoint.
     # p_c_ini is a better seed than p_ctrl_ini because x_lc ≈ p_m ≈ p_c_ini + losses.
     dae['xy_0_dict'].update({str(x_lc): p_c_ini, str(ctrl_sym): p_c_ini})
+
+    # Propagate p_c_ini to governor state guesses for consistency.
+    # At governor steady state: x_1 = x_2 = p_m = p_c.
+    if ctrl_key == f'p_c_{name}':
+        dae['xy_0_dict'].update({
+            f'x_1_gov_{name}': p_c_ini,
+            f'x_2_gov_{name}': p_c_ini,
+            f'p_m_{name}': p_c_ini,
+        })
 
     dae['h_dict'].update({
         f'p_c_lc_{name}': p_c_lc,

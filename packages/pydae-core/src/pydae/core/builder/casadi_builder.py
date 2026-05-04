@@ -185,7 +185,19 @@ class CasadiBuilder:
                     result.append(ca.SX.sym(name))
             return result
 
-        x = ca.vertcat(*extract_syms_from_names(self.sys_dict['x_list']))
+        # Extract x symbols once, filtering out any that are also in y_ini
+        # (treat as algebraic during init rather than ODE state)
+        yini_names_set = set(str(s) for s in self.sys_dict['y_ini_list'])
+        x_syms = []
+        for sym_obj in self.sys_dict['x_list']:
+            name = str(sym_obj)
+            if name not in yini_names_set:
+                if name in sym_map:
+                    x_syms.append(sym_map[name])
+                else:
+                    x_syms.append(ca.SX.sym(name))
+        x = ca.vertcat(*x_syms) if x_syms else ca.SX()
+
         y_ini = ca.vertcat(*extract_syms_from_names(self.sys_dict['y_ini_list']))
         y_run = ca.vertcat(*extract_syms_from_names(self.sys_dict['y_run_list']))
 
@@ -229,6 +241,42 @@ class CasadiBuilder:
             f = ca.vertcat(*f_list)
             g = ca.vertcat(*g_list)
 
+        # Keep unsubstituted f/g for runtime (before y_run-only substitution)
+        f_run = f
+        g_run = g
+
+        # ---------------------------------------------------------
+        # 2.6. Substitute y_run-only variables with xy_0 guesses
+        #       for initialization only (they default to 0 → NaN)
+        # ---------------------------------------------------------
+        uini_names = [str(s) for s in self.sys_dict.get('u_ini_list', [])]
+        yrun_only = set(yrun_names) - set(yini_names) - set(uini_names)
+        xy_0_dict = self.sys_dict.get('xy_0_dict', {})
+        sym_map_init = {sym.name(): sym for sym in ca.symvar(f)}
+        sym_map_init.update({sym.name(): sym for sym in ca.symvar(g)})
+
+        init_subs = {}
+        for name in yrun_only:
+            if name in sym_map_init:
+                # Bus voltages start near 1.0 pu, angles at 0, loads/injections at 0.
+                if name.startswith(('V_', 'theta_')):
+                    guess = xy_0_dict.get(name, 1.0 if name.startswith('V_') else 0.0)
+                elif name.startswith(('p_i_', 'q_i_', 'p_z_', 'q_z_')):
+                    guess = xy_0_dict.get(name, 0.0)
+                else:
+                    guess = xy_0_dict.get(name, 0.0)
+                init_subs[sym_map_init[name]] = guess
+
+        if init_subs:
+            sub_keys = list(init_subs.keys())
+            sub_vals = list(init_subs.values())
+            f_list = [f[i] for i in range(f.size1())]
+            g_list = [g[i] for i in range(g.size1())]
+            f_list = ca.substitute(f_list, sub_keys, sub_vals)
+            g_list = ca.substitute(g_list, sub_keys, sub_vals)
+            f = ca.vertcat(*f_list)
+            g = ca.vertcat(*g_list)
+
         p = ca.vertcat(*self.sys_dict['p_list'])
         u_ini = ca.vertcat(*self.sys_dict['u_ini_list'])
         u_run = ca.vertcat(*self.sys_dict['u_run_list'])
@@ -243,6 +291,11 @@ class CasadiBuilder:
         rf_dict = {'x': v_ini, 'p': p_ini, 'g': eq_ini}
         self.rf = ca.rootfinder('rf', 'newton', rf_dict)
 
+        # Also create residual and jacobian functions for external Newton solver
+        self._residual_fn = ca.Function('residual', [v_ini, p_ini], [eq_ini])
+        J_ini = ca.jacobian(eq_ini, v_ini)
+        self._jacobian_fn = ca.Function('jacobian', [v_ini, p_ini], [J_ini])
+
         # ---------------------------------------------------------
         # 4. Store DAE Dictionary for the Runtime Integrator
         # ---------------------------------------------------------
@@ -251,20 +304,19 @@ class CasadiBuilder:
             'x': x,
             'z': y_run,
             'p': p_run,
-            'ode': f,
-            'alg': g
+            'ode': f_run,
+            'alg': g_run
         }
 
         # ---------------------------------------------------------
         # 5. Build Sparse Jacobian Evaluators (save at build time)
         # ---------------------------------------------------------
-        # These Jacobians are extremely sparse for power systems.
-        # The dense A matrix is computed numerically at runtime via:
-        #   A = F_x - F_y @ solve(G_y, G_x)
-        self._Fx_fn = ca.Function('Fx', [x, y_run, p_run], [ca.jacobian(f, x)])
-        self._Fy_fn = ca.Function('Fy', [x, y_run, p_run], [ca.jacobian(f, y_run)])
-        self._Gx_fn = ca.Function('Gx', [x, y_run, p_run], [ca.jacobian(g, x)])
-        self._Gy_fn = ca.Function('Gy', [x, y_run, p_run], [ca.jacobian(g, y_run)])
+        # Use runtime (unsubstituted) f/g for Jacobians so they
+        # depend on all y_run variables.
+        self._Fx_fn = ca.Function('Fx', [x, y_run, p_run], [ca.jacobian(f_run, x)])
+        self._Fy_fn = ca.Function('Fy', [x, y_run, p_run], [ca.jacobian(f_run, y_run)])
+        self._Gx_fn = ca.Function('Gx', [x, y_run, p_run], [ca.jacobian(g_run, x)])
+        self._Gy_fn = ca.Function('Gy', [x, y_run, p_run], [ca.jacobian(g_run, y_run)])
 
         # Jacobians for input matrices (B, C, D)
         self._Fu_fn = ca.Function('Fu', [x, y_run, p_run], [ca.jacobian(f, u_run)])
@@ -276,10 +328,14 @@ class CasadiBuilder:
             self._Hx_fn = ca.Function('Hx', [x, y_run, p_run], [ca.jacobian(h, x)])
             self._Hy_fn = ca.Function('Hy', [x, y_run, p_run], [ca.jacobian(h, y_run)])
             self._Hu_fn = ca.Function('Hu', [x, y_run, p_run], [ca.jacobian(h, u_run)])
+            # Also create output evaluation function
+            h_names = list(self.sys_dict['h_dict'].keys())
+            self._h_fn = ca.Function('h_eval', [x, y_run, p_run], [h])
         else:
             self._Hx_fn = None
             self._Hy_fn = None
             self._Hu_fn = None
+            self._h_fn = None
 
         print("Build complete!")
         return self
@@ -346,11 +402,43 @@ class CasadiBuilder:
                 f = ca.vertcat(*f_list)
                 g = ca.vertcat(*g_list)
 
+            # Keep unsubstituted f/g for runtime Jacobians
+            f_run = f
+            g_run = g
+
+            # Substitute y_run-only variables with xy_0 guesses for initialization
+            uini_names_export = [str(s) for s in self.sys_dict.get('u_ini_list', [])]
+            yrun_only = set(yrun_names) - set(yini_names) - set(uini_names_export)
+            xy_0_dict = self.sys_dict.get('xy_0_dict', {})
+            sym_map_init = {sym.name(): sym for sym in ca.symvar(f)}
+            sym_map_init.update({sym.name(): sym for sym in ca.symvar(g)})
+
+            init_subs = {}
+            for name in yrun_only:
+                if name in sym_map_init:
+                    if name.startswith(('V_', 'theta_')):
+                        guess = xy_0_dict.get(name, 1.0 if name.startswith('V_') else 0.0)
+                    elif name.startswith(('p_i_', 'q_i_', 'p_z_', 'q_z_')):
+                        guess = xy_0_dict.get(name, 0.0)
+                    else:
+                        guess = xy_0_dict.get(name, 0.0)
+                    init_subs[sym_map_init[name]] = guess
+
+            if init_subs:
+                sub_keys = list(init_subs.keys())
+                sub_vals = list(init_subs.values())
+                f_list = [f[i] for i in range(f.size1())]
+                g_list = [g[i] for i in range(g.size1())]
+                f_list = ca.substitute(f_list, sub_keys, sub_vals)
+                g_list = ca.substitute(g_list, sub_keys, sub_vals)
+                f = ca.vertcat(*f_list)
+                g = ca.vertcat(*g_list)
+
             v_ini = ca.vertcat(x, y_ini)
             p_ini = ca.vertcat(p, u_ini)
             p_run = ca.vertcat(p, u_run)
 
-            # Initialization functions
+            # Initialization functions (with y_run-only substituted)
             res_ini = ca.vertcat(f, g)
             res_fn = ca.Function('residual', [v_ini, p_ini], [res_ini], {'cse': True})
             gen.add(res_fn)
@@ -359,13 +447,13 @@ class CasadiBuilder:
             jac_fn = ca.Function('jacobian', [v_ini, p_ini], [J_ini], {'cse': True})
             gen.add(jac_fn)
 
-            # Sparse Jacobian Functions (small, avoid dense A at build time)
-            gen.add(ca.Function('Fx', [x, y_run, p_run], [ca.jacobian(f, x)], {'cse': True}))
-            gen.add(ca.Function('Fy', [x, y_run, p_run], [ca.jacobian(f, y_run)], {'cse': True}))
-            gen.add(ca.Function('Gx', [x, y_run, p_run], [ca.jacobian(g, x)], {'cse': True}))
-            gen.add(ca.Function('Gy', [x, y_run, p_run], [ca.jacobian(g, y_run)], {'cse': True}))
-            gen.add(ca.Function('Fu', [x, y_run, p_run], [ca.jacobian(f, u_run)], {'cse': True}))
-            gen.add(ca.Function('Gu', [x, y_run, p_run], [ca.jacobian(g, u_run)], {'cse': True}))
+            # Sparse Jacobian Functions (using unsubstituted runtime f/g)
+            gen.add(ca.Function('Fx', [x, y_run, p_run], [ca.jacobian(f_run, x)], {'cse': True}))
+            gen.add(ca.Function('Fy', [x, y_run, p_run], [ca.jacobian(f_run, y_run)], {'cse': True}))
+            gen.add(ca.Function('Gx', [x, y_run, p_run], [ca.jacobian(g_run, x)], {'cse': True}))
+            gen.add(ca.Function('Gy', [x, y_run, p_run], [ca.jacobian(g_run, y_run)], {'cse': True}))
+            gen.add(ca.Function('Fu', [x, y_run, p_run], [ca.jacobian(f_run, u_run)], {'cse': True}))
+            gen.add(ca.Function('Gu', [x, y_run, p_run], [ca.jacobian(g_run, u_run)], {'cse': True}))
 
             if 'h_dict' in self.sys_dict and self.sys_dict['h_dict']:
                 h = ca.vertcat(*list(self.sys_dict['h_dict'].values()))
@@ -380,8 +468,8 @@ class CasadiBuilder:
                 gen.add(ca.Function('Hy', [x, y_run, p_run], [ca.SX.zeros(0, n_y)]))
                 gen.add(ca.Function('Hu', [x, y_run, p_run], [ca.SX.zeros(0, n_u)]))
 
-            gen.add(ca.Function('ode', [x, y_run, p_run], [f]))
-            gen.add(ca.Function('alg', [x, y_run, p_run], [g]))
+            gen.add(ca.Function('ode', [x, y_run, p_run], [f_run]))
+            gen.add(ca.Function('alg', [x, y_run, p_run], [g_run]))
 
             gen.generate()
         finally:

@@ -335,10 +335,7 @@ def pss2a(dae, data, name, bus_name, backend=None):
     z_l2 = (z_l1 - x_l2) * T_3 / T_4 + x_l2
 
     # Output saturation.
-    v_pss_nosat = z_l2
-    v_pss_sat = backend.Piecewise((V_STmin, v_pss_nosat < V_STmin),
-                              (V_STmax, v_pss_nosat > V_STmax),
-                              (v_pss_nosat, True))
+    v_pss_sat = backend.hard_limit(z_l2, V_STmin, V_STmax)
     g_v_pss = v_pss_sat - v_pss
 
     # --- ini/run variable partition (no swap) ---------------------------

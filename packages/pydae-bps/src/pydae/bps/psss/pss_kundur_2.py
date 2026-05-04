@@ -193,10 +193,7 @@ def pss_kundur_2(dae, data, name, bus_name, backend=None):
     z_34 = (z_12 - x_34) * T_3 / T_4 + x_34
 
     # Gain and output saturation.
-    v_pss_nosat = K_stab * z_34
-    v_pss_sat = backend.Piecewise((V_Smin, v_pss_nosat < V_Smin),
-                              (V_Smax, v_pss_nosat > V_Smax),
-                              (v_pss_nosat, True))
+    v_pss_sat = backend.hard_limit(K_stab * z_34, V_Smin, V_Smax)
     g_v_pss = v_pss_sat - v_pss
 
     # --- ini/run variable partition (no swap) ---------------------------

@@ -211,8 +211,12 @@ def sexs(dae, data, name, bus_name, backend=None):
     dx_e = (K_a * z_ab - x_e) / T_e
 
     efd_nosat = x_e + 1.0
-       
-    efd = backend.hard_limit(efd_nosat, E_min, E_max)
+
+    # Saturation: disable for CasADi backend to avoid fmax/fmin Jacobian NaN.
+    if backend.use_casadi:
+        efd = efd_nosat
+    else:
+        efd = backend.hard_limit(efd_nosat, E_min, E_max)
      
     # Algebraic constraint: v_f must equal the limited output
     g_v_f = efd - v_f

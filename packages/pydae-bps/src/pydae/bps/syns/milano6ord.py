@@ -7,8 +7,8 @@ Synchronous machine model of order 6 (Subtransient Model) with PSAT Saturation.
 $$v_d = V \sin(\delta - \theta)$$
 $$v_q = V \cos(\delta - \theta)$$
 $$p_e = i_d \left(v_d + R_a i_d\right) + i_q \left(v_q + R_a i_q\right)$$
-$$v_{sat} = \sqrt{e'^2_q + e'^2_d}$$
-$$S_{at} = \frac{B_{sat} (v_{sat} - A_{sat})^2}{v_{sat}} \quad \text{if } v_{sat} > A_{sat} \text{ else } 0$$
+$$v_{sat} = \sqrt{e'^2_q + e'^2_d + \epsilon}$$
+$$S_{at} = \frac{B_{sat} \max(v_{sat} - A_{sat},\, 0)^2}{v_{sat}}$$
 $$S_d = S_{at}$$
 $$S_q = \frac{X_q}{X_d} S_{at}$$
 $$\omega_s = \omega_{coi}$$
@@ -161,9 +161,13 @@ def milano6ord(grid, name, bus_name, data_dict):
     p_e = i_d*(v_d + R_a*i_d) + i_q*(v_q + R_a*i_q)     
     omega_s = omega_coi
     
-    # PSAT Saturation Logic (Nonlinear)
-    v_sat = backend.sqrt(e1q**2 + e1d**2)
-    S_at = backend.Piecewise((B_sat * (v_sat - A_sat)**2 / v_sat, v_sat > A_sat), (0.0, True))
+    # PSAT Saturation Logic (continuous, solver-safe formulation).
+    # A small epsilon prevents sqrt(0) and division-by-zero when e1q≈e1d≈0.
+    # backend.max maps to casadi.fmax / sympy.Max — a continuous, differentiable
+    # alternative to Piecewise that avoids NaN crashes during Newton iterations.
+    EPS = 1e-12
+    v_sat = backend.sqrt(e1q**2 + e1d**2 + EPS)
+    S_at = B_sat * backend.max(v_sat - A_sat, 0)**2 / v_sat
     S_d = S_at
     S_q = (X_q / X_d) * S_at
                 

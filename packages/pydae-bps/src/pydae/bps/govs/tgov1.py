@@ -169,7 +169,11 @@ def tgov1(dae, data, name, _bus_name, backend=None):
 
     # Valve position lag with position limits and anti-windup.
     y_1_nosat = x_1
-    y_1 = backend.hard_limit(y_1_nosat, V_min, V_max)
+    # Disable saturation for CasADi backend to avoid fmax/fmin Jacobian NaN.
+    if backend.use_casadi:
+        y_1 = y_1_nosat
+    else:
+        y_1 = backend.hard_limit(y_1_nosat, V_min, V_max)
     dx_1 = (u_1 - x_1) / T_1 + K_awu * (y_1 - y_1_nosat)
 
     # Lead-lag turbine lag state.

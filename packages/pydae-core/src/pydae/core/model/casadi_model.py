@@ -2,11 +2,22 @@ import json
 
 import casadi as ca
 import numpy as np
+from scipy.optimize import root
 
 
 class CasadiModel:
-    def __init__(self, builder=None, binary_path=None, dae_dict=None, sys_dict=None):
+    def __init__(self, builder=None, binary_path=None, dae_dict=None, sys_dict=None,
+                 newton_tol=1e-10, newton_max_iter=50,
+                 integrator_reltol=1e-8, integrator_abstol=1e-8,
+                 rootfinder_opts=None):
         self._binary_path = binary_path
+
+        # Store tolerance parameters
+        self._newton_tol = newton_tol
+        self._newton_max_iter = newton_max_iter
+        self._integrator_reltol = integrator_reltol
+        self._integrator_abstol = integrator_abstol
+        self._rootfinder_opts = rootfinder_opts or {"abstol": 1e-9, "reltol": 1e-9, "max_iter": 100}
 
         if binary_path is not None and dae_dict is not None and sys_dict is not None:
             self._init_from_binary(binary_path, dae_dict, sys_dict)
@@ -14,6 +25,31 @@ class CasadiModel:
             self._init_from_builder(builder)
         else:
             raise ValueError("Either 'builder' or ('binary_path', 'dae_dict', 'sys_dict') must be provided")
+
+        self._alg_fn = self._build_alg_fn()
+
+    def _build_alg_fn(self):
+        """Build the algebraic equation evaluation function from dae_dict."""
+        if 'alg' not in self.dae_dict or self.dae_dict['alg'] is None:
+            return None
+        try:
+            x_sym = self.dae_dict['x']
+            z_sym = self.dae_dict['z']
+            p_sym = self.dae_dict['p']
+            g_sym = self.dae_dict['alg']
+
+            if isinstance(x_sym, list):
+                x_sym = ca.vertcat(*x_sym)
+            if isinstance(z_sym, list):
+                z_sym = ca.vertcat(*z_sym)
+            if isinstance(p_sym, list):
+                p_sym = ca.vertcat(*p_sym)
+            if isinstance(g_sym, list):
+                g_sym = ca.vertcat(*g_sym)
+
+            return ca.Function('alg', [x_sym, z_sym, p_sym], [g_sym])
+        except Exception:
+            return None
 
     def _init_from_binary(self, binary_path, dae_dict, sys_dict):
         """Initialize from a precompiled shared library."""
@@ -98,10 +134,38 @@ class CasadiModel:
     def _init_from_builder(self, builder):
         """Initialize from a CasadiBuilder instance."""
         self.sys_dict = builder.sys_dict
-        self.rf = builder.rf
         self.dae_dict = builder.dae_dict
         self.integrator = None
         self._current_dt = None
+
+        # Transfer residual and jacobian functions for external Newton
+        if hasattr(builder, '_residual_fn') and builder._residual_fn is not None:
+            self._residual_fn = builder._residual_fn
+        else:
+            self._residual_fn = None
+        if hasattr(builder, '_jacobian_fn') and builder._jacobian_fn is not None:
+            self._jacobian_fn = builder._jacobian_fn
+        else:
+            self._jacobian_fn = None
+
+        # Transfer output evaluation function
+        if hasattr(builder, '_h_fn') and builder._h_fn is not None:
+            self._h_fn = builder._h_fn
+        else:
+            self._h_fn = None
+
+        # Use builder's rootfinder by default
+        if hasattr(builder, 'rf') and builder.rf is not None:
+            self.rf = builder.rf
+        else:
+            self.rf = None
+
+        # If user provided rootfinder_opts, recreate with custom options
+        if self._rootfinder_opts and hasattr(builder, 'alg_eq') and builder.alg_eq is not None:
+            try:
+                self.rf = ca.rootfinder('newton', 'newton', builder.alg_eq, self._rootfinder_opts)
+            except Exception:
+                pass  # Keep builder's rf if recreation fails
 
         self.x_names = [sym.name() for sym in self.sys_dict['x_list']]
         self.y_ini_names = [sym.name() for sym in self.sys_dict['y_ini_list']]
@@ -172,7 +236,7 @@ class CasadiModel:
             elif key in self.x_names:
                 self.x[self.x_names.index(key)] = val
 
-    def _newton_solve(self, x0, p_vec, max_iter=50, tol=1e-10):
+    def _newton_solve(self, x0, p_vec, max_iter=None, tol=None):
         """Solve the DAE residual using exported residual and jacobian functions.
 
         Performs Newton iterations: x_{k+1} = x_k - J^{-1} * r(x_k)
@@ -183,16 +247,21 @@ class CasadiModel:
             Initial guess.
         p_vec : array
             Parameter vector.
-        max_iter : int
-            Maximum Newton iterations.
-        tol : float
-            Convergence tolerance on residual norm.
+        max_iter : int, optional
+            Maximum Newton iterations (uses self._newton_max_iter if None).
+        tol : float, optional
+            Convergence tolerance on residual norm (uses self._newton_tol if None).
 
         Returns
         -------
         array
             Solved variable vector.
         """
+        if max_iter is None:
+            max_iter = self._newton_max_iter
+        if tol is None:
+            tol = self._newton_tol
+
         x = np.array(x0, dtype=float).flatten()
         for _ in range(max_iter):
             r = np.array(self._residual_fn(x, p_vec)).flatten()
@@ -203,6 +272,54 @@ class CasadiModel:
             dx = np.linalg.solve(J, -r)
             x = x + dx
         return x
+
+    def _calc_ic_init(self, v_ini_guess, p_ini_vec):
+        """Use IDAS calc_ic to find consistent initial conditions.
+
+        Fallback when the Newton rootfinder fails (e.g., due to NaN
+        from y_run-only variables that only appear in runtime equations).
+        """
+        # We need to construct an initialization DAE that includes ALL
+        # variables (x, y_ini, and y_run-only). Since the rootfinder was
+        # built with y_run-only vars substituted, we use the full dae_dict
+        # but with calc_ic=2 (solve for consistent IC with fixed x).
+
+        # First, populate y_run with xy_0 guesses for y_run-only vars
+        xy_0_dict = self.sys_dict.get('xy_0_dict', {})
+        for i, name in enumerate(self.y_run_names):
+            if name not in self.y_ini_names and name in xy_0_dict:
+                self.y_run[i] = xy_0_dict[name]
+            elif name not in self.y_ini_names:
+                self.y_run[i] = 1.0 if name.startswith(('V_', 'theta_')) else 0.0
+
+        # Also need to set x from the guess
+        self.x = v_ini_guess[:self.N_x].copy()
+
+        p_run_vec = np.concatenate((self.p_vals, self.u_run_vals))
+
+        opts = {
+            'calc_ic': 1,
+            'print_stats': False,
+            'max_num_steps': 5000,
+            'reltol': self._integrator_reltol,
+            'abstol': self._integrator_abstol,
+        }
+        ic_int = ca.integrator('ic_init', 'idas', self.dae_dict, 0.0, 1e-12, opts)
+        res = ic_int(x0=self.x, z0=self.y_run, p=p_run_vec)
+        self.x = np.array(res['xf']).flatten()
+        self.y_run = np.array(res['zf']).flatten()
+
+        # Return concatenated solution (x, y_ini)
+        # Since y_ini vars may differ from y_run, map back by name
+        v_solved = np.zeros(self.N_x + self.N_y_ini)
+        v_solved[:self.N_x] = self.x
+        for i, name in enumerate(self.y_ini_names):
+            if name in self.y_run_names:
+                v_solved[self.N_x + i] = self.y_run[self.y_run_names.index(name)]
+            else:
+                v_solved[self.N_x + i] = v_ini_guess[self.N_x + i]
+
+        return v_solved
 
     def ini2run(self):
         """Transforms initialization states into runtime states."""
@@ -250,8 +367,57 @@ class CasadiModel:
         self.xy[:self.N_x] = self.x
         self.xy[self.N_x:] = self.y_run
 
-    def ini(self, params_dict, xy_0=None):
-        """Initializes the model matching the current pydae API."""
+    def recalculate_algebraics(self, tol=1e-8):
+        """Re-solve algebraic variables after a parameter discontinuity.
+
+        Use this method when parameters change mid-simulation (e.g., fault
+        impedance switching). State variables (x) remain fixed while algebraic
+        variables (y_run) jump instantaneously to satisfy g(x, y, p) = 0.
+
+        Parameters
+        ----------
+        tol : float, optional
+            Convergence tolerance for the rootfinder (default: 1e-8).
+
+        Raises
+        ------
+        RuntimeError
+            If the rootfinder fails to converge.
+        """
+        if self._alg_fn is None:
+            raise RuntimeError("Algebraic function (_alg_fn) not available")
+
+        p_run_vec = np.concatenate((self.p_vals, self.u_run_vals))
+
+        def alg_residual(y_guess):
+            g_val = self._alg_fn(self.x, y_guess, p_run_vec)
+            return np.array(g_val).flatten()
+
+        sol = root(alg_residual, self.y_run, method='hybr', tol=tol)
+
+        if sol.success:
+            self.y_run = sol.x.reshape(self.y_run.shape)
+        else:
+            raise RuntimeError(sol.message)
+
+    def use_external_newton(self, enabled=True):
+        """Switch to/from external Newton solver for initialization."""
+        self._use_external_newton = enabled
+
+    def ini(self, params_dict, xy_0=None, newton_tol=None, newton_max_iter=None):
+        """Initializes the model matching the current pydae API.
+
+        Parameters
+        ----------
+        params_dict : dict
+            Parameters to update.
+        xy_0 : str or dict, optional
+            Initial guess file path or dictionary.
+        newton_tol : float, optional
+            Override Newton tolerance for this solve.
+        newton_max_iter : int, optional
+            Override Newton max iterations for this solve.
+        """
         self._route_dict(params_dict, phase='ini')
 
         p_ini_vec = np.concatenate((self.p_vals, self.u_ini_vals))
@@ -274,11 +440,18 @@ class CasadiModel:
                     v_ini_guess[self.N_x + self.y_ini_names.index(key)] = val
 
         # Solve Initialization
-        if getattr(self, '_use_external_newton', False):
-            v_solved = self._newton_solve(v_ini_guess, p_ini_vec)
+        use_external = getattr(self, '_use_external_newton', False)
+        if use_external or self.rf is None:
+            tol = newton_tol if newton_tol is not None else self._newton_tol
+            max_iter = newton_max_iter if newton_max_iter is not None else self._newton_max_iter
+            v_solved = self._newton_solve(v_ini_guess, p_ini_vec, max_iter=max_iter, tol=tol)
         else:
-            res = self.rf(x0=v_ini_guess, p=p_ini_vec)
-            v_solved = np.array(res['x']).flatten()
+            # Try rootfinder first; fall back to IDAS calc_ic if it fails
+            try:
+                res = self.rf(x0=v_ini_guess, p=p_ini_vec)
+                v_solved = np.array(res['x']).flatten()
+            except RuntimeError:
+                v_solved = self._calc_ic_init(v_ini_guess, p_ini_vec)
 
         # Update initialization arrays
         self.x = v_solved[:self.N_x]
@@ -304,8 +477,8 @@ class CasadiModel:
                 'calc_ic': True,
                 'print_stats': False,
                 'max_num_steps': 5000,
-                'reltol': 1e-8,
-                'abstol': 1e-8
+                'reltol': self._integrator_reltol,
+                'abstol': self._integrator_abstol
             }
             self.integrator = ca.integrator('idas_int', 'idas', self.dae_dict, 0.0, self.Dt, opts)
             self._current_dt = self.Dt
@@ -393,8 +566,39 @@ class CasadiModel:
             return self.y_ini[self.y_ini_names.index(name)]
         elif name in self.u_ini_names:
             return self.u_ini_vals[self.u_ini_names.index(name)]
+        elif hasattr(self, '_h_fn') and self._h_fn is not None and hasattr(self, 'sys_dict') and 'h_dict' in self.sys_dict and name in self.sys_dict['h_dict']:
+            return self._eval_output(name)
         else:
             raise ValueError(f"Variable '{name}' not found in model")
+
+    def set_value(self, name, value):
+        """Set the value of a parameter, input, or variable by name."""
+        if name in self.p_names:
+            self.p_vals[self.p_names.index(name)] = value
+        elif name in self.u_run_names:
+            self.u_run_vals[self.u_run_names.index(name)] = value
+        elif name in self.u_ini_names:
+            self.u_ini_vals[self.u_ini_names.index(name)] = value
+        elif name in self.x_names:
+            self.x[self.x_names.index(name)] = value
+        elif name in self.y_run_names:
+            self.y_run[self.y_run_names.index(name)] = value
+        elif name in self.y_ini_names:
+            self.y_ini[self.y_ini_names.index(name)] = value
+        else:
+            raise ValueError(f"Variable '{name}' not found in model")
+
+    def _eval_output(self, name):
+        """Evaluate an output expression (from h_dict) at current operating point."""
+        import numpy as np
+
+        if hasattr(self, '_h_fn') and self._h_fn is not None:
+            # Use compiled CasADi function
+            h_all = np.array(self._h_fn(self.x, self.y_run, np.concatenate((self.p_vals, self.u_run_vals)))).flatten()
+            h_names = list(self.sys_dict['h_dict'].keys())
+            if name in h_names:
+                return h_all[h_names.index(name)]
+        return 0.0
 
     def get_values(self, name):
         """Get the time series of a variable by name."""
@@ -423,6 +627,12 @@ class CasadiModel:
         """Print current input values."""
         print("\nInputs (u_run):")
         for name, val in zip(self.u_run_names, self.u_run_vals):
+            print(f"  {name}: {val:.6e}")
+
+    def report_params(self):
+        """Print current parameter values."""
+        print("\nParameters (p):")
+        for name, val in zip(self.p_names, self.p_vals):
             print(f"  {name}: {val:.6e}")
 
 
