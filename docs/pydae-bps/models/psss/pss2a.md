@@ -54,10 +54,18 @@ The dual-input cancellation applies the main gain,
 
 $$u_{ll} = K_{s1}\,(y_{rt} - y_3)$$
 
-followed by two series lead-lag compensators and a hard output
-limiter,
+followed by two series lead-lag compensators,
+
+$$\frac{d x_{l1}}{dt} = \frac{u_{ll} - x_{l1}}{T_2},\quad
+  z_{l1} = (u_{ll} - x_{l1})\frac{T_1}{T_2} + x_{l1}$$
+$$\frac{d x_{l2}}{dt} = \frac{z_{l1} - x_{l2}}{T_4},\quad
+  z_{l2} = (z_{l1} - x_{l2})\frac{T_3}{T_4} + x_{l2}$$
+
+The output is saturated by the hard output limits,
 
 $$0 = \mathrm{sat}(z_{l2},\; V_{STmin},\; V_{STmax}) - v_{pss}$$
+
+with $\mathrm{sat}(x, a, b) = \min\{b,\, \max\{a,\, x\}\}$.
 
 **Simplifications under the REE parameter set**
 
@@ -77,7 +85,7 @@ PSS output is zero — the stabiliser only responds to transients.
 
 **Configuration**
 
-Example data entry (REE NTS defaults):
+Example data entry (REE NTS defaults)::
 
     "pss": {"type": "pss2a",
             "T_w1": 2.0, "T_w2": 2.0, "T_w3": 2.0, "T_w4": 0.0,
@@ -86,6 +94,11 @@ Example data entry (REE NTS defaults):
             "T_1": 0.28, "T_2": 0.04, "T_3": 0.28, "T_4": 0.12,
             "V_STmax": 0.1, "V_STmin": -0.1,
             "M": 5, "N": 1}
+
+``M`` and ``N`` are recorded in the parameter dict for documentation
+but do not enter the symbolic equations — the ramp-tracker order is
+baked in at six lags. Change the structure if a different order is
+required.
 
 ## Usage
 
@@ -105,27 +118,27 @@ section of the network JSON (see [Overview](../../overview.md)).
 
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
-| $T_{w1}$ | `T_w1` | 2.0 | s | First speed washout time constant |
-| $T_{w2}$ | `T_w2` | 2.0 | s | Second speed washout time constant |
-| $T_{w3}$ | `T_w3` | 2.0 | s | First power washout time constant |
-| $T_7$ | `T_7` | 2.0 | s | Power-channel lag (K_s2·T_7 ≈ 1/(2H) for synchronizing torque cancellation) |
-| $T_9$ | `T_9` | 0.1 | s | Ramp-tracker lag time constant |
-| $K_{s1}$ | `K_s1` | 17.069 | pu | Main stabiliser gain |
-| $K_{s2}$ | `K_s2` | 0.158 | pu | Power-channel gain |
-| $K_{s3}$ | `K_s3` | 1.0 | pu | Cross-path gain at ramp-tracker input |
-| $T_1$ | `T_1` | 0.28 | s | Lead-lag 1 numerator time constant |
-| $T_2$ | `T_2` | 0.04 | s | Lead-lag 1 denominator time constant |
-| $T_3$ | `T_3` | 0.28 | s | Lead-lag 2 numerator time constant |
-| $T_4$ | `T_4` | 0.12 | s | Lead-lag 2 denominator time constant |
-| $V_{STmax}$ | `V_STmax` | 0.1 | pu | Upper PSS output limit |
-| $V_{STmin}$ | `V_STmin` | -0.1 | pu | Lower PSS output limit |
+| $T_{w1}$ | `T_w1_pss` | 2.0 | s | First speed washout time constant |
+| $T_{w2}$ | `T_w2_pss` | 2.0 | s | Second speed washout time constant |
+| $T_{w3}$ | `T_w3_pss` | 2.0 | s | First power washout time constant |
+| $T_7$ | `T_7_pss` | 2.0 | s | Power-channel lag (chosen so that K_s2 T_7 ≈ 1/(2H) for synchronizing torque cancellation) |
+| $T_9$ | `T_9_pss` | 0.1 | s | Ramp-tracker lag time constant |
+| $K_{s1}$ | `K_s1_pss` | 17.069 | pu | Main stabiliser gain |
+| $K_{s2}$ | `K_s2_pss` | 0.158 | pu | Power-channel gain |
+| $K_{s3}$ | `K_s3_pss` | 1.0 | pu | Cross-path gain at ramp-tracker input |
+| $T_1$ | `T_1_pss` | 0.28 | s | Lead-lag 1 numerator time constant |
+| $T_2$ | `T_2_pss` | 0.04 | s | Lead-lag 1 denominator time constant |
+| $T_3$ | `T_3_pss` | 0.28 | s | Lead-lag 2 numerator time constant |
+| $T_4$ | `T_4_pss` | 0.12 | s | Lead-lag 2 denominator time constant |
+| $V_{STmax}$ | `V_STmax_pss` | 0.1 | pu | Upper PSS output limit |
+| $V_{STmin}$ | `V_STmin_pss` | -0.1 | pu | Lower PSS output limit |
 
 ### Inputs
 
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
-| $\omega$ | `omega` | 1.0 | pu | Machine rotor speed (from the synchronous machine). Used as ω - 1 in the first channel. |
-| $p_g$ | `p_g` | 0.0 | pu | Generator electrical power (from the synchronous machine's algebraic output). Second channel input. |
+| $\omega$ | `omega` | 1.0 | pu | Machine rotor speed (taken from the synchronous machine). Used as ω - 1 in the first channel. |
+| $p_g$ | `p_g` | 0.0 | pu | Generator electrical power (taken from the synchronous machine's algebraic output). Second channel input. |
 
 ### Dynamic States
 
@@ -135,7 +148,12 @@ section of the network JSON (see [Overview](../../overview.md)).
 | $x_{w2}$ | `x_w2_pss` |  | pu | Second speed washout state |
 | $x_{w3}$ | `x_w3_pss` |  | pu | Power washout state |
 | $x_p$ | `x_p_pss` |  | pu | Power-channel lag state (accelerating-power proxy) |
-| $x_{r1} \dots x_{r6}$ | `x_r1_pss` … `x_r6_pss` |  | pu | Ramp-tracker cascade (6 lags) |
+| $x_{r1}$ | `x_r1_pss` |  | pu | Ramp-tracker lag state 1/6 |
+| $x_{r2}$ | `x_r2_pss` |  | pu | Ramp-tracker lag state 2/6 |
+| $x_{r3}$ | `x_r3_pss` |  | pu | Ramp-tracker lag state 3/6 |
+| $x_{r4}$ | `x_r4_pss` |  | pu | Ramp-tracker lag state 4/6 |
+| $x_{r5}$ | `x_r5_pss` |  | pu | Ramp-tracker lag state 5/6 |
+| $x_{r6}$ | `x_r6_pss` |  | pu | Ramp-tracker lag state 6/6 |
 | $x_{l1}$ | `x_l1_pss` |  | pu | Lead-lag 1 internal state |
 | $x_{l2}$ | `x_l2_pss` |  | pu | Lead-lag 2 internal state |
 

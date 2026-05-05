@@ -1,0 +1,8 @@
+{
+    "system":{"name":"smib","S_base":100e6, "K_p_agc":0.0,"K_i_agc":0.0,"K_xif":1e-6},
+    "buses":[{"name":"1", "P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+    "pvs":[{"type":"pv_dq_vrt","bus":"1","S_n":3e6,"I_max":1.2,"T_lvrt":0.02,
+            "Epsilon":1e-8,"monitor":false}
+            ],
+    "sources":[{"type":"vsource","bus":"1"}]
+    }

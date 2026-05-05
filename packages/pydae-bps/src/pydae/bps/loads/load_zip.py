@@ -41,8 +41,8 @@ def load_zip(grid,name,bus_name,data_dict):
     # auxiliar
 
     # dynamic equations            
-    dp_z_f = 1.0/T_pz*(p_z - p_z_f)
-    dq_z_f = 1.0/T_qz*(q_z - q_z_f)
+    # dp_z_f = 1.0/T_pz*(p_z - p_z_f)
+    # dq_z_f = 1.0/T_qz*(q_z - q_z_f)
 
     # algebraic equations 
     eq_p_z = -p_z + g_load*V**2
@@ -52,8 +52,8 @@ def load_zip(grid,name,bus_name,data_dict):
 
 
     # dae 
-    grid.dae['f'] += [dp_z_f,dq_z_f]
-    grid.dae['x'] += [ p_z_f, q_z_f]
+    # grid.dae['f'] += [dp_z_f,dq_z_f]
+    # grid.dae['x'] += [ p_z_f, q_z_f]
     grid.dae['g'] += [eq_p_i,eq_q_i,eq_p_z,eq_q_z]
     grid.dae['y_ini'] += [i_p,i_q,g_load,b_load]  
     grid.dae['y_run'] += [p_i,q_i,p_z,q_z]  
@@ -98,17 +98,30 @@ def load_zip(grid,name,bus_name,data_dict):
     grid.dae['xy_0_dict'].update({str(i_p):p_i_0})
     grid.dae['xy_0_dict'].update({str(i_q):q_i_0})
 
-    grid.dae['params_dict'].update({str(T_pz):0.1})  
-    grid.dae['params_dict'].update({str(T_qz):0.1})  
+    grid.dae['params_dict'].update({str(T_pz):0.001})  
+    grid.dae['params_dict'].update({str(T_qz):0.001})  
 
-    p_W   = (-p_z_f - p_i - p_p)*S_base
-    q_var = (-q_z_f - q_i - q_p)*S_base
+    # -----------------------------------------------------------
+    # THE FIX: Low Voltage Transition (LVT)
+    # -----------------------------------------------------------
+    V_th = 0.7  # Voltage threshold in pu
+    
+    # If V >= V_th, scale = 1.0 (Normal Constant Power)
+    # If V <  V_th, scale = (V/V_th)**2 (Transitions to Constant Impedance)
+    lvt_scale = backend.Piecewise((1.0, V >= V_th), ((V/V_th)**2, True))
+    
+    p_p_eff = p_p * lvt_scale
+    q_p_eff = q_p * lvt_scale
+
+    # Inject the voltage-scaled power instead of the rigid constant
+    p_W   = (-p_z - p_i - p_p_eff)*S_base
+    q_var = (-q_z - q_i - q_p_eff)*S_base
 
     # outputs
-    grid.dae['h_dict'].update({f'p_load_{name}':p_W})     
-    grid.dae['h_dict'].update({f'q_load_{name}':q_var})     
+    grid.dae['h_dict'].update({f'p_load_{name}':-p_W})     
+    grid.dae['h_dict'].update({f'q_load_{name}':-q_var})     
 
-    return p_W,q_var
+    return p_W, q_var
 
 
 def test():

@@ -5,6 +5,7 @@ Physical VSC models (grid-forming, grid-following, back-to-back, BESS).
 ```{toctree}
 :maxdepth: 1
 
+bess_dq_vrt
 bess_pq
 bess_pq_ss
 vsc_acgf_dcp

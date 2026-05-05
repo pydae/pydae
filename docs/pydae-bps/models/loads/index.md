@@ -6,5 +6,6 @@ Static and voltage-dependent load models (ZIP).
 :maxdepth: 1
 
 load_zip
+load_zip_dyn
 zip
 ```

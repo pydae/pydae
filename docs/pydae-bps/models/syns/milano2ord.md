@@ -29,20 +29,17 @@ $$0 = v_d + R_a i_d - X'_q i_q$$
 $$0 = i_d v_d + i_q v_q - p_g$$
 $$0 = i_d v_q - i_q v_d - q_g$$
 
-## Block diagram
-
-![milano2ord block diagram](svg/sm_milano2ord.svg)
-
 ## Usage
 
-```hjson
-syns: [{
-  bus: "1", type: "milano2ord",
-  S_n: 200e6, H: 5.0, D: 0.0,
-  X1d: 0.3, X1q: 0.55, R_a: 0.01,
-  K_delta: 0.01, K_sec: 0.0
-}]
+```python
+from pydae.bps import BpsBuilder
+
+grid = BpsBuilder("my_network.json")
+grid.construct("my_system")
 ```
+
+The `milano2ord` model is instantiated by including an entry in the relevant
+section of the network JSON (see [Overview](../../overview.md)).
 
 ## Parameters, inputs, states, outputs
 

@@ -1,6 +1,6 @@
-# agov1
+# load_zip_dyn
 
-*Turbine governors — pydae-bps model.*
+*Loads — pydae-bps model.*
 
 ## Model description
 
@@ -17,14 +17,14 @@ grid = BpsBuilder("my_network.json")
 grid.construct("my_system")
 ```
 
-The `agov1` model is instantiated by including an entry in the relevant
+The `load_zip_dyn` model is instantiated by including an entry in the relevant
 section of the network JSON (see [Overview](../../overview.md)).
 
 ## Parameters, inputs, states, outputs
 
 ```{note}
 This model does not yet define a `descriptions()` function. Add one to
-`packages/pydae-bps/src/pydae/bps/govs/agov1.py` and re-run `docs/pydae-bps/_scripts/generate_model_pages.py`
+`packages/pydae-bps/src/pydae/bps/loads/load_zip_dyn.py` and re-run `docs/pydae-bps/_scripts/generate_model_pages.py`
 to populate this section automatically. See
 `packages/pydae-bps/src/pydae/bps/syns/milano2ord.py` for a reference
 implementation.
@@ -33,5 +33,5 @@ implementation.
 
 ## Source
 
-- Module: `pydae.bps.govs.agov1`
-- File: [`packages/pydae-bps/src/pydae/bps/govs/agov1.py`](https://github.com/pydae/pydae/tree/main/packages/pydae-bps/src/pydae/bps/govs/agov1.py)
+- Module: `pydae.bps.loads.load_zip_dyn`
+- File: [`packages/pydae-bps/src/pydae/bps/loads/load_zip_dyn.py`](https://github.com/pydae/pydae/tree/main/packages/pydae-bps/src/pydae/bps/loads/load_zip_dyn.py)

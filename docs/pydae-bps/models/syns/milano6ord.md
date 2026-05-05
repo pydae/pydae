@@ -11,8 +11,8 @@ Synchronous machine model of order 6 (Subtransient Model) with PSAT Saturation.
 $$v_d = V \sin(\delta - \theta)$$
 $$v_q = V \cos(\delta - \theta)$$
 $$p_e = i_d \left(v_d + R_a i_d\right) + i_q \left(v_q + R_a i_q\right)$$
-$$v_{sat} = \sqrt{e'^2_q + e'^2_d}$$
-$$S_{at} = \frac{B_{sat} (v_{sat} - A_{sat})^2}{v_{sat}} \quad \text{if } v_{sat} > A_{sat} \text{ else } 0$$
+$$v_{sat} = \sqrt{e'^2_q + e'^2_d + \epsilon}$$
+$$S_{at} = \frac{B_{sat} \max(v_{sat} - A_{sat},\, 0)^2}{v_{sat}}$$
 $$S_d = S_{at}$$
 $$S_q = \frac{X_q}{X_d} S_{at}$$
 $$\omega_s = \omega_{coi}$$
@@ -28,28 +28,17 @@ $$\frac{ de''_d}{dt} = \frac{1}{T''_{q0}} \left(-e''_d + e'_d + \left(X'_q - X''
 $$0 = i_d v_d + i_q v_q - p_g$$
 $$0 = i_d v_q - i_q v_d - q_g$$
 
-## Block diagram
-
-![milano6ord block diagram](svg/sm_milano6ord.svg)
-
 ## Usage
 
-```hjson
-syns: [{
-  bus: "1", type: "milano6ord",
-  S_n: 200e6, H: 5.0, D: 0.0,
-  X_d: 1.8,  X_q: 1.7,
-  X1d: 0.3,  X1q: 0.55,
-  X2d: 0.2,  X2q: 0.25,
-  X_l: 0.1,
-  T1d0: 8.0, T1q0: 0.4,
-  T2d0: 0.03, T2q0: 0.05,
-  T_AA: 0.0,
-  R_a: 0.01,
-  S_10: 0.0, S_12: 0.0,
-  K_delta: 0.01, K_sec: 0.0
-}]
+```python
+from pydae.bps import BpsBuilder
+
+grid = BpsBuilder("my_network.json")
+grid.construct("my_system")
 ```
+
+The `milano6ord` model is instantiated by including an entry in the relevant
+section of the network JSON (see [Overview](../../overview.md)).
 
 ## Parameters, inputs, states, outputs
 

@@ -203,8 +203,6 @@ def add_agc(grid):
     grid.dae['y_ini'] += [ctrl_sym]
     grid.dae['y_run'] += [ctrl_sym]
 
-    print("agc: ctrl_key=", ctrl_key)
-    print("grid.dae['g'] AGC", grid.dae['g'][-1]) 
 
     grid.dae['params_dict'].update({str(K_p): K_p_val, str(K_i): K_i_val})
 

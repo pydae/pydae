@@ -26,7 +26,8 @@ The summing junction forms the voltage error
 $$\varepsilon = v^{\star} - v_c + v_s$$
 
 where $v^{\star}$ is the voltage reference and $v_s$ is the
-supplementary PSS input. The error is clipped by the input limiter,
+supplementary PSS input. (UEL/OEL branches are omitted.) The error
+is clipped by the input limiter,
 
 $$\varepsilon_{lim} = \mathrm{sat}(\varepsilon,\; V_{Imin},\; V_{Imax})$$
 
@@ -55,10 +56,11 @@ with $\mathrm{sat}(x, a, b) = \min\{b,\, \max\{a,\, x\}\}$.
 
 - $T_A = 0$ — amplifier is a pure gain; no state $V_A$.
 - $K_F = 0$ — rate-feedback stabiliser disabled; no washout state.
-- $K_C = 0$ — no rectifier loading.
+- $K_C = 0$ — no rectifier loading; upper ceiling $V_T V_{Rmax} - K_C I_{FD}$
+  collapses to the constant $V_{Rmax}$.
 - $V_{Imax} = V_{Rmax} = 999$ and $V_{Imin} = V_{Rmin} = -999$ — limits
-  effectively inactive, but kept as residuals so the model is
-  structurally complete if a future fixture tightens them.
+  effectively inactive, but kept as ``Piecewise`` residuals so the model
+  is structurally complete if a future fixture tightens them.
 
 **The ini/run variable swap**
 
@@ -80,9 +82,16 @@ The swap is performed in place at the existing ``y_ini`` index of
 index — for example ``vsource``'s ``g[idx_V] = ...`` override —
 continue to target the correct equations.
 
+**Value transfer between phases**
+
+After ``ini()`` converges, ``ini2run()`` automatically copies solved
+values to the run-phase state: ``v_ref`` (in ``y_ini`` and ``u_run``)
+becomes the run input, and ``V_bus`` (in ``u_ini`` and ``y_run``) seeds
+the run-phase solver.
+
 **Configuration**
 
-Example data entry (REE NTS defaults):
+Example data entry (REE NTS defaults)::
 
     "avr": {"type": "st1",
             "T_R": 0.01, "T_B": 10.0, "T_C": 1.0,
@@ -92,9 +101,10 @@ Example data entry (REE NTS defaults):
             "v_ref": 1.0}
 
 The ``v_ref`` field serves two roles: it is the **bus voltage setpoint
-during ini()** and the **initial run-phase input**. The optional
-``bus`` key selects a remote bus whose voltage is regulated; if
-omitted the generator bus is used.
+during ini()** (since ``v_ref`` itself is unknown there) and the
+**initial run-phase input** (overwritten by the value solved during
+ini via ``ini2run``). The optional ``bus`` key selects a remote bus
+whose voltage is regulated; if omitted the generator bus is used.
 
 ## Usage
 
@@ -118,7 +128,7 @@ section of the network JSON (see [Overview](../../overview.md)).
 | $T_B$ | `T_B` | 10.0 | s | Lead-lag denominator time constant |
 | $T_C$ | `T_C` | 1.0 | s | Lead-lag numerator time constant |
 | $K_A$ | `K_A` | 200.0 | pu | AVR amplifier gain |
-| $T_A$ | `T_A` | 0.0 | s | Amplifier time constant (0 under REE NTS — pure gain, no state) |
+| $T_A$ | `T_A` | 0.0 | s | Amplifier time constant. Under the REE NTS spec T_A = 0 so the stage is a pure gain; kept as a parameter only for documentation — no state is instantiated. |
 | $V_{Imax}$ | `V_Imax` | 999.0 | pu | Upper input-error limit |
 | $V_{Imin}$ | `V_Imin` | -999.0 | pu | Lower input-error limit |
 | $V_{Rmax}$ | `V_Rmax` | 999.0 | pu | Upper regulator output limit |
@@ -128,7 +138,7 @@ section of the network JSON (see [Overview](../../overview.md)).
 
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
-| $v^{\star}$ | `v_ref` | 1.0 | pu | Voltage reference. Acts as the PV-bus setpoint during ini and as an input during run. |
+| $v^{\star}$ | `v_ref` | 1.0 | pu | Voltage reference. Acts as the PV-bus setpoint during ini (where it is solved for) and as an input during run. |
 | $v_s$ | `v_pss` | 0.0 | pu | Supplementary stabilising input (PSS output), added to the voltage error. |
 
 ### Dynamic States

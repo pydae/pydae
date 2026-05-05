@@ -10,7 +10,6 @@ Pages are auto-generated from each model file's module docstring and its
 syns/index
 avrs/index
 govs/index
-miscellaneous/index
 psss/index
 vsgs/index
 vscs/index

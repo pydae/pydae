@@ -55,6 +55,8 @@ $$p_{m,HP} = K_1 x_4 + K_3 x_5 + K_5 x_6 + K_7 x_6$$
 $$p_{m,LP} = K_2 x_4 + K_4 x_5 + K_6 x_6 + K_8 x_6$$
 $$0 = p_{m,HP} + p_{m,LP} - p_m$$
 
+with $\mathrm{sat}(x, a, b) = \min\{b,\, \max\{a,\, x\}\}$.
+
 **Steady-state relation**
 
 At synchronism ($\omega = 1$, $\Delta\omega = 0$, $p_{agc} = 0$) the
@@ -74,7 +76,7 @@ algebraically in both phases.
 
 **Configuration**
 
-Example data entry (REE NTS defaults):
+Example data entry (REE NTS defaults)::
 
     "gov": {"type": "ieeeg1",
             "K": 20.0,
@@ -85,6 +87,11 @@ Example data entry (REE NTS defaults):
             "U_o": 0.5, "U_c": -0.5,
             "P_max": 1.0, "P_min": 0.0,
             "p_c": 0.8}
+
+The ``p_c`` field is the scheduled dispatch — the steady-state
+mechanical output when $\omega = 1$ and $p_{agc} = 0$. It is used as
+both the ``u_ini`` and ``u_run`` value, and seeds the turbine-cascade
+states.
 
 ## Usage
 
@@ -104,26 +111,26 @@ section of the network JSON (see [Overview](../../overview.md)).
 
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
-| $K$ | `K` | 20.0 | pu | Speed-droop gain (1/R). REE NTS default corresponds to 5% droop. |
-| $K_1$ | `K_1` | 0.3 | pu | HP fraction at steam-chest tap (after T_4) |
-| $K_3$ | `K_3` | 0.3 | pu | HP fraction at reheater tap (after T_5) |
-| $K_5$ | `K_5` | 0.4 | pu | HP fraction at crossover tap (after T_6) |
-| $K_7$ | `K_7` | 0.0 | pu | HP fraction at LP-turbine tap (after T_7). Applied directly to x_6 when T_7 = 0. |
-| $K_2$ | `K_2` | 0.0 | pu | LP fraction at steam-chest tap |
-| $K_4$ | `K_4` | 0.0 | pu | LP fraction at reheater tap |
-| $K_6$ | `K_6` | 0.0 | pu | LP fraction at crossover tap |
-| $K_8$ | `K_8` | 0.0 | pu | LP fraction at LP-turbine tap |
-| $T_1$ | `T_1` | 0.0 | s | Lead-lag numerator. Zero under REE — not instantiated. |
-| $T_2$ | `T_2` | 0.0 | s | Lead-lag denominator. Zero under REE — not instantiated. |
-| $T_3$ | `T_3` | 0.1 | s | Servo (valve actuator) time constant |
-| $T_4$ | `T_4` | 0.3 | s | Steam-chest time constant |
-| $T_5$ | `T_5` | 7.0 | s | Reheater time constant |
-| $T_6$ | `T_6` | 0.6 | s | Crossover time constant |
-| $T_7$ | `T_7` | 0.0 | s | LP-turbine time constant. Zero under REE — collapsed. |
-| $U_o$ | `U_o` | 0.5 | pu/s | Servo opening rate limit |
-| $U_c$ | `U_c` | -0.5 | pu/s | Servo closing rate limit |
-| $P_{max}$ | `P_max` | 1.0 | pu | Upper valve position limit |
-| $P_{min}$ | `P_min` | 0.0 | pu | Lower valve position limit |
+| $K$ | `K_gov` | 20.0 | pu | Speed-droop gain (1/R). REE NTS default corresponds to 5% droop. |
+| $K_1$ | `K_1_gov` | 0.3 | pu | HP fraction at steam-chest tap (after T_4) |
+| $K_3$ | `K_3_gov` | 0.3 | pu | HP fraction at reheater tap (after T_5) |
+| $K_5$ | `K_5_gov` | 0.4 | pu | HP fraction at crossover tap (after T_6) |
+| $K_7$ | `K_7_gov` | 0.0 | pu | HP fraction at LP-turbine tap (after T_7). Applied directly to x_6 when T_7 = 0. |
+| $K_2$ | `K_2_gov` | 0.0 | pu | LP fraction at steam-chest tap |
+| $K_4$ | `K_4_gov` | 0.0 | pu | LP fraction at reheater tap |
+| $K_6$ | `K_6_gov` | 0.0 | pu | LP fraction at crossover tap |
+| $K_8$ | `K_8_gov` | 0.0 | pu | LP fraction at LP-turbine tap |
+| $T_1$ | `T_1_gov` | 0.0 | s | Lead-lag numerator. Zero under REE so the lead-lag is unity and is not instantiated. |
+| $T_2$ | `T_2_gov` | 0.0 | s | Lead-lag denominator. Zero under REE — lead-lag not instantiated. |
+| $T_3$ | `T_3_gov` | 0.1 | s | Servo (valve actuator) time constant |
+| $T_4$ | `T_4_gov` | 0.3 | s | Steam-chest time constant |
+| $T_5$ | `T_5_gov` | 7.0 | s | Reheater time constant |
+| $T_6$ | `T_6_gov` | 0.6 | s | Crossover time constant |
+| $T_7$ | `T_7_gov` | 0.0 | s | LP-turbine time constant. Zero under REE — x_7 collapses into x_6. |
+| $U_o$ | `U_o_gov` | 0.5 | pu/s | Servo opening rate limit |
+| $U_c$ | `U_c_gov` | -0.5 | pu/s | Servo closing rate limit |
+| $P_{max}$ | `P_max_gov` | 1.0 | pu | Upper valve position limit |
+| $P_{min}$ | `P_min_gov` | 0.0 | pu | Lower valve position limit |
 
 ### Inputs
 

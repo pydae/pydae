@@ -168,9 +168,9 @@ def damp_report(model, sparse=False, tol_part=0.2):
         # participation_matrix = np.abs(ssa.participation(model).values)
         
         # # #idx_participation = participation_matrix[:,it] > 0.5
-        # max_part = np.max(np.abs(participation_matrix)[:,it])
-        # states_participation += [x_array[participation_matrix[:,it]>(max_part-tol_part)]]
-        # string += f'{str(x_array[participation_matrix[:,it]>(max_part-tol_part)])}'
+        max_part = np.max(np.abs(participation_matrix)[:,it])
+        states_participation += [x_array[participation_matrix[:,it]>(max_part-tol_part)]]
+        string += f'{str(x_array[participation_matrix[:,it]>(max_part-tol_part)])}'
         string += '\n'
     print(string)
 
@@ -267,13 +267,13 @@ def damp(A, sparse=False, model=False, sort=None):
 
     print(string)
 
-    ssstudy = {
+    ss_study = {
         'eigvalues':  eig[idx],
         'eigvectors': eigv[:, idx],
         'freqs':      freqs[idx],
         'zetas':      zetas[idx],
     }
-    return ssstudy
+    return ss_study
 
 
 def participation(system, method='kundur'):

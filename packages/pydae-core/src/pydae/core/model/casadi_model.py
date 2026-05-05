@@ -8,7 +8,7 @@ from scipy.optimize import root
 class CasadiModel:
     def __init__(self, builder=None, binary_path=None, dae_dict=None, sys_dict=None,
                  newton_tol=1e-10, newton_max_iter=50,
-                 integrator_reltol=1e-8, integrator_abstol=1e-8,
+                 integrator_reltol=1e-6, integrator_abstol=1e-5,
                  rootfinder_opts=None):
         self._binary_path = binary_path
 
@@ -91,6 +91,7 @@ class CasadiModel:
         self.Time = []
         self.X = []
         self.Y = []
+        self.Z = []
 
         xy_0_dict = self.sys_dict.get('xy_0_dict', {})
         for i, name in enumerate(self.x_names):
@@ -195,6 +196,7 @@ class CasadiModel:
         self.Time = []
         self.X = []
         self.Y = []
+        self.Z = []
 
         xy_0_dict = self.sys_dict.get('xy_0_dict', {})
         for i, name in enumerate(self.x_names):
@@ -466,6 +468,12 @@ class CasadiModel:
         self.Time = [self.t]
         self.X = [self.x.copy()]
         self.Y = [self.y_run.copy()]
+        if self._h_fn is not None and 'h_dict' in self.sys_dict:
+            p_run_vec = np.concatenate((self.p_vals, self.u_run_vals))
+            z0 = np.array(self._h_fn(self.x, self.y_run, p_run_vec)).flatten()
+            self.Z = [z0.copy()]
+        else:
+            self.Z = []
 
 
     def run(self, t_end, update_dict=None):
@@ -478,7 +486,8 @@ class CasadiModel:
                 'print_stats': False,
                 'max_num_steps': 5000,
                 'reltol': self._integrator_reltol,
-                'abstol': self._integrator_abstol
+                'abstol': self._integrator_abstol,
+                'linear_solver': 'csparse'  
             }
             self.integrator = ca.integrator('idas_int', 'idas', self.dae_dict, 0.0, self.Dt, opts)
             self._current_dt = self.Dt
@@ -495,12 +504,18 @@ class CasadiModel:
             self.Time.append(self.t)
             self.X.append(self.x.copy())
             self.Y.append(self.y_run.copy())
+            if self._h_fn is not None and 'h_dict' in self.sys_dict:
+                p_run_vec = np.concatenate((self.p_vals, self.u_run_vals))
+                z_val = np.array(self._h_fn(self.x, self.y_run, p_run_vec)).flatten()
+                self.Z.append(z_val.copy())
 
     def post(self):
         """Converts lists to NumPy arrays for analysis/plotting."""
         self.Time = np.array(self.Time)
         self.X = np.array(self.X)
         self.Y = np.array(self.Y)
+        if self.Z:
+            self.Z = np.array(self.Z)
 
     def A_eval(self):
         """Computes the dense State Matrix (A) at the current operating point.
@@ -608,6 +623,15 @@ class CasadiModel:
         elif name in self.y_run_names:
             idx = self.y_run_names.index(name)
             return np.array([y[idx] for y in self.Y])
+        elif (
+            hasattr(self, '_h_fn')
+            and self._h_fn is not None
+            and 'h_dict' in self.sys_dict
+            and name in self.sys_dict['h_dict']
+        ):
+            h_names = list(self.sys_dict['h_dict'].keys())
+            idx = h_names.index(name)
+            return self.Z[:, idx]
         else:
             raise ValueError(f"Variable '{name}' not found in model storage")
 
@@ -622,6 +646,17 @@ class CasadiModel:
         print("\nAlgebraic (y_run):")
         for name, val in zip(self.y_run_names, self.y_run):
             print(f"  {name}: {val:.6e}")
+
+    def report_z(self):
+        """Print current output values z = h(x, y, u, params)."""
+        print("\nOutputs (z):")
+        if hasattr(self, '_h_fn') and self._h_fn is not None and 'h_dict' in self.sys_dict:
+            h_names = list(self.sys_dict['h_dict'].keys())
+            h_vals = np.array(self._h_fn(self.x, self.y_run, np.concatenate((self.p_vals, self.u_run_vals)))).flatten()
+            for name, val in zip(h_names, h_vals):
+                print(f"  {name}: {val:.6e}")
+        else:
+            print("  (no outputs defined)")
 
     def report_u(self):
         """Print current input values."""

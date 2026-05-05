@@ -47,7 +47,7 @@ zero — the stabiliser only responds to transients.
 
 **Configuration**
 
-Example data entry:
+Example data entry::
 
     "pss": {"type": "pss_kundur_1",
             "K_stab": 20.0,
@@ -75,12 +75,12 @@ section of the network JSON (see [Overview](../../overview.md)).
 
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
-| $K_{stab}$ | `K_stab` | 20.0 | pu | Main stabiliser gain |
-| $T_w$ | `T_w` | 10.0 | s | Washout time constant |
-| $T_1$ | `T_1` | 0.05 | s | Lead-lag numerator time constant |
-| $T_2$ | `T_2` | 0.02 | s | Lead-lag denominator time constant |
-| $V_{Smax}$ | `V_Smax` | 0.1 | pu | Upper PSS output limit |
-| $V_{Smin}$ | `V_Smin` | -0.1 | pu | Lower PSS output limit |
+| $K_{stab}$ | `K_stab_pss` | 20.0 | pu | Main stabiliser gain |
+| $T_w$ | `T_w_pss` | 10.0 | s | Washout time constant |
+| $T_1$ | `T_1_pss` | 0.05 | s | Lead-lag numerator time constant |
+| $T_2$ | `T_2_pss` | 0.02 | s | Lead-lag denominator time constant |
+| $V_{Smax}$ | `V_Smax_pss` | 0.1 | pu | Upper PSS output limit |
+| $V_{Smin}$ | `V_Smin_pss` | -0.1 | pu | Lower PSS output limit |
 
 ### Inputs
 

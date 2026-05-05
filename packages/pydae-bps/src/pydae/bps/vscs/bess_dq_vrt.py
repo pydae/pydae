@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
-Battery energy storage system (BESS) with VSC PQ control and SOC dynamics
-(steady-state DC side, filtered AC power references).
+Battery energy storage system (BESS) with VSC dq control, SOC dynamics,
+and voltage ride-through (VRT) capability.
 
 **Auxiliar equations**
 
@@ -9,28 +9,32 @@ $$H = \frac{E_{kWh} \cdot 1000 \cdot 3600}{S_n}$$
 $$\epsilon = soc_{ref} - soc$$
 $$p_{soc} = -(K_p \epsilon + K_i \xi_{soc})$$
 $$e = f_{spline}(soc) \quad \text{(OCV-SOC interpolation)}$$
-$$s_s = \sqrt{p_s^2 + q_s^2}$$
-$$i_s = s_s / V$$
-$$p_{loss} = A_{loss} i_s^2 + B_{loss} i_s + C_{loss}$$
+$$v_{sr} = V \cos(\theta), \quad v_{si} = V \sin(\theta)$$
+$$v_{sq\_mag} = v_{sr}^2 + v_{si}^2 + \epsilon_{reg}$$
 
 **Dynamic equations**
 
 $$\frac{d\,soc}{dt} = \frac{1}{H} (-i_{dc} \cdot e)$$
 $$\frac{d\,\xi_{soc}}{dt} = soc_{ref} - soc$$
-$$\dot{x} = A_{pq} x + B_{pq} \begin{bmatrix} p_{s,ppc} \\ q_{s,ppc} \end{bmatrix}$$
+$$\frac{d\,\text{lvrt\_ext\_ramp}}{dt} = \frac{\text{lvrt\_ext} - \text{lvrt\_ext\_ramp}}{T_{lvrt}}$$
 
-**Algebraic equations**
+**Algebraic equations (DC side)**
 
 $$0 = p_s + p_{loss} - p_{dc}$$
 $$0 = v_{dc} i_{dc} - p_{dc}$$
 $$0 = e - i_{dc} R_{bat} - v_{dc}$$
 
-**Power reference with SOC limits**
+**Algebraic equations (AC side)**
 
-$$p_s = \begin{cases} p_{s,ref} & p_{s,ref} \leq 0 \land soc < soc_{max} \\
-p_{s,ref} & p_{s,ref} > 0 \land soc > soc_{min} \\
-0 & \text{otherwise} \end{cases} + p_{soc}$$
-$$q_s = q_{s,ref}$$
+$$0 = v_{sr} i_{sr} + v_{si} i_{si} - p_s$$
+$$0 = v_{si} i_{sr} - v_{sr} i_{si} - q_s$$
+
+**Current blending with soft saturation**
+
+$$i_{sr,nosat} = (1 - \text{lvrt\_ramp}) i_{sr,pq} + \text{lvrt\_ramp} \cdot i_{sr,ar}$$
+$$i_{si,nosat} = (1 - \text{lvrt\_ramp}) i_{si,pq} + \text{lvrt\_ramp} \cdot i_{si,ar}$$
+$$i_{mod} = \sqrt{i_{sr,nosat}^2 + i_{si,nosat}^2 + \epsilon}$$
+$$i_{mod,sat} = \frac{1}{2} \left(i_{mod} + I_{max} - \sqrt{(i_{mod} - I_{max})^2 + \epsilon}\right)$$
 """
 import io
 
@@ -96,6 +100,20 @@ def descriptions():
          "model": "e_soc_order", "default": 1,
          "description": "Spline interpolation order for OCV-SOC", "units": "-"}]
 
+    # Parameters - VRT
+    descriptions_list += [
+        {"type": "Parameter", "tex": "I_{max}", "data": "I_max",
+         "model": "I_max", "default": 1.2,
+         "description": "Maximum current magnitude", "units": "pu"}]
+    descriptions_list += [
+        {"type": "Parameter", "tex": "T_{lvrt}", "data": "T_lvrt",
+         "model": "T_lvrt", "default": 0.02,
+         "description": "LVRT ramp time constant", "units": "s"}]
+    descriptions_list += [
+        {"type": "Parameter", "tex": "\\epsilon", "data": "Epsilon",
+         "model": "Epsilon", "default": 1e-8,
+         "description": "Regularization for soft saturation", "units": "-"}]
+
     # Inputs
     descriptions_list += [
         {"type": "Input", "tex": "p_{s,ppc}", "data": "p_s_ppc",
@@ -109,6 +127,20 @@ def descriptions():
         {"type": "Input", "tex": "soc_{ref}", "data": "soc_ref",
          "model": "soc_ref", "default": 0.5,
          "description": "SOC reference setpoint", "units": "pu"}]
+    descriptions_list += [
+        {"type": "Input", "tex": "\\text{lvrt}_{\\text{ext}}",
+         "data": "lvrt_ext", "model": "lvrt_ext", "default": 0.0,
+         "description": "External LVRT trigger", "units": "-"}]
+    descriptions_list += [
+        {"type": "Input", "tex": "i_{sa,ref}", "data": "i_sa_ref",
+         "model": "i_sa_ref", "default": 0.0,
+         "description": "Active current reference (arbitrary mode)",
+         "units": "pu"}]
+    descriptions_list += [
+        {"type": "Input", "tex": "i_{sr,ref}", "data": "i_sr_ref",
+         "model": "i_sr_ref", "default": 0.0,
+         "description": "Reactive current reference (arbitrary mode)",
+         "units": "pu"}]
 
     # Dynamic States
     descriptions_list += [
@@ -120,9 +152,9 @@ def descriptions():
          "model": "xi_soc", "default": "",
          "description": "SOC integral error state", "units": "pu"}]
     descriptions_list += [
-        {"type": "Dynamic State", "tex": "x_{pq}", "data": "",
-         "model": "x_pq", "default": "",
-         "description": "State-space filter states", "units": "-"}]
+        {"type": "Dynamic State", "tex": "\\text{lvrt}_{\\text{ext,ramp}}",
+         "data": "", "model": "lvrt_ext_ramp", "default": "",
+         "description": "LVRT trigger ramped signal", "units": "-"}]
 
     # Algebraic States
     descriptions_list += [
@@ -137,6 +169,14 @@ def descriptions():
         {"type": "Algebraic State", "tex": "v_{dc}", "data": "",
          "model": "v_dc", "default": "",
          "description": "DC voltage", "units": "pu"}]
+    descriptions_list += [
+        {"type": "Algebraic State", "tex": "p_s", "data": "",
+         "model": "p_s", "default": "",
+         "description": "Injected active power", "units": "pu"}]
+    descriptions_list += [
+        {"type": "Algebraic State", "tex": "q_s", "data": "",
+         "model": "q_s", "default": "",
+         "description": "Injected reactive power", "units": "pu"}]
 
     # Outputs
     descriptions_list += [
@@ -152,34 +192,27 @@ def descriptions():
          "model": "e", "default": "",
          "description": "Battery OCV (from SOC curve)", "units": "pu"}]
     descriptions_list += [
-        {"type": "Output", "tex": "p_s", "data": "",
-         "model": "p_s", "default": "",
-         "description": "Injected active power", "units": "pu"}]
+        {"type": "Output", "tex": "i_{mod}", "data": "",
+         "model": "i_mod", "default": "",
+         "description": "Current magnitude before saturation", "units": "pu"}]
     descriptions_list += [
-        {"type": "Output", "tex": "q_s", "data": "",
-         "model": "q_s", "default": "",
-         "description": "Injected reactive power", "units": "pu"}]
-    descriptions_list += [
-        {"type": "Output", "tex": "p_{s,ref}", "data": "",
-         "model": "p_s_ref", "default": "",
-         "description": "Filtered active power reference", "units": "pu"}]
-    descriptions_list += [
-        {"type": "Output", "tex": "q_{s,ref}", "data": "",
-         "model": "q_s_ref", "default": "",
-         "description": "Filtered reactive power reference", "units": "pu"}]
+        {"type": "Output", "tex": "i_{mod,sat}", "data": "",
+         "model": "i_mod_sat", "default": "",
+         "description": "Saturated current magnitude", "units": "pu"}]
 
     return descriptions_list
 
 
-def bess_pq_ss(grid, name, bus_name, data_dict):
+def bess_dq_vrt(grid, name, bus_name, data_dict):
     """
-    BESS with VSC PQ control and SOC dynamics (steady-state DC side).
+    BESS with VSC dq control, SOC dynamics, and VRT capability.
 
-    The model combines a battery (SOC dynamics + OCV-SOC curve) with a
-    grid-following VSC whose inner current loops are assumed ideal.
-    Power references from a plant controller pass through an optional
-    state-space filter (A_pq/B_pq/C_pq/D_pq).  SOC is regulated via a
-    PI controller that modulates the active power setpoint.
+    Combines battery energy storage (SOC dynamics + OCV-SOC curve) with a
+    grid-following VSC that supports voltage ride-through.  During normal
+    operation the VSC tracks PQ references from a plant controller.  When
+    an LVRT trigger is asserted (externally or by undervoltage detection)
+    the controller blends to an arbitrary current reference mode.  Current
+    magnitude is limited via a smooth (differentiable) saturation function.
 
     Parameters
     ----------
@@ -202,9 +235,8 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
         Reactive power injection in vars.
     """
     backend = grid.backend
-    # NOTE: bess_pq_ss uses sympy symbols directly for the OCV-SOC spline
-    # (interpolating_spline requires sympy).  All other symbols and math
-    # operations use the backend abstraction for SymPy/CasADi compatibility.
+    sin = backend.sin
+    cos = backend.cos
 
     # 1. Fetch metadata and defaults
     meta = descriptions()
@@ -215,20 +247,27 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
 
     # 2. Bus-side inputs
     V_s = backend.symbols(f"V_{bus_name}")
+    theta_s = backend.symbols(f"theta_{bus_name}")
 
     # 3. PPC / external inputs
     soc_ref = backend.symbols(f"soc_ref_{name}")
     p_s_ppc = backend.symbols(f"p_s_ppc_{name}")
     q_s_ppc = backend.symbols(f"q_s_ppc_{name}")
+    lvrt_ext = backend.symbols(f"lvrt_ext_{name}")
+    i_sa_ref = backend.symbols(f"i_sa_ref_{name}")
+    i_sr_ref = backend.symbols(f"i_sr_ref_{name}")
 
-    # 4. Dynamic states - battery
+    # 4. Dynamic states - battery + LVRT ramp
     soc = backend.symbols(f"soc_{name}")
     xi_soc = backend.symbols(f"xi_soc_{name}")
+    lvrt_ext_ramp = backend.symbols(f"lvrt_ext_ramp_{name}")
 
-    # 5. Algebraic states - DC side
+    # 5. Algebraic states - DC side + AC power
     p_dc = backend.symbols(f"p_dc_{name}")
     i_dc = backend.symbols(f"i_dc_{name}")
     v_dc = backend.symbols(f"v_dc_{name}")
+    p_s = backend.symbols(f"p_s_{name}")
+    q_s = backend.symbols(f"q_s_{name}")
 
     # 6. Parameters - BESS
     S_n = backend.symbols(f"S_n_{name}")
@@ -242,9 +281,12 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     K_i = backend.symbols(f"K_i_{name}")
     R_bat = backend.symbols(f"R_bat_{name}")
 
-    # 7. OCV-SOC curve (piecewise interpolation or linear model)
-    # NOTE: interpolating_spline requires sympy symbols, so we create a
-    # dedicated sympy symbol for the spline variable only.
+    # 7. Parameters - VRT
+    I_max = backend.symbols(f"I_max_{name}")
+    T_lvrt = backend.symbols(f"T_lvrt_{name}")
+    Epsilon = backend.symbols(f"Epsilon_{name}")
+
+    # 8. OCV-SOC curve (piecewise interpolation or linear model)
     soc_sym = sym.Symbol(f"soc_{name}", real=True)
     if "socs" in data_dict:
         socs = np.array(data_dict["socs"])
@@ -254,12 +296,10 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
         interpolation = interpolating_spline(
             e_soc_order, soc_sym, socs, es
         )
-        # Extend to constant e_max beyond last knot
         interpolation._args = tuple(
             list(interpolation._args)
             + [sym.functions.elementary.piecewise.ExprCondPair(e_max, True)]
         )
-        # Replace sympy soc symbol with backend-compatible expression
         e = interpolation.subs(soc_sym, soc)
         soc_ref_N = data_dict["soc_ref"]
         e_ini = float(np.interp(soc_ref_N, socs, es))
@@ -269,75 +309,75 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
         e = B_0 + B_1 * soc
         e_ini = data_dict.get("B_0", 1.0)
 
-    # 8. Auxiliary equations
+    # 9. Auxiliary equations
     H = E_kWh * 1000.0 * 3600 / S_n
-    epsilon = soc_ref - soc
-    p_soc = -(K_p * epsilon + K_i * xi_soc)
+    epsilon_soc = soc_ref - soc
+    p_soc = -(K_p * epsilon_soc + K_i * xi_soc)
 
-    # 9. State-space filter for power references
-    from pydae.bps.utils.ss_num2sym import ss_num2sym
+    # 10. Grid voltages in stationary (r-i) frame
+    v_sr = V_s * cos(theta_s)
+    v_si = V_s * sin(theta_s)
+    v_sq_mag = v_sr**2 + v_si**2 + Epsilon
 
-    # ss_num2sym returns sympy expressions; use sympy symbols for replacement
-    p_s_ppc_sym = sym.Symbol(f"p_s_ppc_{name}")
-    q_s_ppc_sym = sym.Symbol(f"q_s_ppc_{name}")
+    # 11. PQ-mode current references (stationary frame)
+    i_sr_pq = (p_s_ppc * v_sr + q_s_ppc * v_si) / v_sq_mag
+    i_si_pq = (p_s_ppc * v_si - q_s_ppc * v_sr) / v_sq_mag
 
-    A_mat = np.array([[-10.0, 0.0],
-                      [0.0, -10.0]])
-    B_mat = np.array([[10.0, 0.0],
-                      [0.0, 10.0]])
-    C_mat = np.array([[1.0, 0.0],
-                      [0.0, 1.0]])
-    D_mat = np.array([[0.0, 0.0],
-                      [0.0, 0.0]])
+    # 12. Arbitrary-mode current references
+    v_m = backend.sqrt(v_sq_mag)
+    i_sr_ar = (i_sa_ref * v_sr + i_sr_ref * v_si) / v_m
+    i_si_ar = (i_sa_ref * v_si - i_sr_ref * v_sr) / v_m
 
-    if "A_pq" in data_dict:
-        A_mat = np.array(data_dict["A_pq"])
-        B_mat = np.array(data_dict["B_pq"])
-        C_mat = np.array(data_dict["C_pq"])
-        D_mat = np.array(data_dict["D_pq"])
+    # 13. Blend modes via LVRT ramp
+    i_sr_nosat = (1.0 - lvrt_ext_ramp) * i_sr_pq + lvrt_ext_ramp * i_sr_ar
+    i_si_nosat = (1.0 - lvrt_ext_ramp) * i_si_pq + lvrt_ext_ramp * i_si_ar
 
-    sys = ss_num2sym(f"{name}", A_mat, B_mat, C_mat, D_mat)
-    sys["dx"] = sys["dx"].replace(sys["u"][0, 0], p_s_ppc_sym)
-    sys["dx"] = sys["dx"].replace(sys["u"][1, 0], q_s_ppc_sym)
-    sys["z_evaluated"] = sys["z_evaluated"].replace(
-        sys["u"][0, 0], p_s_ppc_sym
-    )
-    sys["z_evaluated"] = sys["z_evaluated"].replace(
-        sys["u"][1, 0], q_s_ppc_sym
-    )
-    p_s_ref = sys["z_evaluated"][0, 0]
-    q_s_ref = sys["z_evaluated"][1, 0]
+    # 14. Soft saturation (smooth, differentiable)
+    i_mod = backend.sqrt(i_sr_nosat**2 + i_si_nosat**2 + Epsilon)
+    i_mod_sat = 0.5 * (i_mod + I_max - backend.sqrt(
+        (i_mod - I_max)**2 + Epsilon
+    ))
+    ratio = i_mod_sat / i_mod
+    i_sr = i_sr_nosat * ratio
+    i_si = i_si_nosat * ratio
 
-    # 10. Power limiting based on SOC bounds
-    p_s = backend.Piecewise(
-        (p_s_ref, (p_s_ref <= 0.0) & (soc < soc_max)),
-        (p_s_ref, (p_s_ref > 0.0) & (soc > soc_min)),
+    # 15. Injected power from saturated currents
+    p_s_expr = v_sr * i_sr + v_si * i_si
+    q_s_expr = v_si * i_sr - v_sr * i_si
+
+    # 16. SOC-based power modulation
+    p_s_limited = backend.Piecewise(
+        (p_s_expr, (p_s_expr <= 0.0) & (soc < soc_max)),
+        (p_s_expr, (p_s_expr > 0.0) & (soc > soc_min)),
         (0.0, True),
     ) + p_soc
-    q_s = q_s_ref
 
-    # 11. Loss model
+    g_p_s = p_s_limited - p_s
+    g_q_s = q_s_expr - q_s
+
+    # 17. Loss model
     s_s = backend.sqrt(p_s**2 + q_s**2)
     i_s = s_s / V_s
     p_loss = A_loss * i_s**2 + B_loss * i_s + C_loss
 
-    # 12. Dynamic equations
+    # 18. Dynamic equations
     dsoc = 1 / H * (-i_dc * e)
-    dxi_soc = epsilon
+    dxi_soc = epsilon_soc
+    dlvrt_ext_ramp = (lvrt_ext - lvrt_ext_ramp) / T_lvrt
 
-    # 13. Algebraic equations - DC side
+    # 19. Algebraic equations - DC side
     g_p_dc = p_s + p_loss - p_dc
     g_i_dc = v_dc * i_dc - p_dc
     g_v_dc = e - i_dc * R_bat - v_dc
 
-    # 14. Assembly
-    grid.dae["f"] += [dsoc, dxi_soc] + list(sys["dx"])
-    grid.dae["x"] += [soc, xi_soc] + list(sys["x"])
-    grid.dae["g"] += [g_p_dc, g_i_dc, g_v_dc]
-    grid.dae["y_ini"] += [p_dc, i_dc, v_dc]
-    grid.dae["y_run"] += [p_dc, i_dc, v_dc]
+    # 20. Assembly
+    grid.dae["f"] += [dsoc, dxi_soc, dlvrt_ext_ramp]
+    grid.dae["x"] += [soc, xi_soc, lvrt_ext_ramp]
+    grid.dae["g"] += [g_p_dc, g_i_dc, g_v_dc, g_p_s, g_q_s]
+    grid.dae["y_ini"] += [p_dc, i_dc, v_dc, p_s, q_s]
+    grid.dae["y_run"] += [p_dc, i_dc, v_dc, p_s, q_s]
 
-    # 15. Dynamic input handling
+    # 21. Dynamic input handling
     p_s_ppc_val = data_dict.get("p_s_ppc", default_map.get("p_s_ppc", 0.0))
     q_s_ppc_val = data_dict.get("q_s_ppc", default_map.get("q_s_ppc", 0.0))
     soc_ref_val = data_dict.get("soc_ref", default_map.get("soc_ref", 0.5))
@@ -351,19 +391,24 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["u_ini_dict"].update({str(soc_ref): soc_ref_val})
     grid.dae["u_run_dict"].update({str(soc_ref): soc_ref_val})
 
-    # 16. Outputs
-    grid.dae["h_dict"].update({f"p_loss_{name}": p_loss})
-    grid.dae["h_dict"].update({f"i_s_{name}": i_s})
-    grid.dae["h_dict"].update({f"e_{name}": e})
-    grid.dae["h_dict"].update({f"i_dc_{name}": i_dc})
-    grid.dae["h_dict"].update({f"p_s_{name}": p_s})
-    grid.dae["h_dict"].update({f"q_s_{name}": q_s})
-    grid.dae["h_dict"].update({f"p_s_ref_{name}": p_s_ref})
-    grid.dae["h_dict"].update({f"q_s_ref_{name}": q_s_ref})
-    grid.dae["h_dict"].update({f"p_s_ppc_{name}": p_s_ppc})
-    grid.dae["h_dict"].update({f"q_s_ppc_{name}": q_s_ppc})
+    grid.dae["u_ini_dict"].update({str(lvrt_ext): 0.0})
+    grid.dae["u_run_dict"].update({str(lvrt_ext): 0.0})
 
-    # 17. Parameters - SOC controller
+    grid.dae["u_ini_dict"].update({str(i_sa_ref): 0.0})
+    grid.dae["u_run_dict"].update({str(i_sa_ref): 0.0})
+
+    grid.dae["u_ini_dict"].update({str(i_sr_ref): 0.0})
+    grid.dae["u_run_dict"].update({str(i_sr_ref): 0.0})
+
+    # 22. Parameters - VRT
+    I_max_val = data_dict.get("I_max", default_map.get("I_max", 1.2))
+    T_lvrt_val = data_dict.get("T_lvrt", default_map.get("T_lvrt", 0.02))
+    Epsilon_val = data_dict.get("Epsilon", default_map.get("Epsilon", 1e-8))
+    grid.dae["params_dict"].update({str(I_max): I_max_val})
+    grid.dae["params_dict"].update({str(T_lvrt): T_lvrt_val})
+    grid.dae["params_dict"].update({str(Epsilon): Epsilon_val})
+
+    # 23. Parameters - SOC controller
     K_p_val = data_dict.get("K_p", default_map.get("K_p", 1e-6))
     K_i_val = data_dict.get("K_i", default_map.get("K_i", 1e-6))
     soc_min_val = data_dict.get("soc_min", default_map.get("soc_min", 0.0))
@@ -373,11 +418,11 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["params_dict"].update({str(soc_min): soc_min_val})
     grid.dae["params_dict"].update({str(soc_max): soc_max_val})
 
-    # 18. Parameters - BESS sizing
+    # 24. Parameters - BESS sizing
     grid.dae["params_dict"].update({str(S_n): data_dict["S_n"]})
     grid.dae["params_dict"].update({str(E_kWh): data_dict["E_kWh"]})
 
-    # 19. Parameters - Loss model
+    # 25. Parameters - Loss model
     A_loss_N = data_dict.get("A_loss", default_map.get("A_loss", 0.0001))
     B_loss_N = data_dict.get("B_loss", default_map.get("B_loss", 0.0))
     C_loss_N = data_dict.get("C_loss", default_map.get("C_loss", 0.0001))
@@ -385,17 +430,40 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["params_dict"].update({str(B_loss): B_loss_N})
     grid.dae["params_dict"].update({str(C_loss): C_loss_N})
 
-    # 20. Parameters - Battery resistance
+    # 26. Parameters - Battery resistance
     R_bat_N = data_dict.get("R_bat", default_map.get("R_bat", 0.0))
     grid.dae["params_dict"].update({str(R_bat): R_bat_N})
 
-    # 21. Parameters - State-space filter matrices
-    grid.dae["params_dict"].update(sys["params_dict"])
-
-    # 22. Initialization hints
+    # 27. Initialization hints
     grid.dae["xy_0_dict"].update({str(v_dc): e_ini})
     grid.dae["xy_0_dict"].update({str(soc): data_dict.get("soc_ref", 0.5)})
     grid.dae["xy_0_dict"].update({str(xi_soc): 0.0})
+    grid.dae["xy_0_dict"].update({str(lvrt_ext_ramp): 0.0})
+    grid.dae["xy_0_dict"].update({str(p_s): p_s_ppc_val})
+    grid.dae["xy_0_dict"].update({str(q_s): q_s_ppc_val})
+
+    # 28. Outputs
+    grid.dae["h_dict"].update({f"p_loss_{name}": p_loss})
+    grid.dae["h_dict"].update({f"i_s_{name}": i_s})
+    grid.dae["h_dict"].update({f"e_{name}": e})
+    grid.dae["h_dict"].update({f"i_dc_{name}": i_dc})
+    grid.dae["h_dict"].update({f"p_s_{name}": p_s})
+    grid.dae["h_dict"].update({f"q_s_{name}": q_s})
+    grid.dae["h_dict"].update({f"p_s_ppc_{name}": p_s_ppc})
+    grid.dae["h_dict"].update({f"q_s_ppc_{name}": q_s_ppc})
+    grid.dae["h_dict"].update({f"i_mod_{name}": i_mod})
+    grid.dae["h_dict"].update({f"i_mod_sat_{name}": i_mod_sat})
+    grid.dae["h_dict"].update({f"lvrt_ext_ramp_{name}": lvrt_ext_ramp})
+
+    # 29. Optional monitor outputs
+    if data_dict.get("monitor", False):
+        grid.dae["h_dict"].update({f"i_sr_{name}": i_sr})
+        grid.dae["h_dict"].update({f"i_si_{name}": i_si})
+        grid.dae["h_dict"].update({f"v_sr_{name}": v_sr})
+        grid.dae["h_dict"].update({f"v_si_{name}": v_si})
+        grid.dae["h_dict"].update({f"v_m_{name}": v_m})
+        grid.dae["h_dict"].update({f"soc_{name}": soc})
+        grid.dae["h_dict"].update({f"v_dc_{name}": v_dc})
 
     p_W = p_s * S_n
     q_var = q_s * S_n
@@ -472,10 +540,9 @@ __doc__ += generate_sphinx_tables()
 
 def symbolic_dev():
     """
-    Symbolic steady-state analysis for BESS model.
+    Symbolic steady-state analysis for BESS VRT model.
     Solves algebraic equations for equilibrium DC quantities.
     """
-    # Parameters
     V_s = sym.Symbol("V_s", real=True, positive=True)
     R_bat = sym.Symbol("R_bat", real=True, positive=True)
     A_loss = sym.Symbol("A_loss", real=True)
@@ -483,19 +550,16 @@ def symbolic_dev():
     C_loss = sym.Symbol("C_loss", real=True)
     e = sym.Symbol("e", real=True, positive=True)
 
-    # Algebraic states
     p_dc = sym.Symbol("p_dc", real=True)
     i_dc = sym.Symbol("i_dc", real=True)
     v_dc = sym.Symbol("v_dc", real=True)
     p_s = sym.Symbol("p_s", real=True)
     q_s = sym.Symbol("q_s", real=True)
 
-    # Auxiliary
     s_s = sym.sqrt(p_s**2 + q_s**2)
     i_s = s_s / V_s
     p_loss = A_loss * i_s**2 + B_loss * i_s + C_loss
 
-    # Algebraic equations
     g_p_dc = p_s + p_loss - p_dc
     g_i_dc = v_dc * i_dc - p_dc
     g_v_dc = e - i_dc * R_bat - v_dc
@@ -517,10 +581,10 @@ def test_build():
     from pydae.bps import BpsBuilder
     from pydae.core import Builder
 
-    grid = BpsBuilder("bess_pq_ss.hjson")
+    grid = BpsBuilder("bess_dq_vrt.hjson")
     grid.checker()
     grid.uz_jacs = False
-    grid.construct("temp_bess_pq_ss")
+    grid.construct("temp_bess_dq_vrt")
     bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
     bld.build()
 
@@ -528,7 +592,7 @@ def test_build():
 def test_ini():
     from pydae.core import Model
 
-    model = Model("temp_bess_pq_ss")
+    model = Model("temp_bess_dq_vrt")
 
     model.ini({"soc_ref_1": 0.5}, "xy_0.json")
     model.report_x()
@@ -539,18 +603,20 @@ def test_run():
     import matplotlib.pyplot as plt
     from pydae.core import Model
 
-    model = Model("temp_bess_pq_ss")
+    model = Model("temp_bess_dq_vrt")
 
     model.ini({"soc_ref_1": 0.5, "p_s_ppc_1": 0.0, "q_s_ppc_1": 0.0},
               "xy_0.json")
     model.report_x()
     model.report_y()
 
-    # Run to steady state
     model.run(1.0, {})
 
     # Discharge for 10 seconds
     model.run(10.0, {"p_s_ppc_1": 1.0})
+
+    # Trigger LVRT at t=11s
+    model.run(2.0, {"lvrt_ext_1": 1.0, "i_sa_ref_1": 0.5, "i_sr_ref_1": 0.3})
 
     model.post()
 
@@ -568,16 +634,16 @@ def test_run():
     axes[1].legend()
     axes[1].grid(True)
 
-    axes[2].plot(model.Time, model.get_values("v_dc_1"),
-                 label="$v_{dc}$ (pu)", color="g")
+    axes[2].plot(model.Time, model.get_values("i_mod_1"),
+                 label="$i_{mod}$ (pu)", color="g")
     axes[2].set_xlabel("Time (s)")
-    axes[2].set_ylabel("DC Voltage")
+    axes[2].set_ylabel("Current Magnitude")
     axes[2].legend()
     axes[2].grid(True)
 
     fig.tight_layout()
-    fig.savefig("bess_pq_ss_response.svg")
-    print("Test completed. Plot saved as 'bess_pq_ss_response.svg'.")
+    fig.savefig("bess_dq_vrt_response.svg")
+    print("Test completed. Plot saved as 'bess_dq_vrt_response.svg'.")
 
 
 if __name__ == "__main__":

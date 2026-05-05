@@ -21,6 +21,10 @@ Compact instructions for OpenCode sessions in `pydae`. See `CLAUDE.md` for full 
 - **API parity**: `CasadiModel` exposes `ini()`, `run()`, `post()`, `A_eval()`, `BCD_eval()`, `eval_eigenvalues()`.
 - **Initialization**: `ca.rootfinder('newton')` for algebraic solves.
 - **Integration**: `ca.integrator('idas')` for DAE time-stepping.
+- **Tolerance parameters**: Pass to `CasadiModel(builder, newton_tol=1e-12, integrator_reltol=1e-10)` or override in `model.ini(newton_tol=1e-12)`.
+- **External Newton**: Enable with `model.use_external_newton(True)` to use `_newton_solve()` with `_residual_fn`/`_jacobian_fn` instead of `ca.rootfinder`.
+- **Output evaluation**: `h_dict` outputs (e.g., `E_p`, `E_k`) are evaluated via `_h_fn` function, automatically created by `CasadiBuilder` and transferred to `CasadiModel`.
+- **Init substitution bug fix**: In `casadi_builder.py`, `y_run-only` substitution now excludes `u_ini` variables to prevent `theta` inputs from being hardcoded to 0.0.
 - **Shadowing fix**: Builder stores evaluators as `A_eval_fn`, `B_eval_fn`, etc. to avoid `self.A_eval` shadowing the method.
 
 ## Windows & Environment Gotchas
