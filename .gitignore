@@ -30,6 +30,9 @@ uv.lock
 *_ctypes.so
 *_ctypes.dll
 *.pyd
+*.obj
+*.exp
+*.lib
 system_data.json
 packages/**/temp_*_data.json
 packages/**/temp_*_xy_0.json
@@ -56,6 +59,14 @@ examples/*_data.json
 examples/xy_0.json
 examples/*_xy_0.json
 examples/jacobian_diagnostic.png
+
+# Root-level test data artifacts
+*xy_0.json
+test_*_data.json
+test_*_bcd_data.json
+compare_hjson.py
+test_ieee39_casadi.py
+condaenv.*.requirements.txt
 
 # Sphinx build output
 docs/**/_build/
