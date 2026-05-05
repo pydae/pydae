@@ -10,10 +10,11 @@ Run selectively:
 """
 
 import os
-import sys
 import json
-import shutil
-import platform
+import subprocess
+import sys
+import textwrap
+
 import pytest
 
 
@@ -62,11 +63,50 @@ def work_dir(tmp_path, monkeypatch):
     return tmp_path
 
 
+RUNNER_TEMPLATE = textwrap.dedent("""
+    import json
+    import pytest
+    from pydae.bps import BpsBuilder
+    from pydae.core import Builder, Model
+
+    sys_name = {sys_name!r}
+    grid = BpsBuilder({grid_file!r})
+    grid.checker()
+    grid.uz_jacs = False
+    grid.construct(sys_name)
+
+    bld = Builder(grid.sys_dict, target="cffi", sparse=False)
+    bld.build()
+
+    model = Model(sys_name)
+    model_type = {model_type!r}
+    if model_type == "milano2ord":
+        inputs = {{"p_m_1": 0.5, "e1q_1": 1.2}}
+    else:
+        inputs = {{"p_m_1": 0.5, "v_f_1": 1.2}}
+
+    success = model.ini(inputs, xy_0=1.0)
+    assert success, "initialisation failed"
+
+    omega = model.get_value('omega_1')
+    v_gen = model.get_value('V_1')
+    p_e = model.get_value('p_e_1')
+    p_g = model.get_value('p_g_1')
+    q_g = model.get_value('q_g_1')
+
+    assert omega == pytest.approx(1.0, abs=1e-4), f"omega={{omega}}"
+    assert 0.9 <= v_gen <= 1.1, f"V_1={{v_gen}}"
+    assert p_e == pytest.approx(0.5, abs=0.025), f"p_e={{p_e}}"
+    assert p_g == pytest.approx(p_e, abs=0.1), f"p_g={{p_g}} vs p_e={{p_e}}"
+    assert -1.0 <= q_g <= 1.0, f"q_g={{q_g}}"
+
+    model.run(1.0, {{}})
+    model.post()
+    print("RUNNER_OK")
+""")
+
+
 @pytest.mark.bps
-@pytest.mark.skipif(
-    platform.system() != "Linux",
-    reason="ctypes heap corruption on macOS/Windows with Python 3.13",
-)
 @pytest.mark.parametrize("model_type", [
     "milano2ord",
     "milano3ord",
@@ -74,67 +114,28 @@ def work_dir(tmp_path, monkeypatch):
     "milano6ord",
 ])
 def test_milano_steady_state(model_type, work_dir):
-    """
-    Builds a 2-bus system with the given Milano model, initializes,
-    runs a 1s steady-state simulation, and checks physical validity.
-    """
-    from pydae.bps import BpsBuilder
-    from pydae.core import Builder, Model
-
+    """Builds, inits, and runs a Milano machine in a fresh subprocess."""
     sys_name = f"test_{model_type}"
-    file_name = str(work_dir / f"{sys_name}.json")
+    grid_file = work_dir / f"{sys_name}.json"
+    grid_file.write_text(json.dumps(make_milano_2bus(model_type), indent=2))
 
-    # Write the grid definition
-    with open(file_name, 'w') as f:
-        json.dump(make_milano_2bus(model_type), f, indent=4)
+    runner = work_dir / "runner.py"
+    runner.write_text(RUNNER_TEMPLATE.format(
+        sys_name=sys_name,
+        grid_file=str(grid_file).replace('\\', '/'),
+        model_type=model_type,
+    ))
 
-    # Build the DAE
-    grid = BpsBuilder(file_name)
-    grid.checker()
-    grid.uz_jacs = False
-    grid.construct(sys_name)
+    result = subprocess.run(
+        [sys.executable, str(runner)],
+        cwd=work_dir,
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
 
-    bld = Builder(grid.sys_dict, target='ctypes')
-    bld.build()
-
-    # Initialize
-    model = Model(sys_name)
-
-    if model_type == "milano2ord":
-        inputs = {'p_m_1': 0.5, 'e1q_1': 1.2}
-    else:
-        inputs = {'p_m_1': 0.5, 'v_f_1': 1.2}
-
-    success = model.ini(inputs, xy_0=1)
-    assert success, f"{model_type}: initialization failed"
-
-    # Run 1 second of steady-state
-    model.run(1.0, {})
-    model.post()
-
-    # Assertions
-    omega = model.get_value('omega_1')
-    v_gen = model.get_value('V_1')
-    p_e = model.get_value('p_e_1')
-    p_g = model.get_value('p_g_1')
-    q_g = model.get_value('q_g_1')
-
-    # Rotor speed: exactly 1.0 pu in steady state
-    assert omega == pytest.approx(1.0, abs=1e-4), \
-        f"{model_type}: omega = {omega}"
-
-    # Terminal voltage: within ±10% of nominal
-    assert 0.9 <= v_gen <= 1.1, \
-        f"{model_type}: V_1 = {v_gen}"
-
-    # Electrical power: matches mechanical input (0.5 pu) within stator losses
-    assert p_e == pytest.approx(0.5, abs=0.025), \
-        f"{model_type}: p_e = {p_e}"
-
-    # Grid injection: matches electrical power
-    assert p_g == pytest.approx(p_e, abs=0.1), \
-        f"{model_type}: p_g={p_g} vs p_e={p_e}"
-
-    # Reactive power: physically reasonable
-    assert -1.0 <= q_g <= 1.0, \
-        f"{model_type}: q_g = {q_g}"
+    assert "RUNNER_OK" in result.stdout, (
+        f"{sys_name} runner did not reach completion\n"
+        f"--- stdout ---\n{result.stdout}\n"
+        f"--- stderr ---\n{result.stderr}"
+    )

@@ -54,7 +54,7 @@ RUNNER_TEMPLATE = textwrap.dedent("""
     grid.uz_jacs = False
     grid.construct(sys_name)
 
-    bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
+    bld = Builder(grid.sys_dict, target="cffi", sparse=False)
     bld.build()
 
     model = Model(sys_name)

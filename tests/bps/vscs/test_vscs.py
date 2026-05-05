@@ -92,7 +92,7 @@ RUNNER_TEMPLATE = textwrap.dedent("""
     grid.uz_jacs = False
     grid.construct(sys_name)
 
-    bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
+    bld = Builder(grid.sys_dict, target="cffi", sparse=False)
     bld.build()
 
     model = Model(sys_name)
@@ -136,7 +136,7 @@ SSA_RUNNER_TEMPLATE = textwrap.dedent("""
     grid.uz_jacs = False
     grid.construct(sys_name)
 
-    bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
+    bld = Builder(grid.sys_dict, target="cffi", sparse=False)
     bld.build()
 
     model = Model(sys_name)
@@ -185,7 +185,7 @@ CASES = [
 @pytest.mark.parametrize("config,with_filter", CASES)
 def test_bess_pq_ss_model(config, with_filter, work_dir):
     """Builds, inits, and runs the bess_pq_ss inverter (bare or with
-    state-space filter) in a fresh Python subprocess so ctypes state
+    state-space filter) in a fresh Python subprocess so CFFI state
     stays isolated."""
     sys_name = f"test_bess_pq_ss_{config}"
     grid = _grid_dict(with_filter)
@@ -332,7 +332,7 @@ VRT_RUNNER_TEMPLATE = textwrap.dedent("""
     grid.uz_jacs = False
     grid.construct(sys_name)
 
-    bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
+    bld = Builder(grid.sys_dict, target="cffi", sparse=False)
     bld.build()
 
     model = Model(sys_name)
@@ -375,7 +375,7 @@ VRT_SSA_RUNNER_TEMPLATE = textwrap.dedent("""
     grid.uz_jacs = False
     grid.construct(sys_name)
 
-    bld = Builder(grid.sys_dict, target="ctypes", sparse=False)
+    bld = Builder(grid.sys_dict, target="cffi", sparse=False)
     bld.build()
 
     model = Model(sys_name)
@@ -418,7 +418,7 @@ VRT_CASES = [
 @pytest.mark.parametrize("config,with_lvrt", VRT_CASES)
 def test_bess_dq_vrt_model(config, with_lvrt, work_dir):
     """Builds, inits, and runs the bess_dq_vrt inverter (PQ or LVRT mode)
-    in a fresh Python subprocess so ctypes state stays isolated."""
+    in a fresh Python subprocess so CFFI state stays isolated."""
     sys_name = f"test_bess_dq_vrt_{config}"
     grid = _vrt_grid_dict(with_lvrt)
     grid["system"]["name"] = sys_name
