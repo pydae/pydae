@@ -123,6 +123,9 @@ class CasadiModel:
         self._use_external_newton = True
         self.rf = None  # Will use _newton_solve instead
 
+        # Output function not available in binary mode (needs h_dict reconstruction)
+        self._h_fn = None
+
     @staticmethod
     def _has_external_symbol(binary_path, name):
         """Check if a named function exists in the external library."""
