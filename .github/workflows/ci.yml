@@ -95,7 +95,9 @@ jobs:
             sympy \
             cffi \
             dill \
-            jsonschema
+            jsonschema \
+            casadi \
+            networkx
           pip install pytest-xdist pytest-timeout pluggy hjson
 
       - name: Install local packages
@@ -176,6 +178,11 @@ jobs:
         run: |
           pytest tests/core/test_compilation_modes.py::test_pardiso_compilation \
             -v --tb=short --junit-xml=/tmp/pytest-pardiso.xml
+
+      - name: Run bps component tests
+        shell: bash -el {0}
+        run: |
+          pytest tests/bps/ -v --tb=short --junit-xml=/tmp/pytest-bps.xml
 
       - name: Run Accelerate tests (macOS only)
         if: matrix.os == 'macos-14'
