@@ -10,8 +10,10 @@ Run selectively:
 """
 
 import os
+import sys
 import json
 import shutil
+import platform
 import pytest
 
 
@@ -61,6 +63,10 @@ def work_dir(tmp_path, monkeypatch):
 
 
 @pytest.mark.bps
+@pytest.mark.skipif(
+    platform.system() != "Linux",
+    reason="ctypes heap corruption on macOS/Windows with Python 3.13",
+)
 @pytest.mark.parametrize("model_type", [
     "milano2ord",
     "milano3ord",
