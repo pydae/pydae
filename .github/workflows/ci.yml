@@ -26,9 +26,6 @@ jobs:
         solver: [sparse, dense]
         backend: [cffi, ctypes]
         exclude:
-          # CFFI fails on Windows CI (no MSVC compiler available, MinGW cannot link Python 3.12+)
-          - os: windows-latest
-            backend: cffi
           # ctypes+KLU is unstable on Windows (regex heap corruption on Python 3.13)
           - os: windows-latest
             backend: ctypes
@@ -66,13 +63,18 @@ jobs:
           conda install -c conda-forge suitesparse
           echo "Using Apple Clang (pre-installed on macos-14)"
 
-      - name: Install compiler (Windows MinGW)
+      - name: Install compiler (Windows MSVC)
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: '[17.0,)'
+
+      - name: Install libraries (Windows)
         if: matrix.os == 'windows-latest'
         shell: bash -el {0}
         run: |
-          conda install -c conda-forge m2w64-toolchain libpython
           conda install -c conda-forge suitesparse
-          echo "Using MinGW (m2w64-toolchain)"
+          echo "Using MSVC (Visual Studio Build Tools)"
 
       - name: Setup Intel MKL (Intel/AMD only)
         if: >-
