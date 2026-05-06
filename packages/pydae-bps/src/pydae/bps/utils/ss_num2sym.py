@@ -1,10 +1,9 @@
 import numpy as np
-import sympy as sym
 
 
-def ss_num2sym(name,A_num,B_num,C_num,D_num):
+def ss_num2sym(name, A_num, B_num, C_num, D_num, backend=None):
     '''
-    Converts numeric state space model to symbolic
+    Converts numeric state space model to symbolic.
 
     Parameters
     ----------
@@ -18,107 +17,109 @@ def ss_num2sym(name,A_num,B_num,C_num,D_num):
         Matrix C.
     D_num : numpy array_like
         Matrix D.
+    backend : object, optional
+        Math backend (SymPy or CasADi). If None, defaults to SymPy for
+        backward compatibility.
 
     Returns
     -------
-
-    describe : dict
-        Dictionary with the symbolic model.
-
-
-    Example
-    -------
-
-    >>> name = 'B1'
-    >>> A_num = np.array([[1,2],[2.,3]])
-    >>> B_num = np.array([[1],[3.]])
-    >>> C_num = np.array([[1.,0]])
-    >>> D_num = np.array([[0.]])
-
-    
-    
+    dict
+        Dictionary with the symbolic model: x, u, z, A, B, C, D, dx,
+        z_evaluated, params_dict.
     '''
+    import sympy as sym
+
+    use_casadi = backend is not None and getattr(backend, 'use_casadi', False)
+
     N_x = B_num.shape[0]
     N_u = B_num.shape[1]
     N_z = C_num.shape[0]
 
-    u = sym.Matrix.zeros(N_u,1)
-    x = sym.Matrix.zeros(N_x,1)
-    z = sym.Matrix.zeros(N_z,1)
+    if use_casadi:
+        import casadi as ca
 
-    A = sym.Matrix.zeros(N_x,N_x)
-    B = sym.Matrix.zeros(N_x,N_u)
-    C = sym.Matrix.zeros(N_z,N_x)
-    D = sym.Matrix.zeros(N_z,N_u)
+        def make_sym(label):
+            return ca.SX.sym(label)
+
+        def zeros(r, c):
+            return ca.SX.zeros(r, c)
+    else:
+        def make_sym(label):
+            return sym.Symbol(label)
+
+        def zeros(r, c):
+            return sym.zeros(r, c)
+
+    subfix = f'{name}' if name == '' else f'_{name}'
+
+    u = zeros(N_u, 1)
+    x = zeros(N_x, 1)
+    z = zeros(N_z, 1)
+
+    A = zeros(N_x, N_x)
+    B = zeros(N_x, N_u)
+    C = zeros(N_z, N_x)
+    D = zeros(N_z, N_u)
 
     params = {}
 
-    if name == '':
-        subfix = f'{name}'
-    else:
-        subfix = f'_{name}'        
-
     for row in range(N_u):
         con_str = f'u_{row}{subfix}'
-        u_i = sym.Symbol(con_str)
-        u[row,0] = u_i
+        u[row, 0] = make_sym(con_str)
 
     for row in range(N_x):
         con_str = f'x_{row}{subfix}'
-        x_i = sym.Symbol(con_str)
-        x[row,0] = x_i
+        x[row, 0] = make_sym(con_str)
 
     for row in range(N_x):
         for col in range(N_x):
             con_str = f'A_{row}{col}{subfix}'
-            A_ii = sym.Symbol(con_str)
-            A[row,col] = A_ii
-            params.update({f'A_{row}{col}{subfix}':A_num[row,col]})
+            A[row, col] = make_sym(con_str)
+            params.update({con_str: A_num[row, col]})
 
     for row in range(N_x):
         for col in range(N_u):
             con_str = f'B_{row}{col}{subfix}'
-            B_ii = sym.Symbol(con_str)
-            B[row,col] = B_ii
-            params.update({f'B_{row}{col}{subfix}':B_num[row,col]})
+            B[row, col] = make_sym(con_str)
+            params.update({con_str: B_num[row, col]})
 
     for row in range(N_z):
         for col in range(N_x):
             con_str = f'C_{row}{col}{subfix}'
-            C_ii = sym.Symbol(con_str)
-            C[row,col] = C_ii
-            params.update({f'C_{row}{col}{subfix}':C_num[row,col]})
+            C[row, col] = make_sym(con_str)
+            params.update({con_str: C_num[row, col]})
 
     for row in range(N_z):
         for col in range(N_u):
             con_str = f'D_{row}{col}{subfix}'
-            D_ii = sym.Symbol(con_str)
-            D[row,col] = D_ii
-            params.update({f'D_{row}{col}{subfix}':D_num[row,col]})
+            D[row, col] = make_sym(con_str)
+            params.update({con_str: D_num[row, col]})
 
     dx = A @ x + B @ u
-    z_evaluated  = C @ x + D @ u
+    z_evaluated = C @ x + D @ u
 
-    return {'x':x,'u':u,'z':z,
-            'A':A,'B':B,'C':C,'D':D, 
-            'dx':dx,'z_evaluated':z_evaluated,
-            'params_dict':params}
+    return {
+        'x': x, 'u': u, 'z': z,
+        'A': A, 'B': B, 'C': C, 'D': D,
+        'dx': dx, 'z_evaluated': z_evaluated,
+        'params_dict': params,
+    }
+
 
 if __name__ == "__main__":
-    
-    from pydae.utils.ss_num2sym import ss_num2sym
+    import sympy as sym
 
-    A = np.array( [[ 2.22745959,  2.89134367],
-                   [-5.98640302, -5.13853719]])
-    B = np.array( [[-2.62892537],
-                   [-3.35747765]])
-    C = np.array( [[-0.53183608 ,-0.28013641]])
-    D = np.array( [[0.]])
+    A = np.array([[2.22745959, 2.89134367],
+                  [-5.98640302, -5.13853719]])
+    B = np.array([[-2.62892537],
+                  [-3.35747765]])
+    C = np.array([[-0.53183608, -0.28013641]])
+    D = np.array([[0.]])
 
-    sys = ss_num2sym('',A,B,C,D)
+    sys = ss_num2sym('', A, B, C, D)
 
     p_ppc = sym.Symbol('p_ppc', real=True)
 
-    sys['dx']= sys['dx'].replace(sys['u'][0],p_ppc)
+    sys['dx'] = sys['dx'].replace(sys['u'][0], p_ppc)
     f_list = list(sys['dx'])
     print(f_list)

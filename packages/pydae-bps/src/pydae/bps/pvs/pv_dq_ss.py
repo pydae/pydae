@@ -346,11 +346,26 @@ def pv_dq_ss(grid, name, bus_name, data_dict):
     # 13. Optional state-space filters for p/q references
     from pydae.bps.utils.ss_num2sym import ss_num2sym
 
-    p_s_ppc_sym = sym.Symbol(f"p_s_ppc_{name}")
-    q_s_ppc_sym = sym.Symbol(f"q_s_ppc_{name}")
+    p_s_ppc_sym = backend.symbols(f"p_s_ppc_{name}")
+    q_s_ppc_sym = backend.symbols(f"q_s_ppc_{name}")
 
     p_s_ppc_d = p_s_ppc_sym
     q_s_ppc_d = q_s_ppc_sym
+
+    def _replace(expr, old, new):
+        """Backend-agnostic expression substitution."""
+        if backend.use_casadi:
+            import casadi as ca
+            return ca.substitute(expr, old, new)
+        else:
+            return expr.replace(old, new)
+
+    def _to_list(mat):
+        """Convert backend matrix to a flat Python list of expressions."""
+        if backend.use_casadi:
+            return [mat[i, 0] for i in range(mat.shape[0])]
+        else:
+            return list(mat)
 
     if "A_pq" in data_dict:
         # Coupled MIMO filter (2 inputs, N states)
@@ -359,21 +374,17 @@ def pv_dq_ss(grid, name, bus_name, data_dict):
         C_pq = np.array(data_dict["C_pq"])
         D_pq = np.array(data_dict["D_pq"])
 
-        sys_pq = ss_num2sym(f"pq_{name}", A_pq, B_pq, C_pq, D_pq)
-        sys_pq["dx"] = sys_pq["dx"].replace(sys_pq["u"][0, 0], p_s_ppc_sym)
-        sys_pq["dx"] = sys_pq["dx"].replace(sys_pq["u"][1, 0], q_s_ppc_sym)
-        sys_pq["z_evaluated"] = sys_pq["z_evaluated"].replace(
-            sys_pq["u"][0, 0], p_s_ppc_sym
-        )
-        sys_pq["z_evaluated"] = sys_pq["z_evaluated"].replace(
-            sys_pq["u"][1, 0], q_s_ppc_sym
-        )
+        sys_pq = ss_num2sym(f"pq_{name}", A_pq, B_pq, C_pq, D_pq, backend=backend)
+        sys_pq["dx"] = _replace(sys_pq["dx"], sys_pq["u"][0, 0], p_s_ppc_sym)
+        sys_pq["dx"] = _replace(sys_pq["dx"], sys_pq["u"][1, 0], q_s_ppc_sym)
+        sys_pq["z_evaluated"] = _replace(sys_pq["z_evaluated"], sys_pq["u"][0, 0], p_s_ppc_sym)
+        sys_pq["z_evaluated"] = _replace(sys_pq["z_evaluated"], sys_pq["u"][1, 0], q_s_ppc_sym)
 
         p_s_ppc_d = sys_pq["z_evaluated"][0, 0]
         q_s_ppc_d = sys_pq["z_evaluated"][1, 0]
 
-        grid.dae["f"] += list(sys_pq["dx"])
-        grid.dae["x"] += list(sys_pq["x"])
+        grid.dae["f"] += _to_list(sys_pq["dx"])
+        grid.dae["x"] += _to_list(sys_pq["x"])
         grid.dae["params_dict"].update(sys_pq["params_dict"])
 
     elif "A_p" in data_dict:
@@ -383,16 +394,14 @@ def pv_dq_ss(grid, name, bus_name, data_dict):
         C_p = np.array(data_dict["C_p"])
         D_p = np.array(data_dict["D_p"])
 
-        sys_p = ss_num2sym(f"p_{name}", A_p, B_p, C_p, D_p)
-        sys_p["dx"] = sys_p["dx"].replace(sys_p["u"][0, 0], p_s_ppc_sym)
-        sys_p["z_evaluated"] = sys_p["z_evaluated"].replace(
-            sys_p["u"][0, 0], p_s_ppc_sym
-        )
+        sys_p = ss_num2sym(f"p_{name}", A_p, B_p, C_p, D_p, backend=backend)
+        sys_p["dx"] = _replace(sys_p["dx"], sys_p["u"][0, 0], p_s_ppc_sym)
+        sys_p["z_evaluated"] = _replace(sys_p["z_evaluated"], sys_p["u"][0, 0], p_s_ppc_sym)
 
         p_s_ppc_d = sys_p["z_evaluated"][0, 0]
 
-        grid.dae["f"] += list(sys_p["dx"])
-        grid.dae["x"] += list(sys_p["x"])
+        grid.dae["f"] += _to_list(sys_p["dx"])
+        grid.dae["x"] += _to_list(sys_p["x"])
         grid.dae["params_dict"].update(sys_p["params_dict"])
 
         A_q = np.array(data_dict.get("A_q", A_p))
@@ -400,23 +409,18 @@ def pv_dq_ss(grid, name, bus_name, data_dict):
         C_q = np.array(data_dict.get("C_q", C_p))
         D_q = np.array(data_dict.get("D_q", D_p))
 
-        sys_q = ss_num2sym(f"q_{name}", A_q, B_q, C_q, D_q)
-        sys_q["dx"] = sys_q["dx"].replace(sys_q["u"][0, 0], q_s_ppc_sym)
-        sys_q["z_evaluated"] = sys_q["z_evaluated"].replace(
-            sys_q["u"][0, 0], q_s_ppc_sym
-        )
+        sys_q = ss_num2sym(f"q_{name}", A_q, B_q, C_q, D_q, backend=backend)
+        sys_q["dx"] = _replace(sys_q["dx"], sys_q["u"][0, 0], q_s_ppc_sym)
+        sys_q["z_evaluated"] = _replace(sys_q["z_evaluated"], sys_q["u"][0, 0], q_s_ppc_sym)
 
         q_s_ppc_d = sys_q["z_evaluated"][0, 0]
 
-        grid.dae["f"] += list(sys_q["dx"])
-        grid.dae["x"] += list(sys_q["x"])
+        grid.dae["f"] += _to_list(sys_q["dx"])
+        grid.dae["x"] += _to_list(sys_q["x"])
         grid.dae["params_dict"].update(sys_q["params_dict"])
 
     # 14. Power reference limiting (clip to MPP)
-    p_s_ref = backend.Piecewise(
-        (p_s_ppc_d, p_s_ppc_d < p_mp),
-        (p_mp, p_s_ppc_d >= p_mp),
-    )
+    p_s_ref = backend.min(p_s_ppc_d, p_mp)
     q_s_ref = q_s_ppc_d
 
     # 15. Current reference computation (PQ mode)
@@ -435,16 +439,8 @@ def pv_dq_ss(grid, name, bus_name, data_dict):
 
     # 18. Current saturation (+/-1.2 pu)
     I_MAX = 1.2
-    i_sd_ref_sat = backend.Piecewise(
-        (-I_MAX, i_sd_ref_nosat < -I_MAX),
-        (I_MAX, i_sd_ref_nosat > I_MAX),
-        (i_sd_ref_nosat, True),
-    )
-    i_sq_ref_sat = backend.Piecewise(
-        (-I_MAX, i_sq_ref_nosat < -I_MAX),
-        (I_MAX, i_sq_ref_nosat > I_MAX),
-        (i_sq_ref_nosat, True),
-    )
+    i_sd_ref_sat = backend.hard_limit(i_sd_ref_nosat, -I_MAX, I_MAX)
+    i_sq_ref_sat = backend.hard_limit(i_sq_ref_nosat, -I_MAX, I_MAX)
 
     g_i_sd_ref = -i_sd_ref + i_sd_ref_sat
     g_i_sq_ref = -i_sq_ref + i_sq_ref_sat
