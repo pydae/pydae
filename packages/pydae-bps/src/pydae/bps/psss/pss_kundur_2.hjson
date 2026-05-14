@@ -14,7 +14,7 @@ syns:[
         avr:{type:"sexs", K_a:200.0, T_a:0.015, T_b:10.0, T_e:0.1,
              E_min:-5, E_max:5, v_ref:1.0},
         pss:{type:"pss_kundur_2",
-             K_stab:20.0,
+             K_stab:0.0,
              T_w:10.0,
              T_1:0.05, T_2:0.02,
              T_3:3.0,  T_4:5.4,

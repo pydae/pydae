@@ -175,9 +175,9 @@ def sexs(dae, data, name, bus_name, backend=None):
         # Default fallback to SymPy if no backend is provided
         import sympy as sym
         backend = type('Backend', (), {
-            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
-            'Piecewise': sym.Piecewise,
             'use_casadi': False,
+            'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
+            'hard_limit': lambda _, v, lo, hi: sym.Max(lo, sym.Min(hi, v)),
         })()
 
     avr_data = data['avr']
@@ -212,12 +212,8 @@ def sexs(dae, data, name, bus_name, backend=None):
 
     efd_nosat = x_e + 1.0
 
-    # Saturation: disable for CasADi backend to avoid fmax/fmin Jacobian NaN.
-    if backend.use_casadi:
-        efd = efd_nosat
-    else:
-        efd = backend.hard_limit(efd_nosat, E_min, E_max)
-     
+    efd = backend.hard_limit(efd_nosat, E_min, E_max)
+
     # Algebraic constraint: v_f must equal the limited output
     g_v_f = efd - v_f
 
@@ -226,7 +222,7 @@ def sexs(dae, data, name, bus_name, backend=None):
     # This means during ini(), we set V_t = 1.0 and solve for the required v_ref.
     v_setpoint = avr_data['v_ref']
     v_t_str = str(v_t)
-    
+
     # Replace V_t with v_ref in the initialization algebraic variables
     if v_t_str in [str(y) for y in dae['y_ini']]:
         dae['y_ini'] = [v_ref if str(y) == v_t_str else y for y in dae['y_ini']]
@@ -257,10 +253,10 @@ def sexs(dae, data, name, bus_name, backend=None):
 
     # 6. Critical: Robust Initial Guesses (xy_0)
     # To avoid the Newton solver failing on the limiter, we start in the linear region.
-    v_f_guess = 1.5 
+    v_f_guess = 1.5
     x_e_guess = v_f_guess - 1.0
     z_ab_guess = x_e_guess / avr_data['K_a']
-    
+
     dae['xy_0_dict'].update({
         str(v_f): v_f_guess,
         str(x_e): x_e_guess,

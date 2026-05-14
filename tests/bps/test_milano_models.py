@@ -49,7 +49,7 @@ def make_milano_2bus(model_type):
                 "R_a": 0.01,
                 "H": 5.0, "D": 0.0,
                 "S_10": 0.0, "S_12": 0.0,
-                "K_delta": 0.0, "K_sec": 0.0,
+                "K_delta": 0.0, "K_sec": 0.0, "p_m": 0.8
             }
         ],
         "sources": [{"type": "vsource", "bus": "2"}],

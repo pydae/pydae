@@ -12,7 +12,7 @@ syns:[
          H:5.0,D:0.0,
          Omega_b:314.1592653589793,omega_s:1.0,K_sec:0.0,
       avr:{type:"sexs",K_a:200.0,T_a:0.015,
-           T_b:10.0,T_c:1.0,T_e:0.1,v_ref:1.0,E_min:-5,E_max:5}
+           T_b:10.0,T_e:0.1,v_ref:1.0,E_min:-5,E_max:5}
       }
       ],
 "sources":[{"type":"vsource","bus":"2"}]
