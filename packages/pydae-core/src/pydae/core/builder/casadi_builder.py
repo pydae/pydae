@@ -111,9 +111,21 @@ class MathBackend:
 
     def Piecewise(self, *args):
         if self.use_casadi:
-            return self.ca.if_else(args[0][1], args[0][0], args[1][0])
+            # SymPy-style Piecewise((expr1, cond1), ..., (exprN, True))
+            # → nested if_else(cond1, expr1, if_else(cond2, expr2, ...exprN))
+            result = args[-1][0]
+            for expr, cond in reversed(args[:-1]):
+                result = self.ca.if_else(cond, expr, result)
+            return result
         else:
             return self.sp.Piecewise(*args)
+
+    def hard_limits(self, x, x_min, x_max):
+        # min(max(x, x_min), x_max)
+        if self.use_casadi:
+            return self.ca.fmin(self.ca.fmax(x, x_min), x_max)
+        else:
+            return self.sp.Min(self.sp.Max(x, x_min), x_max)
 
     def min(self, *args):
         if self.use_casadi:

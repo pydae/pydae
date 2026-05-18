@@ -16,6 +16,7 @@ from pydae.ssa.ssa import (
     damp_report,
     discretise_time,
     dlqr,
+    eig,
     eval_A,
     eval_A_ini,
     eval_ss,
@@ -30,7 +31,9 @@ from pydae.ssa.ssa import (
     right2df,
     shape2df,
     ss_eval,
+    get_mode,
 )
+from pydae.ssa.residue import residue
 
 __all__ = [
     "A_eval",
@@ -40,6 +43,7 @@ __all__ = [
     "damp_report",
     "discretise_time",
     "dlqr",
+    "eig",
     "eval_A",
     "eval_A_ini",
     "eval_ss",
@@ -51,7 +55,9 @@ __all__ = [
     "plot_eig",
     "plot_shapes",
     "plot_vectors",
+    "residue",
     "right2df",
     "shape2df",
     "ss_eval",
+    "get_mode"
 ]

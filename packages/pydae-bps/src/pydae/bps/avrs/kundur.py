@@ -206,8 +206,9 @@ def kundur(dae, data, name, bus_name, backend=None):
     #   run: V_bus is y_run (unknown), v_ref is u_run (input, seeded from ini)
 
     v_setpoint = avr_data['v_ref']
-    if v_t in dae['y_ini']:
-        idx_V = dae['y_ini'].index(v_t)
+    v_t_str = str(v_t)
+    if v_t_str in [str(y) for y in dae['y_ini']]:
+        idx_V = [str(y) for y in dae['y_ini']].index(v_t_str)
         dae['y_ini'][idx_V] = v_ref
     else:
         dae['y_ini'] += [v_ref]

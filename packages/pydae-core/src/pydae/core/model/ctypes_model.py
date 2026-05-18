@@ -392,6 +392,20 @@ class Model:
 
         self.ini2run()
 
+        # h_eval is compiled with run-phase symbol indexing only. The C ini()
+        # already populated self.z but did so with y_ini/u_ini, which can be
+        # wrong for outputs that reference symbols swapped by ini/run avr
+        # initialisers (e.g. sexs replaces V_bus with v_ref in y_ini). Re-run
+        # h_eval here with y_run/u_run so self.z reflects the run-phase mapping.
+        # Pre-existing CFFI builds may not have h_eval in their cdef — skip then.
+        if hasattr(self.solver_lib, 'h_eval'):
+            self._ensure_h_eval_argtypes()
+            self.solver_lib.h_eval(
+                self._d(self.z), self._d(self.x),
+                self._d(self.y_run), self._d(self.u_run),
+                self._d(self.p), 0.0,
+            )
+
         # Automatic Failure Diagnosis
         # Guard np.isnan() in try/except - crashes may occur on some platforms
         # if CFFI heap was corrupted or matplotlib has issues during diagnostics
@@ -526,6 +540,17 @@ class Model:
         if self.is_cffi:
             return
         fn = self.solver_lib.jac_trap_eval
+        if fn.argtypes:
+            return
+        c_double_p = ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS')
+        fn.argtypes = [c_double_p, c_double_p, c_double_p,
+                       c_double_p, c_double_p, ctypes.c_double]
+
+    def _ensure_h_eval_argtypes(self):
+        """Lazy ctypes argtypes setup for ``h_eval``."""
+        if self.is_cffi:
+            return
+        fn = self.solver_lib.h_eval
         if fn.argtypes:
             return
         c_double_p = ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS')

@@ -1,0 +1,59 @@
+{
+system: {name: "pll_compare_2gen", S_base: 100e6},
+agc: {K_p_agc: 0.0, K_i_agc: 0.01, gen: "G2"}
+  // Bus 1 hosts the load + four PLL/FLL estimators + machine G1 (small H).
+  // Bus 2 hosts machine G2 (large H).
+  buses: [
+    {name: "1", P_W: 0, Q_var: 0, U_kV: 20.0},
+    {name: "2", P_W: 0, Q_var: 0, U_kV: 20.0}
+  ],
+
+  // Constant-power load at bus 1 — its p_p / q_p can be stepped at runtime.
+  loads: [
+    {bus: "1", name: "L1", type: "zip", p_mw: 50.0, q_mvar: 10.0}
+  ],
+
+  // Weak tie line so omega_G1 and omega_G2 split visibly during the swing.
+  lines: [
+    {bus_j: "1", bus_k: "2", X_pu: 0.5, R_pu: 0.05, B_pu: 0.001, S_mva: 100}
+  ],
+
+  syns: [
+    {
+      bus: "1", name: "G1", type: "milano4ord", S_n: 100e6, F_n: 50.0,
+      X_d: 1.8, X_q: 1.7, X1d: 0.3, X1q: 0.55, T1d0: 8.0, T1q0: 0.4,
+      R_a: 0.005, X_l: 0.15,
+      H: 3.0, D: 1.0,
+      K_delta: 0.0, K_sec: 0.0,
+      avr: {type: "sexs", K_a: 200.0, T_a: 1.0, T_b: 10.0,
+            T_e: 0.015, E_min: -5.0, E_max: 5.0, v_ref: 1.0},
+      gov: {type: "tgov1", R: 0.05, T_1: 0.5,
+            V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0},
+      lc:  {K_i: 0.01, p_c_lc: 0.25}
+    },
+    {
+      bus: "2", name: "G2", type: "milano4ord", S_n: 100e6, F_n: 50.0,
+      X_d: 1.8, X_q: 1.7, X1d: 0.3, X1q: 0.55, T1d0: 8.0, T1q0: 0.4,
+      R_a: 0.005, X_l: 0.15,
+      H: 6.0, D: 1.0,
+      K_delta: 0.001, K_sec: 1.0,
+      avr: {type: "sexs", K_a: 200.0, T_a: 1.0, T_b: 10.0,
+            T_e: 0.015, E_min: -5.0, E_max: 5.0, v_ref: 1.0},
+      gov: {type: "tgov1", R: 0.05, T_1: 0.5,
+            V_max: 1.0, V_min: 0.0, T_2: 2.1, T_3: 7.0, D_t: 0.0}
+    }
+  ],
+
+  plls: [
+    {bus: "1", K_p_pll: 180, K_i_pll: 3200, T_pll: 0.02, K_theta_pll: 1.0},
+    {bus: "1", name: "sogi1", type: "sogi",
+     k_sogi: 1.414, gamma_fll: 50.0, alpha_leak: 0.5, T_f: 0.02, F_n: 50.0},
+    {name: "fll1", type: "sogi_fll",
+     k_sogi: 1.414, Gamma: 50.0,
+     omega_0: 314.159265358979, epsilon_reg: 1.0e-6, v_grid: 0.0},
+    {name: "pll1", type: "sogi_pll",
+     k_sogi: 1.414, k_p: 100.0, k_i: 2000.0,
+     omega_0: 314.159265358979, omega_ref: 314.159265358979,
+     epsilon_reg: 1.0e-6, v_grid: 0.0}
+  ]
+}

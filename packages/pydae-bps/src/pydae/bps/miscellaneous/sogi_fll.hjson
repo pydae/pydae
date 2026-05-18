@@ -1,0 +1,11 @@
+{
+  system: {name: "sogi_fll_test", S_base: 100e6, K_p_agc: 0.0, K_i_agc: 0.0, K_xif: 1e-6},
+  buses: [
+    {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+    {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+  ],
+  lines: [{bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 200}],
+  sources: [{type: "vsource", bus: "1"}, {type: "vsource", bus: "2"}],
+  plls: [{name: "fll1", type: "sogi_fll", k_sogi: 1.414, Gamma: 50.0,
+          omega_0: 314.159265358979, epsilon_reg: 1.0e-6, v_grid: 0.0}]
+}

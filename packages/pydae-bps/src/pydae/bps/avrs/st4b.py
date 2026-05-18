@@ -287,6 +287,7 @@ def st4b(dae, data, name, bus_name, backend=None):
         backend = type('Backend', (), {
             'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
             'Piecewise': sym.Piecewise,
+            'hard_limits': staticmethod(lambda x, xmin, xmax: sym.Min(sym.Max(x, xmin), xmax)),
             'sin': sym.sin,
             'cos': sym.cos,
             'sqrt': sym.sqrt,
@@ -332,9 +333,7 @@ def st4b(dae, data, name, bus_name, backend=None):
     # anchors the state when K_IR = 0 — negligible otherwise).
     epsilon_v = v_ref - v_c + v_s
     v_r_nosat = K_PR * epsilon_v + xi_r
-    v_r = backend.Piecewise((V_RMAX, v_r_nosat > V_RMAX),
-                        (V_RMIN, v_r_nosat < V_RMIN),
-                        (v_r_nosat, True))
+    v_r = backend.hard_limits(v_r_nosat, V_RMIN, V_RMAX)
     dxi_r = K_IR * epsilon_v - _EPS_LEAK * xi_r
 
     # Inter-stage lag.
@@ -343,9 +342,7 @@ def st4b(dae, data, name, bus_name, backend=None):
     # Inner PI (same convention; leakage is what makes K_IM = 0 non-singular).
     epsilon_m = x_a - K_G * v_f
     v_m_nosat = K_PM * epsilon_m + xi_m
-    v_m = backend.Piecewise((V_MMAX, v_m_nosat > V_MMAX),
-                        (V_MMIN, v_m_nosat < V_MMIN),
-                        (v_m_nosat, True))
+    v_m = backend.hard_limits(v_m_nosat, V_MMIN, V_MMAX)
     dxi_m = K_IM * epsilon_m - _EPS_LEAK * xi_m
 
     # Exciter voltage (simplified: V_E = K_P * V, valid when X_L=K_I=theta_P=0).
@@ -365,8 +362,9 @@ def st4b(dae, data, name, bus_name, backend=None):
     #   run: V_bus is y_run (unknown), v_ref is u_run (input, seeded from ini)
 
     v_setpoint = avr_data['v_ref']
-    if v_t in dae['y_ini']:
-        idx_V = dae['y_ini'].index(v_t)
+    v_t_str = str(v_t)
+    if v_t_str in [str(y) for y in dae['y_ini']]:
+        idx_V = [str(y) for y in dae['y_ini']].index(v_t_str)
         dae['y_ini'][idx_V] = v_ref
     else:
         dae['y_ini'] += [v_ref]

@@ -258,7 +258,8 @@ def generate_and_compile_cffi(builder_obj):
                 double *X, double *Y, double *Z, int N_z, int N_store, double *f, double *g, double *fg);
 
         void jac_trap_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
-        
+        void h_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
+
         // UZ Jacobian functions (generated if uz_jacs is True)
         void Fu_ini_eval(double *data, double *x, double *y, double *u, double *p, double Dt);
         void Fu_run_eval(double *data, double *x, double *y, double *u, double *p, double Dt);

@@ -44,6 +44,64 @@ def A_eval(system):
     return A
 
 
+def eig(model):
+    r"""
+    Eigenvalue decomposition of the reduced state matrix ``A`` and storage
+    of the result on the model.
+
+    Re-evaluates the Jacobian via :func:`A_eval`, then computes the
+    spectrum and right / left eigenvector matrices of :math:`A`. The
+    eigen-relations are
+
+    .. math::
+
+        A\,V       = V\,\Lambda \qquad
+        W\,A       = \Lambda\,W \qquad
+        W\,V       = I
+
+    where :math:`\Lambda` is the diagonal matrix of eigenvalues, the
+    columns of :math:`V` are the right eigenvectors, and the rows of
+    :math:`W = V^{-1}` are the left eigenvectors. Same convention as
+    :func:`participation` (Kundur notation).
+
+    Attributes set on *model*
+    -------------------------
+    ``model.A``
+        Reduced state matrix ``A = Fx - Fy * Gy^{-1} * Gx``.
+    ``model.eigenvalues``
+        Array of complex eigenvalues, shape ``(N_x,)``.
+    ``model.right_eigenvectors``
+        Right-eigenvector matrix ``V`` (columns), shape ``(N_x, N_x)``.
+    ``model.left_eigenvectors``
+        Left-eigenvector matrix ``W = inv(V)`` (rows), shape ``(N_x, N_x)``.
+
+    Parameters
+    ----------
+    model : Model
+        A ``pydae.core.Model`` (or ``CasadiModel``) instance whose
+        ``ini()`` has converged.
+
+    Returns
+    -------
+    tuple of (eigenvalues, right_eigenvectors, left_eigenvectors)
+    """
+    # Use the model's own A_eval() method so this works for both the
+    # ctypes Model (which lazily calls jac_run_eval) and CasadiModel
+    # (which has no jac_run_eval and evaluates via cached CasADi
+    # functions). The free A_eval function in this module assumes the
+    # ctypes path only.
+    A = model.A_eval()
+    model.BCD_eval()
+    eig_vals, V = np.linalg.eig(A)
+    W = np.linalg.inv(V)
+
+    model.eigenvalues = eig_vals
+    model.right_eigenvectors = V
+    model.left_eigenvectors = W
+
+    return eig_vals, V, W
+
+
 def eval_ss(system):
     '''
     
@@ -197,7 +255,7 @@ def damp_report(model, sparse=False, tol_part=0.2):
 
     return eig_df
 
-def damp(A, sparse=False, model=False, sort=None):
+def damp(A, sparse=False, model=False, sort=None, part_threshold=0.5):
     """
     Computes eigenvalues, frequencies and damping ratios of matrix A and
     prints a report.
@@ -261,7 +319,7 @@ def damp(A, sparse=False, model=False, sort=None):
         if model:
             max_part = np.max(np.abs(participation_matrix)[:, it])
             states_participation = x_array[
-                participation_matrix[:, it] > (max_part * 0.5)]
+                participation_matrix[:, it] > (max_part * part_threshold)]
             string += f'{str(states_participation)}'.rjust(30, ' ')
         string += '\n'
 
@@ -806,7 +864,56 @@ def lead_design(angle,omega, verbose=False):
     
     return T_1,T_2
     
-     
+def get_mode(model, f_min, f_max, report=True):
+    # 1. Frequency range of interest
+    omega_min = f_min * 2 * np.pi
+    omega_max = f_max * 2 * np.pi
+
+    # 2. Extract real parts (sigma) and imaginary parts (omega)
+    eigvals = model.eigenvalues
+    sigma = np.real(eigvals)
+    omega = np.imag(eigvals)
+
+    # 3. Calculate the damping ratio (zeta) for all eigenvalues
+    # We use np.abs(eigvals) for the denominator to avoid math errors. 
+    # We add 1e-8 to avoid division by zero for modes exactly at the origin.
+    damping_ratios = -sigma / (np.abs(eigvals) + 1e-8)
+
+    # 4. Create a boolean mask to filter eigenvalues strictly within your frequency range
+    # We only look at positive frequencies (omega > 0) to avoid duplicates from complex conjugates
+    freq_mask = (omega >= omega_min) & (omega <= omega_max)
+
+    # 5. Apply the mask and find the worst damped mode
+    if np.any(freq_mask):
+        # Get the original indices of the eigenvalues that fall inside the mask
+        indices_in_range = np.where(freq_mask)[0]
+        
+        # Find the index of the MINIMUM damping ratio among those filtered eigenvalues
+        worst_idx_in_filtered = np.argmin(damping_ratios[indices_in_range])
+        
+        # Map it back to the original model.eigvalues array
+        mode_idx = indices_in_range[worst_idx_in_filtered]
+        lambda_i = eigvals[mode_idx]
+
+        if report:
+
+            print("\n")
+            print("-" * 50)
+            print("CRITICAL MODE IDENTIFICATION")
+            print("-" * 50)
+            print(f"Target Frequency Range     : {f_min} Hz - {f_max} Hz")
+            print(f"Worst Mode Analyzed        : {lambda_i:.4f}")
+            print(f"Natural Frequency          : {np.imag(lambda_i):.4f} rad/s ({np.imag(lambda_i)/(2*np.pi):.2f} Hz)")
+            print(f"Damping Ratio (Zeta)       : {damping_ratios[mode_idx]*100:.2f}%")
+            print("-" * 50)
+            print("\n")
+
+
+    else:
+        raise ValueError(f"No electromechanical modes found in the range {f_min} Hz to {f_max} Hz.")
+    
+    return mode_idx ,lambda_i
+
 if __name__ == "__main__":
     
     class sys_class():

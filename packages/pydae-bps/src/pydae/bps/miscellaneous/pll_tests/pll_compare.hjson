@@ -1,0 +1,26 @@
+{
+  system: {name: "pll_compare", S_base: 100e6, K_p_agc: 0.0, K_i_agc: 0.0, K_xif: 1e-6},
+  buses: [
+    {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+    {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+  ],
+  lines: [{bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 200}],
+  sources: [{
+    type: "genape", bus: "2",
+    S_n: 1e9, F_n: 50.0,
+    X_v: 0.001, R_v: 0.0,
+    K_delta: 0.001, K_alpha: 1.0e-6
+  }],
+  plls: [
+    {bus: "1", K_p_pll: 180, K_i_pll: 3200, T_pll: 0.02, K_theta_pll: 1.0},
+    {bus: "1", name: "sogi1", type: "sogi",
+     k_sogi: 1.414, gamma_fll: 50.0, alpha_leak: 0.5, T_f: 0.02, F_n: 50.0},
+    {name: "fll1", type: "sogi_fll",
+     k_sogi: 1.414, Gamma: 50.0,
+     omega_0: 314.159265358979, epsilon_reg: 1.0e-6, v_grid: 0.0},
+    {name: "pll1", type: "sogi_pll",
+     k_sogi: 1.414, k_p: 100.0, k_i: 2000.0,
+     omega_0: 314.159265358979, omega_ref: 314.159265358979,
+     epsilon_reg: 1.0e-6, v_grid: 0.0}
+  ]
+}

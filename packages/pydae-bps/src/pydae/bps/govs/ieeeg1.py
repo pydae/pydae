@@ -249,6 +249,7 @@ def ieeeg1(dae, data, name, bus_name, backend=None):
         backend = type('Backend', (), {
             'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
             'Piecewise': sym.Piecewise,
+            'hard_limits': staticmethod(lambda x, xmin, xmax: sym.Min(sym.Max(x, xmin), xmax)),
         })()
 
     gov_data = data['gov']
@@ -296,15 +297,11 @@ def ieeeg1(dae, data, name, bus_name, backend=None):
     # integrator state.
     Domega = 1.0 - omega
     y_g_nosat = x_3
-    y_g = backend.Piecewise((P_min, y_g_nosat < P_min),
-                            (P_max, y_g_nosat > P_max),
-                            (y_g_nosat, True))
+    y_g = backend.hard_limits(y_g_nosat, P_min, P_max)
 
     u_3 = K * Domega + p_c - y_g # + K_sec * p_agc
     u_g_nosat = u_3 / T_3
-    u_g = backend.Piecewise((U_c, u_g_nosat < U_c),
-                            (U_o, u_g_nosat > U_o),
-                            (u_g_nosat, True))
+    u_g = backend.hard_limits(u_g_nosat, U_c, U_o)
     u_awu = K_awu * (y_g - y_g_nosat)
 
     dx_3 = u_g + u_awu

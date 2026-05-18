@@ -51,19 +51,26 @@ pydae uses semi-explicit index-1 DAEs:
 
 ### DAE Solver Pipeline (pydae-core)
 
-The core workflow: **define symbolically → build (compile C) → simulate at runtime**.
+The core workflow: **define symbolically → build (compile C *or* fold into CasADi) → simulate at runtime**.
 
 ```
-Builder(sys_dict)
-   └── builder/core.py          orchestrates all phases
-       ├── parser.py             validates & parses system dict to SymPy
-       ├── symbolic.py           computes Jacobians (Fx, Fy, Gx, Gy, Fu, Gu, Hx, Hy)
-       └── codegen/
-           ├── cffi_builder.py   preferred backend; generates + compiles C via CFFI
-           └── ctypes_builder.py alternative backend; uses ctypes + GCC/Clang
+pydae.core.Builder(sys_dict)            ← from pydae.core import Builder
+   └── builder/sympy_builder.py          orchestrates SymPy → C pipeline
+       ├── common/parser.py               validates & parses system dict to SymPy
+       ├── common/symbolic.py             computes Jacobians (Fx, Fy, Gx, Gy, Fu, Gu, Hx, Hy)
+       └── builder/codegen/
+           ├── cffi_builder.py             preferred backend; generates + compiles C via CFFI
+           └── ctypes_builder.py           alternative backend; ctypes + GCC/Clang/MSVC
+
+builder/casadi_builder.py                 alternative: folds SymPy → CasADi SX graph (no C compile)
+                                          paired with model/casadi_model.py runtime (IDAS integrator)
+
+diagnostics/dae_check.py                  Jacobian-health report emitted on ini() failure
+src/pydae/daesolver/                      C runtime sources (daesolver.c/.h, *_dense.c, *_dlu_klu.c, *_run_lapack.c)
+src/pydae/ssa/                            small-signal analysis (eval_ss, eval_A, damp)
 ```
 
-Output of a build: `{name}_data.json` (metadata, variable lists, sparsity patterns) + a compiled shared library (`.dll`/`.so`/`.dylib`).
+Output of a SymPy build: `{name}_data.json` (metadata, variable lists, sparsity patterns) + a compiled shared library (`.dll`/`.so`/`.dylib`). The CasADi backend skips C compilation entirely and serializes the SX graph instead.
 
 Set `PYDAE_PARALLEL=1` to parallelize `sympy.ccode` translation across a `ProcessPoolExecutor` (useful when the system has > 200 expressions).
 
@@ -75,7 +82,9 @@ Set `PYDAE_PARALLEL=1` to parallelize `sympy.ccode` translation across a `Proces
 
 The ini and run Jacobians have **independent sparsity patterns** (`Ap_ini/Ai_ini` vs `Ap_trap/Ai_trap`) because `y_ini` and `y_run` may differ, producing different structurally-zero entries. PARDISO requires `iparm[11]=2` (solve Aᵀx=b) because the pattern is emitted in CSC form (= CSR of the transpose).
 
-**CFFI vs ctypes:** CFFI links at compile time (more reliable on Windows); ctypes compiles a standalone `.dll`/`.so` loaded at runtime (simpler, no CFFI dependency). Both produce identical results.
+**CFFI vs ctypes:** CFFI links at compile time (more reliable on Windows now that CI uses MSVC); ctypes compiles a standalone `.dll`/`.so` loaded at runtime (simpler, no CFFI dependency). Both produce identical results.
+
+**SymPy vs CasADi backend:** the default `Builder` (from `builder/sympy_builder.py`) emits C and uses the trapezoidal `daesolver.c` runtime via `Model` (from `model/ctypes_model.py`). The CasADi path (`builder/casadi_builder.py` + `model/casadi_model.py`) constructs an `SX` graph and integrates via SUNDIALS/IDAS — no compiler required, slower per-step but useful where a C toolchain is unavailable. `feat: ss_num2sym supports both SymPy and CasADi backends` (commit e00c1b8) is the latest cross-backend convergence work.
 
 ### System Dictionary Structure
 
@@ -96,7 +105,7 @@ sys_dict = {
 
 `y_ini_list` and `y_run_list` can differ. After `ini()` converges, `ini2run()` transfers values automatically: variables in `y_ini` that appear in `u_run` are copied over, and variables in `u_ini` that appear in `y_run` are seeded as starting points. The `f` and `g` equations are the same in both phases; only the Jacobian structure changes.
 
-### Runtime Model API (model_class.py)
+### Runtime Model API (model/ctypes_model.py)
 
 ```python
 from pydae.core import Model
@@ -118,7 +127,7 @@ Multiple `run()` calls chain seamlessly — each continues from the previous end
 
 `jac_run_eval()` recovers continuous-time Jacobian blocks (`Fx`, `Fy`, `Gx`, `Gy`) from the compiled trapezoidal Jacobian. `A_eval()` computes the reduced state matrix `A = Fx - Fy·Gy⁻¹·Gx` for eigenvalue analysis.
 
-On `ini()` failure, diagnostics run automatically — outputs a Jacobian heatmap (`jacobian_diagnostic.png`) and a terminal report checking for zero rows/columns, near-zero pivots, and condition number.
+On `ini()` failure, diagnostics from `diagnostics/dae_check.py` run automatically — outputs a Jacobian heatmap (`jacobian_diagnostic.png`) and a terminal report checking for zero rows/columns, near-zero pivots, and condition number.
 
 **Dual-buffer architecture**: The C solver writes directly into private arrays `_Time`, `_X`, `_Y`, `_Z` (allocated with `PAD=50` guard elements). `post()` creates the public `Time`, `X`, `Y`, `Z` arrays via `np.copy()` — these are safe to pass to Matplotlib or other libraries. Accessing `_*` arrays before `post()` is intentional (hot-path, no copy); accessing them after `post()` will see zeroed buffers because `_post_called` triggers a reset on the next `run()`.
 
@@ -134,9 +143,9 @@ agc: {gen: "2", K_p_agc: 10.0, K_i_agc: 2.0}
 
 `gen` is the generator name (matches the bus name used in `syns`). Outputs `p_agc` and `xi_agc` in `h_dict`.
 
-### SSA Module (pydae.ssa)
+### SSA Module (src/pydae/ssa/)
 
-Small-signal analysis via linearization. `eval_ss(model)` computes the state-space matrices:
+Small-signal analysis via linearization, imported as `from pydae.ssa import eval_ss, eval_A, damp`. `eval_ss(model)` computes the state-space matrices:
 - `A = Fx - Fy·Gy⁻¹·Gx`
 - `B = Fu - Fy·Gy⁻¹·Gu`
 - `C = Hx - Hy·Gy⁻¹·Gx`
@@ -162,16 +171,16 @@ This repo is developed on both Windows and Linux (Debian). Claude Code may be in
 
 **Toolchain**
 - `uv` is the package manager. Do not use `pip install -e .` — the workspace layout relies on `uv sync --all-packages`.
-- A C compiler is required for `-m build` / `-m model` tests and for `Builder.build()`:
+- A C compiler is required for `-m build` / `-m model` tests and for `Builder.build()` (only when using the SymPy backend — the CasADi backend has no C dependency):
   - Linux: `sudo apt install build-essential` (provides `gcc`).
-  - Windows: MinGW `gcc` on `PATH`. CFFI is excluded on Windows CI (MinGW cannot link Python 3.12+ MSVC-built Python); use `target='ctypes'`.
+  - Windows: MSVC (Visual Studio Build Tools) is the supported toolchain on CI as of commit 4a58af4. MinGW still works locally for `target='ctypes'` but CFFI requires MSVC against modern (Python 3.12+) MSVC-built CPython.
   - macOS: Apple Clang (pre-installed).
 - Python ≥ 3.10. `uv run` auto-selects the workspace interpreter; outside `uv`, use `python -m pytest` rather than a bare `pytest` to avoid picking up a different interpreter's scripts.
 
 **Windows CI / Build Limitations**
-- CFFI: Excluded on Windows CI (MinGW cannot link against MSVC-built Python 3.12+). Use `target='ctypes'` instead.
-- ctypes+KLU: Unstable on Windows (Python 3.13 regex heap corruption). Use `target='ctypes', sparse=False` or `target='cffi', sparse='klu'` on Linux/macOS.
-- To use CFFI locally on Windows: Install MSVC Build Tools with C++ workload, or use MinGW-built Python.
+- CFFI: Now built with MSVC on Windows CI (commit 4a58af4). MinGW-only environments must use `target='ctypes'`.
+- ctypes+KLU: Unstable on Windows (Python 3.13 regex heap corruption) — CI excludes the `windows × ctypes × sparse` cell. Use `target='ctypes', sparse=False` or `target='cffi', sparse='klu'` on Linux/macOS.
+- SuiteSparse for KLU on Windows is installed via `conda install -c conda-forge suitesparse`.
 
 **Path and shell**
 - Inside Git Bash / WSL / Linux: forward slashes, `/dev/null`.
@@ -193,7 +202,9 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 
 ## Repo layout landmarks
 
-- `packages/pydae-core/src/pydae/core/` — engine. `builder/`, `codegen/`, `model_class.py`, `ssa.py`.
+- `packages/pydae-core/src/pydae/core/` — engine. `builder/` (sympy + casadi + codegen), `model/` (ctypes_model + casadi_model), `common/` (parser, symbolic), `diagnostics/`.
+- `packages/pydae-core/src/pydae/ssa/` — small-signal analysis (separate sibling namespace, not under `core/`).
+- `packages/pydae-core/src/pydae/daesolver/` — C runtime: `daesolver.c/.h`, `daesolver_dense.{c,h}`, `daesolver_dlu_klu.c`, `daesolver_run_lapack.{c,h}`.
 - `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `wecs/`, `loads/`, `lines/`, `psss/`, `pods/`, `sources/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`.
 - `packages/pydae-uds/src/pydae/uds/` — unbalanced distribution builder. Component families: `lines/`, `vsgs/` (grid-forming VSCs).
 - `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
@@ -245,7 +256,7 @@ Per-package tags (not a single repo-wide tag) so subpackages can release indepen
 ## Troubleshooting & Diagnostics
 
 ### Automatic DAE Diagnostics
-On `ini()` failure, `model_class.py` outputs a **DAE SOLVER DIAGNOSTIC REPORT** to stdout:
+On `ini()` failure, `model/ctypes_model.py` (via `diagnostics/dae_check.py`) outputs a **DAE SOLVER DIAGNOSTIC REPORT** to stdout:
 
 - **Residual magnitudes** — large values = bad initial guess
 - **Diagonal analysis** — near-zero diagonals = singular Jacobian
@@ -259,7 +270,7 @@ Check for:
 4. **Windows ctypes+KLU unstable**: Use `target='ctypes', sparse=False` or test on Linux/macOS.
 
 ### Padding Shield
-`model_class.py` has `PAD = 50` guard band on arrays passed to C. This catches off-by-one overflows on Linux/macOS but not Windows heap canaries.
+`model/ctypes_model.py` has `PAD = 50` guard band on arrays passed to C. This catches off-by-one overflows on Linux/macOS but not Windows heap canaries.
 
 ### CI Workflow
 The workflow outputs JUnit XML (`--junit-xml`) and generates a Markdown summary table via `$GITHUB_STEP_SUMMARY`. Failure diagnostics are in test logs — search for "DAE SOLVER DIAGNOSTIC REPORT".

@@ -1,4 +1,38 @@
-# Frequency and active-power controllers
+# Miscellaneous components
+
+This section groups stand-alone helper devices: bus-frequency
+estimators (PLL and SOGI variants) and the secondary/tertiary
+active-power controllers.
+
+## Bus frequency estimators
+
+Each estimator attaches to a bus via an entry under the top-level
+`plls` key in the network hjson. Choose the variant that matches your
+problem:
+
+* [PLL](pll.md) — classical PI synchronous-reference-frame PLL. Locks
+  to the bus phasor directly in the COI rotating-phasor frame; no AC
+  carrier required.
+* [SOGI](sogi.md) — Second-Order Generalised Integrator with FLL,
+  formulated against the in-frame phase error. Drop-in alternative to
+  the PI PLL that operates entirely in the phasor frame.
+* [SOGI-FLL](sogi_fll.md) — textbook EMT formulation. Takes an
+  instantaneous AC voltage sample (`v_grid`) as a free input; useful
+  for EMT-RMS co-simulation.
+* [SOGI-PLL](sogi_pll.md) — textbook EMT formulation: SOGI band-pass
+  followed by a synchronous-reference-frame PI PLL. Same `v_grid`
+  free-input convention as SOGI-FLL.
+
+```{toctree}
+:maxdepth: 1
+
+pll
+sogi
+sogi_fll
+sogi_pll
+```
+
+## Frequency and active-power controllers
 
 These components implement the secondary and tertiary levels of the
 hierarchical active-power / frequency control architecture used in

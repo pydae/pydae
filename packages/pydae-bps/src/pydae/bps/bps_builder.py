@@ -473,10 +473,90 @@ class BpsBuilder:
                     self.dae['h_dict'].update({f'I_line_{bus_j}_{bus_k}':I_j_k})
                     self.dae['h_dict'].update({f'I_line_{bus_k}_{bus_j}':I_k_j})
 
-                    self.dae['xy_0_dict'].update({str(p_line_to_pu):0.1})  
-                    self.dae['xy_0_dict'].update({str(p_line_from_pu):-0.1})  
-                    self.dae['xy_0_dict'].update({str(I_j_k):0.1})  
-                    self.dae['xy_0_dict'].update({str(I_k_j):-0.1})  
+                    self.dae['xy_0_dict'].update({str(p_line_to_pu):0.1})
+                    self.dae['xy_0_dict'].update({str(p_line_from_pu):-0.1})
+                    self.dae['xy_0_dict'].update({str(I_j_k):0.1})
+                    self.dae['xy_0_dict'].update({str(I_k_j):-0.1})
+
+        ### Transformer monitoring
+        # Tap-aware branch flows for transformers carrying `monitor: true`.
+        # Mirrors the line monitoring loop above so downstream code that
+        # references p_line_pu_{j}_{k} / q_line_pu_{j}_{k} works for tap
+        # branches as well. Tap is on the bus_j (primary) side; with tap=1
+        # the formulas reduce to the line equations exactly.
+        for trafo in self.transformers:
+            if not trafo.get('monitor', False):
+                continue
+
+            bus_j = trafo['bus_j']
+            bus_k = trafo['bus_k']
+            trafo_name = f"{bus_j}_{bus_k}"
+
+            V_j = self.backend.symbols(f"V_{bus_j}")
+            V_k = self.backend.symbols(f"V_{bus_k}")
+            theta_j = self.backend.symbols(f"theta_{bus_j}")
+            theta_k = self.backend.symbols(f"theta_{bus_k}")
+            G_t = self.backend.symbols(f"g_cc_{trafo_name}")
+            B_t = self.backend.symbols(f"b_cc_{trafo_name}")
+            tap = self.backend.symbols(f"tap_{trafo_name}")
+
+            theta_jk = theta_j - theta_k
+            cos_jk = self.backend.cos(theta_jk)
+            sin_jk = self.backend.sin(theta_jk)
+
+            # P_j = V_j^2 G / a^2 - V_j V_k (G cos + B sin)/a
+            # Q_j = -V_j^2 B / a^2 + V_j V_k (B cos - G sin)/a
+            # P_k = V_k^2 G - V_k V_j (G cos - B sin)/a
+            # Q_k = -V_k^2 B + V_k V_j (B cos + G sin)/a
+            P_to   = V_j**2 * G_t / tap**2 - V_j * V_k * (G_t * cos_jk + B_t * sin_jk) / tap
+            Q_to   = -V_j**2 * B_t / tap**2 + V_j * V_k * (B_t * cos_jk - G_t * sin_jk) / tap
+            P_from = V_k**2 * G_t - V_k * V_j * (G_t * cos_jk - B_t * sin_jk) / tap
+            Q_from = -V_k**2 * B_t + V_k * V_j * (B_t * cos_jk + G_t * sin_jk) / tap
+
+            p_to_pu, q_to_pu = self.backend.symbols(
+                f"p_line_pu_{bus_j}_{bus_k}, q_line_pu_{bus_j}_{bus_k}")
+            p_from_pu, q_from_pu = self.backend.symbols(
+                f"p_line_pu_{bus_k}_{bus_j}, q_line_pu_{bus_k}_{bus_j}")
+
+            self.dae['g'] += [p_to_pu   - P_to,
+                              q_to_pu   - Q_to,
+                              p_from_pu - P_from,
+                              q_from_pu - Q_from]
+
+            self.dae['y_ini'] += [p_to_pu, q_to_pu, p_from_pu, q_from_pu]
+            self.dae['y_run'] += [p_to_pu, q_to_pu, p_from_pu, q_from_pu]
+
+            U_base_j = self.buses[self.buses_list.index(bus_j)]['U_kV'] * 1000
+            U_base_k = self.buses[self.buses_list.index(bus_k)]['U_kV'] * 1000
+            I_base_j = sys['S_base'] / (np.sqrt(3) * U_base_j)
+            I_base_k = sys['S_base'] / (np.sqrt(3) * U_base_k)
+
+            self.dae['h_dict'].update({
+                f'p_line_{bus_j}_{bus_k}': p_to_pu   * sys['S_base'],
+                f'q_line_{bus_j}_{bus_k}': q_to_pu   * sys['S_base'],
+                f'p_line_{bus_k}_{bus_j}': p_from_pu * sys['S_base'],
+                f'q_line_{bus_k}_{bus_j}': q_from_pu * sys['S_base'],
+            })
+
+            I_j_k, I_k_j = self.backend.symbols(
+                f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
+            self.dae['g'] += [
+                (p_to_pu**2   + q_to_pu**2)**0.5  / V_j * I_base_j - I_j_k,
+                (p_from_pu**2 + q_from_pu**2)**0.5 / V_k * I_base_k - I_k_j,
+            ]
+            self.dae['y_ini'] += [I_j_k, I_k_j]
+            self.dae['y_run'] += [I_j_k, I_k_j]
+            self.dae['h_dict'].update({
+                f'I_line_{bus_j}_{bus_k}': I_j_k,
+                f'I_line_{bus_k}_{bus_j}': I_k_j,
+            })
+
+            self.dae['xy_0_dict'].update({
+                str(p_to_pu):   0.1,
+                str(p_from_pu): -0.1,
+                str(I_j_k):     0.1,
+                str(I_k_j):     -0.1,
+            })
 
         for bus in self.buses:
             if 'monitor' in bus:

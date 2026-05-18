@@ -208,6 +208,7 @@ def st1(dae, data, name, bus_name, backend=None):
         backend = type('Backend', (), {
             'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
             'Piecewise': sym.Piecewise,
+            'hard_limits': staticmethod(lambda x, xmin, xmax: sym.Min(sym.Max(x, xmin), xmax)),
             'sin': sym.sin,
             'cos': sym.cos,
             'sqrt': sym.sqrt,
@@ -244,9 +245,7 @@ def st1(dae, data, name, bus_name, backend=None):
 
     # Summing junction and input limiter.
     epsilon = v_ref - v_c + v_s
-    epsilon_lim = backend.Piecewise((V_Imin, epsilon < V_Imin),
-                                (V_Imax, epsilon > V_Imax),
-                                (epsilon, True))
+    epsilon_lim = backend.hard_limits(epsilon, V_Imin, V_Imax)
 
     # Lead-lag (1 + s T_C) / (1 + s T_B).
     dx_lead = (epsilon_lim - x_lead) / T_B
@@ -256,9 +255,7 @@ def st1(dae, data, name, bus_name, backend=None):
     v_r_nosat = K_A * y_lead
 
     # Output limiter.
-    v_r = backend.Piecewise((V_Rmin, v_r_nosat < V_Rmin),
-                        (V_Rmax, v_r_nosat > V_Rmax),
-                        (v_r_nosat, True))
+    v_r = backend.hard_limits(v_r_nosat, V_Rmin, V_Rmax)
 
     # Field voltage (E_fd = V_R since K_C = 0).
     g_v_f = v_r - v_f
@@ -268,8 +265,9 @@ def st1(dae, data, name, bus_name, backend=None):
     # keeps downstream index-based code (e.g. vsource's g[idx_V]=...) from
     # targeting the wrong equation when V_bus was just removed.
     v_setpoint = avr_data['v_ref']
-    if v_t in dae['y_ini']:
-        idx_V = dae['y_ini'].index(v_t)
+    v_t_str = str(v_t)
+    if v_t_str in [str(y) for y in dae['y_ini']]:
+        idx_V = [str(y) for y in dae['y_ini']].index(v_t_str)
         dae['y_ini'][idx_V] = v_ref
     else:
         dae['y_ini'] += [v_ref]

@@ -70,9 +70,11 @@ class CasadiModel:
         self.u_ini_names = [sym.name() for sym in self.sys_dict['u_ini_list']]
         self.u_run_names = [sym.name() for sym in self.sys_dict['u_run_list']]
 
-        # Compatibility aliases for ssa module
+        # Compatibility aliases
+        self.params_list = self.p_names
         self.x_list = self.x_names
         self.y_list = self.y_run_names
+        self.z_list = list(self.sys_dict.get('h_dict', {}).keys())
 
         self.N_x = len(self.x_names)
         self.N_y_ini = len(self.y_ini_names)
@@ -178,9 +180,11 @@ class CasadiModel:
         self.u_ini_names = [sym.name() for sym in self.sys_dict['u_ini_list']]
         self.u_run_names = [sym.name() for sym in self.sys_dict['u_run_list']]
 
-        # Compatibility aliases for ssa module
+        # Compatibility aliases
+        self.params_list = self.p_names
         self.x_list = self.x_names
         self.y_list = self.y_run_names
+        self.z_list = list(self.sys_dict.get('h_dict', {}).keys())
 
         self.N_x = len(self.x_names)
         self.N_y_ini = len(self.y_ini_names)
