@@ -98,6 +98,9 @@ def _xyup_patterns(sys, inirun):
     patterns += [(u, f'u[{i}]') for i, u in enumerate(u_dict.keys())]
     patterns += [(p, f'p[{i}]')
                  for i, p in enumerate(sys.get('params_dict', {}).keys())]
+    # SymPy ccode occasionally emits Python boolean literals when differentiating
+    # nested Piecewise expressions.  Map them to valid C integer constants.
+    patterns += [('true', '1'), ('false', '0')]
     return patterns
 
 

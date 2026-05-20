@@ -16,6 +16,8 @@ from pydae.bps.syns.syns import add_syns
 from pydae.bps.vscs.vscs import add_vscs
 from pydae.bps.vsgs.vsgs import add_vsgs
 from pydae.bps.wecs.wecs import add_wecs
+from pydae.bps.weccs.weccs import add_weccs
+from pydae.bps.ppcs.ppcs import add_ppcs
 from pydae.bps.pvs.pvs import add_pvs
 from pydae.bps.loads.loads import add_loads
 from pydae.bps.sources.sources import add_sources
@@ -624,6 +626,10 @@ class BpsBuilder:
             add_sources(self)
         if 'wecs' in  self.data:
             add_wecs(self)
+        if 'weccs' in self.data:
+            add_weccs(self)
+        if 'ppcs' in self.data:
+            add_ppcs(self)
         if 'pvs' in  self.data:
             add_pvs(self)
         if 'loads' in  self.data:

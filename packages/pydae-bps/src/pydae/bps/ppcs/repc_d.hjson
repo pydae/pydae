@@ -1,0 +1,116 @@
+{
+// REPC_D test: plant controller commanding 2 REGC_A+REEC_B converters.
+// Per-device dispatch with individual weights and limits.
+system: {name: "repc_d_test", S_base: 100e6},
+
+buses: [
+  {name: "1",   P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2",   P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "POI", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1",   bus_k: "POI", X_pu: 0.05, R_pu: 0.005, S_mva: 200},
+  {bus_j: "2",   bus_k: "POI", X_pu: 0.1,  R_pu: 0.01,  S_mva: 200}
+],
+
+weccs: [
+  {
+    type: "regc_a", bus: "1", name: "1",
+    S_n: 100e6, Tg: 0.02, Tfltr: 0.02,
+    Lvplsw: 1, Lvpl1: 1.22, Zerox: 0.4, Brkpt: 0.9, rrpwr: 10.0,
+    lvpnt0: 0.4, lvpnt1: 0.8, Volim: 1.2, Iolim: -1.3, Khv: 0.7,
+    Iqrmax: 999.0, Iqrmin: -999.0, Ipcmd: 0.8, Iqcmd: 0.0, V_ini: 1.0,
+    reec: {
+      Vflag: 1, Qflag: 1, PFflag: 0, Pqflag: 0,
+      Trv: 0.02, Tp: 0.02, Tiq: 0.02, Tpord: 0.1,
+      Kvp: 1.0, Kvi: 40.0, Kqp: 0.0, Kqi: 0.0,
+      Vref0: 1.0, dbd1: -0.05, dbd2: 0.05,
+      Kqv: 2.0, Iqhl: 1.05, Iqll: -1.05,
+      Vmax: 1.1, Vmin: 0.9, Imax: 1.1,
+      Pmax: 1.0, Pmin: 0.0, dPmax: 999.0, dPmin: -999.0,
+      Pref: 0.8, Qext: 1.0
+    }
+  },
+  {
+    type: "regc_a", bus: "2", name: "2",
+    S_n: 50e6, Tg: 0.02, Tfltr: 0.02,
+    Lvplsw: 1, Lvpl1: 1.22, Zerox: 0.4, Brkpt: 0.9, rrpwr: 10.0,
+    lvpnt0: 0.4, lvpnt1: 0.8, Volim: 1.2, Iolim: -1.3, Khv: 0.7,
+    Iqrmax: 999.0, Iqrmin: -999.0, Ipcmd: 0.6, Iqcmd: 0.0, V_ini: 1.0,
+    reec: {
+      Vflag: 1, Qflag: 1, PFflag: 0, Pqflag: 0,
+      Trv: 0.02, Tp: 0.02, Tiq: 0.02, Tpord: 0.1,
+      Kvp: 1.0, Kvi: 40.0, Kqp: 0.0, Kqi: 0.0,
+      Vref0: 1.0, dbd1: -0.05, dbd2: 0.05,
+      Kqv: 2.0, Iqhl: 1.05, Iqll: -1.05,
+      Vmax: 1.1, Vmin: 0.9, Imax: 1.1,
+      Pmax: 1.0, Pmin: 0.0, dPmax: 999.0, dPmin: -999.0,
+      Pref: 0.6, Qext: 1.0
+    }
+  }
+],
+
+ppcs: [
+  {
+    type:    "repc_d",
+    name:    "repc1",
+    reg_bus: "POI",
+    weccs:   ["1", "2"],
+
+    // Per-device dispatch: each device has its own weight, filter, and limits.
+    // Kw_n: Q dispatch weight (sum of all Kw_n should be 1.0 for balanced dispatch)
+    // Kz_n: P dispatch weight
+    // Qo_n: initial Q setpoint (pu on S_base)
+    // Po_n: initial P setpoint (pu on S_base)
+    devices: [
+      {name: "1",
+       Kw: 0.5,  Kz: 0.5,
+       Tw: 0.02, Tz: 0.02,
+       Qmax: 0.4, Qmin: -0.4, Qo: 0.0,
+       Pmax: 1.0, Pmin: 0.0,  Po: 0.8},
+      {name: "2",
+       Kw: 0.5,  Kz: 0.5,
+       Tw: 0.02, Tz: 0.02,
+       Qmax: 0.4, Qmin: -0.4, Qo: 0.0,
+       Pmax: 0.8, Pmin: 0.0,  Po: 0.6}
+    ],
+
+    // Flags
+    RefFlg:     1,    // 1 = voltage control at POI
+    VcmpFlg:    0,    // 0 = reactive droop
+    Freq_flag:  1,    // 1 = frequency droop active
+    QVFlag:     1,    // 1 = Q controller active
+    Pefd_Flag:  1,    // 1 = use measured P feedback
+    Ffwrd_Flag: 0,    // 0 = no P feedforward
+
+    // Q/V controller
+    Tfltr: 0.02, Tc: 0.02, Tfrq: 0.02,
+    Kp: 0.5, Ki: 3.0, Kc: 0.0,
+    Tft: 0.0, Tfv: 0.05,
+    emax: 0.3, emin: -0.3,
+    dbd1: -0.01, dbd2: 0.01,
+    Qmax: 0.4, Qmin: -0.4,
+    Vfrz: 0.7, Vrefmax: 1.1, Vrefmin: 0.9,
+
+    // P / frequency controller
+    Tp: 0.02,
+    Kpg: 0.5, Kig: 0.25,
+    Pmax: 1.0, Pmin: 0.0,
+    Tlag: 0.7,
+    fdbd1: -0.0006, fdbd2: 0.0006,
+    Ddn: 103.33, Dup: 103.33,
+    femax: 999.0, femin: -999.0,
+    pimax: 1.5, pimin: -0.5,
+
+    // Initial setpoints (from power flow)
+    Vref: 1.0,
+    Qref: 0.0,
+    Pref_r: 1.4,   // total plant P = 0.8 + 0.6 = 1.4 pu on S_base
+    Pref: 1.4,
+    Qext: 1.0
+  }
+],
+
+sources: [{type: "vsource", bus: "POI"}]
+}

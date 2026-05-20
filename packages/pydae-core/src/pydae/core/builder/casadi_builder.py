@@ -121,11 +121,12 @@ class MathBackend:
             return self.sp.Piecewise(*args)
 
     def hard_limits(self, x, x_min, x_max):
-        # min(max(x, x_min), x_max)
+        # clip x to [x_min, x_max]
         if self.use_casadi:
             return self.ca.fmin(self.ca.fmax(x, x_min), x_max)
         else:
-            return self.sp.Min(self.sp.Max(x, x_min), x_max)
+            # Piecewise codegens to clean C ternary; Min/Max produces Heaviside
+            return self.sp.Piecewise((x_min, x < x_min), (x_max, x > x_max), (x, True))
 
     def min(self, *args):
         if self.use_casadi:

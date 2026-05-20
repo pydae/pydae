@@ -1,0 +1,41 @@
+{
+// REGC_B test — single converter connected to an infinite bus.
+// No LVPL; combined Imax current limit; upward-only rrpwr rate limit.
+system: {name: "regc_b_test", S_base: 100e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.1, R_pu: 0.01, S_mva: 200}
+],
+
+weccs: [
+  {
+    type:  "regc_b",
+    bus:   "1",
+    S_n:   100e6,
+
+    Tg:     0.02,     // current regulator lag (s)
+    Tfltr:  0.02,     // voltage filter for HV clamp measurement (s)
+
+    Imax:   1.1,      // combined apparent current limit (pu)
+    rrpwr:  10.0,     // active current up-ramp rate limit (pu/s)
+
+    Volim:  1.2,      // high-V clamp threshold (pu)
+    Iolim: -1.3,      // high-V clamp lower bound (<0, pu)
+    Khv:    0.7,      // high-V clamp gain
+
+    Iqrmax:  999.0,
+    Iqrmin: -999.0,
+
+    Ipcmd:  0.8,      // initial active current command (pu)
+    Iqcmd:  0.0,      // initial reactive current command (pu)
+    V_ini:  1.0
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}

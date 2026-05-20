@@ -1,0 +1,58 @@
+{
+// REGC_A test case — single converter connected to an infinite bus via a line.
+// The converter operates at 0.8 pu active current, unity power factor.
+system: {name: "regc_a_test", S_base: 100e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.1, R_pu: 0.01, S_mva: 200}
+],
+
+weccs: [
+  {
+    type:    "regc_a",
+    bus:     "1",
+    S_n:     100e6,    // MVA base of the converter
+
+    // Converter current regulator
+    Tg:      0.02,     // current lag time constant (s)
+
+    // Terminal voltage filter (LVPL)
+    Tfltr:   0.02,     // filter time constant (s)
+
+    // Low Voltage Power Logic
+    Lvplsw:  1,        // 1 = enabled
+    Lvpl1:   1.22,     // current limit at and above Brkpt (pu)
+    Zerox:   0.4,      // voltage at which LVPL output = 0 (pu)
+    Brkpt:   0.9,      // voltage at which LVPL reaches Lvpl1 (pu)
+    rrpwr:   10.0,     // active current up-ramp rate limit (pu/s)
+
+    // Low voltage active current management
+    lvpnt0:  0.4,      // gain = 0 below this voltage (pu)
+    lvpnt1:  0.8,      // gain = 1 above this voltage (pu)
+
+    // High voltage reactive current clamp
+    Volim:   1.2,      // high-voltage threshold (pu)
+    Iolim:   -1.3,     // reactive current absorption limit (<0, pu)
+    Khv:     0.7,      // high-voltage clamp gain (pu/pu)
+
+    // Reactive current rate limits (effectively unlimited at ±999)
+    Iqrmax:  999.0,
+    Iqrmin: -999.0,
+
+    // Steady-state commands (from REEC_B in a full model)
+    Ipcmd:   0.8,      // active current command (pu on S_n)
+    Iqcmd:   0.0,      // reactive current command (pu on S_n, −Iqcmd enters lag)
+
+    V_ini:   1.0       // initial terminal voltage guess (pu)
+  }
+],
+
+sources: [
+  {type: "vsource", bus: "2"}
+]
+}

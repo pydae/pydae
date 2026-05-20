@@ -1,0 +1,68 @@
+{
+// REGFM_A1 test: single GFM inverter connected to an infinite bus.
+// Operating point: Pref = 0.8 pu, unity power factor, V = 1.0 pu.
+// The vsource (infinite bus) provides the synchronous reference.
+system: {name: "regfm_a1_test", S_base: 100e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.1, R_pu: 0.01, S_mva: 200}
+],
+
+weccs: [
+  {
+    type:  "regfm_a1",
+    bus:   "1",
+    S_n:   100e6,
+    F_n:   50.0,
+
+    // Coupling reactance (voltage source behind XL)
+    XL:    0.1,       // pu on S_n (typical 0.05–0.25)
+
+    // P-f droop
+    mP:    0.04,      // droop gain: 4 % frequency deviation per unit power
+    TPI:   0.05,      // active power filter time constant (s)
+
+    // Q-V droop
+    nQ:    0.05,      // reactive droop gain
+    kpv:   0.0,       // terminal voltage feedback gain (0 = disabled)
+    TQI:   0.05,      // reactive power filter time constant (s)
+
+    // Voltage control
+    Tv:    0.02,      // voltage control time constant (s)
+    Vref:  1.0,       // voltage reference (pu)
+
+    // Setpoints
+    Pref:  0.8,       // active power setpoint (pu on S_n)
+    Qref:  0.0,       // reactive power reference (pu on S_n)
+
+    // Power limits
+    Pmax:  1.0,   Pmin: 0.0,
+    Qmax:  0.4,   Qmin: -0.4,
+
+    // Voltage limits
+    Emax:  1.2,   Emin: 0.8,
+
+    // Fault current limit (activates when |I| > ImaxF)
+    ImaxF: 1.5,       // pu on S_n (typical 1.5–3.0)
+
+    // Frequency limits
+    omega_max: 1.05,
+    omega_min: 0.95,
+
+    // Optional virtual inertia (0 = pure droop, > 0 contributes to COI)
+    Mvir:  0.0,
+
+    // Angle stabiliser (prevents unbounded angle drift in isolated systems)
+    K_delta: 0.0001,
+
+    V_ini: 1.0        // initial voltage guess for initialization
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}

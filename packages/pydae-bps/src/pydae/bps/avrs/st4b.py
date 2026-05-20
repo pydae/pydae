@@ -287,7 +287,7 @@ def st4b(dae, data, name, bus_name, backend=None):
         backend = type('Backend', (), {
             'symbols': lambda _, n, **k: sym.Symbol(n, real=True),
             'Piecewise': sym.Piecewise,
-            'hard_limits': staticmethod(lambda x, xmin, xmax: sym.Min(sym.Max(x, xmin), xmax)),
+            'hard_limits': staticmethod(lambda x, xmin, xmax: sym.Piecewise((xmin, x < xmin), (xmax, x > xmax), (x, True))),
             'sin': sym.sin,
             'cos': sym.cos,
             'sqrt': sym.sqrt,

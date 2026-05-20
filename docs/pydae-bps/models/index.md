@@ -14,6 +14,8 @@ psss/index
 vsgs/index
 vscs/index
 vsc_ctrls/index
+weccs/index
+ppcs/index
 wecs/index
 pvs/index
 loads/index

@@ -1,0 +1,73 @@
+{
+// REGFM_B1 test: single VSM GFM inverter connected to an infinite bus.
+// Pref = 0.8 pu, unity PF, H = 0.5 s, D2 washout damping.
+system: {name: "regfm_b1_test", S_base: 100e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.1, R_pu: 0.01, S_mva: 200}
+],
+
+weccs: [
+  {
+    type:  "regfm_b1",
+    bus:   "1",
+    S_n:   100e6,
+    F_n:   50.0,
+
+    // Coupling impedance
+    XL:    0.1,       // pu (0.04–0.40)
+    Re:    0.0,       // pu (0 ≤ Re ≤ XL/4)
+
+    // VSM active power control
+    mp:    0.02,      // P-f droop gain (= 1/mr)
+    Tp:    0.0,       // P-f droop filter time constant (s); 0 = bypass
+    H:     0.5,       // virtual inertia constant (s)
+    D1:    0.0,       // algebraic damping
+    D2:    100.0,     // transient damping (washout-based)
+    omegaD: 50.0,     // washout corner frequency (rad/s)
+    Dωmax:  0.05,     // Δωm upper limit (pu)
+    Dωmin: -0.05,     // Δωm lower limit (pu)
+
+    // Voltage control
+    mq:    0.05,      // Q-V droop gain
+    kpv:   0.0,       // voltage PI proportional gain
+    kiv:   5.0,       // voltage PI integral gain (pu/s)
+    Vref:  1.0,       // voltage reference (pu)
+    Qref:  0.0,       // reactive power reference (pu)
+    Pref:  0.8,       // active power setpoint (pu)
+
+    // Current limits
+    ImaxSS: 1.0,      // steady-state current limit (pu; ≤0 → 1/XL)
+    ImaxF:  1.5,      // transient current limit (pu)
+    kf:     0.9,      // priority factor (0 → reset to 1)
+    Ke:     1.0,      // negative current scalar (battery)
+
+    // Measurement filters
+    Tpf:   0.02,  TQf: 0.02,  TVf: 0.02,  Tif: 0.02,
+
+    // PLL
+    kpPLL:   0.265,
+    kiPLL:   2.65,
+    DwPLLmax:  0.2,
+    DwPLLmin: -0.2,
+    VPLLfrz:  0.05,   // PLL freeze voltage threshold (pu; ≤0 = disabled)
+
+    // Flags
+    omegaFlag: 0,  // 0=omega_coi  1=omega_PLL for P-f droop
+    VdrpFlag:  0,  // 0=Q droop  1=Iq droop
+    QVFlag:    1,  // 0=Qref  1=Vref for plant controller
+    PQFlag:    1,  // 0=Q priority  1=P priority
+    FFlag:     1,  // 0=droop disabled  1=enabled
+    ESFlag:    1,  // 0=non-battery  1=battery (allows neg. active current)
+
+    V_ini: 1.0
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}
