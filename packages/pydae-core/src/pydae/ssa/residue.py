@@ -25,8 +25,8 @@ def residue(model, input_name, output_name, mode_idx):
     lambda_i = model.eigenvalues[mode_idx]
 
     # 1. Plant input formulation
-    if input_name in model.u_run_names:
-        idx_u = model.u_run_names.index(input_name) 
+    if input_name in model.u_run_list:
+        idx_u = model.u_run_list.index(input_name)
     else:
         raise ValueError(f"Error: {input_name} is not a valid input parameter.")
         
