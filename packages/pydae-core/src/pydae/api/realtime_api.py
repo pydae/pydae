@@ -33,16 +33,23 @@ Usage
 
 REST endpoints
 --------------
+``GET  /measurements``
+    All h_dict outputs (browser-friendly).
+``POST /measurements``
+    Selective h_dict outputs: ``{"names": ["E_p", "E_k"]}``
+``GET  /cosim/measurements``
+    Only the measurements declared in ``configs`` (co-simulation subset).
 ``POST /set_input``
     Write a single setpoint: ``{"name": "f_x", "value": 0.5}``
 ``POST /setpoints``
-    Write multiple setpoints atomically: ``{"setpoints": {"f_x": 0.5, "K_d": 0.01}}``
-``POST /measurements``
-    Read h_dict outputs: ``{"names": ["E_p", "E_k"]}``
+    Write multiple setpoints: ``{"setpoints": {"f_x": 0.5}, "timestamp": 1.0}``
+``POST /cosim/setpoints``
+    Write setpoints restricted to those declared in ``configs``; rejects unknown keys.
 ``GET  /status``
     Returns ``{"is_running": bool, "t_sim": float}``
 """
 
+import re
 import time
 import threading
 from contextlib import asynccontextmanager
@@ -51,6 +58,48 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+
+def _resolve_emec_names(entry: dict, candidate_names: set[str]) -> list[str]:
+    """Resolve one config entry to matching pydae variable names.
+
+    Handles the three patterns used in the ``configs`` section of a pydae
+    co-simulation JSON:
+
+    ``emec_name``
+        Exact variable name — returned as-is if present in *candidate_names*.
+    ``emec_prefix``
+        Prefix: returns all candidates matching ``{prefix}_{suffix}``.
+    ``emec_template``
+        Template with one or more ``<emec_id>`` tokens.  The first token
+        becomes a regex capture group; subsequent tokens become backreferences
+        so that only names where all tokens resolve to the *same* device id
+        are matched (e.g. ``p_line_<emec_id>_<emec_id>LV`` matches
+        ``p_line_SS1_SS1LV`` but not ``p_line_SS1_SS2LV``).
+    """
+    if "emec_name" in entry:
+        name = entry["emec_name"]
+        return [name] if name in candidate_names else []
+
+    if "emec_prefix" in entry:
+        prefix = entry["emec_prefix"] + "_"
+        return sorted(n for n in candidate_names if n.startswith(prefix))
+
+    if "emec_template" in entry:
+        template = entry["emec_template"]
+        parts = template.split("<emec_id>")
+        n_tokens = len(parts) - 1
+        if n_tokens == 0:
+            return [template] if template in candidate_names else []
+        # Build regex: first token → capture group, rest → backreference.
+        pattern = re.escape(parts[0])
+        for i in range(n_tokens):
+            pattern += "([A-Za-z0-9_]+)" if i == 0 else r"\1"
+            pattern += re.escape(parts[i + 1])
+        rx = re.compile(pattern)
+        return sorted(n for n in candidate_names if rx.fullmatch(n))
+
+    return []
 
 
 class RealTimeSimulator:
@@ -87,9 +136,11 @@ class RealTimeSimulator:
         self.is_running: bool = False
         self._thread: threading.Thread | None = None
         self._integrator = None
-        # Pending ramp: list of {name: target} steps to apply one chunk at a time.
         self._ramp_chunks = ramp_chunks
-        self._ramp_queue: list[dict[str, float]] = []  # one entry per remaining chunk
+        self._ramp_queue: list[dict[str, float]] = []
+        # Co-simulation variable lists — populated by load_cosim_config().
+        self._cosim_meas_names: list[str] = []
+        self._cosim_setp_names: list[str] = []
 
     # ── integrator setup ───────────────────────────────────────────────────
 
@@ -177,6 +228,59 @@ class RealTimeSimulator:
                     f"[RT overrun] {overrun_ms:.2f} ms behind schedule"
                     f" at t_sim={self.t_sim:.3f} s"
                 )
+
+    # ── co-simulation config ───────────────────────────────────────────────
+
+    def load_cosim_config(self, cosim_config: dict) -> None:
+        """Parse a ``configs`` dict and build co-simulation variable lists.
+
+        Call this before :meth:`start`.  The *cosim_config* is the value of
+        the ``configs`` key in the co-simulation JSON (already parsed — pass
+        ``data["configs"]``, not the file path).
+
+        Each top-level key in *cosim_config* is a device type (e.g. ``"poi"``,
+        ``"inv"``).  Each device type has ``measurements`` and ``setpoints``
+        lists whose entries use ``emec_name``, ``emec_prefix``, or
+        ``emec_template`` to reference pydae variables.
+
+        Measurement names are resolved against ``h_dict``; setpoint names
+        against ``u_run_names``.  Duplicates are removed preserving first-seen
+        order so the response is stable across calls.
+        """
+        h_names: set[str] = set(
+            getattr(self.model, "sys_dict", {}).get("h_dict", {}).keys()
+        )
+        u_names: set[str] = set(getattr(self.model, "u_run_names", []))
+
+        seen_m: set[str] = set()
+        seen_s: set[str] = set()
+        meas: list[str] = []
+        setp: list[str] = []
+
+        for device_cfg in cosim_config.values():
+            for entry in device_cfg.get("measurements", []):
+                for name in _resolve_emec_names(entry, h_names):
+                    if name not in seen_m:
+                        seen_m.add(name)
+                        meas.append(name)
+            for entry in device_cfg.get("setpoints", []):
+                for name in _resolve_emec_names(entry, u_names):
+                    if name not in seen_s:
+                        seen_s.add(name)
+                        setp.append(name)
+
+        self._cosim_meas_names = meas
+        self._cosim_setp_names = setp
+
+    def cosim_measurements(self) -> dict[str, float | None]:
+        """Return current values for co-simulation measurements, thread-safely.
+
+        Returns only the variables declared in the ``configs`` section of the
+        co-simulation JSON (populated by :meth:`load_cosim_config`).  The
+        values are raw pydae h_dict values — unit conversion (``emec_scale``)
+        is the responsibility of the co-simulation client.
+        """
+        return self.measurements(self._cosim_meas_names)
 
     # ── lifecycle ──────────────────────────────────────────────────────────
 
@@ -354,7 +458,13 @@ async def lifespan(app: FastAPI):
         )
 
     chunk_ms: float = getattr(app.state, "chunk_ms", 50.0)
-    simulator = RealTimeSimulator(model, chunk_ms=chunk_ms)
+    ramp_chunks: int = getattr(app.state, "ramp_chunks", 20)
+    simulator = RealTimeSimulator(model, chunk_ms=chunk_ms, ramp_chunks=ramp_chunks)
+
+    cosim_config = getattr(app.state, "cosim_config", None)
+    if cosim_config:
+        simulator.load_cosim_config(cosim_config)
+
     simulator.start()
 
     yield  # server is live here
@@ -435,6 +545,51 @@ def measurements_get():
         h_names = list(simulator.model.sys_dict["h_dict"].keys())
     data = simulator.measurements(h_names)
     return {"data": data, "t_sim": simulator.t_sim}
+
+
+@app.get("/cosim/measurements", summary="Co-simulation measurements (configs subset)")
+def cosim_measurements_get():
+    """Return current values for the measurements declared in the co-simulation config.
+
+    Only variables listed in the ``configs.*.measurements`` section of the
+    co-simulation JSON are returned.  Values are raw pydae h_dict values;
+    apply ``emec_scale`` on the client side if field-unit conversion is needed.
+
+    Requires ``app.state.cosim_config`` to be set before server startup.
+    Returns 501 if no co-simulation config was loaded.
+    """
+    if simulator is None:
+        raise HTTPException(status_code=503, detail="Simulator not running")
+    if not simulator._cosim_meas_names:
+        raise HTTPException(status_code=501, detail="No co-simulation config loaded")
+    data = simulator.cosim_measurements()
+    return {"data": data, "t_sim": simulator.t_sim}
+
+
+@app.post("/cosim/setpoints", summary="Co-simulation setpoints (configs subset)")
+def cosim_setpoints(payload: SetpointsPayload):
+    """Write setpoints restricted to variables declared in the co-simulation config.
+
+    Only keys listed in ``configs.*.setpoints`` are accepted.  Unknown keys
+    are rejected with 422 so the co-simulation client gets immediate feedback
+    instead of silently writing into an unreachable variable.
+
+    Values are in pydae units; apply ``emec_scale`` on the client side before
+    sending if your source is in field units.
+    """
+    if simulator is None:
+        raise HTTPException(status_code=503, detail="Simulator not running")
+    if not simulator._cosim_setp_names:
+        raise HTTPException(status_code=501, detail="No co-simulation config loaded")
+    allowed = set(simulator._cosim_setp_names)
+    unknown = [k for k in payload.setpoints if k not in allowed]
+    if unknown:
+        raise HTTPException(
+            status_code=422,
+            detail={"unknown_setpoints": unknown, "allowed": sorted(allowed)},
+        )
+    simulator.setpoints(payload.setpoints)
+    return {"status": "ok", "setpoints": payload.setpoints, "timestamp": payload.timestamp}
 
 
 @app.get("/status", summary="Simulator health check")

@@ -153,6 +153,38 @@ Small-signal analysis via linearization, imported as `from pydae.ssa import eval
 
 Called after `model.ini()` when the Jacobian sub-blocks are populated.
 
+### Real-time API (pydae.api)
+
+`packages/pydae-core/src/pydae/api/realtime_api.py` — soft real-time FastAPI server wrapping a `CasadiModel` in a background thread.
+
+**Usage pattern:**
+```python
+from pydae.api.realtime_api import app
+app.state.model        = model          # CasadiModel, already ini()-ed
+app.state.chunk_ms     = 50.0           # integration chunk in ms
+app.state.ramp_chunks  = 20             # chunks to spread each setpoint change over
+app.state.cosim_config = grid.data.get("configs", {})  # optional co-sim config
+uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+**Endpoints:**
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/measurements` | All h_dict outputs (browser-friendly) |
+| `POST` | `/measurements` | Selective h_dict outputs by name list |
+| `GET` | `/cosim/measurements` | Only measurements declared in `configs` |
+| `POST` | `/setpoints` | Write any u_run inputs (ramped); body: `{"setpoints": {...}, "timestamp": float\|null}` |
+| `POST` | `/cosim/setpoints` | Write setpoints restricted to `configs` — rejects unknown keys with 422 |
+| `POST` | `/set_input` | Write a single input (ramped) |
+| `GET` | `/status` | `{"is_running": bool, "t_sim": float}` |
+
+**Key design points:**
+- Setpoint changes are ramped over `ramp_chunks` chunks to avoid `IDA_LINESEARCH_FAIL` on large steps.
+- The background thread catches `RuntimeError` from failed IDAS steps and logs them rather than crashing.
+- CORS is open (`allow_origins=["*"]`) for browser and co-simulation client access.
+- `cosim_config` uses the `configs` section of the co-simulation JSON. Variable names are resolved via `emec_name` (exact), `emec_prefix` (prefix match), or `emec_template` (regex with `<emec_id>` backreference). Measurements resolve against `h_dict`; setpoints against `u_run_names`.
+
 ## Import Paths
 
 ```python

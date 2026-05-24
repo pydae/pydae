@@ -29,7 +29,7 @@ pydae distinguishes three kinds of quantities at runtime:
 |---|---|---|
 | **Differential states** `x` | `model.x` | — not exposed |
 | **Algebraic variables** `y_run` | `model.y_run` | — not exposed |
-| **Outputs** `z = h(x, y, u, p)` | `h_dict` in `sys_dict` | `POST /measurements` |
+| **Outputs** `z = h(x, y, u, p)` | `h_dict` in `sys_dict` | `GET /measurements`, `POST /measurements` |
 
 Only variables declared in `h_dict` are readable through `/measurements`.
 This is intentional: the output map acts as a contract — if a signal must be
@@ -75,11 +75,33 @@ A single `threading.Lock` protects all shared state:
 
 - `_step()` — integrator call and array writes
 - `set_input()` / `setpoints()` — input writes
-- `measurements()` — output reads
+- `measurements()` / `cosim_measurements()` — output reads
 
 The lock is held only for the minimum critical section. The pacing sleep
 happens **outside** the lock so that HTTP handlers are never blocked waiting
 for `time.sleep()` to return.
+
+### Setpoint ramping
+
+Applying a large setpoint step instantaneously can cause IDAS
+(`IDA_LINESEARCH_FAIL`) to fail to find consistent algebraic initial
+conditions for the new operating point.  To prevent this, every setpoint
+change is spread evenly over `ramp_chunks` integration chunks (default 20).
+
+With `chunk_ms = 50` ms and `ramp_chunks = 20` the ramp duration is 1 s.
+Tune `ramp_chunks` to match the dynamics of your model:
+
+```python
+app.state.ramp_chunks = 10   # faster ramp: 10 × chunk_ms
+```
+
+If a step still fails (e.g. model instability), the background thread logs the
+error and continues from the next chunk rather than crashing.
+
+### CORS
+
+`CORSMiddleware` is enabled with `allow_origins=["*"]` so the API is
+accessible from browsers and co-simulation clients running on any origin.
 
 ---
 
@@ -95,6 +117,7 @@ sequenceDiagram
 
     loop every chunk_sec
         Thread->>Lock: acquire
+        Thread->>Thread: apply ramp step (if pending)
         Thread->>IDAS: integrator(x, y_run, p)
         IDAS-->>Thread: x_next, y_run_next
         Thread->>Thread: t_sim += chunk_sec
@@ -104,11 +127,11 @@ sequenceDiagram
 
     Client->>API: POST /setpoints
     API->>Lock: acquire
-    API->>API: u_run_vals[i] = value
+    API->>API: enqueue ramp toward target values
     API->>Lock: release
     API-->>Client: {"status": "ok"}
 
-    Client->>API: POST /measurements
+    Client->>API: GET /measurements
     API->>Lock: acquire
     API->>API: h_fn(x, y_run, p)  ← one call for all names
     API->>Lock: release
@@ -144,7 +167,6 @@ sys_dict = {
     "y_run_list": [lam, theta],
     "u_ini_dict": {"theta": np.deg2rad(10.0)},
     "u_run_dict": {"f_x": 0.0},
-    # Only h_dict entries are readable via /measurements
     "h_dict": {
         "E_p":   M * G * (p_y + L),
         "E_k":   0.5 * M * (v_x**2 + v_y**2),
@@ -167,9 +189,88 @@ model.ini(
 )
 
 # ── 3. Attach to the FastAPI app and serve ──────────────────────────────────
-app.state.model    = model
-app.state.chunk_ms = 50.0      # 50 ms chunks
+app.state.model       = model
+app.state.chunk_ms    = 50.0   # integration chunk in milliseconds
+app.state.ramp_chunks = 20     # setpoint ramp duration in chunks
 
+uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+---
+
+## Co-simulation interface
+
+When pydae is used as a power system simulator inside a co-simulation
+framework (e.g. coupled with Mininet for communication-network emulation), the
+co-simulation JSON can include a `configs` section that declares which
+measurements and setpoints belong to each field-device type:
+
+```json
+{
+  "configs": {
+    "poi": {
+      "measurements": [
+        {"emec_name": "U_POI",           "emec_scale": 1.0,  "fdii": true},
+        {"emec_name": "p_line_POI_POIHV","emec_scale": 1.0,  "fdii": true}
+      ],
+      "setpoints": []
+    },
+    "inv": {
+      "measurements": [
+        {"emec_prefix": "p_s",           "emec_scale": 1.0,  "fdii": true},
+        {"emec_template": "p_line_<emec_id>_<emec_id>LV", "emec_scale": 1.0, "fdii": true}
+      ],
+      "setpoints": [
+        {"emec_prefix": "p_s_ppc", "emec_scale": 3.33e-07, "fdii": true},
+        {"emec_prefix": "q_s_ppc", "emec_scale": 3.33e-07, "fdii": true}
+      ]
+    }
+  }
+}
+```
+
+### Variable name resolution
+
+Each entry in the `configs` section uses one of three patterns to reference
+pydae variables:
+
+| Pattern | Example | Resolves to |
+|---|---|---|
+| `emec_name` | `"U_POI"` | Exact h_dict key |
+| `emec_prefix` | `"p_s"` | All h_dict keys starting with `p_s_` |
+| `emec_template` | `"p_line_<emec_id>_<emec_id>LV"` | h_dict keys where both `<emec_id>` tokens are the same device id (e.g. `p_line_SS1_SS1LV`) |
+
+Measurements are resolved against `h_dict`; setpoints against `u_run_names`.
+Duplicates are removed preserving first-seen order.
+
+### `emec_scale`
+
+`emec_scale` is a unit-conversion factor defined by the field device
+(Modbus register encoding). The API returns raw pydae values — apply
+`emec_scale` on the client side:
+
+- **Measurement** → `field_value = pydae_value * emec_scale`
+- **Setpoint** → `pydae_value = field_value * emec_scale`
+
+### Wiring the config
+
+Pass the parsed `configs` dict to `app.state.cosim_config` before starting
+the server.  When `BpsBuilder` is used, the full JSON is available at
+`grid.data`:
+
+```python
+from pydae.bps import BpsBuilder
+from pydae.api.realtime_api import app
+
+grid = BpsBuilder('my_network.json', use_casadi=True)
+grid.construct('my_network')
+
+# ... build model, ini() ...
+
+app.state.model        = model
+app.state.cosim_config = grid.data.get("configs", {})
+
+import uvicorn
 uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
@@ -184,9 +285,68 @@ Returns the simulator health and current simulation time.
 **Response**
 
 ```json
+{"is_running": true, "t_sim": 3.15}
+```
+
+---
+
+### `GET /measurements`
+
+Returns current values of **all** output variables declared in `h_dict`.
+Browser-friendly — no request body needed.
+
+**Response**
+
+```json
 {
-  "is_running": true,
+  "data": {
+    "E_p":   498.3,
+    "E_k":   0.12,
+    "theta": 0.174
+  },
   "t_sim": 3.15
+}
+```
+
+---
+
+### `POST /measurements`
+
+Returns current values of a **selected subset** of `h_dict` outputs.
+Names absent from `h_dict` are returned as `null`.  `_h_fn` is evaluated
+once per request regardless of how many names are listed.
+
+**Request body**
+
+```json
+{"names": ["E_p", "E_k", "theta"]}
+```
+
+**Response** — same structure as `GET /measurements`.
+
+---
+
+### `GET /cosim/measurements`
+
+Returns current values of the measurements declared in the `configs` section
+of the co-simulation JSON (populated via `app.state.cosim_config`).
+
+Values are raw pydae h_dict values; apply `emec_scale` on the client if
+field-unit conversion is needed.
+
+Returns **501** if no co-simulation config was loaded.
+
+**Response**
+
+```json
+{
+  "data": {
+    "U_POI":            20102.6,
+    "p_line_POI_POIHV": 2987120.3,
+    "p_s_SS1":          0.5,
+    "p_s_SS2":          0.5
+  },
+  "t_sim": 197.5
 }
 ```
 
@@ -194,7 +354,8 @@ Returns the simulator health and current simulation time.
 
 ### `POST /set_input`
 
-Write a single runtime input.
+Write a single runtime input.  The change is ramped over `ramp_chunks`
+integration chunks.
 
 **Request body**
 
@@ -212,53 +373,79 @@ Write a single runtime input.
 
 ### `POST /setpoints`
 
-Write several runtime inputs atomically in one lock acquisition.  All
-values are applied before the next integration step, so the solver never sees
-a partially-updated input vector.
+Write several runtime inputs atomically.  All values are enqueued as a single
+ramp so that the solver never sees a partially-updated input vector.
+
+An optional `timestamp` field (wall-clock seconds from the sender) is echoed
+back in the response and can be used by the co-simulation framework for
+latency accounting.
 
 **Request body**
 
 ```json
 {
-  "setpoints": {
-    "f_x": 5.0,
-    "K_d": 0.05
-  }
+  "setpoints": {"f_x": 5.0, "K_d": 0.05},
+  "timestamp": 1716500000.123
 }
 ```
 
 **Response**
 
 ```json
-{"status": "ok", "setpoints": {"f_x": 5.0, "K_d": 0.05}}
+{
+  "status": "ok",
+  "setpoints": {"f_x": 5.0, "K_d": 0.05},
+  "timestamp": 1716500000.123
+}
 ```
 
 ---
 
-### `POST /measurements`
+### `POST /cosim/setpoints`
 
-Read current values of output variables declared in `h_dict`.  Names absent
-from `h_dict` are returned as `null`.  `_h_fn` is evaluated once per request
-regardless of how many names are listed.
+Write setpoints restricted to variables declared in `configs.*.setpoints`.
+Unknown keys are rejected immediately with **422** so the co-simulation client
+gets explicit feedback instead of silently writing into an unreachable
+variable.
 
-**Request body**
+Values are in pydae units; apply `emec_scale` on the client side before
+sending if your source is in field units.
 
-```json
-{"names": ["E_p", "E_k", "theta"]}
-```
+Returns **501** if no co-simulation config was loaded.
 
-**Response**
+**Request body** — same `SetpointsPayload` format as `POST /setpoints`:
 
 ```json
 {
-  "data": {
-    "E_p":   498.3,
-    "E_k":   0.12,
-    "theta": 0.174
+  "setpoints": {
+    "p_s_ppc_SS1": 0.8,
+    "p_s_ppc_SS2": 0.8
   },
-  "t_sim": 3.15
+  "timestamp": 1716500000.456
 }
 ```
+
+**422 response** when unknown keys are sent:
+
+```json
+{
+  "detail": {
+    "unknown_setpoints": ["bad_name"],
+    "allowed": ["p_s_ppc_SS1", "p_s_ppc_SS2", "q_s_ppc_SS1", "q_s_ppc_SS2"]
+  }
+}
+```
+
+---
+
+## `app.state` configuration reference
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `model` | `CasadiModel` | *required* | Initialised model (`ini()` already called) |
+| `chunk_ms` | `float` | `50.0` | Integration chunk size in milliseconds |
+| `ramp_chunks` | `int` | `20` | Number of chunks to spread each setpoint change over |
+| `cosim_config` | `dict` | `{}` | Parsed `configs` section from the co-simulation JSON |
 
 ---
 
@@ -266,7 +453,8 @@ regardless of how many names are listed.
 
 ```{eval-rst}
 .. autoclass:: pydae.api.realtime_api.RealTimeSimulator
-   :members: start, stop, set_input, setpoints, measurements
+   :members: start, stop, set_input, setpoints, measurements,
+             load_cosim_config, cosim_measurements
    :undoc-members:
    :show-inheritance:
 ```
@@ -294,7 +482,7 @@ Exposing raw states and algebraic variables through the API would break
 encapsulation: the internal variable layout (indices in `model.x`,
 `model.y_run`) is an implementation detail of the model.  `h_dict` is the
 explicit, user-defined output contract.  Any signal that must be observable
-externally should be declared there, with a meaningful engineering name.
+externally should be declared there.
 
 ### Why a fixed chunk size rather than variable step?
 
@@ -308,10 +496,19 @@ chunk; the chunk is only the time interval handed to `ca.integrator()`.
 
 | Value | Trade-off |
 |---|---|
-| **10–25 ms** | Finer time resolution, higher CPU overhead (more integrator calls per second, more OS wakeups). |
-| **50 ms** (default) | Good balance for most power-system models. |
-| **100–200 ms** | Lower overhead for slow dynamics; coarser setpoint latency. |
+| **10–25 ms** | Finer time resolution, higher CPU overhead |
+| **50 ms** (default) | Good balance for most power-system models |
+| **100–200 ms** | Lower overhead for slow dynamics; coarser setpoint latency |
 
-A chunk that is too small relative to the integrator's computation time will
-generate continuous overrun warnings.  If that happens, increase `chunk_ms`
-or reduce the model size.
+A chunk too small relative to the integrator's computation time will produce
+continuous overrun warnings.  If that happens, increase `chunk_ms` or reduce
+the model size.
+
+### Why ramp setpoints?
+
+IDAS computes consistent algebraic initial conditions (`calc_ic=True`) at the
+start of each chunk.  A large instantaneous step in `u_run` makes the
+Newton-based line search in `IDACalcIC` fail (`IDA_LINESEARCH_FAIL`) because
+the algebraic variables from the previous step are far from the new equilibrium.
+Spreading the change over many small increments keeps each step well within the
+basin of convergence.
