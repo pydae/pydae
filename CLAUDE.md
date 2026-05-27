@@ -133,7 +133,15 @@ On `ini()` failure, diagnostics from `diagnostics/dae_check.py` run automaticall
 
 ### Power Systems Builders (pydae-bps, pydae-uds)
 
-These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), loads, lines, reactive power banks (`miscellaneous/`). In `pydae-uds`: lines (`lines/`), grid-forming VSCs (`vsgs/`).
+These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`). In `pydae-uds`: lines (`lines/`), grid-forming VSCs (`vsgs/`).
+
+**WECC renewable model stack** (three-layer, all in `pydae-bps`):
+```
+ppcs/repc_a.py    — plant-level controller; monitors POI bus, commands Pref/Qext to one or more converters
+weccs/reec_b.py   — local electrical control; sits between REPC_A and REGC_A, commands Ipcmd/Iqcmd
+weccs/regc_a.py   — generator/converter interface; injects Ip/Iq into the network
+```
+REEC_B and REGC_A are nested inside a `weccs` HJSON entry (same pattern as an AVR inside `syns`). REPC_A is a separate plant-level entry in `ppcs`. Available variants: `reec_b`, `reec_e`; `regc_a`, `regc_b`, `regfm_a1`, `regfm_b1`; `repc_a`, `repc_d`.
 
 **AGC (Automatic Generation Control)**: activated by an `agc` key in the HJSON data dict. `BpsBuilder.construct()` calls `add_agc(self)` after all other builders, so the governor's `p_c_{gen}` (or `p_m_{gen}`) already exists in `u_ini_dict`/`u_run_dict` — `add_agc` pops it and replaces it with an algebraic variable driven by a PI on rotor speed. Config format:
 
@@ -197,6 +205,19 @@ from pydae import utils   # shared helpers (e.g., unit conversions, grid utiliti
 
 Old-style imports (`import pydae.build_cffi`, `from pydae.bmapu import ...`) no longer work. See `MIGRATION_GUIDE.md` for full mapping.
 
+## Editable install into an external Python (Jupyter / Anaconda)
+
+To make the in-tree packages visible to a system-wide or Anaconda interpreter without using the `uv` workspace `.venv`:
+
+```bash
+# from the repo root, using the target interpreter explicitly
+python -m pip install -e packages/pydae-core -e packages/pydae-bps
+# or on Windows Anaconda:
+"C:/ProgramData/anaconda3/python.exe" -m pip install -e packages/pydae-core -e packages/pydae-bps
+```
+
+Edits under `packages/*/src/` are picked up on the next import — no reinstall needed. Note: `pydae` is a namespace package so `pydae.__version__` is undefined; check versions with `from importlib.metadata import version; version('pydae')`.
+
 ## Cross-platform notes
 
 This repo is developed on both Windows and Linux (Debian). Claude Code may be invoked from either — keep commands portable.
@@ -237,7 +258,7 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 - `packages/pydae-core/src/pydae/core/` — engine. `builder/` (sympy + casadi + codegen), `model/` (ctypes_model + casadi_model), `common/` (parser, symbolic), `diagnostics/`.
 - `packages/pydae-core/src/pydae/ssa/` — small-signal analysis (separate sibling namespace, not under `core/`).
 - `packages/pydae-core/src/pydae/daesolver/` — C runtime: `daesolver.c/.h`, `daesolver_dense.{c,h}`, `daesolver_dlu_klu.c`, `daesolver_run_lapack.{c,h}`.
-- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `wecs/`, `loads/`, `lines/`, `psss/`, `pods/`, `sources/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`.
+- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `vsc_ctrls/`, `wecs/`, `weccs/`, `ppcs/`, `pvs/`, `loads/`, `lines/`, `psss/`, `pods/`, `sources/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`. `utils/` contains `visualizer.py` (`PowerSystemVisualizer` — draws reactance-weighted topology diagrams via networkx), `ss_num2sym.py`, `reporter.py`, and `validator.py`.
 - `packages/pydae-uds/src/pydae/uds/` — unbalanced distribution builder. Component families: `lines/`, `vsgs/` (grid-forming VSCs).
 - `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
 - `examples/` — standalone scripts (`pendulum.py`, `milano*ord*.py`). Build artefacts (`*_data.json`, `*.svg`) are gitignored.
