@@ -12,6 +12,7 @@ from pydae.bps.pvs.pv_dq import pv_dq
 from pydae.bps.pvs.pv_dq_d import pv_dq_d
 from pydae.bps.pvs.pv_dq_ss import pv_dq_ss
 from pydae.bps.pvs.pv_dq_vrt import pv_dq_vrt
+from pydae.bps.pvs.pv_pq_ss import pv_pq_ss
 
 def add_pvs(grid):
 
@@ -53,8 +54,11 @@ def add_pvs(grid):
         if item['type'] == 'pv_dq_ss':                    
             p_W, q_var = pv_dq_ss(grid,name,bus_name,data_dict)
 
-        if item['type'] == 'pv_dq_vrt':                    
+        if item['type'] == 'pv_dq_vrt':
             p_W, q_var = pv_dq_vrt(grid,name,bus_name,data_dict)
+
+        if item['type'] == 'pv_pq_ss':
+            p_W, q_var = pv_pq_ss(grid,name,bus_name,data_dict)
 
         # grid power injection
         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected

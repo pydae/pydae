@@ -22,6 +22,9 @@ The main public names are:
 - **`pydae.core.common`** — shared parser and symbolic utilities.
 - **`pydae.core.diagnostics`** — Jacobian health checks and structural
   analysis helpers.
+- **`pydae.api.realtime_api`** — soft real-time simulation with a FastAPI
+  REST interface (requires ``pydae[api]``).  See the
+  [Real-time API](realtime_api.md) page for usage and design details.
 
 ```{eval-rst}
 .. autosummary::

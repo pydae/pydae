@@ -243,26 +243,31 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     R_bat = backend.symbols(f"R_bat_{name}")
 
     # 7. OCV-SOC curve (piecewise interpolation or linear model)
-    # NOTE: interpolating_spline requires sympy symbols, so we create a
-    # dedicated sympy symbol for the spline variable only.
     soc_sym = sym.Symbol(f"soc_{name}", real=True)
     if "socs" in data_dict:
         socs = np.array(data_dict["socs"])
         es = np.array(data_dict["es"])
         e_max = float(np.max(es))
-        e_soc_order = data_dict.get("e_soc_order", 1)
-        interpolation = interpolating_spline(
-            e_soc_order, soc_sym, socs, es
-        )
-        # Extend to constant e_max beyond last knot
-        interpolation._args = tuple(
-            list(interpolation._args)
-            + [sym.functions.elementary.piecewise.ExprCondPair(e_max, True)]
-        )
-        # Replace sympy soc symbol with backend-compatible expression
-        e = interpolation.subs(soc_sym, soc)
         soc_ref_N = data_dict["soc_ref"]
         e_ini = float(np.interp(soc_ref_N, socs, es))
+        if backend.use_casadi:
+            import casadi as ca
+            # Build CasADi piecewise linear interpolation with if_else
+            e = ca.SX(e_max)
+            for _i in range(len(socs) - 2, -1, -1):
+                _x0, _x1 = float(socs[_i]), float(socs[_i + 1])
+                _y0, _y1 = float(es[_i]), float(es[_i + 1])
+                _seg = _y0 + (_y1 - _y0) / (_x1 - _x0) * (soc - _x0)
+                e = ca.if_else(soc < _x1, _seg, e)
+            e = ca.if_else(soc < float(socs[0]), float(es[0]), e)
+        else:
+            e_soc_order = data_dict.get("e_soc_order", 1)
+            interpolation = interpolating_spline(e_soc_order, soc_sym, socs, es)
+            interpolation._args = tuple(
+                list(interpolation._args)
+                + [sym.functions.elementary.piecewise.ExprCondPair(e_max, True)]
+            )
+            e = interpolation.subs(soc_sym, soc)
     else:
         B_0 = backend.symbols(f"B_0_{name}")
         B_1 = backend.symbols(f"B_1_{name}")
@@ -277,9 +282,16 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     # 9. State-space filter for power references
     from pydae.bps.utils.ss_num2sym import ss_num2sym
 
-    # ss_num2sym returns sympy expressions; use sympy symbols for replacement
-    p_s_ppc_sym = sym.Symbol(f"p_s_ppc_{name}")
-    q_s_ppc_sym = sym.Symbol(f"q_s_ppc_{name}")
+    def _replace(expr, old, new):
+        if backend.use_casadi:
+            import casadi as ca
+            return ca.substitute(expr, old, new)
+        return expr.replace(old, new)
+
+    def _to_list(mat):
+        if backend.use_casadi:
+            return [mat[i, 0] for i in range(mat.shape[0])]
+        return list(mat)
 
     A_mat = np.array([[-10.0, 0.0],
                       [0.0, -10.0]])
@@ -296,28 +308,33 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
         C_mat = np.array(data_dict["C_pq"])
         D_mat = np.array(data_dict["D_pq"])
 
-    sys = ss_num2sym(f"{name}", A_mat, B_mat, C_mat, D_mat)
-    sys["dx"] = sys["dx"].replace(sys["u"][0, 0], p_s_ppc_sym)
-    sys["dx"] = sys["dx"].replace(sys["u"][1, 0], q_s_ppc_sym)
-    sys["z_evaluated"] = sys["z_evaluated"].replace(
-        sys["u"][0, 0], p_s_ppc_sym
-    )
-    sys["z_evaluated"] = sys["z_evaluated"].replace(
-        sys["u"][1, 0], q_s_ppc_sym
-    )
+    sys = ss_num2sym(f"{name}", A_mat, B_mat, C_mat, D_mat, backend=backend)
+    p_s_ppc_sym = backend.symbols(f"p_s_ppc_{name}")
+    q_s_ppc_sym = backend.symbols(f"q_s_ppc_{name}")
+    sys["dx"] = _replace(sys["dx"], sys["u"][0, 0], p_s_ppc_sym)
+    sys["dx"] = _replace(sys["dx"], sys["u"][1, 0], q_s_ppc_sym)
+    sys["z_evaluated"] = _replace(sys["z_evaluated"], sys["u"][0, 0], p_s_ppc_sym)
+    sys["z_evaluated"] = _replace(sys["z_evaluated"], sys["u"][1, 0], q_s_ppc_sym)
     p_s_ref = sys["z_evaluated"][0, 0]
     q_s_ref = sys["z_evaluated"][1, 0]
 
     # 10. Power limiting based on SOC bounds
+    if backend.use_casadi:
+        import casadi as ca
+        _cond_dch = ca.logic_and(p_s_ref <= 0.0, soc < soc_max)
+        _cond_ch  = ca.logic_and(p_s_ref > 0.0,  soc > soc_min)
+    else:
+        _cond_dch = (p_s_ref <= 0.0) & (soc < soc_max)
+        _cond_ch  = (p_s_ref > 0.0)  & (soc > soc_min)
     p_s = backend.Piecewise(
-        (p_s_ref, (p_s_ref <= 0.0) & (soc < soc_max)),
-        (p_s_ref, (p_s_ref > 0.0) & (soc > soc_min)),
+        (p_s_ref, _cond_dch),
+        (p_s_ref, _cond_ch),
         (0.0, True),
     ) + p_soc
     q_s = q_s_ref
 
-    # 11. Loss model
-    s_s = backend.sqrt(p_s**2 + q_s**2)
+    # 11. Loss model  (epsilon avoids d(sqrt)/d(p_s)=0/0 when p_s=q_s=0)
+    s_s = backend.sqrt(p_s**2 + q_s**2 + 1e-8)
     i_s = s_s / V_s
     p_loss = A_loss * i_s**2 + B_loss * i_s + C_loss
 
@@ -331,8 +348,8 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     g_v_dc = e - i_dc * R_bat - v_dc
 
     # 14. Assembly
-    grid.dae["f"] += [dsoc, dxi_soc] + list(sys["dx"])
-    grid.dae["x"] += [soc, xi_soc] + list(sys["x"])
+    grid.dae["f"] += [dsoc, dxi_soc] + _to_list(sys["dx"])
+    grid.dae["x"] += [soc, xi_soc] + _to_list(sys["x"])
     grid.dae["g"] += [g_p_dc, g_i_dc, g_v_dc]
     grid.dae["y_ini"] += [p_dc, i_dc, v_dc]
     grid.dae["y_run"] += [p_dc, i_dc, v_dc]

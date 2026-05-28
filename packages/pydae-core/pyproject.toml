@@ -44,6 +44,12 @@ dependencies = [
     "pytz>=2026.1.post1",
 ]
 
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/pydae/pydae"
 Documentation = "https://pydae.readthedocs.io"

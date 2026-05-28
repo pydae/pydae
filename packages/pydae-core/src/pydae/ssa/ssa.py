@@ -74,6 +74,11 @@ def eig(model):
         Right-eigenvector matrix ``V`` (columns), shape ``(N_x, N_x)``.
     ``model.left_eigenvectors``
         Left-eigenvector matrix ``W = inv(V)`` (rows), shape ``(N_x, N_x)``.
+    ``model.participation``
+        Kundur-normalised participation matrix (real, non-negative), shape
+        ``(N_x, N_x)``.  Element ``[k, i]`` is ``|φ_{ki}·ψ_{ik}|`` divided
+        by the column sum, so each column sums to 1.  Computed via
+        :func:`participation` with ``method='kundur'``.
 
     Parameters
     ----------
@@ -98,6 +103,7 @@ def eig(model):
     model.eigenvalues = eig_vals
     model.right_eigenvectors = V
     model.left_eigenvectors = W
+    model.participation = participation(model, method='kundur').values
 
     return eig_vals, V, W
 
@@ -370,12 +376,12 @@ def participation(system, method='kundur'):
         participation_df = pd.DataFrame(data=participation_matrix,index=system.x_list, columns=modes)
 
     if method=='kundur':
-        Phi = V
-        Psi = W
-        
-        participation_matrix =  Phi * Psi.T
-                
-        
+        # p_{ki} = φ_{ki} · ψ_{ik}  (Kundur eq. 12.37)
+        # Normalise each column so Σ_k |p_{ki}| = 1 (Kundur table convention)
+        P_raw = V * W.T
+        P_abs = np.abs(P_raw)
+        participation_matrix = P_abs / P_abs.sum(axis=0)
+
         modes = [f'Mode {it+1}' for it in range(N_x)]
         participation_df = pd.DataFrame(data=participation_matrix,index=system.x_list, columns=modes)
 

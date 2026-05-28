@@ -113,29 +113,29 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     #grid.dae['xy_0_dict'].update({f"v_dc_v_{name}":data_dict['V_mp']*data_dict['N_pv_s']})
     grid.dae['xy_0_dict'].update({f"v_dc_{name}":1.5})
 
-    ## VSC control 
+    ## VSC control
     ### inputs
-    p_s_ref = sym.Symbol(f"p_s_ref_{name}", real=True)
-    q_s_ref = sym.Symbol(f"q_s_ref_{name}", real=True)
-    i_sa_ref = sym.Symbol(f"i_sa_ref_{name}", real=True)
-    i_sr_ref = sym.Symbol(f"i_sr_ref_{name}", real=True)
+    p_s_ref = backend.symbols(f"p_s_ref_{name}")
+    q_s_ref = backend.symbols(f"q_s_ref_{name}")
+    i_sa_ref = backend.symbols(f"i_sa_ref_{name}")
+    i_sr_ref = backend.symbols(f"i_sr_ref_{name}")
 
     ### dynamic states
 
     ### algebraic states
-    i_sd_pq_ref,i_sq_pq_ref = sym.symbols(f'i_sd_pq_ref_{name},i_sq_pq_ref_{name}', real=True)
-    i_sd_ar_ref,i_sq_ar_ref = sym.symbols(f'i_sd_ar_ref_{name},i_sq_ar_ref_{name}', real=True)
-    i_sd_ref,i_sq_ref = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name}', real=True)
-    i_sd_ref,i_sq_ref = sym.symbols(f'i_sd_ref_{name},i_sq_ref_{name}', real=True)
+    i_sd_pq_ref,i_sq_pq_ref = backend.symbols(f'i_sd_pq_ref_{name},i_sq_pq_ref_{name}')
+    i_sd_ar_ref,i_sq_ar_ref = backend.symbols(f'i_sd_ar_ref_{name},i_sq_ar_ref_{name}')
+    i_sd_ref,i_sq_ref = backend.symbols(f'i_sd_ref_{name},i_sq_ref_{name}')
+    i_sd_ref,i_sq_ref = backend.symbols(f'i_sd_ref_{name},i_sq_ref_{name}')
 
-    v_td_ref,v_tq_ref = sym.symbols(f'v_td_ref_{name},v_tq_ref_{name}', real=True)
-    v_lvrt,lvrt_ext = sym.symbols(f"v_lvrt_{name},lvrt_ext_{name}", real=True)
+    v_td_ref,v_tq_ref = backend.symbols(f'v_td_ref_{name},v_tq_ref_{name}')
+    v_lvrt,lvrt_ext = backend.symbols(f"v_lvrt_{name},lvrt_ext_{name}")
 
-    x_p_lp1, x_p_lp2 = sym.symbols(f"x_p_lp1_{name},x_p_lp2_{name}", real=True)
-    x_q_lp1, x_q_lp2 = sym.symbols(f"x_q_lp1_{name},x_q_lp2_{name}", real=True) 
-    T_lp1p, T_lp2p = sym.symbols(f"T_lp1p_{name},T_lp2p_{name}", real=True) 
-    T_lp1q, T_lp2q = sym.symbols(f"T_lp1q_{name},T_lp2q_{name}", real=True) 
-    PRampUp,PRampDown, QRampUp, QRampDown, ramp_enable = sym.symbols(f"PRampUp_{name},PRampDown_{name},QRampUp_{name},QRampDown_{name},ramp_enable_{name}", real=True) 
+    x_p_lp1, x_p_lp2 = backend.symbols(f"x_p_lp1_{name},x_p_lp2_{name}")
+    x_q_lp1, x_q_lp2 = backend.symbols(f"x_q_lp1_{name},x_q_lp2_{name}")
+    T_lp1p, T_lp2p = backend.symbols(f"T_lp1p_{name},T_lp2p_{name}")
+    T_lp1q, T_lp2q = backend.symbols(f"T_lp1q_{name},T_lp2q_{name}")
+    PRampUp,PRampDown, QRampUp, QRampDown, ramp_enable = backend.symbols(f"PRampUp_{name},PRampDown_{name},QRampUp_{name},QRampDown_{name},ramp_enable_{name}") 
 
     ### parameters
     
@@ -146,21 +146,25 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     v_sd = v_sD * cos(delta) - v_sQ * sin(delta)   
     v_sq = v_sD * sin(delta) + v_sQ * cos(delta)
 
-    v_m = sym.sqrt(v_sd**2 + v_sq**2)
-    lvrt = sym.Piecewise((0.0,v_m>=v_lvrt),(1.0,v_m<v_lvrt)) + lvrt_ext
+    sqrt = backend.sqrt
+    Piecewise = backend.Piecewise
+    atan2 = backend.atan2
+
+    v_m = sqrt(v_sd**2 + v_sq**2)
+    lvrt = Piecewise((0.0,v_m>=v_lvrt),(1.0,v_m<v_lvrt)) + lvrt_ext
 
     p_s_ppc_d = x_p_lp2
     q_s_ppc_d = x_q_lp2
 
-    p_s_ref = sym.Piecewise((p_s_ppc_d,p_s_ppc_d<p_mp),(p_mp,p_s_ppc_d>=p_mp))
+    p_s_ref = Piecewise((p_s_ppc_d,p_s_ppc_d<p_mp),(p_mp,p_s_ppc_d>=p_mp))
     q_s_ref = q_s_ppc_d
 
     dx_p_lp1_nosat = ramp_enable/T_lp1p*(p_s_ppc  - x_p_lp1)
-    dx_p_lp1 = sym.Piecewise((PRampDown,dx_p_lp1_nosat<PRampDown),(PRampUp,dx_p_lp1_nosat>PRampUp),(dx_p_lp1_nosat,True))
+    dx_p_lp1 = Piecewise((PRampDown,dx_p_lp1_nosat<PRampDown),(PRampUp,dx_p_lp1_nosat>PRampUp),(dx_p_lp1_nosat,True))
     dx_p_lp2 = 1/T_lp2p*(x_p_lp1 - x_p_lp2)
     
     dx_q_lp1_nosat = ramp_enable/T_lp1q*(q_s_ppc  - x_q_lp1)
-    dx_q_lp1 =sym.Piecewise((QRampDown,dx_q_lp1_nosat<QRampDown),(QRampUp,dx_q_lp1_nosat>QRampUp),(dx_q_lp1_nosat,True))
+    dx_q_lp1 = Piecewise((QRampDown,dx_q_lp1_nosat<QRampDown),(QRampUp,dx_q_lp1_nosat>QRampUp),(dx_q_lp1_nosat,True))
     dx_q_lp2 = 1/T_lp2q*(x_q_lp1 - x_q_lp2)
 
     ### dynamic equations            
@@ -177,15 +181,15 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     #g_v_td_ref  = v_td_ref - R_s*i_sd_ref + X_s*i_sq_ref - v_sd  
     #g_v_tq_ref  = v_tq_ref - R_s*i_sq_ref - X_s*i_sd_ref - v_sq 
 
-    i_sd_ar_ref = i_sa_ref*v_sd/sym.sqrt(v_sd**2 + v_sq**2) + i_sr_ref*v_sq/sym.sqrt(v_sd**2 + v_sq**2) 
-    i_sq_ar_ref = i_sa_ref*v_sq/sym.sqrt(v_sd**2 + v_sq**2) - i_sr_ref*v_sd/sym.sqrt(v_sd**2 + v_sq**2)
+    i_sd_ar_ref = i_sa_ref*v_sd/sqrt(v_sd**2 + v_sq**2) + i_sr_ref*v_sq/sqrt(v_sd**2 + v_sq**2)
+    i_sq_ar_ref = i_sa_ref*v_sq/sqrt(v_sd**2 + v_sq**2) - i_sr_ref*v_sd/sqrt(v_sd**2 + v_sq**2)
 
     i_sd_pq_ref = (p_s_ref*v_sd + q_s_ref*v_sq)/(v_sd**2 + v_sq**2)
     i_sq_pq_ref = (p_s_ref*v_sq - q_s_ref*v_sd)/(v_sd**2 + v_sq**2)
     i_sd_ref_nosat = (1.0-lvrt)*i_sd_pq_ref + lvrt*i_sd_ar_ref
     i_sq_ref_nosat = (1.0-lvrt)*i_sq_pq_ref + lvrt*i_sq_ar_ref
-    g_i_sd_ref = -i_sd_ref + sym.Piecewise((-1.2,i_sd_ref_nosat<-1.2),(1.2,i_sd_ref_nosat>1.2),(i_sd_ref_nosat,True))
-    g_i_sq_ref = -i_sq_ref + sym.Piecewise((-1.2,i_sq_ref_nosat<-1.2),(1.2,i_sq_ref_nosat>1.2),(i_sq_ref_nosat,True))
+    g_i_sd_ref = -i_sd_ref + Piecewise((-1.2,i_sd_ref_nosat<-1.2),(1.2,i_sd_ref_nosat>1.2),(i_sd_ref_nosat,True))
+    g_i_sq_ref = -i_sq_ref + Piecewise((-1.2,i_sq_ref_nosat<-1.2),(1.2,i_sq_ref_nosat>1.2),(i_sq_ref_nosat,True))
 
     v_td_ref  =  R_s*i_sd_ref - X_s*i_sq_ref + v_sd  
     v_tq_ref  =  R_s*i_sq_ref + X_s*i_sd_ref + v_sq 
@@ -194,8 +198,8 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     v_tQ_ref =-v_td_ref * sin(delta) + v_tq_ref * cos(delta)    
     v_ti_ref = v_tD_ref
     v_tr_ref = v_tQ_ref 
-    m_ref = sym.sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
-    theta_t_ref = sym.atan2(v_ti_ref,v_tr_ref) 
+    m_ref = sqrt(v_tr_ref**2 + v_ti_ref**2)/v_dc
+    theta_t_ref = atan2(v_ti_ref,v_tr_ref) 
 
 
     ### dae 
@@ -242,13 +246,13 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     #m_f = sym.Symbol(f"m_f_{name}", real=True)
 
     ### algebraic states
-    i_si = sym.Symbol(f"i_si_{name}", real=True)
-    i_sr = sym.Symbol(f"i_sr_{name}", real=True)       
-    p_s = sym.Symbol(f"p_s_{name}", real=True)
-    q_s = sym.Symbol(f"q_s_{name}", real=True)
+    i_si = backend.symbols(f"i_si_{name}")
+    i_sr = backend.symbols(f"i_sr_{name}")
+    p_s = backend.symbols(f"p_s_{name}")
+    q_s = backend.symbols(f"q_s_{name}")
 
     ### parameters
-    F_n = sym.Symbol(f"F_n_{name}", real=True)            
+    F_n = backend.symbols(f"F_n_{name}")            
 
     
     params_list = ['S_n','F_n','U_n','X_s','R_s']
@@ -320,7 +324,7 @@ def pv_dq_d(grid,name,bus_name,data_dict):
             grid.dae['h_dict'].update({f"v_tr_{name}":v_tr})    
             grid.dae['h_dict'].update({f"i_si_{name}":i_si})
             grid.dae['h_dict'].update({f"i_sr_{name}":i_sr})
-            i_s = sym.sqrt(i_sr**2 + i_si**2) 
+            i_s = sqrt(i_sr**2 + i_si**2) 
             grid.dae['h_dict'].update({f"i_s_{name}":i_s})            
 
     p_W   = p_s * S_n
@@ -329,6 +333,7 @@ def pv_dq_d(grid,name,bus_name,data_dict):
     return p_W,q_var
 
 def sym2model():
+    import sympy as sym
     v_sd = sym.Symbol(f"v_sd", real=True)
     v_sq = sym.Symbol(f"v_sq", real=True)
     p_s_ref = sym.Symbol(f"p_s_ref", real=True)
@@ -376,7 +381,7 @@ def sym2model():
 
 #sym2model()
 if __name__ == "__main__":
-
+    import sympy as sym
     from pydae.bps import BpsBuilder
     
     data = {

@@ -76,3 +76,6 @@ docs/**/_autosummary/
 .claude/settings.local.json
 .claude/.credentials*
 .claude/history*
+
+
+prompts/
