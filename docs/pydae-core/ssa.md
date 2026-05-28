@@ -82,12 +82,32 @@ ssstudy = damp(model.A, model=model, sort='damp')
 
 ### Participation factors
 
+After `eig()` the model exposes the participation matrix directly:
+
+```python
+from pydae.ssa.ssa import eig
+
+eig_vals, V, W = eig(model)
+print(model.participation)   # (N_x, N_x) array, already Kundur-normalised
+```
+
+`model.participation[k, i]` is $|\phi_{ki} \cdot \psi_{ik}|$ normalised so
+each column sums to 1 (Kundur table convention).  Large values identify which
+states participate most in each mode.
+
+For a standalone DataFrame (without calling `eig()` first):
+
 ```python
 from pydae.ssa.ssa import participation
 
 PF = participation(model, method='kundur')  # or 'milano'
 print(PF)
 ```
+
+> **Note (v1.4.0):** `participation()` with `method='kundur'` now returns the
+> column-normalised absolute value $|P_{raw}| / \|P_{raw}\|_{col}$.  Earlier
+> versions returned the raw complex product $\Phi \odot \Psi^T$, which could
+> be negative or complex.
 
 ## The B, C, and D matrices
 
