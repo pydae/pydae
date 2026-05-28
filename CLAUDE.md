@@ -133,7 +133,7 @@ On `ini()` failure, diagnostics from `diagnostics/dae_check.py` run automaticall
 
 ### Power Systems Builders (pydae-bps, pydae-uds)
 
-These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`). In `pydae-uds`: lines (`lines/`), grid-forming VSCs (`vsgs/`).
+These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/` — `pv_dq`, `pv_dq_d`, `pv_dq_ss`, `pv_dq_vrt`, `pv_pq_ss`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`). In `pydae-uds`: lines (`lines/`), grid-forming VSCs (`vsgs/`).
 
 **WECC renewable model stack** (three-layer, all in `pydae-bps`):
 ```
@@ -153,13 +153,20 @@ agc: {gen: "2", K_p_agc: 10.0, K_i_agc: 2.0}
 
 ### SSA Module (src/pydae/ssa/)
 
-Small-signal analysis via linearization, imported as `from pydae.ssa import eval_ss, eval_A, damp`. `eval_ss(model)` computes the state-space matrices:
+Small-signal analysis via linearization, imported as `from pydae.ssa.ssa import eig, damp, participation`. `eval_ss(model)` computes the state-space matrices:
 - `A = Fx - Fy·Gy⁻¹·Gx`
 - `B = Fu - Fy·Gy⁻¹·Gu`
 - `C = Hx - Hy·Gy⁻¹·Gx`
 - `D = Hu - Hy·Gy⁻¹·Gu`
 
 Called after `model.ini()` when the Jacobian sub-blocks are populated.
+
+**`eig(model)`** computes eigenvalues and eigenvectors and stores three attributes on `model`:
+- `model.eigenvalues` — complex eigenvalue array, shape `(N_x,)`
+- `model.right_eigenvectors` / `model.left_eigenvectors` — matrices `V`, `W = inv(V)`
+- `model.participation` — Kundur-normalised participation matrix, shape `(N_x, N_x)`; element `[k, i]` is `|φ_ki · ψ_ik|` divided by the column sum so each column sums to 1. Large values identify which states drive each mode.
+
+**`participation(model, method='kundur')`** returns a labelled DataFrame. The `'kundur'` method returns the column-normalised absolute value `|P_raw| / ‖P_raw‖_col` (corrected in v1.4.0 — earlier versions returned the raw complex product).
 
 ### Real-time API (pydae.api)
 
@@ -199,9 +206,12 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 from pydae.core import Builder, Model
 from pydae.bps import BpsBuilder
 from pydae.uds import UdsBuilder
-from pydae.ssa import eval_ss, eval_A
+from pydae.ssa.ssa import eig, damp, participation
+from pydae.bps.utils.visualizer import PowerSystemVisualizer
 from pydae import utils   # shared helpers (e.g., unit conversions, grid utilities)
 ```
+
+Install the real-time API extras with `pip install pydae[api]` (adds FastAPI + uvicorn).
 
 Old-style imports (`import pydae.build_cffi`, `from pydae.bmapu import ...`) no longer work. See `MIGRATION_GUIDE.md` for full mapping.
 
@@ -278,6 +288,7 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 - **Parallel codegen**: set `PYDAE_PARALLEL=1` (not `'8'`) and `PYDAE_MAX_WORKERS=N` as separate env-vars before importing pydae. The check is `os.environ.get("PYDAE_PARALLEL") == "1"`.
 - **UTF-8 data files**: `BpsBuilder`, `read_data()`, `reporter._load_data()`, and `model_class._load_metadata()` all open files with `encoding='utf-8'`. HJSON files may contain non-ASCII characters in comments without issues.
 - **damp() sort**: `ssa.damp(A, sort='damp')` or `sort='freq'` sorts the printed table and the returned dict by damping ratio or frequency.
+- **eig() side-effects**: `ssa.eig(model)` populates `model.eigenvalues`, `model.right_eigenvectors`, `model.left_eigenvectors`, and `model.participation` in one call — prefer it over computing eigenvalues manually with `numpy.linalg.eig`.
 
 ## Docs
 
