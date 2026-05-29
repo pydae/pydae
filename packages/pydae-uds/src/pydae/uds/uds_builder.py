@@ -3,6 +3,7 @@ import sympy as sym
 import json
 import hjson
 import os
+from pydae.core.builder.casadi_builder import MathBackend
 from pydae.uds.genapes.genapes import add_genapes
 from pydae.uds.vscs.vscs import add_vscs
 from pydae.uds.loads.loads import add_loads
@@ -40,8 +41,8 @@ class UdsBuilder:
 
     '''
 
-    def __init__(self,data_input=''):
-        
+    def __init__(self,data_input='', use_casadi=False):
+
         if type(data_input) == str:
             if 'http' in data_input:
                 url = data_input
@@ -49,15 +50,19 @@ class UdsBuilder:
                 data = json.loads(resp.text)
             else:
                 if os.path.splitext(data_input)[1] == '.json':
-                    with open(data_input,'r') as fobj:
+                    with open(data_input,'r', encoding='utf-8') as fobj:
                         data = json.loads(fobj.read().replace("'",'"'))
                 if os.path.splitext(data_input)[1] == '.hjson':
-                    with open(data_input,'r') as fobj:
+                    with open(data_input,'r', encoding='utf-8') as fobj:
                         data = hjson.loads(fobj.read().replace("'",'"'))
         elif type(data_input) == dict:
             data = data_input
-            
+
         self.data = data
+
+        self.use_casadi = use_casadi
+        self.backend = MathBackend(use_casadi)
+
         self.N_branches = 0
         self.preprocess()
 
@@ -67,17 +72,17 @@ class UdsBuilder:
 
         self.aux = {}
 
-        self.uz_jacs = False     
-        self.verbose = False 
+        self.uz_jacs = False
+        self.verbose = False
 
         self.omega_coi_numerator = 0.0
         self.omega_coi_denominator = 0.0
 
-        self.A = sym.zeros(self.N_branches,self.N_nodes)
-        self.At = sym.zeros(self.N_branches,self.N_nodes)
+        self.A = self.backend.zeros(self.N_branches,self.N_nodes)
+        self.At = self.backend.zeros(self.N_branches,self.N_nodes)
 
-        self.G_primitive = sym.zeros(self.N_branches,self.N_branches)
-        self.B_primitive = sym.zeros(self.N_branches,self.N_branches)
+        self.G_primitive = self.backend.zeros(self.N_branches,self.N_branches)
+        self.B_primitive = self.backend.zeros(self.N_branches,self.N_branches)
 
     def preprocess(self):
 
@@ -96,7 +101,7 @@ class UdsBuilder:
         
     
         self.params_grid = {'S_base':self.system['S_base']}
-        self.S_base = sym.Symbol("S_base", real=True) 
+        self.S_base = self.backend.symbols("S_base")
         self.N_bus = len(self.buses)
 
         self.nodes_list = []
@@ -133,43 +138,64 @@ class UdsBuilder:
         add_trafos(self)
         add_shunts(self)
 
+        bk = self.backend
+
         self.G = (self.A.T @ self.G_primitive) @ self.A
-        self.B = (self.A.T @ self.B_primitive) @ self.A    
-        
- 
-        # vector of unknown voltages 
-        V_list = []
+        self.B = (self.A.T @ self.B_primitive) @ self.A
+
+
+        # real and imaginary parts of the unknown node voltages.
+        # CasADi SX has no complex type, so the complex nodal algebra
+        # (G + jB)(V_r + jV_i) is carried out explicitly in real form.
+        V_r_list = []
+        V_i_list = []
         for item in self.nodes_list:
             name = item.replace('.','_')
-            V_r = sym.Symbol(f'V_{name}_r', real = True)
-            V_i = sym.Symbol(f'V_{name}_i', real = True)
-            V_list += [V_r + sym.I*V_i]
+            V_r_list += [bk.symbols(f'V_{name}_r')]
+            V_i_list += [bk.symbols(f'V_{name}_i')]
 
-        V = sym.Matrix(V_list)
-        self.V = V
+        V_r = bk.Matrix([[v] for v in V_r_list])
+        V_i = bk.Matrix([[v] for v in V_i_list])
+        self.V_r = V_r
+        self.V_i = V_i
 
-        self.I_lines = (self.G_primitive + sym.I*self.B_primitive) @ self.A @ V
+        # line currents in real form: I = (G_p + jB_p) A (V_r + jV_i)
+        A_V_r = self.A @ V_r
+        A_V_i = self.A @ V_i
+        self.I_lines_re = self.G_primitive @ A_V_r - self.B_primitive @ A_V_i
+        self.I_lines_im = self.G_primitive @ A_V_i + self.B_primitive @ A_V_r
+
+        if not self.use_casadi:
+            # keep the complex voltage vector / line currents available for
+            # components not yet ported to the real-form backend (e.g. some
+            # transformer monitors). Only meaningful with the SymPy backend.
+            V = sym.Matrix([V_r_list[k] + sym.I*V_i_list[k] for k in range(len(V_r_list))])
+            self.V = V
+            self.I_lines = (self.G_primitive + sym.I*self.B_primitive) @ self.A @ V
 
         self.it_branch = 0
         add_line_monitors(self)
         add_trafo_monitors(self)
 
-        # main complex equations 
-        g_cplx = (self.G + sym.I*self.B)@V
-        self.g_cplx = g_cplx
-        
-        # from complex equations to DAE g and y
+        # main nodal equations in real form: (G + jB)(V_r + jV_i)
+        g_re = self.G @ V_r - self.B @ V_i
+        g_im = self.G @ V_i + self.B @ V_r
+        self.g_re = g_re
+        self.g_im = g_im
+
+        # from complex equations to DAE g and y (interleaved re/im per node,
+        # so node2idx() keeps targeting the correct equation)
         self.dae['g'] = []
         self.dae['y_ini']= []
         self.dae['y_run']= []
-        for it in range(len(g_cplx)):
-            self.dae['g'] += [sym.re(g_cplx[it])]
-            self.dae['g'] += [sym.im(g_cplx[it])]
+        for it in range(len(self.nodes_list)):
+            self.dae['g'] += [g_re[it]]
+            self.dae['g'] += [g_im[it]]
 
-            self.dae['y_ini'] += [sym.re(V[it])]
-            self.dae['y_ini'] += [sym.im(V[it])]
-            self.dae['y_run'] += [sym.re(V[it])]
-            self.dae['y_run'] += [sym.im(V[it])]
+            self.dae['y_ini'] += [V_r_list[it]]
+            self.dae['y_ini'] += [V_i_list[it]]
+            self.dae['y_run'] += [V_r_list[it]]
+            self.dae['y_run'] += [V_i_list[it]]
 
 
         # monitor voltages
@@ -181,13 +207,13 @@ class UdsBuilder:
                 n2a = {0:'a',1:'b',2:'c'}
                 # phase top neutral voltages:
                 name = bus['name']
-                V_n_r = sym.Symbol(f'V_{name}_{3}_r', real = True)
-                V_n_i = sym.Symbol(f'V_{name}_{3}_i', real = True)
+                V_n_r = bk.symbols(f'V_{name}_{3}_r')
+                V_n_i = bk.symbols(f'V_{name}_{3}_i')
 
                 # phase-neutral voltage module
                 for ph in [0,1,2]:
-                    V_ph_r = sym.Symbol(f'V_{name}_{ph}_r', real = True)
-                    V_ph_i = sym.Symbol(f'V_{name}_{ph}_i', real = True)
+                    V_ph_r = bk.symbols(f'V_{name}_{ph}_r')
+                    V_ph_i = bk.symbols(f'V_{name}_{ph}_i')
                     z_name = f'V_{name}_{n2a[ph]}n'
                     z_value = ((V_ph_r-V_n_r)**2 + (V_ph_i-V_n_i)**2)**0.5
                     self.dae['h_dict'].update({z_name:z_value})
@@ -198,10 +224,10 @@ class UdsBuilder:
 
                 # phase-phase voltage module
                 for phj,phk in [(0,1),(1,2),(2,0)]:
-                    V_phj_r = sym.Symbol(f'V_{name}_{phj}_r', real = True)
-                    V_phj_i = sym.Symbol(f'V_{name}_{phj}_i', real = True)
-                    V_phk_r = sym.Symbol(f'V_{name}_{phk}_r', real = True)
-                    V_phk_i = sym.Symbol(f'V_{name}_{phk}_i', real = True)
+                    V_phj_r = bk.symbols(f'V_{name}_{phj}_r')
+                    V_phj_i = bk.symbols(f'V_{name}_{phj}_i')
+                    V_phk_r = bk.symbols(f'V_{name}_{phk}_r')
+                    V_phk_i = bk.symbols(f'V_{name}_{phk}_i')
 
                     z_name = f'V_{name}_{n2a[phj]}{n2a[phk]}'
                     z_value = ((V_phj_r-V_phk_r)**2 + (V_phj_i-V_phk_i)**2)**0.5
@@ -269,6 +295,21 @@ class UdsBuilder:
         return idx_r,idx_i
 
 
+    def add_branch_monitor(self, name, branch_idx, magnitude=True):
+        '''
+        Emit real/imag (and optionally magnitude) current outputs for a single
+        branch into h_dict, reading the backend-agnostic real-form line-current
+        arrays. Shared by line and transformer monitors so both work on the
+        SymPy and CasADi backends.
+        '''
+        i_re = self.I_lines_re[branch_idx]
+        i_im = self.I_lines_im[branch_idx]
+        self.dae['h_dict'][f"{name}_r"] = i_re
+        self.dae['h_dict'][f"{name}_i"] = i_im
+        if magnitude:
+            self.dae['h_dict'][f"{name}_m"] = (i_re**2 + i_im**2)**0.5
+
+
     def construct(self, name):
         
         self.contruct_grid()          
@@ -301,8 +342,10 @@ class UdsBuilder:
             for item in self.data['fcs']:
                 add_fcs(self,item) 
 
-        # Center Of Inertia (COI)                  
-        omega_coi = sym.Symbol("omega_coi", real=True)  
+        bk = self.backend
+
+        # Center Of Inertia (COI)
+        omega_coi = bk.symbols("omega_coi")
 
         if self.omega_coi_denominator == 0.0:
             self.omega_coi_denominator = 1e-6
@@ -314,12 +357,12 @@ class UdsBuilder:
         self.dae['xy_0_dict'].update({'omega_coi':1.0})
 
         # secondary frequency control
-        xi_freq = sym.Symbol("xi_freq", real=True) 
-        p_agc = sym.Symbol("p_agc", real=True)  
-        K_p_agc = sym.Symbol("K_p_agc", real=True) 
-        K_i_agc = sym.Symbol("K_i_agc", real=True) 
-        K_xif  = sym.Symbol("K_xif", real=True)
-        u_freq   = sym.Symbol("u_freq", real=True)
+        xi_freq = bk.symbols("xi_freq")
+        p_agc = bk.symbols("p_agc")
+        K_p_agc = bk.symbols("K_p_agc")
+        K_i_agc = bk.symbols("K_i_agc")
+        K_xif  = bk.symbols("K_xif")
+        u_freq   = bk.symbols("u_freq")
         epsilon_freq = 1-omega_coi
         
         f_agc = [epsilon_freq - K_xif*xi_freq + u_freq]
@@ -358,9 +401,10 @@ class UdsBuilder:
                 'y_run_list':self.dae['y_run'],
                 'u_run_dict':self.dae['u_run_dict'],
                 'u_ini_dict':self.dae['u_ini_dict'],
-                'h_dict':self.dae['h_dict']}
+                'h_dict':self.dae['h_dict'],
+                'xy_0_dict':self.dae['xy_0_dict']}
 
-        self.sys_dict = sys_dict 
+        self.sys_dict = sys_dict
 
     def compile_numba(self, name):
 

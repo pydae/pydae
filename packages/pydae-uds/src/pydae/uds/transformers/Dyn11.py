@@ -21,32 +21,52 @@ def add_Dyn11(grid,trafo):
     # G_tb,B_tb,G_mb,B_mb,Ratio_b = sym.symbols('G_tb,B_tb,G_mb,B_mb,Ratio_b', real = True)
     # G_tc,B_tc,G_mc,B_mc,Ratio_c = sym.symbols('G_tc,B_tc,G_mc,B_mc,Ratio_c', real = True)
 
+    bk = grid.backend
+
     bus_j_name = trafo['bus_j']
     bus_k_name = trafo['bus_k']
     name = f'{bus_j_name}_{bus_k_name}'
-    
-    G_t,B_t,G_m,B_m = sym.symbols(f'G_t_{name},B_t_{name},G_m_{name},B_m_{name}', real = True)
-    Ratio_a,Ratio_b,Ratio_c = sym.symbols(f'Ratio_a_{name},Ratio_b_{name},Ratio_c_{name}', real = True)
-    R_g,Ratio = sym.symbols(f'R_g_{name},Ratio_{name}', real = True)
 
-    I = sym.I
+    G_t,B_t,G_m,B_m = bk.symbols(f'G_t_{name},B_t_{name},G_m_{name},B_m_{name}')
+    Ratio_a,Ratio_b,Ratio_c = bk.symbols(f'Ratio_a_{name},Ratio_b_{name},Ratio_c_{name}')
+    R_g,Ratio = bk.symbols(f'R_g_{name},Ratio_{name}')
 
-    # Transformer Y primitive
-    Y_prim = sym.Matrix([[2*I*B_m + 2*I*B_t + 2*G_m + 2*G_t, -I*B_m - I*B_t - G_m - G_t, -I*B_m - I*B_t - G_m - G_t, -Ratio_a*(I*B_t + G_t), 0, Ratio_c*(I*B_t + G_t), (Ratio_a - Ratio_c)*(I*B_t + G_t)], 
-                         [-I*B_m - I*B_t - G_m - G_t, 2*I*B_m + 2*I*B_t + 2*G_m + 2*G_t, -I*B_m - I*B_t - G_m - G_t, Ratio_a*(I*B_t + G_t), -Ratio_b*(I*B_t + G_t), 0, (-Ratio_a + Ratio_b)*(I*B_t + G_t)], 
-                         [-I*B_m - I*B_t - G_m - G_t, -I*B_m - I*B_t - G_m - G_t, 2*I*B_m + 2*I*B_t + 2*G_m + 2*G_t, 0, Ratio_b*(I*B_t + G_t), -Ratio_c*(I*B_t + G_t), (-Ratio_b + Ratio_c)*(I*B_t + G_t)], 
-                         [-Ratio_a*(I*B_t + G_t), Ratio_a*(I*B_t + G_t), 0, Ratio_a**2*(I*B_t + G_t), 0, 0, Ratio_a**2*(-I*B_t - G_t)], 
-                         [0, -Ratio_b*(I*B_t + G_t), Ratio_b*(I*B_t + G_t), 0, Ratio_b**2*(I*B_t + G_t), 0, Ratio_b**2*(-I*B_t - G_t)], 
-                         [Ratio_c*(I*B_t + G_t), 0, -Ratio_c*(I*B_t + G_t), 0, 0, Ratio_c**2*(I*B_t + G_t), Ratio_c**2*(-I*B_t - G_t)], 
-                         [(Ratio_a - Ratio_c)*(I*B_t + G_t), (-Ratio_a + Ratio_b)*(I*B_t + G_t), (-Ratio_b + Ratio_c)*(I*B_t + G_t), Ratio_a**2*(-I*B_t - G_t), Ratio_b**2*(-I*B_t - G_t), Ratio_c**2*(-I*B_t - G_t), (R_g*(I*B_t + G_t)*(Ratio_a**2 + Ratio_b**2 + Ratio_c**2) + 1)/R_g]])
-    
-    Y_prim = Y_prim.subs(Ratio_a,Ratio_a*Ratio)
-    Y_prim = Y_prim.subs(Ratio_b,Ratio_b*Ratio)
-    Y_prim = Y_prim.subs(Ratio_c,Ratio_c*Ratio)
+    # Transformer primitive admittance built in real form (CasADi SX has no
+    # complex type). Derived as G+jB = N^T U1 N with the neutral grounded
+    # through R_g, where U1 is the block-diagonal per-phase winding admittance
+    # and N the winding-to-terminal incidence (see dev_Dyn11). This reproduces
+    # the closed-form Y_prim of del Nozal et al. (2019) exactly.
+    ra, rb, rc = Ratio_a*Ratio, Ratio_b*Ratio, Ratio_c*Ratio
+    Gp1 = bk.zeros(6, 6)
+    Bp1 = bk.zeros(6, 6)
+    for blk, r in [(0, ra), (2, rb), (4, rc)]:
+        Gp1[blk, blk]     = G_t + G_m
+        Bp1[blk, blk]     = B_t + B_m
+        Gp1[blk, blk+1]   = -r*G_t
+        Bp1[blk, blk+1]   = -r*B_t
+        Gp1[blk+1, blk]   = -r*G_t
+        Bp1[blk+1, blk]   = -r*B_t
+        Gp1[blk+1, blk+1] = r**2*G_t
+        Bp1[blk+1, blk+1] = r**2*B_t
 
-    # Conductance and subseptance primitive
-    G_primitive = sym.re(Y_prim)
-    B_primitive = sym.im(Y_prim)
+    # winding -> terminal incidence, columns = [A,B,C,a,b,c,n]
+    N = bk.zeros(6, 7)
+    N[0, 0] =  1; N[0, 1] = -1
+    N[1, 3] =  1; N[1, 6] = -1
+    N[2, 1] =  1; N[2, 2] = -1
+    N[3, 4] =  1; N[3, 6] = -1
+    N[4, 0] = -1; N[4, 2] =  1
+    N[5, 5] =  1; N[5, 6] = -1
+
+    G_primitive = N.T @ Gp1 @ N
+    B_primitive = N.T @ Bp1 @ N
+    # neutral-to-ground conductance closes the LV neutral node
+    G_primitive[6, 6] = G_primitive[6, 6] + 1/R_g
+
+    if grid.use_casadi:
+        Y_prim = None
+    else:
+        Y_prim = G_primitive + sym.I*B_primitive
 
     # default nodes
     nodes_j = [0,1,2]

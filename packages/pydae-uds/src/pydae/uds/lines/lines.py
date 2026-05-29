@@ -41,9 +41,8 @@ def add_lines(self):
                 if line['sym']:
                     if np.abs(line['Y_primitive'][ibranch,icol]) != 0.0:
                         line_name = f"{bus_j}_{node_j}_{bus_k}_{node_k}_{icol}"
-                        g_jk = sym.Symbol(f"g_{line_name}", real=True) 
-                        b_jk = sym.Symbol(f"b_{line_name}", real=True) 
-                        bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
+                        g_jk = self.backend.symbols(f"g_{line_name}")
+                        b_jk = self.backend.symbols(f"b_{line_name}")
                         self.G_primitive[self.it_branch+ibranch,self.it_branch+icol] = g_jk
                         self.B_primitive[self.it_branch+ibranch,self.it_branch+icol] = b_jk
                         self.dae['params_dict'].update({str(g_jk):line['Y_primitive'][ibranch,icol].real})
@@ -52,9 +51,8 @@ def add_lines(self):
                 else:
                     if np.abs(line['Y_primitive'][ibranch,icol]) != 0.0:
                         line_name = f"{bus_j}_{node_j}_{bus_k}_{node_k}_{icol}"
-                        g_jk = line['Y_primitive'][ibranch,icol].real 
-                        b_jk = line['Y_primitive'][ibranch,icol].imag 
-                        bs_jk = sym.Symbol(f"bs_{line_name}", real=True) 
+                        g_jk = line['Y_primitive'][ibranch,icol].real
+                        b_jk = line['Y_primitive'][ibranch,icol].imag
                         self.G_primitive[self.it_branch+ibranch,self.it_branch+icol] = g_jk
                         self.B_primitive[self.it_branch+ibranch,self.it_branch+icol] = b_jk
 
@@ -131,8 +129,7 @@ def add_line_monitors(self):
                     else:
                         node_k = it
 
-                    self.dae['h_dict'].update({f"i_l_{bus_j_name}_{node_j}_{bus_k_name}_{node_k}_r" : sym.re(self.I_lines[self.it_branch ++it,0])})
-                    self.dae['h_dict'].update({f"i_l_{bus_j_name}_{node_j}_{bus_k_name}_{node_k}_i" : sym.im(self.I_lines[self.it_branch ++it,0])})
+                    self.add_branch_monitor(f"i_l_{bus_j_name}_{node_j}_{bus_k_name}_{node_k}", self.it_branch + it)
 
         self.it_branch += line['N_branches']
 

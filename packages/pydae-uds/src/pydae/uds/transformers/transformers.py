@@ -103,13 +103,11 @@ def add_trafo_monitors(self):
                 bus_j_name = trafo['bus_j']
                 bus_k_name = trafo['bus_k']
                 for it in trafo['bus_j_nodes']:
-                    self.dae['h_dict'].update({f"i_t_{bus_j_name}_{bus_k_name}_1_{it}_r":sym.re(self.I_lines[it_branch+i,0])})
-                    self.dae['h_dict'].update({f"i_t_{bus_j_name}_{bus_k_name}_1_{it}_i":sym.im(self.I_lines[it_branch+i,0])})
+                    self.add_branch_monitor(f"i_t_{bus_j_name}_{bus_k_name}_1_{it}", it_branch+i)
                     i += 1
-                
+
                 for it in trafo['bus_k_nodes']:
-                    self.dae['h_dict'].update({f"i_t_{bus_j_name}_{bus_k_name}_2_{it}_r":sym.re(self.I_lines[it_branch+i,0])})
-                    self.dae['h_dict'].update({f"i_t_{bus_j_name}_{bus_k_name}_2_{it}_i":sym.im(self.I_lines[it_branch+i,0])})
+                    self.add_branch_monitor(f"i_t_{bus_j_name}_{bus_k_name}_2_{it}", it_branch+i)
                     i += 1
 
 
