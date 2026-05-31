@@ -756,6 +756,10 @@ class Model:
         if name in self.z_list:     return self.z[self.z_list.index(name)]
         return None
 
+    def get_mvalue(self, names):
+        """Get multiple scalar values at once. Returns a list in input order."""
+        return [self.get_value(n) for n in names]
+
     def get_values(self, name):
         """Gets a time-series array of a variable from the stored simulation history."""
         if name in self.x_list:     return self.X[:, self.x_list.index(name)]

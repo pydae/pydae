@@ -70,9 +70,12 @@ class CasadiModel:
         self.u_ini_names = [sym.name() for sym in self.sys_dict['u_ini_list']]
         self.u_run_names = [sym.name() for sym in self.sys_dict['u_run_list']]
 
-        # Compatibility aliases
+        # Compatibility aliases (match the ctypes Model surface so reporters
+        # like pydae.uds.utils.reports.report_v work on both backends).
         self.params_list = self.p_names
         self.x_list = self.x_names
+        self.y_ini_list = self.y_ini_names
+        self.y_run_list = self.y_run_names
         self.y_list = self.y_run_names
         self.z_list = list(self.sys_dict.get('h_dict', {}).keys())
 
@@ -180,9 +183,12 @@ class CasadiModel:
         self.u_ini_names = [sym.name() for sym in self.sys_dict['u_ini_list']]
         self.u_run_names = [sym.name() for sym in self.sys_dict['u_run_list']]
 
-        # Compatibility aliases
+        # Compatibility aliases (match the ctypes Model surface so reporters
+        # like pydae.uds.utils.reports.report_v work on both backends).
         self.params_list = self.p_names
         self.x_list = self.x_names
+        self.y_ini_list = self.y_ini_names
+        self.y_run_list = self.y_run_names
         self.y_list = self.y_run_names
         self.z_list = list(self.sys_dict.get('h_dict', {}).keys())
 
@@ -603,6 +609,10 @@ class CasadiModel:
             return self._eval_output(name)
         else:
             raise ValueError(f"Variable '{name}' not found in model")
+
+    def get_mvalue(self, names):
+        """Get multiple scalar values at once. Returns a list in input order."""
+        return [self.get_value(n) for n in names]
 
     def set_value(self, name, value):
         """Set the value of a parameter, input, or variable by name."""
