@@ -17,8 +17,10 @@ uv run pytest -m symbolic     # Jacobian computation only
 uv run pytest -m codegen      # C code generation only
 uv run pytest -m build        # full compile (requires gcc)
 uv run pytest -m model        # end-to-end simulation
+uv run pytest -m core         # core solver / DAE pipeline
 uv run pytest -m bps          # balanced power systems
 uv run pytest -m uds          # unbalanced distribution
+uv run pytest -m slow         # tests that take > 5 seconds
 
 # Run a single test file
 uv run pytest tests/core/test_pendulum.py
@@ -133,7 +135,24 @@ On `ini()` failure, diagnostics from `diagnostics/dae_check.py` run automaticall
 
 ### Power Systems Builders (pydae-bps, pydae-uds)
 
-These builders read HJSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/` — `pv_dq`, `pv_dq_d`, `pv_dq_ss`, `pv_dq_vrt`, `pv_pq_ss`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`). In `pydae-uds`: lines (`lines/`), grid-forming VSCs (`vsgs/`).
+These builders read HJSON/JSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/` — `pv_dq`, `pv_dq_d`, `pv_dq_ss`, `pv_dq_vrt`, `pv_pq_ss`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`), grid-forming VSCs (`vsgs/`). In `pydae-uds` (three-phase, per-phase modelling): `vscs/` is the largest family, plus `vsgs/` (grid-forming), `genapes/`, `ess/` (storage), `fcs/`, `pvs/`, `loads/`, `lines/`, `transformers/`, `shunts/`, `sources/`, `vsc_ctrls/`, `miscellaneous/`.
+
+**Builder invocation workflow** (identical shape for both `BpsBuilder` and `UdsBuilder`):
+
+```python
+grid = BpsBuilder(data_or_path)        # or UdsBuilder(data, use_casadi=False)
+grid.construct(name)                    # builds grid.sys_dict + grid.dae (concatenated equations)
+# SymPy → C → trapezoidal runtime:
+Builder(grid.sys_dict, target="cffi", sparse=False).build()
+m = Model(name); m.ini({}, grid.dae["xy_0_dict"]); m.run(t_end, {}); m.post()
+# OR CasADi → SX graph → IDAS runtime (no compiler):
+mc = CasadiModel(CasadiBuilder(grid.sys_dict).build())
+mc.ini({}, xy_0=grid.dae["xy_0_dict"]); mc.run(t_end, {}); mc.post()
+```
+
+Both builders accept `use_casadi=` and expose `.construct(name)`, `.sys_dict`, `.dae`, and `.build(name)`. `construct()` is misspelled `contruct_grid()` internally for the grid-assembly step — that name is load-bearing, do not "fix" it.
+
+**pydae-uds specifics** (three-phase, 4-wire by default): each bus carries `N_nodes` (defaults to 4 = phases a,b,c + neutral n). Node voltages are modelled in rectangular form as `V_{bus}_{node}_{r|i}` (real/imag per node), with phase-neutral magnitudes exposed as `h_dict` outputs like `V_A1_an`. The builder assembles branch incidence matrices (`A`, `At`) and primitive admittances (`G_primitive`, `B_primitive`) through a `MathBackend` (`pydae.core.builder.casadi_builder`) so the same construction code emits either SymPy or CasADi graphs. Backend parity (both must converge to the same node voltages) is enforced by `tests/uds/test_uds_grid.py`. The UDS data dict uses top-level `system` (`S_base`), `buses`, `lines`, `transformers`, `shunts`, `sources`, `loads` keys.
 
 **WECC renewable model stack** (three-layer, all in `pydae-bps`):
 ```
@@ -204,6 +223,7 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 
 ```python
 from pydae.core import Builder, Model
+from pydae.core.builder import CasadiBuilder, CasadiModel, MathBackend  # CasADi backend
 from pydae.bps import BpsBuilder
 from pydae.uds import UdsBuilder
 from pydae.ssa.ssa import eig, damp, participation
@@ -268,8 +288,8 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 - `packages/pydae-core/src/pydae/core/` — engine. `builder/` (sympy + casadi + codegen), `model/` (ctypes_model + casadi_model), `common/` (parser, symbolic), `diagnostics/`.
 - `packages/pydae-core/src/pydae/ssa/` — small-signal analysis (separate sibling namespace, not under `core/`).
 - `packages/pydae-core/src/pydae/daesolver/` — C runtime: `daesolver.c/.h`, `daesolver_dense.{c,h}`, `daesolver_dlu_klu.c`, `daesolver_run_lapack.{c,h}`.
-- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `vsc_ctrls/`, `wecs/`, `weccs/`, `ppcs/`, `pvs/`, `loads/`, `lines/`, `psss/`, `pods/`, `sources/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`. `utils/` contains `visualizer.py` (`PowerSystemVisualizer` — draws reactance-weighted topology diagrams via networkx), `ss_num2sym.py`, `reporter.py`, and `validator.py`.
-- `packages/pydae-uds/src/pydae/uds/` — unbalanced distribution builder. Component families: `lines/`, `vsgs/` (grid-forming VSCs).
+- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `vsc_ctrls/`, `vsc_models/`, `vsgs/`, `wecs/`, `weccs/`, `ppcs/`, `pvs/`, `psss/`, `pssdesigner/`, `pods/`, `loads/`, `lines/`, `sources/`, `miscellaneous/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`. `utils/` contains `visualizer.py` (`PowerSystemVisualizer` — draws reactance-weighted topology diagrams via networkx), `ss_num2sym.py`, `reporter.py`, and `validator.py`.
+- `packages/pydae-uds/src/pydae/uds/` — unbalanced (three-phase) distribution builder. Component families: `vscs/` (largest), `vsgs/` (grid-forming), `genapes/`, `ess/`, `fcs/`, `pvs/`, `loads/`, `lines/`, `transformers/`, `shunts/`, `sources/`, `vsc_ctrls/`, `miscellaneous/`.
 - `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
 - `examples/` — standalone scripts (`pendulum.py`, `milano*ord*.py`). Build artefacts (`*_data.json`, `*.svg`) are gitignored.
 - `docs/pydae-{core,bps,uds}/` — three independent Sphinx projects (each with its own `conf.py` and `.readthedocs.yaml`).
