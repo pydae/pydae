@@ -118,13 +118,13 @@ def gflpfzv(grid, data, name, bus_name):
     p_r = K_agc*xi_freq
     epsilon_q = q_ref - q_pos/S_n
 
-    # reactive PI with saturation
+    # reactive PI with saturation + conditional-integration anti-windup
     De_q_nosat = K_qp*epsilon_q + K_qi*xi_q
     De_min = -U_n*0.05
     De_max =  U_n*0.05
-    De_q  = bk.Piecewise((De_min,    De_q_nosat < De_min),
-                         (De_max,    De_q_nosat > De_max),
-                         (De_q_nosat, True))
+    De_q  = bk.hard_limits(De_q_nosat, De_min, De_max)
+    # anti-windup indicator: 1 inside the limits, 0 once saturated (this is a
+    # step function, not a saturation, so it stays on Piecewise)
     K_qaw = bk.Piecewise((0, De_q_nosat < De_min),
                          (0, De_q_nosat > De_max),
                          (1, True))

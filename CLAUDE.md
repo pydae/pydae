@@ -154,6 +154,16 @@ Both builders accept `use_casadi=` and expose `.construct(name)`, `.sys_dict`, `
 
 **pydae-uds specifics** (three-phase, 4-wire by default): each bus carries `N_nodes` (defaults to 4 = phases a,b,c + neutral n). Node voltages are modelled in rectangular form as `V_{bus}_{node}_{r|i}` (real/imag per node), with phase-neutral magnitudes exposed as `h_dict` outputs like `V_A1_an`. The builder assembles branch incidence matrices (`A`, `At`) and primitive admittances (`G_primitive`, `B_primitive`) through a `MathBackend` (`pydae.core.builder.casadi_builder`) so the same construction code emits either SymPy or CasADi graphs. Backend parity (both must converge to the same node voltages) is enforced by `tests/uds/test_uds_grid.py`. The UDS data dict uses top-level `system` (`S_base`), `buses`, `lines`, `transformers`, `shunts`, `sources`, `loads` keys.
 
+**Dual-backend migration status (pydae-uds).** Components ported to `MathBackend` work on both SymPy and CasADi. Currently ported: `lines/`, `transformers/Dyn11`+`Dyg11`, `loads/load_ac` and `load_dc`, `sources/ac3ph4w_ideal` and `ac3ph3w_ideal`, `shunts/`, `miscellaneous/breaker`, `vsc_ctrls/ctrl_3ph_4w_droop`, `vscs/{acdc_3ph_4w_vdc_q, acdc_3ph_4w_pq, ac_3ph_4w}`, `vsgs/gflpfzv`, `ess/bess_dcdc_gf`. The `pydae_examples/grids/grid_urisi/acdc_7bus/` reference network exercises this whole ported stack on CasADi end-to-end. Other components (most `vscs/` variants, other `vsgs/`/`pvs/`/`fcs/`/`genapes/`, legacy non-Dyn11/Dyg11 transformer connections via `trafo_yprim`, `add_trafo_monitors` for those legacy connections) still use raw `sym.Symbol` and only work on the SymPy backend.
+
+**Porting a new uds component to dual-backend** — the established pattern (see `vsgs/gflpfzv.py`, `vscs/acdc_3ph_4w_vdc_q.py`, `ess/bess_dcdc_gf.py` as canonical examples):
+- Replace `sym.Symbol(name, real=True)` → `grid.backend.symbols(name)` (and `sym.symbols('a,b,c', real=True)` → three separate `bk.symbols` calls).
+- Replace `sym.cos/sin/sqrt/exp/atan2` → `bk.cos/sin/sqrt/exp/atan2`. Use `bk.sqrt(x**2 + eps)` (small `eps`) as a smooth `|x|`.
+- **Expand complex algebra in real form** — CasADi `SX` has no complex type. `s = v · conj(i)` becomes `re_s = v_r·i_r + v_i·i_i`, `im_s = v_i·i_r − v_r·i_i`. `Z·i` with `Z = R + jX` becomes `re = R·i_r − X·i_i`, `im = R·i_i + X·i_r`. Never construct `1j*x` or `sym.I*x` symbolically; either gate that branch behind `if not grid.use_casadi:` or remove it.
+- Read branch currents from `grid.I_lines_re[idx]` / `grid.I_lines_im[idx]` (backend-agnostic), not `sym.re(grid.I_lines[idx])`.
+- **Saturations use `bk.hard_limits(x, x_min, x_max)`** (clean `min(max(...))`), not `bk.Piecewise`. Reserve `bk.Piecewise` for true step functions (0/1 anti-windup indicators) and piecewise-linear interpolation (see the `_piecewise_linear` helper in `ess/bess_dcdc_gf.py`, which replaces `sympy.interpolating_spline`).
+- COI accumulators (`grid.omega_coi_numerator`, `_denominator`) start as Python floats but become SX once any backend symbol is added; do not compare them to numerics with `==`. The builder already guards this with `isinstance(..., (int, float))`.
+
 **WECC renewable model stack** (three-layer, all in `pydae-bps`):
 ```
 ppcs/repc_a.py    — plant-level controller; monitors POI bus, commands Pref/Qext to one or more converters
@@ -169,6 +179,25 @@ agc: {gen: "2", K_p_agc: 10.0, K_i_agc: 2.0}
 ```
 
 `gen` is the generator name (matches the bus name used in `syns`). Outputs `p_agc` and `xi_agc` in `h_dict`.
+
+### CasADi backend solver internals
+
+**Automatic differentiation, not analytic Jacobians.** `CasadiBuilder` exposes `_residual_fn` and `_jacobian_fn` built via `ca.jacobian(eq_ini, v_ini)` — pure reverse-mode AD. There is no `sympy.diff`-derived `Fx`/`Fy`/`Gx`/`Gy` codegen on the CasADi path (that is the SymPy backend's job). Adding new components or expressions to a CasADi-built model does not require deriving Jacobians by hand or invoking any analytic-Jacobian step. When choosing among solver paths below, remember: every one of them differentiates the residual via CasADi AD; only the iteration/step control differs.
+
+**`CasadiModel.ini()` fallback chain** (`casadi_model.py:ini`):
+
+1. `ca.rootfinder('rf', 'newton', ...)` — fast plain-Newton plugin. Succeeds on simple networks from any reasonable seed; fails on stiff or saturated DAEs (raises `RuntimeError`).
+2. `_newton_solve` — small Python loop that calls `_residual_fn` / `_jacobian_fn` and solves the step with `np.linalg.solve`. Same AD-derived Jacobian as the plugin, looser iteration control. Handles distribution networks like `acdc_7bus` where the bundled `'newton'` plugin gives up but a plain Newton iterate still converges. Tolerates partial seeds.
+3. `_calc_ic_init` — IDAS `calcIC` over a 1e-12 s integration; last resort, often fails on stiff models with `IDA_LINESEARCH_FAIL`.
+
+KINSOL (`'kinsol'` plugin, SUNDIALS' nonlinear solver) was evaluated as a more sophisticated step 2 but trips on `KIN_MXNEWT_5X_EXCEEDED` for distribution networks that span per-unit (~1) and SI bus voltages (~10⁴) — even with `u_scale` set from the seed. The simple `_newton_solve` is more robust in practice; do not swap it out without re-evaluating on a stiff network.
+
+**Seed quality.** Only the step-1 `'newton'` plugin is sensitive to the initial guess. If `mc.ini()` is slow or escalates to `calcIC`, harvest a SymPy-converged operating point and pass it as `xy_0`:
+```python
+m = Model(name); m.ini({}, "xy_0.json")
+xy = {n: float(m.get_value(n)) for n in m.x_list + m.y_run_list}
+mc.ini({}, xy_0=xy)   # full-coverage seed → step 1 converges
+```
 
 ### SSA Module (src/pydae/ssa/)
 

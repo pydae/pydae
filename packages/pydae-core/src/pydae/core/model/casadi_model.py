@@ -449,18 +449,29 @@ class CasadiModel:
                     v_ini_guess[self.N_x + self.y_ini_names.index(key)] = val
 
         # Solve Initialization
+        tol = newton_tol if newton_tol is not None else self._newton_tol
+        max_iter = newton_max_iter if newton_max_iter is not None else self._newton_max_iter
         use_external = getattr(self, '_use_external_newton', False)
         if use_external or self.rf is None:
-            tol = newton_tol if newton_tol is not None else self._newton_tol
-            max_iter = newton_max_iter if newton_max_iter is not None else self._newton_max_iter
             v_solved = self._newton_solve(v_ini_guess, p_ini_vec, max_iter=max_iter, tol=tol)
         else:
-            # Try rootfinder first; fall back to IDAS calc_ic if it fails
+            # Fallback chain (all stages use CasADi AD for the Jacobian — no
+            # hand-derived analytic Jacobian anywhere):
+            #   1. CasADi 'newton' rootfinder (fast path)
+            #   2. _newton_solve: a thin Python loop over the same CasADi
+            #      AD-derived _jacobian_fn / _residual_fn; tolerates poorer
+            #      seeds than the 'newton' plugin and unlike KINSOL needs no
+            #      hand-tuned variable scaling on mixed-magnitude DAEs.
+            #   3. IDAS calc_ic (last resort).
             try:
                 res = self.rf(x0=v_ini_guess, p=p_ini_vec)
                 v_solved = np.array(res['x']).flatten()
             except RuntimeError:
-                v_solved = self._calc_ic_init(v_ini_guess, p_ini_vec)
+                try:
+                    v_solved = self._newton_solve(v_ini_guess, p_ini_vec,
+                                                  max_iter=max_iter, tol=tol)
+                except (RuntimeError, np.linalg.LinAlgError):
+                    v_solved = self._calc_ic_init(v_ini_guess, p_ini_vec)
 
         # Update initialization arrays
         self.x = v_solved[:self.N_x]
