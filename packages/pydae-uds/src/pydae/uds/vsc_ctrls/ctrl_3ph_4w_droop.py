@@ -1,45 +1,48 @@
 import numpy as np
-import sympy as sym
 
 def ctrl_3ph_4w_droop(grid,vsc_data,ctrl_data,name,bus_name):
 
     bus_ac = vsc_data['bus_ac']
     bus_dc = vsc_data['bus_dc']
+    bk = grid.backend
 
     buses_names = [bus['name'] for bus in grid.data['buses']]
 
-    U_ac_b = sym.Symbol(f'U_ac_b_{bus_ac}', real = True)
-    V_dc_b = sym.Symbol(f'V_dc_b_{bus_dc}', real = True)
+    U_ac_b = bk.symbols(f'U_ac_b_{bus_ac}')
+    V_dc_b = bk.symbols(f'V_dc_b_{bus_dc}')
 
 
     V_phn = []
     n2a = {0:'a',1:'b',2:'c'}
     # phase top neutral voltages:
-    V_n_r = sym.Symbol(f'V_{bus_ac}_{3}_r', real = True)
-    V_n_i = sym.Symbol(f'V_{bus_ac}_{3}_i', real = True)
+    V_n_r = bk.symbols(f'V_{bus_ac}_{3}_r')
+    V_n_i = bk.symbols(f'V_{bus_ac}_{3}_i')
 
     # phase-neutral voltage module
     for ph in [0,1,2]:
-        V_ph_r = sym.Symbol(f'V_{bus_ac}_{ph}_r', real = True)
-        V_ph_i = sym.Symbol(f'V_{bus_ac}_{ph}_i', real = True)
-        z_name = f'V_{bus_ac}_{n2a[ph]}n'
+        V_ph_r = bk.symbols(f'V_{bus_ac}_{ph}_r')
+        V_ph_i = bk.symbols(f'V_{bus_ac}_{ph}_i')
         z_value = ((V_ph_r-V_n_r)**2 + (V_ph_i-V_n_i)**2)**0.5
         V_phn += [z_value]
 
-    # phase-neutral voltage module
-    V_n_r = sym.Symbol(f'V_{bus_dc}_{1}_r', real = True)
-    V_n_i = sym.Symbol(f'V_{bus_dc}_{1}_i', real = True)
-    V_ph_r = sym.Symbol(f'V_{bus_dc}_{0}_r', real = True)
-    V_ph_i = sym.Symbol(f'V_{bus_dc}_{0}_i', real = True)
+    # DC bus voltage magnitude (pole-to-pole)
+    V_n_r = bk.symbols(f'V_{bus_dc}_{1}_r')
+    V_n_i = bk.symbols(f'V_{bus_dc}_{1}_i')
+    V_ph_r = bk.symbols(f'V_{bus_dc}_{0}_r')
+    V_ph_i = bk.symbols(f'V_{bus_dc}_{0}_i')
     v_dc = ((V_ph_r-V_n_r)**2 + (V_ph_i-V_n_i)**2)**0.5
 
-    K_acdc = sym.Symbol(f'K_acdc_{bus_ac}', real=True)
-    K_acdc_a = sym.Symbol(f'K_acdc_a_{bus_ac}', real=True)
-    K_acdc_b = sym.Symbol(f'K_acdc_b_{bus_ac}', real=True)
-    K_acdc_c = sym.Symbol(f'K_acdc_c_{bus_ac}', real=True)
+    K_acdc   = bk.symbols(f'K_acdc_{bus_ac}')
+    K_acdc_a = bk.symbols(f'K_acdc_a_{bus_ac}')
+    K_acdc_b = bk.symbols(f'K_acdc_b_{bus_ac}')
+    K_acdc_c = bk.symbols(f'K_acdc_c_{bus_ac}')
 
-    p_vsc_a,p_vsc_b,p_vsc_c = sym.symbols(f'p_vsc_a_{bus_ac},p_vsc_b_{bus_ac},p_vsc_c_{bus_ac}',real=True)
-    p_vsc_a_ref,p_vsc_b_ref,p_vsc_c_ref = sym.symbols(f'p_vsc_a_ref_{bus_ac},p_vsc_b_ref_{bus_ac},p_vsc_c_ref_{bus_ac}',real=True)
+    p_vsc_a = bk.symbols(f'p_vsc_a_{bus_ac}')
+    p_vsc_b = bk.symbols(f'p_vsc_b_{bus_ac}')
+    p_vsc_c = bk.symbols(f'p_vsc_c_{bus_ac}')
+    p_vsc_a_ref = bk.symbols(f'p_vsc_a_ref_{bus_ac}')
+    p_vsc_b_ref = bk.symbols(f'p_vsc_b_ref_{bus_ac}')
+    p_vsc_c_ref = bk.symbols(f'p_vsc_c_ref_{bus_ac}')
 
     V_ac_b = U_ac_b/np.sqrt(3)
 

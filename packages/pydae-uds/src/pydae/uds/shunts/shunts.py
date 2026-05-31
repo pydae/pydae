@@ -24,8 +24,8 @@ def add_shunts(self):
         #    row_k = self.nodes_list.index(node_k)            
         #    self.A[row_k,col] = -1
         shunt_name = f"shunt_{shunt['bus']}_{node_j_str}"
-        g_jk = sym.Symbol(f"g_{shunt_name}", real=True) 
-        b_jk = sym.Symbol(f"b_{shunt_name}", real=True) 
+        g_jk = self.backend.symbols(f"g_{shunt_name}")
+        b_jk = self.backend.symbols(f"b_{shunt_name}")
         self.G_primitive[self.it_branch,self.it_branch] = g_jk
         self.B_primitive[self.it_branch,self.it_branch] = b_jk
 

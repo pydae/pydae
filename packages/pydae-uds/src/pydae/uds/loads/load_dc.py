@@ -6,21 +6,19 @@ Created on Thu August 10 23:52:55 2022
 """
 
 import numpy as np
-import sympy as sym
-
 
 
 def load_dc(grid,data):
 
-    buses = grid.data['buses']
-
     self = grid
+    bk = grid.backend
 
     name = data['bus']
-    v_p,v_n = sym.symbols(f'V_{name}_0_r,V_{name}_1_r', real=True)
+    v_p = bk.symbols(f'V_{name}_0_r')
+    v_n = bk.symbols(f'V_{name}_1_r')
 
-    i_p,i_n = sym.symbols(f'i_load_{name}_p_r,i_load_{name}_n_r', real=True)
-    p = sym.Symbol(f'p_load_{name}', real=True)
+    i_p = bk.symbols(f'i_load_{name}_p_r')
+    p   = bk.symbols(f'p_load_{name}')
 
     
     self.dae['g'] += [i_p*(v_p - v_n) - p]

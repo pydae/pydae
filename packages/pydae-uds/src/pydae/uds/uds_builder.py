@@ -347,7 +347,10 @@ class UdsBuilder:
         # Center Of Inertia (COI)
         omega_coi = bk.symbols("omega_coi")
 
-        if self.omega_coi_denominator == 0.0:
+        # the COI accumulators stay numeric (0.0) only when no component
+        # contributed; once a backend symbol has been added, comparing to 0.0
+        # would evaluate as a symbolic expression (and SX can't be truthy).
+        if isinstance(self.omega_coi_denominator, (int, float)) and self.omega_coi_denominator == 0.0:
             self.omega_coi_denominator = 1e-6
             self.omega_coi_numerator = 1e-6
 
