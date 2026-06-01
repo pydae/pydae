@@ -1,5 +1,68 @@
+r"""
+AC-only 4-wire VSC carrier model. The converter terminal voltages
+$v_{t,\varphi}$ are inputs by default — set them directly to use this as a
+fixed-source converter, or nest a `vsg` (e.g. `gflpfzv`) which converts
+them into algebraic states driven by the chosen grid-forming control.
+
+**Per-phase branch equation** ($\varphi \in \{a, b, c, n\}$, real form):
+
+$$0 = v_{og} + v_{t,\varphi} - Z_\varphi i_{s,\varphi} - v_{s,\varphi}$$
+
+with $Z_a = Z_b = Z_c = R_s + jX_s$ (phase impedance) and
+$Z_n = R_{sn} + jX_{sn}$ (neutral impedance).
+
+**Neutral-to-ground loop** — the converter neutral $v_{og}$ closes to ground
+through $Z_{ng} = R_{ng} + jX_{ng}$:
+
+$$0 = i_{sa} + i_{sb} + i_{sc} + i_{sn} + v_{og}/Z_{ng}$$
+
+(expanded into real form by multiplying numerator and denominator by
+$\overline{Z_{ng}}$ so the equation lives on CasADi `SX`).
+
+**Conduction loss** (per wire, same polynomial as `acdc_3ph_4w_*`):
+
+$$p_{loss,\varphi} = A_{loss}|i_\varphi|^2 + B_{loss}|i_\varphi| + C_{loss}$$
+$$p_{dc} = p_{ac,total} + p_{loss,total}$$
+
+**Defaults** — on construction the terminal voltages are seeded with a
+balanced three-phase set at $V_n / \sqrt{3} \angle \phi$ and the loss
+coefficients are estimated from the rated apparent power (1% conduction
+loss assumption) unless overridden via the HJSON `A_loss`, `B_loss`,
+`C_loss` fields.
+
+**HJSON snippet**
+
+```hjson
+vscs: [
+    {type: "ac_3ph_4w", bus: "A3", S_n: 100e3, U_n: 400,
+     R: 0.01, X: 0.05, R_n: 0.01, X_n: 0.1, R_ng: 0.01, X_ng: 3.0,
+     vsg: {type: "gflpfzv", ...}}
+]
+```
+"""
 
 import numpy as np
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "S_n",     "data": "S_n",   "model": "",                  "default": "",  "units": "VA",      "description": "Rated apparent power"},
+        {"type": "Parameter", "tex": "U_n",     "data": "U_n",   "model": "",                  "default": "",  "units": "V",       "description": "Rated line-to-line voltage"},
+        {"type": "Parameter", "tex": "R_s",     "data": "R",     "model": "R_s_{bus}",         "default": "",  "units": r"\Omega", "description": "Phase resistance"},
+        {"type": "Parameter", "tex": "X_s",     "data": "X",     "model": "X_s_{bus}",         "default": "",  "units": r"\Omega", "description": "Phase reactance"},
+        {"type": "Parameter", "tex": "R_{sn}",  "data": "R_n",   "model": "R_sn_{bus}",        "default": "",  "units": r"\Omega", "description": "Neutral wire resistance"},
+        {"type": "Parameter", "tex": "X_{sn}",  "data": "X_n",   "model": "X_sn_{bus}",        "default": "",  "units": r"\Omega", "description": "Neutral wire reactance"},
+        {"type": "Parameter", "tex": "R_{ng}",  "data": "R_ng",  "model": "R_ng_{bus}",        "default": "",  "units": r"\Omega", "description": "Neutral-to-ground resistance"},
+        {"type": "Parameter", "tex": "X_{ng}",  "data": "X_ng",  "model": "X_ng_{bus}",        "default": "",  "units": r"\Omega", "description": "Neutral-to-ground reactance"},
+        {"type": "Parameter", "tex": "A_{loss}","data": "A_loss","model": "A_loss_{bus}",      "default": "S_n-derived", "units": r"\Omega", "description": "Quadratic-loss coefficient"},
+        {"type": "Parameter", "tex": "B_{loss}","data": "B_loss","model": "B_loss_{bus}",      "default": 1.0, "units": "V",       "description": "Linear-loss coefficient"},
+        {"type": "Parameter", "tex": "C_{loss}","data": "C_loss","model": "C_loss_{bus}",      "default": "S_n-derived", "units": "W", "description": "No-load loss"},
+        {"type": "Input", "tex": r"v_{t,\varphi}^{r,i}", "data": "", "model": "v_t{a,b,c,n}_{r,i}_{bus}", "default": "balanced", "units": "V", "description": "Terminal voltage components (turned into states by a nested vsg)"},
+        {"type": "Algebraic State", "tex": r"i_{s,\varphi}^{r,i}", "data": "", "model": "i_vsc_{bus}_{ph}_{r,i}", "default": "", "units": "A", "description": "Per-phase converter current"},
+        {"type": "Algebraic State", "tex": "v_{og}^{r,i}", "data": "", "model": "v_{bus}_o_{r,i}", "default": "", "units": "V", "description": "Neutral-to-ground voltage"},
+        {"type": "Algebraic State", "tex": "p_{dc}", "data": "", "model": "p_dc_{bus}", "default": "", "units": "W", "description": "DC-side power equivalent (after losses)"},
+        {"type": "Output", "tex": r"p_{vsc,\varphi}, q_{vsc,\varphi}", "data": "", "model": "p_vsc_{bus}_{ph}, q_vsc_{bus}_{ph}", "default": "", "units": "W / var", "description": "Per-phase grid-side complex power"},
+    ]
 
 
 def ac_3ph_4w(grid, data):

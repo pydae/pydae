@@ -1,13 +1,78 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu August 10 23:52:55 2022
+r"""
+Three-phase (and DC) line model and admittance-primitive assembly.
 
-@author: jmmauricio
+Each line carries an `N_branches × N_branches` per-unit-length primitive
+admittance matrix $Y_\text{primitive}$ that depends on the conductor
+geometry (R, X matrices per length unit) and length. From this primitive,
+the global system admittance $Y = G + jB$ is built by the standard
+incidence-based assembly performed in `UdsBuilder.contruct_grid()`:
+
+$$Y = A^T\, Y_\text{primitive}\, A$$
+
+with $A$ the bus-to-branch incidence matrix.
+
+**Symbolic (sym=true) vs numeric (sym=false) admittances.** When the line
+HJSON entry sets `sym: true` (default for transmission-like lines), each
+non-zero off-diagonal admittance entry becomes a backend symbol
+$g_{jk}, b_{jk}$ registered in `params_dict` — useful for line-parameter
+SSA studies. With `sym: false`, the numeric R/X values are baked into the
+primitive directly.
+
+**Line-current monitors.** `add_line_monitors` emits, for any line with
+`monitor: true`, the per-branch current outputs
+$\Re(i_{jk}), \Im(i_{jk}), |i_{jk}|$ as `i_l_{bus_j}_{nj}_{bus_k}_{nk}_*`,
+read off the backend-agnostic real-form arrays
+`grid.I_lines_re[idx]`, `grid.I_lines_im[idx]` (see
+`UdsBuilder.add_branch_monitor`).
+
+**HJSON snippets**
+
+A length-coded AC line with a 4×4 R/X matrix referenced by `code`:
+
+```hjson
+lines: [
+    {bus_j: "A2", bus_k: "A3", code: "UG1", m: 100.0, monitor: true, sym: true},
+]
+line_codes: {
+    UG1: {R: [[…], [...], [...], [...]], X: [[…], [...], [...], [...]], I_max: 430.0}
+}
+```
+
+A simple 4-wire AC line specified directly with scalar R, X (per Ω):
+
+```hjson
+lines: [
+    {bus_j: "A1", bus_k: "A2", R: 0.1, X: 0.1, N_branches: 4},
+]
+```
+
+A 2-wire DC line:
+
+```hjson
+lines: [
+    {bus_j: "D2", bus_k: "D3", code: "UG1dc", m: 100.0, bus_j_nodes:[0,1], bus_k_nodes:[0,1]},
+]
+```
 """
 
 import numpy as np
 import sympy as sym
 import numba
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "R",  "data": "R",   "model": "",   "default": "",    "units": r"\Omega/km", "description": "Per-length resistance matrix (used with `m`)"},
+        {"type": "Parameter", "tex": "X",  "data": "X",   "model": "",   "default": "",    "units": r"\Omega/km", "description": "Per-length reactance matrix"},
+        {"type": "Parameter", "tex": "m",  "data": "m",   "model": "",   "default": "",    "units": "km",          "description": "Line length"},
+        {"type": "Parameter", "tex": "I_{max}", "data": "I_max", "model": "", "default": "", "units": "A",          "description": "Thermal ampacity (used by `model2svg` colouring)"},
+        {"type": "Parameter", "tex": "g_{jk}", "data": "", "model": "g_{bus_j}_{nj}_{bus_k}_{nk}_{col}", "default": r"\Re(Y_{prim})", "units": "S", "description": "Symbolic conductance entry (with `sym:true`)"},
+        {"type": "Parameter", "tex": "b_{jk}", "data": "", "model": "b_{bus_j}_{nj}_{bus_k}_{nk}_{col}", "default": r"\Im(Y_{prim})", "units": "S", "description": "Symbolic susceptance entry (with `sym:true`)"},
+        {"type": "Output", "tex": r"i_{jk}^r", "data": "", "model": "i_l_{bus_j}_{nj}_{bus_k}_{nk}_r", "default": "", "units": "A", "description": "Branch current, real (with `monitor:true`)"},
+        {"type": "Output", "tex": r"i_{jk}^i", "data": "", "model": "i_l_{bus_j}_{nj}_{bus_k}_{nk}_i", "default": "", "units": "A", "description": "Branch current, imag"},
+        {"type": "Output", "tex": r"|i_{jk}|", "data": "", "model": "i_l_{bus_j}_{nj}_{bus_k}_{nk}_m", "default": "", "units": "A", "description": "Branch current magnitude"},
+    ]
 
 
 def add_lines(self):

@@ -1,5 +1,44 @@
+r"""
+Four-wire breaker (or short series link) between two buses.
+
+The breaker is modelled as a small series R+jX impedance per wire with a
+boolean-like input `u_brk_{bus_1}` that scales the bus-side current
+injections. Setting `u_brk = 0` disconnects both buses; `u_brk = 1` (default)
+behaves as a permanent link with the small impedance.
+
+**Per-phase branch equation** (one per phase $\varphi \in \{a, b, c, n\}$):
+
+$$0 = v_{1,\varphi} - Z\, i_{\varphi} - v_{2,\varphi}, \qquad Z = R + jX$$
+
+split into real form so it works on both SymPy and CasADi backends:
+
+$$0 = v_{1,\varphi}^r - (R\,i_\varphi^r - X\,i_\varphi^i) - v_{2,\varphi}^r$$
+$$0 = v_{1,\varphi}^i - (R\,i_\varphi^i + X\,i_\varphi^r) - v_{2,\varphi}^i$$
+
+**Bus current injections** (added into the nodal `g` rows at each bus):
+
+$$g_{\text{bus}_1, \varphi} \mathrel{{+}{=}} -u_{\text{brk}}\, i_\varphi$$
+$$g_{\text{bus}_2, \varphi} \mathrel{{+}{=}} +u_{\text{brk}}\, i_\varphi$$
+
+**HJSON snippet**
+
+```hjson
+breakers: [{bus_1: "A1", bus_2: "A2"}]
+```
+"""
 
 import numpy as np
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "R",      "data": "",  "model": "R_{bus_1}",      "default": 1e-4, "units": r"\Omega", "description": "Series resistance per wire"},
+        {"type": "Parameter", "tex": "X",      "data": "",  "model": "X_{bus_1}",      "default": 1e-4, "units": r"\Omega", "description": "Series reactance per wire"},
+        {"type": "Input",     "tex": "u_{brk}", "data": "", "model": "u_brk_{bus_1}", "default": 1.0,  "units": "-",       "description": "Switching state (0 = open, 1 = closed)"},
+        {"type": "Algebraic State", "tex": r"i^r_\varphi", "data": "", "model": "i_brk_{bus_1}_{phase}_r", "default": "", "units": "A", "description": "Per-phase real branch current"},
+        {"type": "Algebraic State", "tex": r"i^i_\varphi", "data": "", "model": "i_brk_{bus_1}_{phase}_i", "default": "", "units": "A", "description": "Per-phase imag branch current"},
+        {"type": "Output",    "tex": r"|i_\varphi|", "data": "", "model": "i_brk_{bus}_{phase}_m", "default": "", "units": "A", "description": "Per-phase current magnitude (emitted on both buses)"},
+    ]
 
 
 def add_breakers(grid, data):

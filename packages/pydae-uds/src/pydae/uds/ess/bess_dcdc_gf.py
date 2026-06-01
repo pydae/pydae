@@ -1,4 +1,90 @@
+r"""
+Battery-energy-storage system with DC-DC grid-forming converter.
+
+Two stages: a low-voltage battery (with an open-circuit-voltage curve and
+internal resistance) feeds a DC-DC converter that imposes the high-voltage
+DC bus with a $P/V$ linear droop and a slow SOC-balancing loop.
+
+**Battery stage** — OCV curve as a piecewise-linear interpolant of
+`(socs, es)` HJSON samples (replacement for the legacy SymPy
+`interpolating_spline`), plus internal resistance $R_{bat}$:
+
+$$e_{ocv}(\text{soc}) = \text{PWL}(\text{soc};\, \text{socs}, \text{es})$$
+$$0 = e_{ocv} - i_l R_{bat} - v_{bat}$$
+$$\dot{\text{soc}} = -\frac{i_l \cdot e_{ocv}}{1000 \cdot 3600 \cdot E_{kWh}}$$
+$$\dot{\xi_{soc}} = \text{soc}_{ref} - \text{soc}$$
+
+The SOC-PI ($K_p, K_i$ both default to $10^{-6}$ for slow action) produces
+a $p_{soc}$ signal that can modulate the HV-side voltage reference.
+
+**DC-DC stage** — HV pole-to-pole voltage with linear current/power droop:
+
+$$v_h = v_{hp} - v_{hn}, \qquad
+  e_h = e_h^{ref} - D_i i_{hf} - D_p i_{hf} v_h + K_{soc}\,p_{soc}$$
+
+Currents into the positive and negative HV poles are derived from a small
+$R_h, R_g$ Thevenin equivalent:
+
+$$i_{hp} = (v_{og} + e_h/2 - v_{hp})/R_h, \qquad
+  i_{hn} = (v_{og} - e_h/2 - v_{hn})/R_h$$
+
+with $v_{og} = i_g R_g, \; i_g = (v_{hn} + v_{hp})/(2 R_g + R_h)$.
+
+**LV-side balance** — HV input power plus conduction loss equals LV battery
+power:
+
+$$p_l = p_h + A\,i_{hp}^2 + B\,|i_{hp}| + C, \qquad i_l = p_l/v_{bat} - i_{charger}$$
+
+with $|i_{hp}|$ approximated by $\sqrt{i_{hp}^2 + 10^{-12}}$ for
+differentiability.
+
+**HJSON snippet**
+
+```hjson
+ess: [
+    {bus: "D3", type: "bess_dcdc_gf", E_kWh: 1000, soc_0: 0.1, v_ref: 800,
+     A: 0.0, B: 0.0, C: 0.0,
+     socs: [0.0, 0.1, 0.2, 0.8, 0.9, 1.0],
+     es:   [600, 650, 680, 700, 710, 750]}
+]
+```
+"""
+
 import numpy as np
+
+
+def descriptions():
+    return [
+        # parameters
+        {"type": "Parameter", "tex": "E_{kWh}",  "data": "E_kWh", "model": "E_kWh_{name}",  "default": "", "units": "kWh", "description": "Battery capacity"},
+        {"type": "Parameter", "tex": "R_h",      "data": "",      "model": "R_h_{name}",    "default": 0.01,"units": r"\Omega", "description": "HV-side series resistance"},
+        {"type": "Parameter", "tex": "R_g",      "data": "",      "model": "R_g_{name}",    "default": 3,  "units": r"\Omega", "description": "HV neutral-to-ground resistance"},
+        {"type": "Parameter", "tex": "A",        "data": "A",     "model": "A_{name}",      "default": "", "units": r"\Omega", "description": "Quadratic conduction-loss coefficient"},
+        {"type": "Parameter", "tex": "B",        "data": "B",     "model": "B_{name}",      "default": "", "units": "V",       "description": "Linear conduction-loss coefficient"},
+        {"type": "Parameter", "tex": "C",        "data": "C",     "model": "C_{name}",      "default": "", "units": "W",       "description": "No-load loss"},
+        {"type": "Parameter", "tex": "D_p",      "data": "",      "model": "Droop_p_{name}","default": 0.0,"units": r"\Omega^{-1}", "description": "Power droop gain"},
+        {"type": "Parameter", "tex": "D_i",      "data": "",      "model": "Droop_i_{name}","default": 0.0,"units": r"\Omega",  "description": "Current droop gain"},
+        {"type": "Parameter", "tex": "T_f",      "data": "",      "model": "T_f_{name}",    "default": 0.1,"units": "s",        "description": "Current LPF time constant"},
+        {"type": "Parameter", "tex": "K_p",      "data": "",      "model": "K_p_{name}",    "default": 1e-6,"units": "-",       "description": "SOC-PI proportional gain"},
+        {"type": "Parameter", "tex": "K_i",      "data": "",      "model": "K_i_{name}",    "default": 1e-6,"units": "1/s",     "description": "SOC-PI integral gain"},
+        {"type": "Parameter", "tex": "K_{soc}",  "data": "",      "model": "K_soc_{name}",  "default": 0.001,"units": "V/W",    "description": "SOC-to-voltage coupling"},
+        {"type": "Parameter", "tex": "K_{charger}","data": "",    "model": "K_charger_{name}","default": 0.0,"units": "-",      "description": "Charger injection gain"},
+        {"type": "Parameter", "tex": "R_{bat}",  "data": "R_bat", "model": "R_bat_{name}",  "default": 0.0,"units": r"\Omega", "description": "Battery internal resistance"},
+        # inputs
+        {"type": "Input", "tex": "e_h^{ref}",    "data": "v_ref", "model": "e_h_ref_{name}","default": "v_ref","units": "V",   "description": "HV voltage reference"},
+        {"type": "Input", "tex": "\\text{soc}_{ref}", "data": "", "model": "soc_ref_{name}", "default": 0.5, "units": "-",     "description": "SOC reference"},
+        # dynamic states
+        {"type": "Dynamic State", "tex": "i_{hf}", "data": "", "model": "i_h_f_{name}",  "default": "", "units": "A", "description": "HV-side filtered current"},
+        {"type": "Dynamic State", "tex": "\\text{soc}", "data": "", "model": "soc_{name}", "default": "soc_0", "units": "-", "description": "Battery state of charge"},
+        {"type": "Dynamic State", "tex": "\\xi_{soc}", "data": "", "model": "xi_soc_{name}", "default": 0.5, "units": "-·s", "description": "SOC-PI integrator state"},
+        # algebraic states
+        {"type": "Algebraic State", "tex": "v_{bat}", "data": "", "model": "v_bat_{name}", "default": "", "units": "V", "description": "Battery terminal voltage"},
+        # outputs
+        {"type": "Output", "tex": "i_l",   "data": "", "model": "i_l_{name}",        "default": "", "units": "A", "description": "Battery-side current"},
+        {"type": "Output", "tex": "p_h",   "data": "", "model": "p_h_{name}",        "default": "", "units": "W", "description": "HV-side power"},
+        {"type": "Output", "tex": "e_h",   "data": "", "model": "e_h_{name}",        "default": "", "units": "V", "description": "HV reference (after droop / SOC)"},
+        {"type": "Output", "tex": "i_{charger}", "data": "", "model": "i_charger_{name}", "default": "", "units": "A", "description": "Charger current injection"},
+    ]
 
 
 def _piecewise_linear(bk, x, xs, ys):

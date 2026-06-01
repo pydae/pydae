@@ -1,5 +1,87 @@
+r"""
+Three-phase Dyn11 transformer (delta primary, wye-neutral secondary, +30° group).
+
+The primitive admittance is built in real form so it lives on either the
+SymPy or CasADi backend. The construction follows Rodríguez del Nozal,
+Romero-Ramos & Trigo-García, *Accurate Assessment of Decoupled OLTC
+Transformers to Optimize the Operation of Low-Voltage Networks*, Energies
+12, 2173 (2019).
+
+**Per-winding admittance** (one short-circuit branch + one magnetising
+branch per phase, all the same value by default):
+
+$$Y_t = G_t + j B_t = \frac{1}{R_{cc} + j X_{cc}} \cdot \frac{1}{Z_b},
+  \qquad Z_b = U_{jn}^2 / S_n$$
+
+$$Y_m = G_m + j B_m = \frac{1}{R_{fe} \cdot Z_b} - j \frac{1}{X_{mu} \cdot Z_b}$$
+
+**Winding-to-terminal incidence** $N \in \mathbb{R}^{6 \times 7}$ encodes
+the Dyn11 vector group (columns = $[A, B, C, a, b, c, n]$):
+
+$$N = \begin{bmatrix}
+ 1 & -1 &  0 &  0 &  0 &  0 &  0 \\
+ 0 &  0 &  0 &  1 &  0 &  0 & -1 \\
+ 0 &  1 & -1 &  0 &  0 &  0 &  0 \\
+ 0 &  0 &  0 &  0 &  1 &  0 & -1 \\
+-1 &  0 &  1 &  0 &  0 &  0 &  0 \\
+ 0 &  0 &  0 &  0 &  0 &  1 & -1
+\end{bmatrix}$$
+
+**Per-winding primitive** (with turns ratio $r$ applied symmetrically):
+
+$$Y_p = \begin{bmatrix}
+ Y_t + Y_m & -r\, Y_t \\
+-r\, Y_t & r^2\, Y_t
+\end{bmatrix} \text{ (one 2×2 block per phase, block-diagonal in 6×6)}$$
+
+**Terminal primitive**:
+
+$$Y_\text{primitive} = N^T Y_p N$$
+
+with the LV neutral node closed to ground through $R_g$:
+$Y_\text{primitive}[6, 6] \mathrel{{+}{=}} 1/R_g$.
+
+The real and imaginary parts $G_\text{primitive}, B_\text{primitive}$ are
+written directly into the grid's branch-admittance matrices at this
+transformer's branch slice; the standard nodal assembly in
+`UdsBuilder.contruct_grid()` picks them up.
+
+**Per-phase tap ratios** `Ratio_{a,b,c}` enter the primitive as multipliers
+on $Y_t$, so the model supports independent per-phase OLTC.
+
+**HJSON snippet**
+
+```hjson
+transformers: [
+    {bus_j: "MV0", bus_k: "I01", S_n_kVA: 100, U_j_kV: 20, U_k_kV: 0.4,
+     R_cc_pu: 0.01, X_cc_pu: 0.04,
+     connection: "Dyn11", conductors_j: 3, conductors_k: 4, monitor: true}
+]
+```
+"""
+
 import numpy as np
 import sympy as sym
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "S_n",       "data": "S_n_kVA",   "model": "",                  "default": "",    "units": "kVA",  "description": "Nominal apparent power"},
+        {"type": "Parameter", "tex": "U_j",       "data": "U_j_kV",    "model": "",                  "default": "",    "units": "kV",   "description": "Primary (delta) line-to-line voltage"},
+        {"type": "Parameter", "tex": "U_k",       "data": "U_k_kV",    "model": "",                  "default": "",    "units": "kV",   "description": "Secondary (wye) line-to-line voltage"},
+        {"type": "Parameter", "tex": "R_{cc}",    "data": "R_cc_pu",   "model": "",                  "default": "",    "units": "pu",   "description": "Short-circuit resistance"},
+        {"type": "Parameter", "tex": "X_{cc}",    "data": "X_cc_pu",   "model": "",                  "default": "",    "units": "pu",   "description": "Short-circuit reactance"},
+        {"type": "Parameter", "tex": "R_{fe}",    "data": "R_fe_pu",   "model": "",                  "default": r"\infty", "units": "pu", "description": "Iron-loss resistance (optional)"},
+        {"type": "Parameter", "tex": "X_\\mu",    "data": "X_mu_pu",   "model": "",                  "default": r"\infty", "units": "pu", "description": "Magnetising reactance (optional)"},
+        {"type": "Parameter", "tex": "R_g",       "data": "",          "model": "R_g_{bus_j}_{bus_k}", "default": 3.0, "units": r"\Omega", "description": "Neutral-to-ground resistance"},
+        {"type": "Parameter", "tex": "G_t",       "data": "",          "model": "G_t_{bus_j}_{bus_k}", "default": "",  "units": "S",    "description": "Per-winding conductance (derived)"},
+        {"type": "Parameter", "tex": "B_t",       "data": "",          "model": "B_t_{bus_j}_{bus_k}", "default": "",  "units": "S",    "description": "Per-winding susceptance (derived)"},
+        {"type": "Input",     "tex": "r_a",       "data": "",          "model": "Ratio_a_{bus_j}_{bus_k}", "default": 1.0, "units": "-", "description": "Phase-a OLTC tap ratio"},
+        {"type": "Input",     "tex": "r_b",       "data": "",          "model": "Ratio_b_{bus_j}_{bus_k}", "default": 1.0, "units": "-", "description": "Phase-b OLTC tap ratio"},
+        {"type": "Input",     "tex": "r_c",       "data": "",          "model": "Ratio_c_{bus_j}_{bus_k}", "default": 1.0, "units": "-", "description": "Phase-c OLTC tap ratio"},
+        {"type": "Output",    "tex": r"i_{t,j}^{\varphi r/i}", "data": "", "model": "i_t_{bus_j}_{bus_k}_1_{ph}_{r,i,m}", "default": "", "units": "A", "description": "Primary-side branch currents (with `monitor:true`)"},
+        {"type": "Output",    "tex": r"i_{t,k}^{\varphi r/i}", "data": "", "model": "i_t_{bus_j}_{bus_k}_2_{ph}_{r,i,m}", "default": "", "units": "A", "description": "Secondary-side branch currents"},
+    ]
 
 
 def add_Dyn11(grid,trafo):

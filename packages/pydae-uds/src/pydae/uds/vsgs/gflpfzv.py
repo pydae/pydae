@@ -1,5 +1,111 @@
+r"""
+Grid-following + Primary-Frequency-Response VSG with LPF and per-phase
+Q-PI control.
+
+Hosts inside an `ac_3ph_4w` VSC entry (see HJSON below). The VSG generates
+the converter terminal EMFs $e_{ao}, e_{bo}, e_{co}$ from a rotating frame
+$\phi(t)$ plus a per-phase magnitude that's slowly tracked by an outer-loop
+PI on the **positive-sequence** reactive power.
+
+**Symmetrical-component decomposition** of the grid-side voltage and
+current ($\alpha = e^{j2\pi/3}$, in real form for backend portability):
+
+$$\begin{bmatrix}v_0 \\ v_+ \\ v_-\end{bmatrix} =
+\frac{1}{3}\begin{bmatrix}
+ 1 & 1 & 1 \\
+ 1 & \alpha & \alpha^2 \\
+ 1 & \alpha^2 & \alpha
+\end{bmatrix}
+\begin{bmatrix}v_a \\ v_b \\ v_c\end{bmatrix}$$
+
+$$p_+ = 3\,\Re(v_+ \overline{i_+}), \qquad
+  q_+ = 3\,\Im(v_+ \overline{i_+})$$
+
+**Dynamic states** — swing equation with droop + power LPF:
+
+$$\dot{\phi} = \Omega_b (\omega - \omega_{coi}) - K_\delta \phi$$
+$$\dot{\omega} = \frac{1}{2H}\bigl(p_m - p_{ef} - D(\omega - 1)\bigr)$$
+$$\dot{p_{ef}} = \frac{1}{T_e}\!\left(\frac{p_+}{S_n} - p_{ef}\right)$$
+$$\dot{p_{cf}} = \frac{1}{T_c}\!\bigl(p_c - p_{cf}\bigr)$$
+$$\dot{p_{pfr}} = \frac{1}{T_{pfr}}\!\left(\frac{1}{R}(\omega - \omega_{ref}) - p_{pfr}\right)$$
+
+**Reactive PI with saturation + conditional-integration anti-windup**:
+
+$$\varepsilon_q = q_{ref} - q_+/S_n$$
+$$\Delta_{q,\text{nosat}} = K_{qp}\varepsilon_q + K_{qi}\xi_q$$
+$$\Delta_q = \text{clip}(\Delta_{q,\text{nosat}}, -0.05\,U_n, +0.05\,U_n)$$
+$$\dot{\xi_q} = K_{qaw}\varepsilon_q - (1 - K_{qaw})\xi_q$$
+
+where $K_{qaw} \in \{0, 1\}$ is the anti-windup indicator (0 once saturated).
+The saturation uses `bk.hard_limits` (so it codegens cleanly on both
+backends); the indicator stays on `bk.Piecewise` because it's a true step.
+
+**Per-phase EMF amplitude** — each phase has its own $\Delta e_{*o,m}$
+state tracking $v_{*r} + \Delta_q$ with first-order lag $T_v$:
+
+$$\dot{\Delta e_{ao,m}} = \frac{1}{T_v}\bigl(v_{ra} + \Delta_q - \Delta e_{ao,m}\bigr)$$
+
+**Virtual-impedance terminal voltage** (writes the EMFs back into the
+host VSC's $v_{t*}$ algebraic vars):
+
+$$0 = e_{*o} - (R_v + jX_v) i_{s\varphi} - v_{t\varphi}$$
+
+**HJSON snippet** (nested under an `ac_3ph_4w` VSC):
+
+```hjson
+vsg: {type: "gflpfzv", bus: "A3", S_n: 100e3, U_n: 400,
+      R_v: 0, X_v: 0.1,
+      H: 5.0, D: 0.1, T_e: 0.1, T_c: 0.1, T_v: 0.1, T_pfr: 0.2,
+      Droop: 0.05, K_qp: 0.01, K_qi: 0.01,
+      K_agc: 0.0, K_delta: 0.0, K_sec: 0.0}
+```
+"""
 
 import numpy as np
+
+
+def descriptions():
+    return [
+        # parameters
+        {"type": "Parameter", "tex": "S_n",   "data": "S_n",  "model": "S_n_{name}",   "default": "", "units": "VA",  "description": "Nominal apparent power"},
+        {"type": "Parameter", "tex": "U_n",   "data": "U_n",  "model": "U_n_{name}",   "default": "", "units": "V",   "description": "Nominal line-to-line voltage"},
+        {"type": "Parameter", "tex": "H",     "data": "H",    "model": "H_{name}",     "default": "", "units": "s",   "description": "Virtual inertia constant"},
+        {"type": "Parameter", "tex": "D",     "data": "D",    "model": "D_{name}",     "default": "", "units": "-",   "description": "Damping coefficient"},
+        {"type": "Parameter", "tex": "T_e",   "data": "T_e",  "model": "T_e_{name}",   "default": "", "units": "s",   "description": "Power-measurement LPF time constant"},
+        {"type": "Parameter", "tex": "T_c",   "data": "T_c",  "model": "T_c_{name}",   "default": "", "units": "s",   "description": "Command LPF time constant"},
+        {"type": "Parameter", "tex": "T_v",   "data": "T_v",  "model": "T_v_{name}",   "default": "", "units": "s",   "description": "Voltage-amplitude LPF time constant"},
+        {"type": "Parameter", "tex": "T_{pfr}","data": "T_pfr","model": "T_pfr_{name}","default": "", "units": "s",   "description": "PFR LPF time constant"},
+        {"type": "Parameter", "tex": "R",     "data": "Droop","model": "Droop_{name}", "default": "", "units": "-",   "description": "PFR droop (pu/pu)"},
+        {"type": "Parameter", "tex": "K_{qp}","data": "K_qp", "model": "K_qp_{name}",  "default": "", "units": "-",   "description": "Reactive-PI proportional gain"},
+        {"type": "Parameter", "tex": "K_{qi}","data": "K_qi", "model": "K_qi_{name}",  "default": "", "units": "1/s", "description": "Reactive-PI integral gain"},
+        {"type": "Parameter", "tex": "K_{agc}","data": "K_agc","model": "K_agc_{name}","default": "", "units": "-",   "description": "AGC participation factor"},
+        {"type": "Parameter", "tex": "K_\\delta","data": "K_delta","model": "K_delta_{name}","default": "", "units": "1/s", "description": "Angle reference-pull gain"},
+        {"type": "Parameter", "tex": "R_v",   "data": "R_v",  "model": "R_v_{name}",   "default": "", "units": "pu",  "description": "Virtual resistance"},
+        {"type": "Parameter", "tex": "X_v",   "data": "X_v",  "model": "X_v_{name}",   "default": "", "units": "pu",  "description": "Virtual reactance"},
+        # inputs
+        {"type": "Input", "tex": "p_c",        "data": "", "model": "p_c_{name}",        "default": 0.0, "units": "pu", "description": "Active-power command"},
+        {"type": "Input", "tex": "q_{ref}",    "data": "", "model": "q_ref_{name}",      "default": 0.0, "units": "pu", "description": "Reactive-power reference"},
+        {"type": "Input", "tex": "\\omega_{ref}","data": "","model": "omega_{name}_ref","default": 1.0, "units": "pu", "description": "Frequency reference for PFR"},
+        {"type": "Input", "tex": "e_{\\varphi o}^m", "data": "", "model": "e_{a,b,c}o_m_{name}", "default": r"V_n/\sqrt{3}", "units": "V", "description": "Per-phase EMF magnitude (set-point)"},
+        {"type": "Input", "tex": "\\phi_\\varphi","data": "", "model": "phi_{a,b,c,n}_{name}", "default": 0.0, "units": "rad", "description": "Per-phase angle offset"},
+        {"type": "Input", "tex": "v_{r\\varphi}","data": "", "model": "v_r{a,b,c,n}_{name}", "default": 0.0, "units": "V", "description": "Per-phase voltage residual injection"},
+        # dynamic states
+        {"type": "Dynamic State", "tex": "\\phi",   "data": "", "model": "phi_{name}",   "default": "", "units": "rad", "description": "Internal swing angle"},
+        {"type": "Dynamic State", "tex": "\\omega", "data": "", "model": "omega_{name}", "default": 1.0, "units": "pu", "description": "Rotor (virtual) speed"},
+        {"type": "Dynamic State", "tex": "\\xi_q",  "data": "", "model": "xi_q_{name}",  "default": "", "units": "pu·s", "description": "Reactive-PI integrator state"},
+        {"type": "Dynamic State", "tex": "p_{ef}",  "data": "", "model": "p_ef_{name}",  "default": "", "units": "pu", "description": "Filtered positive-sequence active power"},
+        {"type": "Dynamic State", "tex": "p_{cf}",  "data": "", "model": "p_cf_{name}",  "default": "", "units": "pu", "description": "Filtered active-power command"},
+        {"type": "Dynamic State", "tex": "p_{pfr}", "data": "", "model": "p_pfr_{name}", "default": "", "units": "pu", "description": "Filtered PFR output"},
+        {"type": "Dynamic State", "tex": "\\Delta e_{\\varphi o,m}", "data": "", "model": "De_{a,b,c,n}o_m_{name}", "default": "", "units": "V", "description": "Per-phase EMF amplitude correction"},
+        # algebraic states
+        {"type": "Algebraic State", "tex": "p_m", "data": "", "model": "p_m_{name}", "default": "", "units": "pu", "description": "Mechanical power balance variable"},
+        {"type": "Algebraic State", "tex": r"v_{t\varphi}^{r,i}", "data": "", "model": "v_t{a,b,c}_{r,i}_{name}", "default": "", "units": "V", "description": "Per-phase terminal voltage (host VSC's input turned into state)"},
+        # outputs
+        {"type": "Output", "tex": "p_+",  "data": "", "model": "p_pos_{name}", "default": "", "units": "W",   "description": "Positive-sequence active power"},
+        {"type": "Output", "tex": "q_+",  "data": "", "model": "q_pos_{name}", "default": "", "units": "var", "description": "Positive-sequence reactive power"},
+        {"type": "Output", "tex": "p_-",  "data": "", "model": "p_neg_{name}", "default": "", "units": "W",   "description": "Negative-sequence active power"},
+        {"type": "Output", "tex": "p_0",  "data": "", "model": "p_zer_{name}", "default": "", "units": "W",   "description": "Zero-sequence active power"},
+    ]
 
 
 # Sequence-transform constants (alpha = e^{j*2π/3})

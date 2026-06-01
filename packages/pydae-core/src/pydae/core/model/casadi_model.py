@@ -77,7 +77,10 @@ class CasadiModel:
         self.y_ini_list = self.y_ini_names
         self.y_run_list = self.y_run_names
         self.y_list = self.y_run_names
+        self.u_ini_list = self.u_ini_names
+        self.u_run_list = self.u_run_names
         self.z_list = list(self.sys_dict.get('h_dict', {}).keys())
+        self.outputs_list = self.z_list
 
         self.N_x = len(self.x_names)
         self.N_y_ini = len(self.y_ini_names)
@@ -190,7 +193,10 @@ class CasadiModel:
         self.y_ini_list = self.y_ini_names
         self.y_run_list = self.y_run_names
         self.y_list = self.y_run_names
+        self.u_ini_list = self.u_ini_names
+        self.u_run_list = self.u_run_names
         self.z_list = list(self.sys_dict.get('h_dict', {}).keys())
+        self.outputs_list = self.z_list
 
         self.N_x = len(self.x_names)
         self.N_y_ini = len(self.y_ini_names)

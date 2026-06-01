@@ -199,6 +199,7 @@ class Model:
         self.params_list = list(self.data_dict['params_dict'].keys())
         # h_dict -> h_list in builder, but read both for backward compatibility
         self.z_list = self.data_dict.get('h_list', self.data_dict.get('z_list', []))
+        self.outputs_list = self.z_list
         self.u_run_list = list(self.data_dict['u_run_dict'].keys())
         self.u_ini_list = list(self.data_dict['u_ini_dict'].keys())
         self.u_ini_values_list = list(self.data_dict['u_ini_dict'].values())

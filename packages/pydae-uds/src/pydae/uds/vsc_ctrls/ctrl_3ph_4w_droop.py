@@ -1,4 +1,57 @@
+r"""
+AC/DC linear droop outer-loop control for a 4-wire AC-DC VSC.
+
+The control couples the DC-bus per-unit voltage to the AC-bus per-unit
+phase-neutral voltage through a per-phase droop gain, generating the
+per-phase active-power command that drives the underlying VSC. With a zero
+droop gain the controller passes the reference signals straight through.
+
+**Per-unit voltages**
+
+$$v_{dc}^{pu} = \frac{|v_{dc}|}{V_{dc,b}}, \qquad
+  V_{phn,\varphi}^{pu} = \frac{|V_{\varphi n}|}{V_{ac,b}}$$
+
+with $V_{ac,b} = U_{ac,b}/\sqrt{3}$ and $|v_{dc}|, |V_{\varphi n}|$ the
+DC pole-to-pole and AC phase-to-neutral voltage magnitudes (already
+emitted as 2-norms of the rectangular node voltages).
+
+**Droop equation** (one per phase $\varphi \in \{a, b, c\}$):
+
+$$p_{ac,\varphi} = K_{acdc}\, K_{acdc,\varphi}\, (v_{dc}^{pu} - V_{phn,\varphi}^{pu})
+                  + p_{vsc,\varphi}^{ref}$$
+
+**Algebraic balance**: the control turns the per-phase `p_vsc_{abc}_{bus_ac}`
+variables (inputs of the host VSC) into algebraic states by adding the
+equations $p_{ac,\varphi} - p_{vsc,\varphi} = 0$ to `g_list`, and pops the
+corresponding entries from `u_ini_dict` / `u_run_dict`. The reference
+channel `p_vsc_{abc}_ref_{bus_ac}` becomes the new input.
+
+**HJSON snippet** (nested inside an AC-DC VSC entry):
+
+```hjson
+vscs: [
+    {bus_ac: "A4", bus_dc: "D4", type: "acdc_3ph_4w_pq",
+     A: 350, B: 0, C: 0.03,
+     vsc_ctrl: {type: "ctrl_3ph_4w_droop"}}
+]
+```
+"""
+
 import numpy as np
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "K_{acdc}",       "data": "", "model": "K_acdc_{bus_ac}",    "default": 0.0, "units": "-", "description": "Common droop gain (set >0 to enable the AC/DC coupling)"},
+        {"type": "Parameter", "tex": "K_{acdc,\\varphi}", "data": "", "model": "K_acdc_{ph}_{bus_ac}", "default": 1.0, "units": "-", "description": "Per-phase droop weight"},
+        {"type": "Parameter", "tex": "U_{ac,b}",       "data": "", "model": "U_ac_b_{bus_ac}",    "default": "bus U_kV * 1e3", "units": "V", "description": "AC base voltage (auto-set from bus U_kV)"},
+        {"type": "Parameter", "tex": "V_{dc,b}",       "data": "", "model": "V_dc_b_{bus_dc}",    "default": "bus U_kV * 1e3", "units": "V", "description": "DC base voltage"},
+        {"type": "Input",     "tex": "p_{vsc,\\varphi}^{ref}", "data": "", "model": "p_vsc_{ph}_ref_{bus_ac}", "default": 0.0, "units": "W", "description": "Per-phase reference active-power injection"},
+        {"type": "Algebraic State", "tex": "p_{vsc,\\varphi}", "data": "", "model": "p_vsc_{ph}_{bus_ac}", "default": "", "units": "W", "description": "Per-phase active-power injection commanded to the VSC"},
+        {"type": "Output", "tex": "v_{ac,\\varphi}^{pu}", "data": "", "model": "v_ac_{ph}_pu_{bus_ac}", "default": "", "units": "pu", "description": "AC phase-neutral per-unit voltage (monitor)"},
+        {"type": "Output", "tex": "v_{dc}^{pu}",       "data": "", "model": "v_dc_pu_{bus_dc}",   "default": "", "units": "pu", "description": "DC pole-to-pole per-unit voltage (monitor)"},
+    ]
+
 
 def ctrl_3ph_4w_droop(grid,vsc_data,ctrl_data,name,bus_name):
 

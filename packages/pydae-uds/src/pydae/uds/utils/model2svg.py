@@ -11,6 +11,7 @@ class model2svg(svg):
 
         super().__init__(svg_file)
         self.model = model
+        self.grid = model   # legacy svg_tools name expected by set_tooltips_v2
         self.set_grid(grid_data)
 
         self.V_min_pu = 0.95
@@ -49,7 +50,12 @@ class model2svg(svg):
 
         for bus in self.grid_data['buses']:
 
-            if not 'N_nodes' in bus: bus.update({'N_nodes':4})
+            # mirror UdsBuilder.preprocess: prefer nodes-length, then explicit
+            # N_nodes, then 4 (catches DC buses with nodes:[0,1])
+            if 'nodes' in bus:
+                bus['N_nodes'] = len(bus['nodes'])
+            elif 'N_nodes' not in bus:
+                bus['N_nodes'] = 4
 
             if bus['N_nodes'] == 4:
                 bus_name = bus['name']
@@ -109,11 +115,19 @@ class model2svg(svg):
             bus_j = line['bus_j']
             bus_k = line['bus_k']
 
-            if not "N_branches" in line: line.update({"N_branches":4})
+            # mirror UdsBuilder: prefer bus_j_nodes-length, else explicit
+            # N_branches, else 4 (catches DC lines with bus_j_nodes:[0,1])
+            if 'bus_j_nodes' in line:
+                line['N_branches'] = len(line['bus_j_nodes'])
+            elif 'N_branches' not in line:
+                line['N_branches'] = 4
 
-            phases = ['a','b','c','n'] 
-            if line['N_branches'] == 3:
-                phases = ['a','b','c'] 
+            if line['N_branches'] == 4:
+                phases = ['a', 'b', 'c', 'n']
+            elif line['N_branches'] == 3:
+                phases = ['a', 'b', 'c']
+            else:  # DC or other narrow lines: skip per-phase titling
+                continue
 
 
             string = 'Currents:\n'
@@ -193,7 +207,10 @@ class model2svg(svg):
         
         for bus in self.grid_data['buses']:
 
-            if not 'N_nodes' in bus: bus['N_nodes'] == 4
+            if 'nodes' in bus:
+                bus['N_nodes'] = len(bus['nodes'])
+            elif 'N_nodes' not in bus:
+                bus['N_nodes'] = 4
 
             if bus['N_nodes'] == 4:
 

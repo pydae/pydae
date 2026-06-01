@@ -15,7 +15,7 @@ class style():
 
 # print(f"{style.RED}{test1} {style.BLUE}{test2}{style.RESET}")
 
-def report_v(grid,data_input,show=True,model='urisi'):
+def report_v(grid,data_input,show=True,model='uds'):
     '''
     
 

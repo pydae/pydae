@@ -1,4 +1,59 @@
+r"""
+Bidirectional AC-DC converter, 3 phase + neutral on the AC side, two poles
+on the DC side, controlled in **per-phase active and reactive power**.
+
+Unlike `acdc_3ph_4w_vdc_q` this model does **not** impose a DC voltage; it
+tracks per-phase $p_{ac,\varphi}$, $q_{ac,\varphi}$ setpoints and the DC
+side balances passively. The model pairs naturally with the
+`ctrl_3ph_4w_droop` outer-loop control which sets the $p$ references from
+an AC/DC voltage difference.
+
+**AC balance** (one $p$ and one $q$ equation per phase, in real form):
+
+$$\Re(s_\varphi) = p_\varphi^{ref}, \qquad \Im(s_\varphi) = q_\varphi^{ref}$$
+
+with $s_\varphi = (v_\varphi - v_n)\overline{i_\varphi}$ and $\sum_\varphi i_\varphi + i_n = 0$.
+
+**Loss model** — same conduction-loss polynomial as `acdc_3ph_4w_vdc_q`
+(see its docstring), with a slightly larger smoothing constant
+$|i|^2 \to |i|^2 + 10^{-2}$ to stabilise during start-up.
+
+**DC balance**:
+
+$$0 = -p_{dc} + p_{ac,total} + p_{loss,total}$$
+$$i_{d} = \frac{p_{dc}}{v_{dc}} \quad \text{(injected into the DC poles)}$$
+
+**HJSON snippet**
+
+```hjson
+vscs: [
+    {bus_ac: "A4", bus_dc: "D4", type: "acdc_3ph_4w_pq",
+     A: 350, B: 0, C: 0.03,
+     vsc_ctrl: {type: "ctrl_3ph_4w_droop"}}
+]
+```
+"""
+
 import numpy as np
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "A_{loss}",  "data": "A", "model": "A_loss_{bus_ac}",  "default": "",  "units": "W",       "description": "No-load loss"},
+        {"type": "Parameter", "tex": "B_{loss}",  "data": "B", "model": "B_loss_{bus_ac}",  "default": "",  "units": "V",       "description": "Linear-loss coefficient"},
+        {"type": "Parameter", "tex": "C_{loss}",  "data": "C", "model": "C_loss_{bus_ac}",  "default": "",  "units": r"\Omega", "description": "Quadratic-loss coefficient"},
+        {"type": "Parameter", "tex": "R_{dc}",    "data": "",  "model": "R_dc_{bus_dc}",    "default": 1e-6, "units": r"\Omega", "description": "DC series resistance"},
+        {"type": "Parameter", "tex": "R_{gdc}",   "data": "",  "model": "R_gdc_{bus_dc}",   "default": 3.0, "units": r"\Omega", "description": "DC neutral-to-ground resistance"},
+        {"type": "Input",     "tex": "p_\\varphi^{ref}", "data": "", "model": "p_vsc_{ph}_{bus_ac}", "default": 0.0, "units": "W",   "description": "Per-phase active-power setpoint (replaced when a vsc_ctrl is attached)"},
+        {"type": "Input",     "tex": "q_\\varphi^{ref}", "data": "", "model": "q_vsc_{ph}_{bus_ac}", "default": 0.0, "units": "var", "description": "Per-phase reactive-power setpoint"},
+        {"type": "Algebraic State", "tex": r"i_\varphi^{r,i}", "data": "", "model": "i_vsc_{bus_ac}_{ph}_{r,i}", "default": "", "units": "A", "description": "Per-phase converter current (a/b/c/n)"},
+        {"type": "Algebraic State", "tex": "p_{dc}", "data": "", "model": "p_vsc_{bus_dc}", "default": "", "units": "W", "description": "DC-side active power"},
+        {"type": "Output", "tex": "p_{vsc}",       "data": "", "model": "p_vsc_{bus_ac}",      "default": "", "units": "W",   "description": "Total AC active power"},
+        {"type": "Output", "tex": "q_{vsc}",       "data": "", "model": "q_vsc_{bus_ac}",      "default": "", "units": "var", "description": "Total AC reactive power"},
+        {"type": "Output", "tex": "|s_{vsc}|",     "data": "", "model": "s_vsc_{bus_ac}",      "default": "", "units": "VA",  "description": "Total AC apparent power magnitude"},
+        {"type": "Output", "tex": "v_{dc}",        "data": "", "model": "v_dc_{bus_dc}",       "default": "", "units": "V",   "description": "DC pole-to-pole voltage"},
+        {"type": "Output", "tex": "|v_{an}|",      "data": "", "model": "v_anm_{bus_ac}",      "default": "", "units": "V",   "description": "Phase-a to neutral voltage magnitude"},
+    ]
 
 
 def acdc_3ph_4w_pq(grid, vsc_data):

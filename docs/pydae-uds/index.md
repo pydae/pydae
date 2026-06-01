@@ -34,6 +34,13 @@ getting_started
 ```
 
 ```{toctree}
+:maxdepth: 2
+:caption: Models
+
+models/index
+```
+
+```{toctree}
 :maxdepth: 1
 :caption: Reference
 

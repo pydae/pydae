@@ -1,0 +1,80 @@
+{
+    "x_list": [
+        "V_dummy_2",
+        "V_flt_1",
+        "Ip_1",
+        "Iq_1"
+    ],
+    "y_ini_list": [
+        "V_1",
+        "theta_1",
+        "V_2",
+        "theta_2",
+        "omega_coi"
+    ],
+    "y_run_list": [
+        "V_1",
+        "theta_1",
+        "V_2",
+        "theta_2",
+        "omega_coi"
+    ],
+    "h_list": [
+        "V_1",
+        "V_2",
+        "V_dummy_2",
+        "p_g_1",
+        "q_g_1",
+        "Ip_1",
+        "Iq_1",
+        "V_flt_1",
+        "gain_1"
+    ],
+    "u_ini_dict": {
+        "P_1": 0.0,
+        "Q_1": 0.0,
+        "P_2": 0.0,
+        "Q_2": 0.0,
+        "v_ref_2": 1.0,
+        "theta_ref_2": 0.0,
+        "Ipcmd_1": 0.8,
+        "Iqcmd_1": 0.0
+    },
+    "u_run_dict": {
+        "P_1": 0.0,
+        "Q_1": 0.0,
+        "P_2": 0.0,
+        "Q_2": 0.0,
+        "v_ref_2": 1.0,
+        "theta_ref_2": 0.0,
+        "Ipcmd_1": 0.8,
+        "Iqcmd_1": 0.0
+    },
+    "params_dict": {
+        "S_base": 100000000.0,
+        "g_1_2": 1.98019801980198,
+        "b_1_2": -19.801980198019802,
+        "bs_1_2": 0.0,
+        "U_1_n": 20000.0,
+        "U_2_n": 20000.0,
+        "S_n_1": 100000000.0,
+        "Tfltr_1": 0.02,
+        "Tg_1": 0.02,
+        "Lvpl1_1": 1.22,
+        "Zerox_1": 0.4,
+        "Brkpt_1": 0.9,
+        "rrpwr_1": 10.0,
+        "Volim_1": 1.2,
+        "Iolim_1": -1.3,
+        "Khv_1": 0.7,
+        "lvpnt0_1": 0.4,
+        "lvpnt1_1": 0.8,
+        "Iqrmax_1": 999.0,
+        "Iqrmin_1": -999.0,
+        "alpha_solver": 0.5
+    },
+    "sparse_backend": null,
+    "target": "cffi",
+    "NNZ_ini": 0,
+    "NNZ_trap": 0
+}

@@ -1,4 +1,73 @@
+r"""
+Bidirectional AC-DC converter, 3 phase + neutral on the AC side, two poles
+on the DC side, controlled in **DC-bus voltage / per-phase reactive power**.
+Used as a grid-forming converter on the DC link: it imposes the DC-pole
+voltage and absorbs/injects whatever AC power balances it.
+
+**AC side** — per-phase complex power on the converter terminals
+($s_\varphi = (v_\varphi - v_n)\overline{i_\varphi}$, plus the neutral
+$s_n = v_n \overline{i_n}$), expanded into real form to be backend-agnostic.
+
+**Loss model** — per-wire conduction-loss polynomial in the rms current
+(`A + B|i| + C|i|^2`), with a small smoothing constant inside the square
+root so the Jacobian is well-defined at zero current:
+
+$$|i_\varphi|_{rms} = \sqrt{(i_\varphi^r)^2 + (i_\varphi^i)^2 + 10^{-3}}$$
+$$p_{loss,\varphi} = A_{loss} + B_{loss}|i|_{rms} + C_{loss}|i|^2_{rms}$$
+
+**AC balance** — for each phase $\varphi$ the active power balance pulls
+the DC active power $p_{dc}$ (split across phases by weights $C_\varphi$,
+defaulting to 1/3 each) and adds the local + neutral conduction losses:
+
+$$\Re(s_\varphi) = C_\varphi p_{dc} - p_{loss,\varphi} - p_{loss,n}/3$$
+$$\Im(s_\varphi) = q_\varphi^{ref}$$
+
+with $\sum_\varphi i_\varphi + i_n = 0$ closing the neutral KCL.
+
+**DC side** — DC droop on the pole-to-pole voltage:
+
+$$v_{dc} = v_{dc}^{ref} - K_{droop}\, p_{dc}$$
+
+and a Thevenin-like coupling to the DC bus pole voltages through small
+series resistances and a neutral-to-ground impedance $R_{gdc}$:
+
+$$0 = v_{og} + v_{dc}/2 - R_{dc} i_{pos} - v_{pos}$$
+$$0 = v_{og} - v_{dc}/2 - R_{dc} i_{neg} - v_{neg}$$
+$$0 = -v_{og}/R_{gdc} - i_{pos} - i_{neg}$$
+$$0 = -p_{dc} - v_{dc}/2 \cdot (i_{pos} - i_{neg})$$
+
+**HJSON snippet**
+
+```hjson
+vscs: [
+    {bus_ac: "A2", bus_dc: "D2", type: "acdc_3ph_4w_vdc_q",
+     A: 0.0, B: 0.0, C: 0.0}
+]
+```
+"""
+
 import numpy as np
+
+
+def descriptions():
+    return [
+        {"type": "Parameter", "tex": "A_{loss}",    "data": "A",   "model": "A_{bus_ac}",         "default": "",  "units": "W",   "description": "No-load loss"},
+        {"type": "Parameter", "tex": "B_{loss}",    "data": "B",   "model": "B_{bus_ac}",         "default": "",  "units": "V",   "description": "Linear-loss coefficient"},
+        {"type": "Parameter", "tex": "C_{loss}",    "data": "C",   "model": "C_{bus_ac}",         "default": "",  "units": r"\Omega", "description": "Quadratic-loss coefficient"},
+        {"type": "Parameter", "tex": "C_\\varphi",  "data": "",    "model": "C_{ph}_{bus_ac}",    "default": 1/3, "units": "-",   "description": "DC-power share to phase ph (a/b/c)"},
+        {"type": "Parameter", "tex": "K_{droop}",   "data": "",    "model": "K_droop_{bus_ac}",   "default": 0.0, "units": r"\Omega", "description": "DC voltage / power droop gain"},
+        {"type": "Parameter", "tex": "R_{dc}",      "data": "",    "model": "R_dc_{bus_dc}",      "default": 1e-6, "units": r"\Omega", "description": "DC series resistance per pole"},
+        {"type": "Parameter", "tex": "R_{gdc}",     "data": "",    "model": "R_gdc_{bus_dc}",     "default": 3.0, "units": r"\Omega", "description": "DC neutral-to-ground resistance"},
+        {"type": "Input",     "tex": "v_{dc}^{ref}","data": "",    "model": "v_dc_{bus_dc}_ref",  "default": 800.0, "units": "V", "description": "DC voltage setpoint"},
+        {"type": "Input",     "tex": "q_\\varphi^{ref}", "data": "", "model": "q_vsc_{ph}_{bus_ac}", "default": 0.0, "units": "var", "description": "Per-phase reactive-power setpoint"},
+        {"type": "Algebraic State", "tex": r"i_\varphi^{r,i}", "data": "", "model": "i_vsc_{bus_ac}_{ph}_{r,i}", "default": "", "units": "A", "description": "Per-phase converter current (a/b/c/n)"},
+        {"type": "Algebraic State", "tex": "p_{dc}",  "data": "", "model": "p_vsc_{bus_dc}",  "default": "", "units": "W", "description": "DC-side active power"},
+        {"type": "Algebraic State", "tex": "i_{pos}", "data": "", "model": "i_vsc_pos_{bus_dc}_sp", "default": "", "units": "A", "description": "DC positive-pole current"},
+        {"type": "Algebraic State", "tex": "i_{neg}", "data": "", "model": "i_vsc_{bus_dc}_sn", "default": "", "units": "A", "description": "DC negative-pole current"},
+        {"type": "Algebraic State", "tex": "v_{og}",  "data": "", "model": "v_og_{bus_dc}",   "default": "", "units": "V", "description": "DC neutral-to-ground voltage"},
+        {"type": "Output", "tex": "p_{vsc}",       "data": "", "model": "p_vsc_{bus_ac}",     "default": "", "units": "W", "description": "Total AC active power"},
+        {"type": "Output", "tex": "p_{vsc}^{loss}","data": "", "model": "p_vsc_loss_{bus_ac}","default": "", "units": "W", "description": "Total conduction loss"},
+    ]
 
 
 def acdc_3ph_4w_vdc_q(grid, vsc_data):
