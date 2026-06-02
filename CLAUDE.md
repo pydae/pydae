@@ -352,6 +352,15 @@ uv run sphinx-build -b html docs/pydae-bps  docs/pydae-bps/_build/html
 uv run sphinx-build -b html docs/pydae-uds  docs/pydae-uds/_build/html
 ```
 
+**Auto-generated model pages** — `pydae-bps` and `pydae-uds` ship a model-doc generator that walks the component sources, extracts each file's raw module docstring (preserving LaTeX) and its `descriptions()` list, and writes one Markdown page per model under `docs/<pkg>/models/<family>/`. Regenerate any time a model is added or its docstring/descriptions changes:
+
+```bash
+python docs/pydae-bps/_scripts/generate_model_pages.py
+python docs/pydae-uds/_scripts/generate_model_pages.py
+```
+
+The bps generator skips the same-named family dispatcher (`syns.py`, `avrs.py`, …) and documents its siblings. The uds version makes one exception: when a family directory contains only the same-named file (`shunts/shunts.py`, `lines/lines.py`), that file *is* the model and is documented. Canonical reference implementations of the `descriptions()` schema: `packages/pydae-bps/src/pydae/bps/syns/milano4ord.py` (transmission) and any of the documented uds components used by `pydae_examples/grids/grid_urisi/acdc_7bus/acdc_7bus.hjson` (distribution).
+
 ReadTheDocs is configured per subproject. The repo's default branch is `master` (not `main`) — the RTD admin must match, or builds fail with `fatal: couldn't find remote ref refs/heads/main`.
 
 ## Releases
