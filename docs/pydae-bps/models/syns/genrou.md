@@ -254,12 +254,16 @@ locus:
 
 ![pydae sweep overlaid on NTS Figura 18](genrou_nts_overlay.png)
 
-Red squares are `genrou`; green diamonds are `milano6ord` with the NTS
-literal $X_l = 0.234$; the blue $\times$ / $\circ$ markers are the
-original NTS Figura 18 trajectory. `genrou` lands on the NTS markers
-across the full sweep; `milano6ord` with $X_l = 0.234$ drifts
-substantially to the left (over-damped) and its trajectory bends
-differently. The per-$X_L$ numerical values for both pydae models and
+Red × — NTS Figura 18 read-offs (from the labelled $X_L = 0.01$ and
+$X_L = 0.6$ markers plus visual interpolation along the locus).
+Blue ○ — `genrou`. Green ◆ — `milano6ord` with $X_l = 0$ (the
+historical workaround used in this benchmark before genrou existed).
+The two pydae traces sit on top of each other (residual difference is
+the Marconato rotor cross-coupling, ≲ 0.4 pp damping at any $X_L$) and
+both land on the NTS markers across the whole sweep. The point of
+`genrou` is that it produces this match **without** the user having
+to override NTS Tabla 45's $X_l = 0.234$; the literal NTS parameters
+go straight into `genrou` and the inter-area mode comes out right. The per-$X_L$ numerical values for both pydae models and
 the NTS figure read-offs are tabulated in
 [`autovalores.md`](https://github.com/jmmauricio/benchmarks_public/blob/main/nts/cases/base/autovalores.md)
 in the benchmarks repo and recorded under
