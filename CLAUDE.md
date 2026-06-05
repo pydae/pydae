@@ -139,6 +139,18 @@ On `ini()` failure, diagnostics from `diagnostics/dae_check.py` run automaticall
 
 These builders read HJSON/JSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/` — `pv_dq`, `pv_dq_d`, `pv_dq_ss`, `pv_dq_vrt`, `pv_pq_ss`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`), grid-forming VSCs (`vsgs/`). In `pydae-uds` (three-phase, per-phase modelling): `vscs/` is the largest family, plus `vsgs/` (grid-forming), `genapes/`, `ess/` (storage), `fcs/`, `pvs/`, `loads/`, `lines/`, `transformers/`, `shunts/`, `sources/`, `vsc_ctrls/`, `miscellaneous/`.
 
+**Synchronous machines — model choice.** `syns/genrou.py` is the canonical
+round-rotor 6th-order machine (IEEE 1110-2019 Model 2.2 / Anderson-Fouad /
+PSS/E `GENROU`). It takes industry-standard parameter tables (NTS Tabla 45,
+IEEE 115, PSS/E) literally: $X_d''$, $X_q''$ are *terminal-referred*
+(IEEE 115 Eq. (88): $X_{ds} = X_{ads} + X_l$), so the model has **no `X_l`
+field**. Use `genrou` for new work. `syns/milano{2,3,4,6}ord.py` keep
+Marconato / Sauer-Pai conventions (subtransient-minus-leakage stator
+form, Marconato cross-coupling on the rotor) and are retained for
+back-compat with existing benchmarks; they are deprecated but not
+aliased — the two families produce different operating points and modes
+on identical NTS-style input.
+
 **Builder invocation workflow** (identical shape for both `BpsBuilder` and `UdsBuilder`):
 
 ```python

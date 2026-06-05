@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 """
+.. deprecated::
+   This is a 4th-order Marconato / Sauer-Pai two-axis model. For new work
+   on round-rotor machines use :mod:`pydae.bps.syns.genrou` (IEEE 1110
+   Model 2.2 / Anderson-Fouad, 6th order, terminal-referred subtransient
+   reactances, no ``X_l`` field). The module remains functional so
+   existing benchmarks keep working; it is **not** aliased to ``genrou``
+   because the conventions on ``X_l`` and saturation differ.
+
 Synchronous machine model of order 4 (Two-Axis Model) with PSAT Saturation.
 
 **Auxiliar equations**

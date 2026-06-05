@@ -1,0 +1,69 @@
+// ==============================================================================
+// genrou — in-module test fixture (single machine vs infinite bus)
+//
+// IEEE 1110 Model 2.2 / Anderson-Fouad round-rotor 6th-order machine.
+// Parameter source: NTS REE Tabla 45 (Iberdrola 1500 MVA unit), taken
+// literally — X_l is NOT a parameter of this model (see module docstring).
+//
+// Bus 2 is the infinite bus (vsource, V=1 pu, theta=0).
+// Saturation active (S_10=0.05, S_12=0.20).
+// LC controller sets desired p_g = 0.5 pu on machine base (750 MW).
+// ==============================================================================
+
+{
+system: {name: "genrou", S_base: 1000e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 20000}
+],
+
+shunts: [
+  {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
+],
+
+syns: [
+  {
+    bus: "1",
+    type: "genrou",
+
+    // Base
+    S_n: 1500e6,
+    F_n: 50.0,
+
+    // Synchronous reactances (no X_l!)
+    X_d: 2.135,  X_q: 2.046,
+
+    // Transient parameters
+    X1d: 0.34,   T1d0: 6.47,
+    X1q: 0.573,  T1q0: 0.61,
+
+    // Subtransient — terminal-referred per NTS Tabla 45
+    X2d: 0.269,  T2d0: 0.022,
+    X2q: 0.269,  T2q0: 0.034,
+
+    // Resistance, inertia, damping
+    R_a: 0.0,
+    H:   6.3,
+    D:   0.0,
+
+    // IEEE 1110 §6.3 two-point saturation
+    S_10: 0.05,
+    S_12: 0.20,
+
+    K_sec:   0.0,
+    K_delta: 0.0,
+
+    // Bare field-voltage + mechanical-power dispatch. v_f=1.5 is enough
+    // excitation for X_d=2.135 to support p_g=0.5 at near-unity power factor.
+    v_f: 1.5,
+    p_m: 0.5
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}

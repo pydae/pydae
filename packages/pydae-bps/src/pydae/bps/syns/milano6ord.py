@@ -1,5 +1,25 @@
 # -*- coding: utf-8 -*-
 """
+.. deprecated::
+   Use :mod:`pydae.bps.syns.genrou` (round-rotor, IEEE 1110 Model 2.2 /
+   Anderson-Fouad) for new work. This module keeps Marconato / Sauer-Pai
+   conventions: its stator equations subtract the leakage from the
+   subtransient reactance ($(X_d'' - X_l)$) and its rotor equations carry
+   the cross-coupling term
+   $\\frac{T_{d0}''}{T_{d0}'} \\frac{X_d''}{X_d'} (X_d - X_d')$.
+
+   Industry parameter tables (IEEE 1110-2019, IEEE 115-2019, PSS/E
+   ``GENROU``, REE NTS Tabla 45) publish $X_d''$ as the *terminal-referred*
+   reactance (IEEE 115 Eq. (88): $X_{ds} = X_{ads} + X_l$), so feeding
+   literal NTS values here produces an effective stator reactance
+   $X_d'' - X_l$ that is several times too stiff. ``genrou`` takes those
+   tables literally and has no ``X_l`` field.
+
+   This module remains functional so existing benchmarks that depend on
+   the Marconato form keep working; it is **not** silently aliased to
+   ``genrou`` because the two models produce different operating points
+   and dynamics on identical NTS-style input.
+
 Synchronous machine model of order 6 (Subtransient Model) with PSAT Saturation.
 
 **Auxiliar equations**
