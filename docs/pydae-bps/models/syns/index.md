@@ -7,6 +7,7 @@ Salient- and round-pole synchronous machine models of varying order.
 
 genrou
 gensal
+gencls
 milano2ord
 milano3ord
 milano4ord

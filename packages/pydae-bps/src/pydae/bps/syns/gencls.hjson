@@ -1,0 +1,53 @@
+// ==============================================================================
+// gencls — in-module test fixture (single classical machine vs infinite bus)
+//
+// PSS/E GENCLS classical 2nd-order machine. Just rotor swing dynamics
+// with a constant internal voltage E behind a single transient reactance X'.
+//
+// Bus 2 is the infinite bus (vsource, V=1 pu, theta=0).
+// Bare p_m / e1q dispatch (no AVR or governor — gencls has no field
+// winding, so an AVR has nothing to act on).
+// ==============================================================================
+
+{
+system: {name: "gencls", S_base: 100e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 200}
+],
+
+shunts: [
+  {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
+],
+
+syns: [
+  {
+    bus: "1",
+    type: "gencls",
+
+    S_n: 100e6,
+    F_n: 50.0,
+
+    // Single transient reactance — no saliency in the classical model
+    X1d: 0.30,
+
+    R_a: 0.0,
+    H:   5.0,
+    D:   0.0,
+
+    K_sec:   0.0,
+    K_delta: 0.0,
+
+    // Constant internal voltage and mechanical power
+    e1q: 1.2,
+    p_m: 0.5
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}
