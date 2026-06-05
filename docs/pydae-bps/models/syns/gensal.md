@@ -158,6 +158,29 @@ written for round-rotor machines drop in unchanged.
 | $v_q$ | `v_q` | pu-m | q-axis terminal voltage |
 | $S_{at}$ | `S_at` | - | Saturation factor $S(\psi_{AT})$ — d-axis only |
 
+## Hydro SMIB benchmark
+
+The bundled benchmark
+[`benchmarks_public/hydro/cases/smib_kundur/`](https://github.com/jmmauricio/benchmarks_public/tree/main/hydro/cases/smib_kundur)
+exercises this stack on a 250 MVA salient-pole unit (Kundur §13.6-style
+data) wired to a HYGOV turbine governor + SEXS AVR + LC dispatch
+controller, against a 230 kV infinite bus.
+
+A load-reference step $p_{c,lc} : 0.80 \to 0.95 \to 0.80$ pu produces
+the canonical hydro response:
+
+![Hydro SMIB step response](gensal_hydro_step.png)
+
+The first second of each gate move shows the **non-minimum-phase
+(inverse) response** of the water column — $p_g$ briefly dips before
+climbing, because the water column has inertia. The slow recovery is
+governed by the HYGOV transient-droop dashpot ($R_r = 0.5$, $T_r = 5$ s)
+and the LC integrator ($K_i = 0.01$, $\tau \approx 100$ s). Terminal
+voltage stays locked near 1.0 pu through both steps thanks to SEXS
+($K_a = 100$). This is the qualitative behaviour expected of a Francis
+hydro turbine and the reason `gensal` + HYGOV is the standard
+combination for hydro studies.
+
 ## References
 
 - IEEE Std 1110-2019, *IEEE Guide for Synchronous Generator Modeling
