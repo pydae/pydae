@@ -247,6 +247,25 @@ literal NTS $X_l = 0.234$ sits several percentage points above this band
 throughout the sweep (over-damped because the effective stator
 subtransient reactance collapses to $X_d'' - X_l = 0.035$).
 
+### Overlay on NTS Figura 18
+
+The pydae sweep drawn on top of the original NTS Figura 18 eigenvalue
+locus:
+
+![pydae sweep overlaid on NTS Figura 18](genrou_nts_overlay.png)
+
+Red squares are `genrou`; green diamonds are `milano6ord` with the NTS
+literal $X_l = 0.234$; the blue $\times$ / $\circ$ markers are the
+original NTS Figura 18 trajectory. `genrou` lands on the NTS markers
+across the full sweep; `milano6ord` with $X_l = 0.234$ drifts
+substantially to the left (over-damped) and its trajectory bends
+differently. The per-$X_L$ numerical values for both pydae models and
+the NTS figure read-offs are tabulated in
+[`autovalores.md`](https://github.com/jmmauricio/benchmarks_public/blob/main/nts/cases/base/autovalores.md)
+in the benchmarks repo and recorded under
+`results.eigenvalues_XL_sweep` / `results.eigenvalues_XL_sweep_nts_fig18`
+in `nts_base.hjson`.
+
 ## References
 
 - IEEE Std 1110-2019, *IEEE Guide for Synchronous Generator Modeling
