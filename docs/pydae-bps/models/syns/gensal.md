@@ -166,18 +166,30 @@ exercises this stack on a 250 MVA salient-pole unit (Kundur §13.6-style
 data) wired to a HYGOV turbine governor + SEXS AVR + LC dispatch
 controller, against a 230 kV infinite bus.
 
-A load-reference step $p_{c,lc} : 0.80 \to 0.95 \to 0.80$ pu produces
-the canonical hydro response:
+**Gate-opening step** (`main.py`,
+$p_{c,lc} : 0.80 \to 0.95 \to 0.80$ pu):
 
-![Hydro SMIB step response](gensal_hydro_step.png)
+![Hydro SMIB step response — gate opening](gensal_hydro_step.png)
 
-The first second of each gate move shows the **non-minimum-phase
+The first second after the opening shows the **non-minimum-phase
 (inverse) response** of the water column — $p_g$ briefly dips before
-climbing, because the water column has inertia. The slow recovery is
-governed by the HYGOV transient-droop dashpot ($R_r = 0.5$, $T_r = 5$ s)
-and the LC integrator ($K_i = 0.01$, $\tau \approx 100$ s). Terminal
-voltage stays locked near 1.0 pu through both steps thanks to SEXS
-($K_a = 100$). This is the qualitative behaviour expected of a Francis
+climbing, because the water column has inertia.
+
+**Gate-closing step** (`load_trip.py`,
+$p_{c,lc} : 0.80 \to 0.20$ pu — simulating a load trip / lost demand):
+
+![Hydro SMIB load trip — gate closing](gensal_hydro_load_trip.png)
+
+Symmetric inverse response: the water that was already flowing keeps
+pushing through the closing gate, so $p_g$ briefly *rises* (to
+≈ 210 MW, ~5 % above the pre-trip 200 MW with $T_w = 1$ s) before the
+column decelerates and power falls to the new setpoint.
+
+In both scenarios the slow recovery is governed by the HYGOV
+transient-droop dashpot ($R_r = 0.5$, $T_r = 5$ s) and the LC
+integrator ($K_i = 0.01$, $\tau \approx 100$ s). Terminal voltage
+stays locked near 1.0 pu thanks to SEXS ($K_a = 100$). These dual
+non-minimum-phase responses are the qualitative signature of a Francis
 hydro turbine and the reason `gensal` + HYGOV is the standard
 combination for hydro studies.
 
