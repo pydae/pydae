@@ -15,6 +15,7 @@ from pydae.bps.syns.milano4ord import milano4ord
 from pydae.bps.syns.milano6ord import milano6ord
 from pydae.bps.syns.pai6ord import pai6
 from pydae.bps.syns.genrou import genrou
+from pydae.bps.syns.gensal import gensal
 
 
 def add_syns(grid):
@@ -47,6 +48,8 @@ def add_syns(grid):
                 p_W, q_var = pai6(grid, name, bus_name, data_dict)
             elif item['type'] == 'genrou':
                 p_W, q_var = genrou(grid, name, bus_name, data_dict)
+            elif item['type'] == 'gensal':
+                p_W, q_var = gensal(grid, name, bus_name, data_dict)
             elif item['type'] == 'milano6ord':
                 p_W, q_var = milano6ord(grid, name, bus_name, data_dict)
             elif item['type'] == 'milano6':

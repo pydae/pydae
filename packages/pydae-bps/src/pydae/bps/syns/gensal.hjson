@@ -1,0 +1,67 @@
+// ==============================================================================
+// gensal — in-module test fixture (single hydro machine vs infinite bus)
+//
+// IEEE 1110 Model 2.1 / PSS/E GENSAL salient-pole 5th-order machine.
+// Typical hydro-unit parameters (Kundur Example 13.2 style):
+//   - Salient: X_q < X_d
+//   - No q-axis transient (no X_l field; only X_q'' on the q-axis)
+//   - Saturation only on the d-axis
+//
+// Bus 2 is the infinite bus (vsource, V=1 pu, theta=0).
+// Bare field-voltage + mechanical-power dispatch (no LC/AVR/governor).
+// ==============================================================================
+
+{
+system: {name: "gensal", S_base: 500e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 13.8},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 13.8}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 5000}
+],
+
+shunts: [
+  {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
+],
+
+syns: [
+  {
+    bus: "1",
+    type: "gensal",
+
+    // Base
+    S_n: 500e6,
+    F_n: 50.0,
+
+    // Salient-pole synchronous reactances
+    X_d: 1.10,  X_q: 0.70,
+
+    // d-axis transient
+    X1d: 0.25,  T1d0: 8.0,
+
+    // Subtransient — terminal-referred
+    X2d: 0.20,  T2d0: 0.03,
+    X2q: 0.20,  T2q0: 0.05,
+
+    // Resistance, inertia, damping
+    R_a: 0.0,
+    H:   4.0,
+    D:   0.0,
+
+    // Saturation off for the smoke test
+    S_10: 0.0,
+    S_12: 0.0,
+
+    K_sec:   0.0,
+    K_delta: 0.0,
+
+    v_f: 1.5,
+    p_m: 0.5
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}

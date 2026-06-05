@@ -6,6 +6,7 @@ Salient- and round-pole synchronous machine models of varying order.
 :maxdepth: 1
 
 genrou
+gensal
 milano2ord
 milano3ord
 milano4ord
