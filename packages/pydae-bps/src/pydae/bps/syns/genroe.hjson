@@ -1,0 +1,68 @@
+// ==============================================================================
+// genroe — in-module test fixture (single machine vs infinite bus)
+//
+// PSS/E GENROE — round-rotor 6th-order machine with geometric (exponential)
+// saturation function: S(E) = B_sat * E^N_sat.
+//
+// Parameter source: PESTR18 §5.3 / Kundur Example 12.6 two-area machine
+// (S_n = 900 MVA, identical d/q rotor data, S_10 = 0.0392, S_12 = 0.2672).
+//
+// Bus 2 is the infinite bus (vsource, V=1 pu, theta=0).
+// Saturation active.  LC sets desired p_g = 0.5 pu (450 MW).
+// ==============================================================================
+
+{
+system: {name: "genroe", S_base: 1000e6},
+
+buses: [
+  {name: "1", P_W: 0.0, Q_var: 0.0, U_kV: 20.0},
+  {name: "2", P_W: 0.0, Q_var: 0.0, U_kV: 20.0}
+],
+
+lines: [
+  {bus_j: "1", bus_k: "2", X_pu: 0.05, R_pu: 0.01, Bs_pu: 1e-6, S_mva: 20000}
+],
+
+shunts: [
+  {bus: "1", X_pu: 1e6, R_pu: 0.0, S_mva: 100}
+],
+
+syns: [
+  {
+    bus: "1",
+    type: "genroe",
+
+    // Base
+    S_n: 900e6,
+    F_n: 60.0,
+
+    // Synchronous reactances (no X_l — terminal-referred convention)
+    X_d: 1.8,    X_q: 1.7,
+
+    // Transient parameters
+    X1d: 0.30,   T1d0: 8.0,
+    X1q: 0.55,   T1q0: 0.4,
+
+    // Subtransient — terminal-referred (X_l already folded in)
+    X2d: 0.25,   T2d0: 0.03,
+    X2q: 0.25,   T2q0: 0.05,
+
+    // Resistance, inertia, damping
+    R_a: 0.0,
+    H:   6.5,
+    D:   0.0,
+
+    // PESTR18 Table 5.26 geometric saturation: S(E) = B * E^N
+    S_10: 0.0392,
+    S_12: 0.2672,
+
+    K_sec:   0.0,
+    K_delta: 0.0,
+
+    v_f: 1.5,
+    p_m: 0.5
+  }
+],
+
+sources: [{type: "vsource", bus: "2"}]
+}
