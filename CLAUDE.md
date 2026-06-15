@@ -139,17 +139,32 @@ On `ini()` failure, diagnostics from `diagnostics/dae_check.py` run automaticall
 
 These builders read HJSON/JSON network descriptions and assemble `sys_dict` objects for `pydae-core`. Each component module (e.g., `syns/milano2ord.py`) returns partial equation lists that `BpsBuilder` / `UdsBuilder` concatenates. Key component families in `pydae-bps`: synchronous generators (`syns/`), voltage source converters (`vscs/`, `vsc_models/`, `vsc_ctrls/`), AVRs (`avrs/`), governors (`govs/`), PSSs (`psss/`), PODs (`pods/`), wind turbines (`wecs/`), PV systems (`pvs/` — `pv_dq`, `pv_dq_d`, `pv_dq_ss`, `pv_dq_vrt`, `pv_pq_ss`), WECC renewable converters (`weccs/`), WECC plant controllers (`ppcs/`), loads, lines, reactive power banks (`miscellaneous/`), grid-forming VSCs (`vsgs/`). In `pydae-uds` (three-phase, per-phase modelling): `vscs/` is the largest family, plus `vsgs/` (grid-forming), `genapes/`, `ess/` (storage), `fcs/`, `pvs/`, `loads/`, `lines/`, `transformers/`, `shunts/`, `sources/`, `vsc_ctrls/`, `miscellaneous/`.
 
-**Synchronous machines — model choice.** `syns/genrou.py` is the canonical
-round-rotor 6th-order machine (IEEE 1110-2019 Model 2.2 / Anderson-Fouad /
-PSS/E `GENROU`). It takes industry-standard parameter tables (NTS Tabla 45,
-IEEE 115, PSS/E) literally: $X_d''$, $X_q''$ are *terminal-referred*
-(IEEE 115 Eq. (88): $X_{ds} = X_{ads} + X_l$), so the model has **no `X_l`
-field**. Use `genrou` for new work. `syns/milano{2,3,4,6}ord.py` keep
-Marconato / Sauer-Pai conventions (subtransient-minus-leakage stator
-form, Marconato cross-coupling on the rotor) and are retained for
-back-compat with existing benchmarks; they are deprecated but not
-aliased — the two families produce different operating points and modes
-on identical NTS-style input.
+**Synchronous machines — model choice.** Two families coexist:
+
+- **PSS/E-style family** (preferred for new work; terminal-referred
+  $X_d''$, $X_q''$ per IEEE 115 Eq. (88): $X_{ds} = X_{ads} + X_l$, so
+  **no `X_l` field**):
+  - `syns/gencls.py` — classical 2nd-order ($\delta, \omega$, constant
+    $E$ behind single $X'$). PSS/E `GENCLS`. First-swing studies,
+    distant-equivalent machines.
+  - `syns/gensal.py` — salient-pole 5th-order. IEEE 1110 Model 2.1 /
+    PSS/E `GENSAL`. Hydro units. D-axis saturation only ($S_q=0$).
+  - `syns/genrou.py` — round-rotor 6th-order with *quadratic-offset*
+    saturation $S(E)=B_{sat}\max(E-A_{sat},0)^2/E$. IEEE 1110 Model 2.2 /
+    Anderson-Fouad / PSS/E `GENROU`. Thermal/turbo units, default for
+    NTS Tabla 45 / IEEE 115 / PSS/E `GENROU` data.
+  - `syns/genroe.py` — identical to `genrou` except for the *geometric*
+    saturation $S(E)=B_{sat}E^{N_{sat}}$ (PSS/E `GENROE`). Use when
+    the data source is PSS/E `GENROE` or PES-TR18 (two-area, IEEE 39).
+    Collapses to `genrou` when $S_{10}=S_{12}=0$.
+- **Marconato / Sauer-Pai family** — `syns/milano{2,3,4,6}ord.py`
+  (subtransient-minus-leakage stator form, Marconato rotor coupling).
+  A fully supported modelling option, not deprecated. Use these when
+  the source power-system data is itself in Marconato / Sauer-Pai form
+  (e.g. existing milano-based benchmarks). The two families produce
+  different operating points and mode shapes on identical NTS-style
+  input, so do not freely substitute one for the other — pick the
+  family that matches how the network was modelled.
 
 **Builder invocation workflow** (identical shape for both `BpsBuilder` and `UdsBuilder`):
 
@@ -230,6 +245,16 @@ Called after `model.ini()` when the Jacobian sub-blocks are populated.
 
 **`participation(model, method='kundur')`** returns a labelled DataFrame. The `'kundur'` method returns the column-normalised absolute value `|P_raw| / ‖P_raw‖_col` (corrected in v1.4.0 — earlier versions returned the raw complex product).
 
+### Continuous Control Blocks (pydae.control)
+
+`packages/pydae-core/src/pydae/control/continuos/` — standalone control-system building blocks (`pi`, `pid`, `lpf1`, `lpf2`, `leadlag`, `washout`, `stab_1lpf_2wo_3ll`), each following the same signature as `pydae.bps` component builders: `block(dae, name, data_dict, backend)` appends into a `dae`-shaped dict (`f_list`, `x_list`, `g_list`, `y_ini_list`, `y_run_list`, `u_ini_dict`, `u_run_dict`, `params_dict`, `h_dict`, `xy_0_dict`). `ControlBuilder` (`pydae.control.control_builder`) plays the same role as `BpsBuilder` for a standalone `"control": [...]` list, dispatching each item by `"type"` through the `BUILDERS` registry.
+
+Because `grid.sys_dict` (after `BpsBuilder.construct()`) has the same keys, `pydae.control.continuos` blocks can be appended **directly to a power-system `sys_dict`** — e.g. wiring a POD/stabilizer onto a generator speed signal, using `grid.backend` (the same `MathBackend` instance, which caches symbols by name) to retrieve existing symbols like `omega_1`.
+
+**`stab_1lpf_2wo_3ll(dae, name, backend, data_dict=None, input=None, output=None)`** — 2-washout/3-lead-lag PSS/POD stabilizer chain (`lpf1 -> washout -> washout -> leadlag x3 -> saturation`, zero steady-state gain). Note the arg order: `backend` is 3rd (not 4th like the other blocks), since `ControlBuilder.construct` special-cases this type. `input`/`output` alias *existing* symbols (a state like `omega_1`, or an existing `u_ini`/`u_run` setpoint) directly, skipping the extra `u_stab_.../z_stab_...` wrapper symbols and connecting equations — if `output` names an existing input it is promoted to an algebraic variable driven by the saturation. `K_stab` (default 1.0) is an overall gain applied *before* the output saturation via `z = K_stab * clip(z_ll3, -Limit/K_stab, Limit/K_stab)` — written this way (not `clip(K_stab*z_ll3, -Limit, Limit)`) so the clip always operates on an O(1) signal even when `K_stab` is a large unit-conversion factor.
+
+**Algebraic variables must stay O(1) for IDAS `calc_ic`.** When wiring a control-block output into `y_run_list` via `output=`, do not let its physical units (e.g. W, with `K_stab ~ 1e8`) put it directly into the algebraic-variable vector — `model.run()`'s `IDACalcIC` (`calc_ic: True`) re-solves all algebraic variables with uniform tolerances on every `set_value`/step, and a ~10⁶ value mixed with O(1) pu variables causes `IDA_LINESEARCH_FAIL`. Instead, keep the block's output in pu (`output=None`, modest `K_stab`/`Limit`) and add the unit-converted signal as a **plain `h_dict` expression** (`grid.sys_dict['h_dict']['P_5'] = z_pu * 1e8`) — `h_dict` outputs are computed post-hoc from `(x, y, p)` and never participate in `calc_ic`.
+
 ### Real-time API (pydae.api)
 
 `packages/pydae-core/src/pydae/api/realtime_api.py` — soft real-time FastAPI server wrapping a `CasadiModel` in a background thread.
@@ -270,6 +295,8 @@ from pydae.core.builder import CasadiBuilder, CasadiModel, MathBackend  # CasADi
 from pydae.bps import BpsBuilder
 from pydae.uds import UdsBuilder
 from pydae.ssa.ssa import eig, damp, participation
+from pydae.control.control_builder import ControlBuilder
+from pydae.control.continuos.stab_1lpf_2wo_3ll import stab_1lpf_2wo_3ll  # and pi, pid, lpf1, lpf2, leadlag, washout
 from pydae.bps.utils.visualizer import PowerSystemVisualizer
 from pydae import utils   # shared helpers (e.g., unit conversions, grid utilities)
 ```
