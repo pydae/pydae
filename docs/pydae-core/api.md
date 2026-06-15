@@ -25,6 +25,12 @@ The main public names are:
 - **`pydae.api.realtime_api`** — soft real-time simulation with a FastAPI
   REST interface (requires ``pydae[api]``).  See the
   [Real-time API](realtime_api.md) page for usage and design details.
+- **`pydae.control.continuos`** — reusable continuous control blocks
+  (PI / PID, low-pass and lead-lag filters, washouts, summation, matrix
+  gain, generic transfer function, LTI state-space, Luenberger observer,
+  Kalman filter, PSS stabiliser chain). See the [Continuous control
+  blocks](control.md) page for the catalogue and the uniform builder
+  signature.
 
 ```{eval-rst}
 .. autosummary::

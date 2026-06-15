@@ -40,6 +40,7 @@ architecture
 
 api
 ssa
+control
 realtime_api
 ```
 
