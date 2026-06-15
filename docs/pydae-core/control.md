@@ -67,8 +67,8 @@ block's input expression depends on the block:
 
 | Block            | `input=list[str]` semantics                                                |
 | ---------------- | -------------------------------------------------------------------------- |
-| `pi`, `pid`, `lpf1`, `lpf2`, `leadlag`, `washout`, `tf`, `stab_1lpf_2wo_3ll` | `u = input[0] - sum(input[1:])` (classic error: measurement minus references). |
-| `summation`      | Must be a 2-list `[u_1, u_2]`; bound to the two input channels (weighted via `K_1`, `K_2`). |
+| `pi`, `pid`, `lpf1`, `lpf2`, `leadlag`, `washout`, `tf`, `saturation`, `deadband`, `rate_limiter`, `integrator`, `stab_1lpf_2wo_3ll` | `u = input[0] - sum(input[1:])` (classic error: measurement minus references). |
+| `summation`, `product` | Must be a 2-list `[u_1, u_2]`; bound to the two input channels.       |
 | `matrix_gain`    | Length must equal `m` (cols of `K`); each name bound to one column.       |
 | `lti`            | Length must equal `m`; each name bound to one column of `B`.              |
 | `luenberger`, `kalman` | Length must equal `m + p`; the first `m` bind to the control inputs and the next `p` bind to the measurements. |
@@ -94,6 +94,16 @@ conventions.
 | ------------ | ------------------------------------------------------------------------------------------------------------ |
 | `pi`         | PI controller with output saturation and back-calculation anti-windup.                                       |
 | `pid`        | PID with filtered derivative (`K_d * s / (1 + s T_f)`), saturation, anti-windup.                             |
+| `integrator` | Single-state integrator with output saturation and anti-windup. The I-only piece of `pi` -- use for accumulators / totalizers (energy, charge, integrated frequency error). |
+
+### Signal conditioning and nonlinear
+
+| Module           | Description                                                                                                  |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ |
+| `saturation`     | Algebraic clamp `z = clip(u, z_min, z_max)`. Declarative replacement for inline `hard_limits`.              |
+| `deadband`       | Algebraic deadband, zero inside `[db_low, db_high]` and slope 1 outside (no jump at the edges). Asymmetric bands supported; matches the REEC_B / REPC_A `dbd1` / `dbd2` convention. |
+| `rate_limiter`   | First-order tracker with rate clipping `dz/dt = clip((u - z)/T, dz_min, dz_max)`. Behaves like `lpf1` for small input changes and ramps at the limit for large steps; models actuator slew, REGC_A `rrpwr`, REEC_B `dPmax` / `dPmin`. |
+| `product`        | Algebraic two-input multiplier `z = K * u_1 * u_2`. Nonlinear-coupling building block: instantaneous power `V * I`, droop products, modulation. |
 
 ### Algebraic / multivariable
 
@@ -213,5 +223,10 @@ matrix_gain(dae, 'sf', backend,
     pydae.control.continuos.lti
     pydae.control.continuos.luenberger
     pydae.control.continuos.kalman
+    pydae.control.continuos.saturation
+    pydae.control.continuos.deadband
+    pydae.control.continuos.rate_limiter
+    pydae.control.continuos.integrator
+    pydae.control.continuos.product
     pydae.control.continuos.stab_1lpf_2wo_3ll
 ```
