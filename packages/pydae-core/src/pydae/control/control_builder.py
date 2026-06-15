@@ -58,6 +58,12 @@ from pydae.control.continuos.lpf1 import lpf1
 from pydae.control.continuos.lpf2 import lpf2
 from pydae.control.continuos.leadlag import leadlag
 from pydae.control.continuos.washout import washout
+from pydae.control.continuos.summation import summation
+from pydae.control.continuos.matrix_gain import matrix_gain
+from pydae.control.continuos.tf import tf
+from pydae.control.continuos.lti import lti
+from pydae.control.continuos.luenberger import luenberger
+from pydae.control.continuos.kalman import kalman
 from pydae.control.continuos.stab_1lpf_2wo_3ll import stab_1lpf_2wo_3ll
 
 BUILDERS = {
@@ -67,6 +73,12 @@ BUILDERS = {
     'lpf2': lpf2,
     'leadlag': leadlag,
     'washout': washout,
+    'summation': summation,
+    'matrix_gain': matrix_gain,
+    'tf': tf,
+    'lti': lti,
+    'luenberger': luenberger,
+    'kalman': kalman,
     'stab_1lpf_2wo_3ll': stab_1lpf_2wo_3ll,
 }
 
