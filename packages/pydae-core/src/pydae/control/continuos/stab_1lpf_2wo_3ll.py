@@ -102,6 +102,7 @@ def stab_1lpf_2wo_3ll(dae, name, backend, data_dict=None, input=None, output=Non
     from pydae.control.continuos.lpf1 import lpf1
     from pydae.control.continuos.washout import washout
     from pydae.control.continuos.leadlag import leadlag
+    from pydae.control.continuos._common import combine_inputs
 
     data_dict = data_dict or {}
 
@@ -123,25 +124,34 @@ def stab_1lpf_2wo_3ll(dae, name, backend, data_dict=None, input=None, output=Non
     val_K_stab = data_dict.get('K_stab', default_map.get('K_stab', 1.0))
     val_Limit = data_dict.get('Limit', default_map.get('Limit', 0.1))
 
-    # 3. External input/output of the composite block. If `input`/`output`
-    #    alias existing symbols, use them directly (no extra wrapper symbol).
-    u = backend.symbols(input) if input is not None else backend.symbols(f"u_stab_1lpf_2wo_3ll_{name}")
+    # 3. External input expression: fresh u_stab_..., aliased symbol,
+    #    h_dict expression, or a list combined as input[0] - sum(input[1:])
+    #    (see pydae.control.continuos._common.combine_inputs).
+    if input is None:
+        u = backend.symbols(f"u_stab_1lpf_2wo_3ll_{name}")
+        dae['u_ini_dict'][f"{u}"] = val_u
+        dae['u_run_dict'][f"{u}"] = val_u
+    else:
+        u = combine_inputs(input, dae, backend, val_u)
+
+    # 4. External output symbol (fresh or aliased -- promoted below if it
+    #    was a global input like a power-modulation setpoint).
     z = backend.symbols(output) if output is not None else backend.symbols(f"z_stab_1lpf_2wo_3ll_{name}")
     K_stab = backend.symbols(f"K_stab_{name}")
     Limit = backend.symbols(f"Limit_stab_1lpf_2wo_3ll_{name}")
 
-    # 4. Sub-blocks: lpf -> washout -> washout -> leadlag -> leadlag -> leadlag
-    #    Steady-state seeds: lpf and washout1 pass DC (-> val_u), the
+    # 5. Sub-blocks: lpf -> washout -> washout -> leadlag -> leadlag -> leadlag
+    #    Steady-state seeds: lpf and washout1 pass DC (-> val_u); the
     #    washout output and everything downstream of it is zero at
     #    steady state.
-    lpf1(dae, f"{name}_lpf", {'T': val_T_lpf, 'u': val_u}, backend)
-    washout(dae, f"{name}_wo1", {'T_wo': val_T_wo1, 'u': val_u}, backend)
-    washout(dae, f"{name}_wo2", {'T_wo': val_T_wo2, 'u': 0.0}, backend)
-    leadlag(dae, f"{name}_ll1", {'T_num': val_T_1, 'T_den': val_T_2, 'u': 0.0}, backend)
-    leadlag(dae, f"{name}_ll2", {'T_num': val_T_3, 'T_den': val_T_4, 'u': 0.0}, backend)
-    leadlag(dae, f"{name}_ll3", {'T_num': val_T_5, 'T_den': val_T_6, 'u': 0.0}, backend)
+    lpf1(dae, f"{name}_lpf",   backend, {'T':     val_T_lpf, 'u': val_u})
+    washout(dae, f"{name}_wo1", backend, {'T_wo': val_T_wo1, 'u': val_u})
+    washout(dae, f"{name}_wo2", backend, {'T_wo': val_T_wo2, 'u': 0.0})
+    leadlag(dae, f"{name}_ll1", backend, {'T_num': val_T_1, 'T_den': val_T_2, 'u': 0.0})
+    leadlag(dae, f"{name}_ll2", backend, {'T_num': val_T_3, 'T_den': val_T_4, 'u': 0.0})
+    leadlag(dae, f"{name}_ll3", backend, {'T_num': val_T_5, 'T_den': val_T_6, 'u': 0.0})
 
-    # 5. Chain the blocks together: each downstream block's input was
+    # 6. Chain the blocks together: each downstream block's input was
     #    created as a fixed u_run input by its own builder; promote it
     #    to an algebraic variable driven by the upstream block's output.
     chain = [
@@ -160,12 +170,6 @@ def stab_1lpf_2wo_3ll(dae, name, backend, data_dict=None, input=None, output=Non
         dae['y_ini_list'] += [downstream_u]
         dae['y_run_list'] += [downstream_u]
         dae['xy_0_dict'].update({f"{downstream_u}": val})
-
-    # 6. External input of the composite block -- only when `u` is a new
-    #    symbol; an aliased `input` is already declared elsewhere in `dae`.
-    if input is None:
-        dae['u_ini_dict'].update({f"{u}": val_u})
-        dae['u_run_dict'].update({f"{u}": val_u})
 
     # 7. Output saturation: z = K_stab * clip(z_ll3, -Limit/K_stab, Limit/K_stab).
     #    Equivalent to clip(K_stab * z_ll3, -Limit, Limit) for K_stab > 0, but

@@ -147,13 +147,11 @@ class ControlBuilder:
                     f"Available types: {sorted(BUILDERS)}")
 
             builder = BUILDERS[block_type]
-            if block_type in ('stab_1lpf_2wo_3ll', 'pi'):
-                # Blocks that take the (dae, name, backend, data_dict,
-                # input, output) signature with input/output aliasing.
-                builder(self.dae, item['name'], self.backend, item,
-                        item.get('input'), item.get('output'))
-            else:
-                builder(self.dae, item['name'], item, self.backend)
+            # Uniform signature across the library:
+            #   (dae, name, backend, data_dict, input=None, output=None)
+            # see pydae.control.continuos._common for input/output semantics.
+            builder(self.dae, item['name'], self.backend, item,
+                    item.get('input'), item.get('output'))
 
         self.sys_dict = {'name': name,
                          'params_dict': self.dae['params_dict'],

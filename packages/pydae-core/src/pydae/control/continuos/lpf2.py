@@ -61,7 +61,7 @@ def descriptions():
     return descriptions_list
 
 
-def lpf2(dae, name, data_dict, backend):
+def lpf2(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a second-order low-pass filter block to `dae`.
 
     Adds two dynamic states ``x_lpf2_{name}`` (the filtered value of
@@ -70,42 +70,61 @@ def lpf2(dae, name, data_dict, backend):
     and damping ratio ``zeta_lpf2_{name}``, plus an algebraic output
     ``z_lpf2_{name}`` that mirrors ``x_lpf2_{name}`` and is exposed
     through `h_dict`.
+
+    See :mod:`pydae.control.continuos._common` for the input/output
+    aliasing semantics.
     """
+    from pydae.control.continuos._common import combine_inputs
+
+    data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if item.get('data')}
 
-    # 2. Input
-    u = backend.symbols(f"u_lpf2_{name}")
+    # 2. Data-dict overrides (fall back to descriptions() defaults)
+    val_omega_n = data_dict.get('omega_n', default_map.get('omega_n', 10.0))
+    val_zeta    = data_dict.get('zeta',    default_map.get('zeta',    0.7))
+    val_u       = data_dict.get('u',       default_map.get('u',       0.0))
 
-    # 3. Dynamic states
+    # 3. Input
+    if input is None:
+        u = backend.symbols(f"u_lpf2_{name}")
+        dae['u_ini_dict'][f"{u}"] = val_u
+        dae['u_run_dict'][f"{u}"] = val_u
+        u_expr = u
+    else:
+        u_expr = combine_inputs(input, dae, backend, val_u)
+
+    # 4. Dynamic states
     x = backend.symbols(f"x_lpf2_{name}")
     v = backend.symbols(f"v_lpf2_{name}")
 
-    # 4. Algebraic state (output alias)
-    z = backend.symbols(f"z_lpf2_{name}")
+    # 5. Algebraic state (output alias)
+    if output is None:
+        z = backend.symbols(f"z_lpf2_{name}")
+        output_aliased = False
+    else:
+        z = backend.symbols(output)
+        output_aliased = True
 
-    # 5. Parameters
+    # 6. Parameters
     omega_n = backend.symbols(f"omega_n_lpf2_{name}")
-    zeta = backend.symbols(f"zeta_lpf2_{name}")
+    zeta    = backend.symbols(f"zeta_lpf2_{name}")
 
-    # 6. Dynamic equations (controllable canonical form):
-    #    dx/dt = v
-    #    dv/dt = omega_n^2*(u - x) - 2*zeta*omega_n*v
-    dx = v
-    dv = omega_n**2 * (u - x) - 2 * zeta * omega_n * v
-
-    # 7. Algebraic equation: z = x
+    # 7. Equations (controllable canonical form):
+    #    dx/dt = v,  dv/dt = omega_n^2*(u-x) - 2*zeta*omega_n*v,  z = x
+    dx  = v
+    dv  = omega_n**2 * (u_expr - x) - 2 * zeta * omega_n * v
     g_z = z - x
 
-    # 8. Data-dict overrides (fall back to descriptions() defaults)
-    val_omega_n = data_dict.get('omega_n', default_map.get('omega_n', 10.0))
-    val_zeta = data_dict.get('zeta', default_map.get('zeta', 0.7))
-    val_u = data_dict.get('u', default_map.get('u', 0.0))
+    # 8. Promote an aliased output (was a global input) to algebraic state.
+    if output_aliased:
+        dae['u_ini_dict'].pop(str(z), None)
+        dae['u_run_dict'].pop(str(z), None)
 
-    # 9. Initialization hint: start at steady state (x = u, v = 0)
-    dae['xy_0_dict'].update({f"{x}": val_u, f"{v}": 0.0})
+    # 9. Initialization hint: start at steady state (x = u, v = 0, z = u)
+    dae['xy_0_dict'].update({f"{x}": val_u, f"{v}": 0.0, f"{z}": val_u})
 
     # 10. Assembly
     dae['f_list'] += [dx, dv]
@@ -113,9 +132,7 @@ def lpf2(dae, name, data_dict, backend):
     dae['g_list'] += [g_z]
     dae['y_ini_list'] += [z]
     dae['y_run_list'] += [z]
-    dae['h_dict'].update({f"{z}": z})  # Output
-    dae['u_ini_dict'].update({f"{u}": val_u})
-    dae['u_run_dict'].update({f"{u}": val_u})
+    dae['h_dict'].update({f"{z}": z})
     dae['params_dict'].update({f"{omega_n}": val_omega_n, f"{zeta}": val_zeta})
 
     return None
@@ -192,7 +209,7 @@ def _build_lpf2_model(name='1', omega_n=10.0, zeta=0.5, u_0=0.0):
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    lpf2(dae, name, {'omega_n': omega_n, 'zeta': zeta, 'u': u_0}, backend)
+    lpf2(dae, name, backend, {'omega_n': omega_n, 'zeta': zeta, 'u': u_0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])

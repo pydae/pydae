@@ -66,36 +66,6 @@ def descriptions():
     return descriptions_list
 
 
-def _resolve_pi_input(input_name, dae, backend, default_val):
-    """Resolve an `input=` name to an expression usable in the PI equation.
-
-    Resolution order:
-      1. ``dae['h_dict'][input_name]`` -- use the derived expression
-         directly (no new free symbol is introduced, the constraints
-         that produced the h_dict entry stay in force).
-      2. Name already declared as a state, algebraic variable, input,
-         or parameter -- alias the cached backend symbol.
-      3. Otherwise -- create the name as a new global input, added to
-         both ``u_ini_dict`` and ``u_run_dict`` with `default_val`.
-    """
-    if input_name in dae['h_dict']:
-        return dae['h_dict'][input_name]
-
-    known = set()
-    known.update(str(s) for s in dae.get('x_list', []))
-    known.update(str(s) for s in dae.get('y_run_list', []))
-    known.update(dae.get('u_run_dict', {}).keys())
-    known.update(dae.get('params_dict', {}).keys())
-
-    sym = backend.symbols(input_name)
-    if input_name in known:
-        return sym
-
-    dae['u_ini_dict'][input_name] = default_val
-    dae['u_run_dict'][input_name] = default_val
-    return sym
-
-
 def pi(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a PI controller block with output saturation and
     back-calculation anti-windup to `dae`.
@@ -128,6 +98,8 @@ def pi(dae, name, backend, data_dict=None, input=None, output=None):
         and promoted to an algebraic variable driven by the PI's
         saturation.
     """
+    from pydae.control.continuos._common import combine_inputs
+
     data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
@@ -143,7 +115,7 @@ def pi(dae, name, backend, data_dict=None, input=None, output=None):
     val_u     = data_dict.get('u',     default_map.get('u',     0.0))
     val_xi    = data_dict.get('xi_0', 0.0)
 
-    # 3. PI input expression: fresh symbol, single alias, or
+    # 3. PI input expression: fresh u_pi_{name}, single alias, or
     #    error = input[0] - sum(input[1:]) over a list of names.
     if input is None:
         u_sym = backend.symbols(f"u_pi_{name}")
@@ -151,10 +123,7 @@ def pi(dae, name, backend, data_dict=None, input=None, output=None):
         dae['u_run_dict'][f"{u_sym}"] = val_u
         u_expr = u_sym
     else:
-        names = [input] if isinstance(input, str) else list(input)
-        u_expr = _resolve_pi_input(names[0], dae, backend, val_u)
-        for extra in names[1:]:
-            u_expr = u_expr - _resolve_pi_input(extra, dae, backend, 0.0)
+        u_expr = combine_inputs(input, dae, backend, val_u)
 
     # 4. Dynamic state
     xi = backend.symbols(f"xi_pi_{name}")

@@ -77,86 +77,102 @@ def descriptions():
     return descriptions_list
 
 
-def pid(dae, name, data_dict, backend):
+def pid(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a PID controller block with filtered derivative, output
     saturation, and back-calculation anti-windup to `dae`.
 
     Adds two dynamic states ``xi_pid_{name}`` (the integrator) and
-    ``x_d_pid_{name}`` (the derivative filter), driven by
-    ``u_pid_{name}`` with gains ``K_p_pid_{name}``, ``K_i_pid_{name}``,
-    ``K_d_pid_{name}`` and filter time constant ``T_f_pid_{name}``,
-    plus an algebraic output ``z_pid_{name}`` clamped to
-    [``z_min_pid_{name}``, ``z_max_pid_{name}``] and exposed through
-    `h_dict`. The gain ``K_aw_pid_{name}`` feeds the clamping error
-    back into the integrator to prevent windup.
+    ``x_d_pid_{name}`` (the derivative filter) plus an algebraic output
+    ``z_pid_{name}`` clamped to ``[z_min_pid_{name}, z_max_pid_{name}]``
+    and exposed through `h_dict`. The gain ``K_aw_pid_{name}`` feeds
+    the clamping error back into the integrator to prevent windup.
+
+    See :mod:`pydae.control.continuos._common` for the input/output
+    aliasing semantics (``input`` may be ``None`` / ``str`` /
+    ``list[str]``; ``output`` may alias an existing actuator setpoint
+    and is promoted to an algebraic state if it was previously a global
+    input).
     """
+    from pydae.control.continuos._common import combine_inputs
+
+    data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if item.get('data')}
 
-    # 2. Input
-    u = backend.symbols(f"u_pid_{name}")
+    # 2. Data-dict overrides (fall back to descriptions() defaults)
+    val_K_p   = data_dict.get('K_p',   default_map.get('K_p',   1.0))
+    val_K_i   = data_dict.get('K_i',   default_map.get('K_i',   1.0))
+    val_K_d   = data_dict.get('K_d',   default_map.get('K_d',   0.1))
+    val_T_f   = data_dict.get('T_f',   default_map.get('T_f',   0.1))
+    val_K_aw  = data_dict.get('K_aw',  default_map.get('K_aw',  2.0))
+    val_z_min = data_dict.get('z_min', default_map.get('z_min', -10.0))
+    val_z_max = data_dict.get('z_max', default_map.get('z_max', 10.0))
+    val_u     = data_dict.get('u',     default_map.get('u',     0.0))
+    val_xi    = data_dict.get('xi_0',  0.0)
+    val_x_d   = data_dict.get('x_d_0', val_u)
 
-    # 3. Dynamic states
-    xi = backend.symbols(f"xi_pid_{name}")
+    # 3. Input
+    if input is None:
+        u_sym = backend.symbols(f"u_pid_{name}")
+        dae['u_ini_dict'][f"{u_sym}"] = val_u
+        dae['u_run_dict'][f"{u_sym}"] = val_u
+        u_expr = u_sym
+    else:
+        u_expr = combine_inputs(input, dae, backend, val_u)
+
+    # 4. Dynamic states
+    xi  = backend.symbols(f"xi_pid_{name}")
     x_d = backend.symbols(f"x_d_pid_{name}")
 
-    # 4. Algebraic state (saturated output)
-    z = backend.symbols(f"z_pid_{name}")
+    # 5. Algebraic state (saturated output): fresh or aliased.
+    if output is None:
+        z = backend.symbols(f"z_pid_{name}")
+        output_aliased = False
+    else:
+        z = backend.symbols(output)
+        output_aliased = True
 
-    # 5. Parameters
-    K_p = backend.symbols(f"K_p_pid_{name}")
-    K_i = backend.symbols(f"K_i_pid_{name}")
-    K_d = backend.symbols(f"K_d_pid_{name}")
-    T_f = backend.symbols(f"T_f_pid_{name}")
-    K_aw = backend.symbols(f"K_aw_pid_{name}")
+    # 6. Parameters
+    K_p   = backend.symbols(f"K_p_pid_{name}")
+    K_i   = backend.symbols(f"K_i_pid_{name}")
+    K_d   = backend.symbols(f"K_d_pid_{name}")
+    T_f   = backend.symbols(f"T_f_pid_{name}")
+    K_aw  = backend.symbols(f"K_aw_pid_{name}")
     z_min = backend.symbols(f"z_min_pid_{name}")
     z_max = backend.symbols(f"z_max_pid_{name}")
 
-    # 6. Unsaturated PID output: proportional + integral + filtered derivative
-    v = K_p * u + K_i * xi + K_d * (u - x_d) / T_f
+    # 7. Unsaturated PID output, integrator with back-calculation
+    #    anti-windup, derivative-filter state, and output saturation.
+    v    = K_p * u_expr + K_i * xi + K_d * (u_expr - x_d) / T_f
+    dxi  = u_expr + K_aw * (z - v)
+    dx_d = (u_expr - x_d) / T_f
+    g_z  = z - backend.hard_limits(v, z_min, z_max)
 
-    # 7. Dynamic equations:
-    #    dxi/dt  = u + K_aw*(z - v)   (integrator, with anti-windup)
-    #    dx_d/dt = (u - x_d) / T_f    (derivative filter tracks u)
-    dxi = u + K_aw * (z - v)
-    dx_d = (u - x_d) / T_f
+    # 8. Promote an aliased output (was a global input) to algebraic state.
+    if output_aliased:
+        dae['u_ini_dict'].pop(str(z), None)
+        dae['u_run_dict'].pop(str(z), None)
 
-    # 8. Algebraic equation: z = clip(v, z_min, z_max)
-    g_z = z - backend.hard_limits(v, z_min, z_max)
-
-    # 9. Data-dict overrides (fall back to descriptions() defaults)
-    val_K_p = data_dict.get('K_p', default_map.get('K_p', 1.0))
-    val_K_i = data_dict.get('K_i', default_map.get('K_i', 1.0))
-    val_K_d = data_dict.get('K_d', default_map.get('K_d', 0.1))
-    val_T_f = data_dict.get('T_f', default_map.get('T_f', 0.1))
-    val_K_aw = data_dict.get('K_aw', default_map.get('K_aw', 2.0))
-    val_z_min = data_dict.get('z_min', default_map.get('z_min', -10.0))
-    val_z_max = data_dict.get('z_max', default_map.get('z_max', 10.0))
-    val_u = data_dict.get('u', default_map.get('u', 0.0))
-    val_xi = data_dict.get('xi_0', 0.0)
-    val_x_d = data_dict.get('x_d_0', val_u)
-
-    # 10. Initialization hint: integrator starts at xi_0 (default 0), the
-    #     derivative filter starts at x_d_0 (default u, so the derivative
-    #     term starts at zero), output starts at the clipped unsaturated value
+    # 9. Initialization hints (integrator at xi_0, derivative filter at
+    #    x_d_0 = u by default so the D term starts at zero, output at the
+    #    clipped unsaturated value).
     val_v = val_K_p * val_u + val_K_i * val_xi + val_K_d * (val_u - val_x_d) / val_T_f
     val_z = min(max(val_v, val_z_min), val_z_max)
     dae['xy_0_dict'].update({f"{xi}": val_xi, f"{x_d}": val_x_d, f"{z}": val_z})
 
-    # 11. Assembly
-    dae['f_list'] += [dxi, dx_d]
-    dae['x_list'] += [xi, x_d]
-    dae['g_list'] += [g_z]
+    # 10. Assembly
+    dae['f_list']     += [dxi, dx_d]
+    dae['x_list']     += [xi, x_d]
+    dae['g_list']     += [g_z]
     dae['y_ini_list'] += [z]
     dae['y_run_list'] += [z]
-    dae['h_dict'].update({f"{z}": z})  # Output
-    dae['u_ini_dict'].update({f"{u}": val_u})
-    dae['u_run_dict'].update({f"{u}": val_u})
+    dae['h_dict'].update({f"{z}": z})
     dae['params_dict'].update({
-        f"{K_p}": val_K_p, f"{K_i}": val_K_i, f"{K_d}": val_K_d, f"{T_f}": val_T_f,
-        f"{K_aw}": val_K_aw, f"{z_min}": val_z_min, f"{z_max}": val_z_max,
+        f"{K_p}":   val_K_p,   f"{K_i}":   val_K_i,   f"{K_d}":   val_K_d,
+        f"{T_f}":   val_T_f,   f"{K_aw}":  val_K_aw,
+        f"{z_min}": val_z_min, f"{z_max}": val_z_max,
     })
 
     return None
@@ -235,7 +251,6 @@ def _build_pid_loop_model(name='1', K_p=2.0, K_i=0.5, K_d=0.1, T_f=0.1, K_aw=2.0
     """
     from pydae.core.builder.casadi_builder import MathBackend, CasadiBuilder
     from pydae.core.model.casadi_model import CasadiModel
-    import casadi as ca
 
     dae = {'name': f'test_pid_loop_{name}',
            'f_list': [], 'x_list': [],
@@ -246,14 +261,14 @@ def _build_pid_loop_model(name='1', K_p=2.0, K_i=0.5, K_d=0.1, T_f=0.1, K_aw=2.0
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    pid(dae, name, {'K_p': K_p, 'K_i': K_i, 'K_d': K_d, 'T_f': T_f, 'K_aw': K_aw,
-                     'z_min': z_min, 'z_max': z_max,
-                     'u': 0.0, 'xi_0': 0.0}, backend)
+    pid(dae, name, backend, {'K_p': K_p, 'K_i': K_i, 'K_d': K_d, 'T_f': T_f, 'K_aw': K_aw,
+                             'z_min': z_min, 'z_max': z_max,
+                             'u': 0.0, 'xi_0': 0.0})
 
-    xi = dae['x_list'][-2]
-    x_d = dae['x_list'][-1]
-    z = dae['h_dict'][f'z_pid_{name}']
-    u = ca.symvar(dae['f_list'][0])[0]
+    xi  = backend.symbols(f"xi_pid_{name}")
+    x_d = backend.symbols(f"x_d_pid_{name}")
+    z   = backend.symbols(f"z_pid_{name}")
+    u   = backend.symbols(f"u_pid_{name}")
 
     # u_pid becomes an algebraic variable, closed onto z_pid via r.
     dae['u_ini_dict'].pop(str(u))

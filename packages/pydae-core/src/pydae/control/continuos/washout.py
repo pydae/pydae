@@ -55,40 +55,60 @@ def descriptions():
     return descriptions_list
 
 
-def washout(dae, name, data_dict, backend):
+def washout(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a washout (high-pass) filter block to `dae`.
 
     Adds one dynamic state ``x_washout_{name}`` (a low-pass tracker of
     the input), driven by ``u_washout_{name}`` with time constant
     ``T_wo_washout_{name}``, plus an algebraic output
     ``z_washout_{name} = u - x`` that is exposed through `h_dict`.
+
+    See :mod:`pydae.control.continuos._common` for the input/output
+    aliasing semantics.
     """
+    from pydae.control.continuos._common import combine_inputs
+
+    data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if item.get('data')}
 
-    # 2. Input
-    u = backend.symbols(f"u_washout_{name}")
+    # 2. Data-dict overrides (fall back to descriptions() defaults)
+    val_T_wo = data_dict.get('T_wo', default_map.get('T_wo', 10.0))
+    val_u    = data_dict.get('u',    default_map.get('u',    0.0))
 
-    # 3. Dynamic state
+    # 3. Input
+    if input is None:
+        u = backend.symbols(f"u_washout_{name}")
+        dae['u_ini_dict'][f"{u}"] = val_u
+        dae['u_run_dict'][f"{u}"] = val_u
+        u_expr = u
+    else:
+        u_expr = combine_inputs(input, dae, backend, val_u)
+
+    # 4. Dynamic state
     x = backend.symbols(f"x_washout_{name}")
 
-    # 4. Algebraic state (output)
-    z = backend.symbols(f"z_washout_{name}")
+    # 5. Algebraic state (output)
+    if output is None:
+        z = backend.symbols(f"z_washout_{name}")
+        output_aliased = False
+    else:
+        z = backend.symbols(output)
+        output_aliased = True
 
-    # 5. Parameter
+    # 6. Parameter
     T_wo = backend.symbols(f"T_wo_washout_{name}")
 
-    # 6. Dynamic equation: dx/dt = (u - x) / T_wo
-    dx = (u - x) / T_wo
+    # 7. Equations: dx/dt = (u - x) / T_wo,  z = u - x
+    dx  = (u_expr - x) / T_wo
+    g_z = z - (u_expr - x)
 
-    # 7. Algebraic equation: z = u - x
-    g_z = z - (u - x)
-
-    # 8. Data-dict overrides (fall back to descriptions() defaults)
-    val_T_wo = data_dict.get('T_wo', default_map.get('T_wo', 10.0))
-    val_u = data_dict.get('u', default_map.get('u', 0.0))
+    # 8. Promote an aliased output (was a global input) to algebraic state.
+    if output_aliased:
+        dae['u_ini_dict'].pop(str(z), None)
+        dae['u_run_dict'].pop(str(z), None)
 
     # 9. Initialization hint: start at steady state (x = u, z = 0)
     dae['xy_0_dict'].update({f"{x}": val_u, f"{z}": 0.0})
@@ -99,9 +119,7 @@ def washout(dae, name, data_dict, backend):
     dae['g_list'] += [g_z]
     dae['y_ini_list'] += [z]
     dae['y_run_list'] += [z]
-    dae['h_dict'].update({f"{z}": z})  # Output
-    dae['u_ini_dict'].update({f"{u}": val_u})
-    dae['u_run_dict'].update({f"{u}": val_u})
+    dae['h_dict'].update({f"{z}": z})
     dae['params_dict'].update({f"{T_wo}": val_T_wo})
 
     return None
@@ -178,7 +196,7 @@ def _build_washout_model(name='1', T_wo=2.0, u_0=0.0):
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    washout(dae, name, {'T_wo': T_wo, 'u': u_0}, backend)
+    washout(dae, name, backend, {'T_wo': T_wo, 'u': u_0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])

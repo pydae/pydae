@@ -52,43 +52,66 @@ def descriptions():
     return descriptions_list
 
 
-def lpf1(dae, name, data_dict, backend):
+def lpf1(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a first-order low-pass filter block to `dae`.
 
     Adds one dynamic state ``x_lpf1_{name}`` (the filtered value of the
     input), driven by ``u_lpf1_{name}`` with time constant
     ``T_lpf1_{name}``, plus an algebraic output ``z_lpf1_{name}`` that
     mirrors the state and is exposed through `h_dict`.
+
+    See :mod:`pydae.control.continuos._common` for the input/output
+    aliasing semantics (``input`` may be ``None`` / ``str`` /
+    ``list[str]``; ``output`` may alias an existing symbol and is
+    promoted to an algebraic state if it was previously a global input).
     """
+    from pydae.control.continuos._common import combine_inputs
+
+    data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if item.get('data')}
 
-    # 2. Input
-    u = backend.symbols(f"u_lpf1_{name}")
-
-    # 3. Dynamic state
-    x = backend.symbols(f"x_lpf1_{name}")
-
-    # 4. Algebraic state (output alias)
-    z = backend.symbols(f"z_lpf1_{name}")
-
-    # 5. Parameter
-    T = backend.symbols(f"T_lpf1_{name}")
-
-    # 6. Dynamic equation: dx/dt = (u - x) / T
-    dx = (u - x) / T
-
-    # 7. Algebraic equation: z = x
-    g_z = z - x
-
-    # 8. Data-dict overrides (fall back to descriptions() defaults)
+    # 2. Data-dict overrides (fall back to descriptions() defaults)
     val_T = data_dict.get('T', default_map.get('T', 0.1))
     val_u = data_dict.get('u', default_map.get('u', 0.0))
 
-    # 9. Initialization hint: start at steady state (x = u)
-    dae['xy_0_dict'].update({f"{x}": val_u})
+    # 3. Input: fresh u_lpf1_{name}, single alias, or
+    #    u = input[0] - sum(input[1:]) over a list of names.
+    if input is None:
+        u = backend.symbols(f"u_lpf1_{name}")
+        dae['u_ini_dict'][f"{u}"] = val_u
+        dae['u_run_dict'][f"{u}"] = val_u
+        u_expr = u
+    else:
+        u_expr = combine_inputs(input, dae, backend, val_u)
+
+    # 4. Dynamic state
+    x = backend.symbols(f"x_lpf1_{name}")
+
+    # 5. Algebraic state (output alias): fresh z_lpf1_{name} or aliased.
+    if output is None:
+        z = backend.symbols(f"z_lpf1_{name}")
+        output_aliased = False
+    else:
+        z = backend.symbols(output)
+        output_aliased = True
+
+    # 6. Parameter
+    T = backend.symbols(f"T_lpf1_{name}")
+
+    # 7. Equations: dx/dt = (u - x) / T,  z = x
+    dx = (u_expr - x) / T
+    g_z = z - x
+
+    # 8. Promote an aliased output (was a global input) to algebraic state.
+    if output_aliased:
+        dae['u_ini_dict'].pop(str(z), None)
+        dae['u_run_dict'].pop(str(z), None)
+
+    # 9. Initialization hint: start at steady state (x = u, z = u)
+    dae['xy_0_dict'].update({f"{x}": val_u, f"{z}": val_u})
 
     # 10. Assembly
     dae['f_list'] += [dx]
@@ -96,9 +119,7 @@ def lpf1(dae, name, data_dict, backend):
     dae['g_list'] += [g_z]
     dae['y_ini_list'] += [z]
     dae['y_run_list'] += [z]
-    dae['h_dict'].update({f"{z}": z})  # Output
-    dae['u_ini_dict'].update({f"{u}": val_u})
-    dae['u_run_dict'].update({f"{u}": val_u})
+    dae['h_dict'].update({f"{z}": z})
     dae['params_dict'].update({f"{T}": val_T})
 
     return None
@@ -175,7 +196,7 @@ def _build_lpf1_model(name='1', T=0.5, u_0=0.0):
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    lpf1(dae, name, {'T': T, 'u': u_0}, backend)
+    lpf1(dae, name, backend, {'T': T, 'u': u_0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])

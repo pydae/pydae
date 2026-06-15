@@ -56,7 +56,7 @@ def descriptions():
     return descriptions_list
 
 
-def leadlag(dae, name, data_dict, backend):
+def leadlag(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a first-order lead-lag compensator block to `dae`.
 
     Adds one dynamic state ``x_leadlag_{name}`` (the lag-pole state),
@@ -64,35 +64,55 @@ def leadlag(dae, name, data_dict, backend):
     ``T_den_leadlag_{name}``, plus an algebraic output
     ``z_leadlag_{name}`` that realizes the numerator zero
     ``T_num_leadlag_{name}`` and is exposed through `h_dict`.
+
+    See :mod:`pydae.control.continuos._common` for the input/output
+    aliasing semantics.
     """
+    from pydae.control.continuos._common import combine_inputs
+
+    data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if item.get('data')}
 
-    # 2. Input
-    u = backend.symbols(f"u_leadlag_{name}")
+    # 2. Data-dict overrides (fall back to descriptions() defaults)
+    val_T_num = data_dict.get('T_num', default_map.get('T_num', 0.0))
+    val_T_den = data_dict.get('T_den', default_map.get('T_den', 0.1))
+    val_u     = data_dict.get('u',     default_map.get('u',     0.0))
 
-    # 3. Dynamic state
+    # 3. Input
+    if input is None:
+        u = backend.symbols(f"u_leadlag_{name}")
+        dae['u_ini_dict'][f"{u}"] = val_u
+        dae['u_run_dict'][f"{u}"] = val_u
+        u_expr = u
+    else:
+        u_expr = combine_inputs(input, dae, backend, val_u)
+
+    # 4. Dynamic state
     x = backend.symbols(f"x_leadlag_{name}")
 
-    # 4. Algebraic state (output)
-    z = backend.symbols(f"z_leadlag_{name}")
+    # 5. Algebraic state (output)
+    if output is None:
+        z = backend.symbols(f"z_leadlag_{name}")
+        output_aliased = False
+    else:
+        z = backend.symbols(output)
+        output_aliased = True
 
-    # 5. Parameters
+    # 6. Parameters
     T_num = backend.symbols(f"T_num_leadlag_{name}")
     T_den = backend.symbols(f"T_den_leadlag_{name}")
 
-    # 6. Dynamic equation: dx/dt = (u - x) / T_den
-    dx = (u - x) / T_den
+    # 7. Equations: dx/dt = (u - x) / T_den,  z = x + (T_num/T_den)*(u - x)
+    dx  = (u_expr - x) / T_den
+    g_z = z - x - (T_num / T_den) * (u_expr - x)
 
-    # 7. Algebraic equation: z = x + (T_num/T_den) * (u - x)
-    g_z = z - x - (T_num / T_den) * (u - x)
-
-    # 8. Data-dict overrides (fall back to descriptions() defaults)
-    val_T_num = data_dict.get('T_num', default_map.get('T_num', 0.0))
-    val_T_den = data_dict.get('T_den', default_map.get('T_den', 0.1))
-    val_u = data_dict.get('u', default_map.get('u', 0.0))
+    # 8. Promote an aliased output (was a global input) to algebraic state.
+    if output_aliased:
+        dae['u_ini_dict'].pop(str(z), None)
+        dae['u_run_dict'].pop(str(z), None)
 
     # 9. Initialization hint: start at steady state (x = u, z = u)
     dae['xy_0_dict'].update({f"{x}": val_u, f"{z}": val_u})
@@ -103,9 +123,7 @@ def leadlag(dae, name, data_dict, backend):
     dae['g_list'] += [g_z]
     dae['y_ini_list'] += [z]
     dae['y_run_list'] += [z]
-    dae['h_dict'].update({f"{z}": z})  # Output
-    dae['u_ini_dict'].update({f"{u}": val_u})
-    dae['u_run_dict'].update({f"{u}": val_u})
+    dae['h_dict'].update({f"{z}": z})
     dae['params_dict'].update({f"{T_num}": val_T_num, f"{T_den}": val_T_den})
 
     return None
@@ -182,7 +200,7 @@ def _build_leadlag_model(name='1', T_num=1.0, T_den=0.5, u_0=0.0):
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    leadlag(dae, name, {'T_num': T_num, 'T_den': T_den, 'u': u_0}, backend)
+    leadlag(dae, name, backend, {'T_num': T_num, 'T_den': T_den, 'u': u_0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])
