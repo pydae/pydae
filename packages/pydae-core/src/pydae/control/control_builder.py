@@ -69,6 +69,11 @@ from pydae.control.continuos.deadband import deadband
 from pydae.control.continuos.rate_limiter import rate_limiter
 from pydae.control.continuos.integrator import integrator
 from pydae.control.continuos.product import product
+from pydae.control.continuos.notch import notch
+from pydae.control.continuos.park import park
+from pydae.control.continuos.park_inv import park_inv
+from pydae.control.continuos.pll import pll
+from pydae.control.continuos.pi_feedforward import pi_feedforward
 from pydae.control.continuos.stab_1lpf_2wo_3ll import stab_1lpf_2wo_3ll
 
 BUILDERS = {
@@ -89,6 +94,11 @@ BUILDERS = {
     'rate_limiter': rate_limiter,
     'integrator': integrator,
     'product': product,
+    'notch': notch,
+    'park': park,
+    'park_inv': park_inv,
+    'pll': pll,
+    'pi_feedforward': pi_feedforward,
     'stab_1lpf_2wo_3ll': stab_1lpf_2wo_3ll,
 }
 
