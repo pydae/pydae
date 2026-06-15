@@ -147,9 +147,9 @@ class ControlBuilder:
                     f"Available types: {sorted(BUILDERS)}")
 
             builder = BUILDERS[block_type]
-            if block_type == 'stab_1lpf_2wo_3ll':
-                # Composite block: backend is positional, data_dict/input/output
-                # are optional (see pydae.control.continuos.stab_1lpf_2wo_3ll).
+            if block_type in ('stab_1lpf_2wo_3ll', 'pi'):
+                # Blocks that take the (dae, name, backend, data_dict,
+                # input, output) signature with input/output aliasing.
                 builder(self.dae, item['name'], self.backend, item,
                         item.get('input'), item.get('output'))
             else:

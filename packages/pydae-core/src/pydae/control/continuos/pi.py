@@ -66,75 +66,139 @@ def descriptions():
     return descriptions_list
 
 
-def pi(dae, name, data_dict, backend):
+def _resolve_pi_input(input_name, dae, backend, default_val):
+    """Resolve an `input=` name to an expression usable in the PI equation.
+
+    Resolution order:
+      1. ``dae['h_dict'][input_name]`` -- use the derived expression
+         directly (no new free symbol is introduced, the constraints
+         that produced the h_dict entry stay in force).
+      2. Name already declared as a state, algebraic variable, input,
+         or parameter -- alias the cached backend symbol.
+      3. Otherwise -- create the name as a new global input, added to
+         both ``u_ini_dict`` and ``u_run_dict`` with `default_val`.
+    """
+    if input_name in dae['h_dict']:
+        return dae['h_dict'][input_name]
+
+    known = set()
+    known.update(str(s) for s in dae.get('x_list', []))
+    known.update(str(s) for s in dae.get('y_run_list', []))
+    known.update(dae.get('u_run_dict', {}).keys())
+    known.update(dae.get('params_dict', {}).keys())
+
+    sym = backend.symbols(input_name)
+    if input_name in known:
+        return sym
+
+    dae['u_ini_dict'][input_name] = default_val
+    dae['u_run_dict'][input_name] = default_val
+    return sym
+
+
+def pi(dae, name, backend, data_dict=None, input=None, output=None):
     """Append a PI controller block with output saturation and
     back-calculation anti-windup to `dae`.
 
-    Adds one dynamic state ``xi_pi_{name}`` (the integrator),
-    driven by ``u_pi_{name}`` with gains ``K_p_pi_{name}`` and
-    ``K_i_pi_{name}``, plus an algebraic output ``z_pi_{name}``
-    clamped to [``z_min_pi_{name}``, ``z_max_pi_{name}``] and exposed
-    through `h_dict`. The gain ``K_aw_pi_{name}`` feeds the clamping
+    Adds one dynamic state ``xi_pi_{name}`` (the integrator) plus an
+    algebraic output ``z_pi_{name}`` clamped to ``[z_min_pi_{name},
+    z_max_pi_{name}]``. The gain ``K_aw_pi_{name}`` feeds the clamping
     error back into the integrator to prevent windup.
+
+    Parameters
+    ----------
+    input : str, list[str], or None
+        ``None`` (default) -- create a fresh ``u_pi_{name}`` symbol and
+        add it as a global input.
+        ``str`` -- wire the PI input to an existing signal: either an
+        entry in ``dae['h_dict']`` (its expression is substituted in
+        directly), an existing state / algebraic variable / input /
+        parameter (the cached backend symbol is aliased), or an
+        otherwise-unknown name (created as a new global input).
+        ``list[str]`` -- the inputs are combined as the conventional PI
+        error signal ``u = input[0] - sum(input[1:])`` (measurement
+        minus one or more reference signals). Each name is resolved
+        independently via the rule above.
+    output : str or None
+        ``None`` (default) -- expose the saturated output as a fresh
+        ``z_pi_{name}`` symbol.
+        ``str`` -- alias an existing symbol; if that name was previously
+        declared as a global input (e.g. an actuator setpoint such as
+        ``Qext_5``), it is removed from ``u_ini_dict`` / ``u_run_dict``
+        and promoted to an algebraic variable driven by the PI's
+        saturation.
     """
+    data_dict = data_dict or {}
 
     # 1. Defaults (from descriptions())
     meta = descriptions()
     default_map = {item['data']: item['default'] for item in meta if item.get('data')}
 
-    # 2. Input
-    u = backend.symbols(f"u_pi_{name}")
+    # 2. Data-dict overrides (fall back to descriptions() defaults)
+    val_K_p   = data_dict.get('K_p',   default_map.get('K_p',   1.0))
+    val_K_i   = data_dict.get('K_i',   default_map.get('K_i',   1.0))
+    val_K_aw  = data_dict.get('K_aw',  default_map.get('K_aw',  2.0))
+    val_z_min = data_dict.get('z_min', default_map.get('z_min', -10.0))
+    val_z_max = data_dict.get('z_max', default_map.get('z_max', 10.0))
+    val_u     = data_dict.get('u',     default_map.get('u',     0.0))
+    val_xi    = data_dict.get('xi_0', 0.0)
 
-    # 3. Dynamic state
+    # 3. PI input expression: fresh symbol, single alias, or
+    #    error = input[0] - sum(input[1:]) over a list of names.
+    if input is None:
+        u_sym = backend.symbols(f"u_pi_{name}")
+        dae['u_ini_dict'][f"{u_sym}"] = val_u
+        dae['u_run_dict'][f"{u_sym}"] = val_u
+        u_expr = u_sym
+    else:
+        names = [input] if isinstance(input, str) else list(input)
+        u_expr = _resolve_pi_input(names[0], dae, backend, val_u)
+        for extra in names[1:]:
+            u_expr = u_expr - _resolve_pi_input(extra, dae, backend, 0.0)
+
+    # 4. Dynamic state
     xi = backend.symbols(f"xi_pi_{name}")
 
-    # 4. Algebraic state (saturated output)
-    z = backend.symbols(f"z_pi_{name}")
+    # 5. Algebraic state (saturated output): fresh symbol or aliased.
+    if output is None:
+        z = backend.symbols(f"z_pi_{name}")
+        output_aliased = False
+    else:
+        z = backend.symbols(output)
+        output_aliased = True
 
-    # 5. Parameters
-    K_p = backend.symbols(f"K_p_pi_{name}")
-    K_i = backend.symbols(f"K_i_pi_{name}")
-    K_aw = backend.symbols(f"K_aw_pi_{name}")
+    # 6. Parameters
+    K_p   = backend.symbols(f"K_p_pi_{name}")
+    K_i   = backend.symbols(f"K_i_pi_{name}")
+    K_aw  = backend.symbols(f"K_aw_pi_{name}")
     z_min = backend.symbols(f"z_min_pi_{name}")
     z_max = backend.symbols(f"z_max_pi_{name}")
 
-    # 6. Unsaturated PI output
-    v = K_p * u + K_i * xi
-
-    # 7. Dynamic equation: dxi/dt = u + K_aw*(z - v)
-    #    z == v while unsaturated -> plain integrator (dxi/dt = u);
-    #    z != v while saturated   -> anti-windup correction.
-    dxi = u + K_aw * (z - v)
-
-    # 8. Algebraic equation: z = clip(v, z_min, z_max)
+    # 7. Unsaturated PI output, integrator with back-calculation
+    #    anti-windup, and output-saturation algebraic constraint.
+    v   = K_p * u_expr + K_i * xi
+    dxi = u_expr + K_aw * (z - v)
     g_z = z - backend.hard_limits(v, z_min, z_max)
 
-    # 9. Data-dict overrides (fall back to descriptions() defaults)
-    val_K_p = data_dict.get('K_p', default_map.get('K_p', 1.0))
-    val_K_i = data_dict.get('K_i', default_map.get('K_i', 1.0))
-    val_K_aw = data_dict.get('K_aw', default_map.get('K_aw', 2.0))
-    val_z_min = data_dict.get('z_min', default_map.get('z_min', -10.0))
-    val_z_max = data_dict.get('z_max', default_map.get('z_max', 10.0))
-    val_u = data_dict.get('u', default_map.get('u', 0.0))
-    val_xi = data_dict.get('xi_0', 0.0)
+    # 8. Promote an aliased output (was a global input) to algebraic state.
+    if output_aliased:
+        dae['u_ini_dict'].pop(str(z), None)
+        dae['u_run_dict'].pop(str(z), None)
 
-    # 10. Initialization hint: integrator starts at xi_0 (default 0),
-    #     output starts at the clipped unsaturated value
+    # 9. Initialization hints (integrator at xi_0, output at clipped u-only)
     val_v = val_K_p * val_u + val_K_i * val_xi
     val_z = min(max(val_v, val_z_min), val_z_max)
     dae['xy_0_dict'].update({f"{xi}": val_xi, f"{z}": val_z})
 
-    # 11. Assembly
-    dae['f_list'] += [dxi]
-    dae['x_list'] += [xi]
-    dae['g_list'] += [g_z]
+    # 10. Assembly
+    dae['f_list']     += [dxi]
+    dae['x_list']     += [xi]
+    dae['g_list']     += [g_z]
     dae['y_ini_list'] += [z]
     dae['y_run_list'] += [z]
-    dae['h_dict'].update({f"{z}": z})  # Output
-    dae['u_ini_dict'].update({f"{u}": val_u})
-    dae['u_run_dict'].update({f"{u}": val_u})
+    dae['h_dict'].update({f"{z}": z})
     dae['params_dict'].update({
-        f"{K_p}": val_K_p, f"{K_i}": val_K_i, f"{K_aw}": val_K_aw,
+        f"{K_p}":   val_K_p,   f"{K_i}":   val_K_i,   f"{K_aw}":  val_K_aw,
         f"{z_min}": val_z_min, f"{z_max}": val_z_max,
     })
 
@@ -213,7 +277,6 @@ def _build_pi_loop_model(name='1', K_p=2.0, K_i=0.5, K_aw=2.0,
     """
     from pydae.core.builder.casadi_builder import MathBackend, CasadiBuilder
     from pydae.core.model.casadi_model import CasadiModel
-    import casadi as ca
 
     dae = {'name': f'test_pi_loop_{name}',
            'f_list': [], 'x_list': [],
@@ -224,13 +287,13 @@ def _build_pi_loop_model(name='1', K_p=2.0, K_i=0.5, K_aw=2.0,
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    pi(dae, name, {'K_p': K_p, 'K_i': K_i, 'K_aw': K_aw,
-                    'z_min': z_min, 'z_max': z_max,
-                    'u': 0.0, 'xi_0': 0.0}, backend)
+    pi(dae, name, backend, {'K_p': K_p, 'K_i': K_i, 'K_aw': K_aw,
+                            'z_min': z_min, 'z_max': z_max,
+                            'u': 0.0, 'xi_0': 0.0})
 
-    xi = dae['x_list'][-1]
-    z = dae['h_dict'][f'z_pi_{name}']
-    u = ca.symvar(dae['f_list'][-1])[0]
+    xi = backend.symbols(f"xi_pi_{name}")
+    z = backend.symbols(f"z_pi_{name}")
+    u = backend.symbols(f"u_pi_{name}")
 
     # u_pi becomes an algebraic variable, closed onto z_pi via r.
     dae['u_ini_dict'].pop(str(u))
