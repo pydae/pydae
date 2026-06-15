@@ -64,6 +64,11 @@ from pydae.control.continuos.tf import tf
 from pydae.control.continuos.lti import lti
 from pydae.control.continuos.luenberger import luenberger
 from pydae.control.continuos.kalman import kalman
+from pydae.control.continuos.saturation import saturation
+from pydae.control.continuos.deadband import deadband
+from pydae.control.continuos.rate_limiter import rate_limiter
+from pydae.control.continuos.integrator import integrator
+from pydae.control.continuos.product import product
 from pydae.control.continuos.stab_1lpf_2wo_3ll import stab_1lpf_2wo_3ll
 
 BUILDERS = {
@@ -79,6 +84,11 @@ BUILDERS = {
     'lti': lti,
     'luenberger': luenberger,
     'kalman': kalman,
+    'saturation': saturation,
+    'deadband': deadband,
+    'rate_limiter': rate_limiter,
+    'integrator': integrator,
+    'product': product,
     'stab_1lpf_2wo_3ll': stab_1lpf_2wo_3ll,
 }
 
