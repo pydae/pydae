@@ -67,11 +67,14 @@ block's input expression depends on the block:
 
 | Block            | `input=list[str]` semantics                                                |
 | ---------------- | -------------------------------------------------------------------------- |
-| `pi`, `pid`, `lpf1`, `lpf2`, `leadlag`, `washout`, `tf`, `saturation`, `deadband`, `rate_limiter`, `integrator`, `stab_1lpf_2wo_3ll` | `u = input[0] - sum(input[1:])` (classic error: measurement minus references). |
+| `pi`, `pid`, `lpf1`, `lpf2`, `leadlag`, `washout`, `tf`, `notch`, `saturation`, `deadband`, `rate_limiter`, `integrator`, `stab_1lpf_2wo_3ll` | `u = input[0] - sum(input[1:])` (classic error: measurement minus references). |
 | `summation`, `product` | Must be a 2-list `[u_1, u_2]`; bound to the two input channels.       |
+| `pi_feedforward` | Must be a 2-list `[e, r]`; first binds to the error `e`, second to the feedforward reference `r` (the two are used in different terms of the PI law, not subtracted). |
 | `matrix_gain`    | Length must equal `m` (cols of `K`); each name bound to one column.       |
 | `lti`            | Length must equal `m`; each name bound to one column of `B`.              |
 | `luenberger`, `kalman` | Length must equal `m + p`; the first `m` bind to the control inputs and the next `p` bind to the measurements. |
+| `park`, `park_inv` | Must be a 4-list (`[u_a, u_b, u_c, theta]` for `park`; `[u_d, u_q, u_0, theta]` for `park_inv`); each name binds to one channel. |
+| `pll`            | Must be a 3-list `[v_a, v_b, v_c]` of the three-phase voltage signals.     |
 
 ## Block catalogue
 
@@ -83,6 +86,7 @@ block's input expression depends on the block:
 | `lpf2`       | Second-order low-pass `omega_n^2 / (s^2 + 2 zeta omega_n s + omega_n^2)`. |
 | `leadlag`    | First-order lead-lag `(T_num*s + 1) / (T_den*s + 1)`.                    |
 | `washout`    | Washout (high-pass) `T_wo*s / (T_wo*s + 1)`.                             |
+| `notch`      | Bandstop `(s^2 + omega_n^2) / (s^2 + (omega_n/Q)*s + omega_n^2)`. Parametrised by physical centre frequency `omega_n` and quality factor `Q`. Useful for SSR damping, torsional-mode rejection, harmonic filtering. |
 
 Each block stores one (or two) dynamic states, exposes its output
 through `h_dict`, and follows the same `input=` / `output=` aliasing
@@ -90,11 +94,12 @@ conventions.
 
 ### Controllers
 
-| Module       | Description                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------------------ |
-| `pi`         | PI controller with output saturation and back-calculation anti-windup.                                       |
-| `pid`        | PID with filtered derivative (`K_d * s / (1 + s T_f)`), saturation, anti-windup.                             |
-| `integrator` | Single-state integrator with output saturation and anti-windup. The I-only piece of `pi` -- use for accumulators / totalizers (energy, charge, integrated frequency error). |
+| Module             | Description                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `pi`               | PI controller with output saturation and back-calculation anti-windup.                                       |
+| `pid`              | PID with filtered derivative (`K_d * s / (1 + s T_f)`), saturation, anti-windup.                             |
+| `pi_feedforward`   | PI with an additional reference-feedforward term `K_ff * r`. Two distinct input slots (error `e`, reference `r`); for the same `K_p` / `K_i`, a non-zero `K_ff` produces a larger immediate jump on a step in `r` than the plain PI. |
+| `integrator`       | Single-state integrator with output saturation and anti-windup. The I-only piece of `pi` -- use for accumulators / totalizers (energy, charge, integrated frequency error). |
 
 ### Signal conditioning and nonlinear
 
@@ -120,6 +125,14 @@ conventions.
 | ------------- | ------------------------------------------------------------------------------------------------------------ |
 | `luenberger`  | State observer for an LTI plant, gain matrix `L` chosen by pole placement. Two input streams (`m` control + `p` measurement) concatenated in `input=`. Exposes state estimates as outputs and `y_hat`, `y_tilde` (innovation) signals in `h_dict`. |
 | `kalman`      | Steady-state continuous Kalman filter. Structurally identical to `luenberger`; the gain is computed at build time by solving the continuous algebraic Riccati equation from process- and measurement-noise covariances `Q`, `R`. The chosen gain entries are exposed in `h_dict` as `K_ij_kalman_{name}` so the Riccati solution is readable from the built model. |
+
+### Three-phase transforms and grid synchronisation
+
+| Module      | Description                                                                                                  |
+| ----------- | ------------------------------------------------------------------------------------------------------------ |
+| `park`      | Amplitude-invariant Park transform `(u_a, u_b, u_c, theta) -> (z_d, z_q, z_0)` (`2/3` factor, matches the WECC renewable-converter convention). Purely algebraic. |
+| `park_inv`  | Inverse Park `(u_d, u_q, u_0, theta) -> (z_a, z_b, z_c)`. Pair with `park` for round-trip identity. |
+| `pll`       | Synchronous-Reference-Frame Phase-Locked Loop. Three-phase voltage in, estimated angle / frequency out. Uses the deviation-form angle dynamics `dθ̂/dt = ω̂ − ω_0` (same convention as syn-machine `δ`) so DAE initialisation at the locked operating point is well-posed. Also exposes the internal `v_d`, `v_q` in `h_dict` for diagnostics. |
 
 ### Composite
 
@@ -228,5 +241,10 @@ matrix_gain(dae, 'sf', backend,
     pydae.control.continuos.rate_limiter
     pydae.control.continuos.integrator
     pydae.control.continuos.product
+    pydae.control.continuos.notch
+    pydae.control.continuos.park
+    pydae.control.continuos.park_inv
+    pydae.control.continuos.pll
+    pydae.control.continuos.pi_feedforward
     pydae.control.continuos.stab_1lpf_2wo_3ll
 ```
