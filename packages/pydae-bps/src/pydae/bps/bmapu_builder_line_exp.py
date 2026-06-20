@@ -59,7 +59,7 @@ class bmapu:
     def __init__(self,data_input='',testing=False):
         
         if type(data_input) == str:
-            if 'http' in data_input:
+            if data_input.startswith(('http://', 'https://')):
                 url = data_input
                 resp = requests.get(url)
                 data = hjson.loads(resp.text)

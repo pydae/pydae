@@ -58,7 +58,7 @@ class pv_model:
         from photovoltaic_modeling.parameter.parameter_extraction import ParameterExtraction
 
         if type(data_input) == str:
-            if 'http' in data_input:
+            if data_input.startswith(('http://', 'https://')):
                 url = data_input
                 resp = requests.get(url)
                 data = json.loads(resp.text)

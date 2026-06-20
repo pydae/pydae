@@ -1,0 +1,68 @@
+{
+"emec_config":{
+"Dt":10e-3,"Dt_low":20e-3,"Dt_mid":40e-3
+},
+"emec_modbus_server": {
+    "ip": "10.20.0.2",
+    "port": 5000
+ },
+"emec_http_server": {
+    "ip": "127.100.0.1",
+    "port": 8000
+},
+"ppc_api": {
+    "ip": "127.200.0.1",
+    "port": 5500
+},
+"devices": [
+], 
+"configs":{
+  "poi":{"measurements":[{"emec_prefix":"V","min":0.0,"max":2.0, "ing_name":"VoltageAVG", "register": 372, "type": "float32", "format": "CDAB","emec_scale":1.0,"io_register":1000,"type_iec104":"M_ME_NC_1"},
+                         {"emec_name":"p_line_POI_GRID","min":0.0,"max":2.0, "ing_name":  "ActivePower", "register": 370,"type": "float32", "format": "CDAB", "emec_scale":1.0,"io_register":1001,"type_iec104":"M_ME_NC_1"},
+                         {"emec_name":"q_line_POI_GRID","min":0.0,"max":2.0, "ing_name":"ReactivePower", "register": 374,"type": "float32", "format": "CDAB", "emec_scale":1.0,"io_register":1002,"type_iec104":"M_ME_NC_1"}],
+         "setpoints":[
+        ]},
+  "inv":{"setpoints":[
+                    {"emec_prefix":"Pref","ini":0.5,"min": 0.0,"max":1.0, "ing_name":  "SetActivePower", "register":424,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":2000,"type_iec104":"C_SE_NC_1"},
+                    {"emec_prefix":"Qext","ini":0.1,"min":-1.0,"max":1.0, "ing_name":"SetReactivePower","register":426,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":2001,"type_iec104":"C_SE_NC_1"}
+                     ],
+        "measurements":[
+                    {"emec_prefix":"V","min":0.0,"max":2.0, "ing_name":"VoltageAVG", "register": 372, "type": "int16", "format": "AB","emec_scale":0.001,"io_register":1000,"type_iec104":"M_ME_NC_1"},
+                    {"emec_prefix":"p_g","ini":0.5,"min": 0.0,"max":1.0, "ing_name":  "ActivePower", "register":525,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":1000,"type_iec104":"M_ME_NC_1"},
+                    {"emec_prefix":"q_g","ini":0.1,"min":-1.0,"max":1.0, "ing_name":"ReactivePower", "register":544,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":1001,"type_iec104":"M_ME_NC_1"}
+                       ]},
+  "bess":{"setpoints":[
+          {"emec_prefix":"p_s_ref","ini":2.0,"min": 0.0,"max":1.0, "ing_name":  "SetActivePower", "register":424,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":2000,"type_iec104":"C_SE_NC_1"},
+          {"emec_prefix":"q_s_ref","ini":0.0,"min":-1.0,"max":1.0, "ing_name":"SetReactivePower", "register":426,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":2001,"type_iec104":"C_SE_NC_1"}
+                           ],
+        "measurements":[
+                {"emec_prefix":"p_s","ini":2.0,"min": 0.0,"max":1.0, "ing_name":  "ActivePower", "register":525,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":1000,"type_iec104":"M_ME_NC_1"},
+                {"emec_prefix":"q_s","ini":0.0,"min":-1.0,"max":1.0, "ing_name":"ReactivePower", "register":544,"type": "int32", "format": "CDAB", "emec_scale":1e-6,"io_register":1001,"type_iec104":"M_ME_NC_1"},
+                {"emec_prefix":"soc","ini":0.0,"min":-1.0,"max":1.0, "ing_name":          "SoC", "register":548,"type": "int16", "format": "AB", "emec_scale":0.001,"io_register":1002,"type_iec104":"M_ME_NC_1"}                
+                   ]}
+},
+"hosts":[
+    {"name": "SCADA","ip":"10.10.0.6/16","mac":"00:00:00:00:00:06"},
+    {"name":   "PPC","ip":"10.10.0.4/16","mac":"00:00:00:00:00:04","ip_2":"10.20.0.4/16"},
+    {"name":   "POI","ip":"10.10.0.5/16","mac":"00:00:00:00:00:05","ip_2":"10.20.0.5/16","run_linker":true},
+    {"name":  "MITM","ip":"10.10.0.9/16","mac":"00:00:00:00:00:09", "description":"Man In The Middle"},
+    {"name":   "CPN","ip":"10.10.0.10/16","mac":"00:00:00:00:00:10"}
+],
+"switches":[
+    {"name":"sPOI"},
+    {"name":"sEEMU", "interface":"enp0s8"},
+    {"name":"sKALI", "interface":"enp0s10"},
+    {"name":"sPPC", "interface":"enp0s9"}
+],
+"links":[
+    {"node_j":  "PPC", "node_k":"sPOI"},
+    {"node_j":  "PPC", "node_k":"sPPC"},
+    {"node_j":  "POI", "node_k":"sPOI"},
+    {"node_j":  "POI", "node_k":"sEEMU"},
+    {"node_j": "MITM", "node_k":"sPOI"},
+    {"node_j":  "CPN", "node_k":"sPOI"},
+    {"node_j":"SCADA", "node_k":"sPOI"},
+    {"node_j":"sKALI", "node_k":"sPOI"}
+]        
+}
+
