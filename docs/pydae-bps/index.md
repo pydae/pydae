@@ -33,6 +33,14 @@ getting_started
 ```
 
 ```{toctree}
+:maxdepth: 1
+:caption: Guides
+
+dtr
+faults
+```
+
+```{toctree}
 :maxdepth: 2
 :caption: Models
 

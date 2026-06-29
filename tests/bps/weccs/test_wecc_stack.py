@@ -276,13 +276,18 @@ class TestReecB:
         assert abs(Ip - Ipc) < 0.01, f"Ip={Ip:.4f} != Ipcmd={Ipc:.4f}"
 
     def test_reactive_current_at_unity_pf(self, reec_b_model):
-        """Iqcmd initial = 0 → Iq ≈ 0."""
+        """Voltage control (Vflag=1) holds V_1 = Qext = 1.0 at steady state.
+        Iq may be non-zero: the controller injects reactive current to correct
+        the ~1% voltage rise caused by active-power flow through the line.
+        """
         _ini(WECCS_DIR, reec_b_model, self.XY0)
         m   = reec_b_model
+        V_1 = m.get_value('V_1')
         Iq  = m.get_value('Iq_1')
         Iqc = m.get_value('Iqcmd_1')
-        assert abs(Iq)  < 0.02, f"Iq={Iq:.4f} should be ~0"
-        assert abs(Iqc) < 0.02, f"Iqcmd={Iqc:.4f} should be ~0"
+        assert abs(V_1 - 1.0) < 0.01, f"V_1={V_1:.4f} voltage control should hold ~1.0 pu"
+        # REGC_A sign convention: dIq = (-Iqcmd - Iq)/Tg → Iq = -Iqcmd at SS
+        assert abs(Iq + Iqc)  < 0.01, f"Iq={Iq:.4f} should equal -Iqcmd={Iqc:.4f}"
 
     def test_vt_flt_tracks_terminal_voltage(self, reec_b_model):
         """Vt_flt converges to terminal bus voltage at steady state."""

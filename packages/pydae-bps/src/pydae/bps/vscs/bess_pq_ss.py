@@ -109,6 +109,19 @@ def descriptions():
         {"type": "Input", "tex": "soc_{ref}", "data": "soc_ref",
          "model": "soc_ref", "default": 0.5,
          "description": "SOC reference setpoint", "units": "pu"}]
+    descriptions_list += [
+        {"type": "Input", "tex": "\\text{lvrt}_{\\text{ext}}",
+         "data": "lvrt_ext", "model": "lvrt_ext", "default": 0.0,
+         "description": "External LVRT trigger (0=PQ, 1=current injection)",
+         "units": "-"}]
+    descriptions_list += [
+        {"type": "Input", "tex": "i_{sa,ref}", "data": "i_sa_ref",
+         "model": "i_sa_ref", "default": 0.0,
+         "description": "Active current reference (LVRT mode)", "units": "pu"}]
+    descriptions_list += [
+        {"type": "Input", "tex": "i_{sr,ref}", "data": "i_sr_ref",
+         "model": "i_sr_ref", "default": 0.0,
+         "description": "Reactive current reference (LVRT mode)", "units": "pu"}]
 
     # Dynamic States
     descriptions_list += [
@@ -220,6 +233,9 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     soc_ref = backend.symbols(f"soc_ref_{name}")
     p_s_ppc = backend.symbols(f"p_s_ppc_{name}")
     q_s_ppc = backend.symbols(f"q_s_ppc_{name}")
+    lvrt_ext = backend.symbols(f"lvrt_ext_{name}")
+    i_sa_ref = backend.symbols(f"i_sa_ref_{name}")
+    i_sr_ref = backend.symbols(f"i_sr_ref_{name}")
 
     # 4. Dynamic states - battery
     soc = backend.symbols(f"soc_{name}")
@@ -326,12 +342,23 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     else:
         _cond_dch = (p_s_ref <= 0.0) & (soc < soc_max)
         _cond_ch  = (p_s_ref > 0.0)  & (soc > soc_min)
-    p_s = backend.Piecewise(
+    p_s_pq = backend.Piecewise(
         (p_s_ref, _cond_dch),
         (p_s_ref, _cond_ch),
         (0.0, True),
     ) + p_soc
-    q_s = q_s_ref
+    q_s_pq = q_s_ref
+
+    # LVRT current-injection blend (mirrors pv_pq_ss). When lvrt_ext -> 1 the
+    # VSC switches from constant-power to bounded current injection: setting
+    # p_s = V*i_sa_ref and q_s = V*i_sr_ref makes the AC current magnitude
+    # i_s = sqrt(p_s^2 + q_s^2)/V = sqrt(i_sa_ref^2 + i_sr_ref^2), which stays
+    # bounded as V -> 0 (unlike the constant-power current ~ S/V that diverges
+    # and makes the algebraic solve singular during deep faults).
+    p_s_ar = V_s * i_sa_ref
+    q_s_ar = V_s * i_sr_ref
+    p_s = (1.0 - lvrt_ext) * p_s_pq + lvrt_ext * p_s_ar
+    q_s = (1.0 - lvrt_ext) * q_s_pq + lvrt_ext * q_s_ar
 
     # 11. Loss model  (epsilon avoids d(sqrt)/d(p_s)=0/0 when p_s=q_s=0)
     s_s = backend.sqrt(p_s**2 + q_s**2 + 1e-8)
@@ -367,6 +394,10 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
 
     grid.dae["u_ini_dict"].update({str(soc_ref): soc_ref_val})
     grid.dae["u_run_dict"].update({str(soc_ref): soc_ref_val})
+
+    for _sym in (lvrt_ext, i_sa_ref, i_sr_ref):
+        grid.dae["u_ini_dict"].update({str(_sym): 0.0})
+        grid.dae["u_run_dict"].update({str(_sym): 0.0})
 
     # 16. Outputs
     grid.dae["h_dict"].update({f"p_loss_{name}": p_loss})

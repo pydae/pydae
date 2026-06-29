@@ -321,7 +321,7 @@ class CasadiModel:
         opts = {
             'calc_ic': 1,
             'print_stats': False,
-            'max_num_steps': 5000,
+            'max_num_steps': 50,
             'reltol': self._integrator_reltol,
             'abstol': self._integrator_abstol,
         }
@@ -414,7 +414,16 @@ class CasadiModel:
             g_val = self._alg_fn(self.x, y_guess, p_run_vec)
             return np.array(g_val).flatten()
 
-        sol = root(alg_residual, self.y_run, method='hybr', tol=tol)
+        # Supply the analytic algebraic Jacobian (dg/dy) when available. The
+        # default finite-difference Jacobian is poorly scaled on large/stiff
+        # algebraic systems and makes 'hybr' stall ("not making good progress")
+        # even for small parameter jumps.
+        alg_jac = None
+        if getattr(self, '_Gy_fn', None) is not None:
+            def alg_jac(y_guess):
+                return np.array(self._Gy_fn(self.x, y_guess, p_run_vec))
+
+        sol = root(alg_residual, self.y_run, jac=alg_jac, method='hybr', tol=tol)
 
         if sol.success:
             self.y_run = sol.x.reshape(self.y_run.shape)

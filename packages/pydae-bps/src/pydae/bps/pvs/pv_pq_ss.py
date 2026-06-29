@@ -101,10 +101,6 @@ def descriptions():
 
     # Dynamic States
     descriptions_list += [
-        {"type": "Dynamic State", "tex": "\\text{lvrt}_{\\text{ext,ramp}}",
-         "data": "", "model": "lvrt_ext_ramp", "default": "",
-         "description": "LVRT trigger ramped signal", "units": "-"}]
-    descriptions_list += [
         {"type": "Dynamic State", "tex": "x_{pq}", "data": "",
          "model": "x_pq", "default": "",
          "description": "State-space filter states (when A_pq/A_p provided)",
@@ -186,9 +182,7 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     i_sa_ref = backend.symbols(f"i_sa_ref_{name}")
     i_sr_ref = backend.symbols(f"i_sr_ref_{name}")
 
-    # 4. Dynamic state – LVRT ramp
-    lvrt_ext_ramp = backend.symbols(f"lvrt_ext_ramp_{name}")
-    dlvrt_ext_ramp = (lvrt_ext - lvrt_ext_ramp) / backend.symbols(f"T_lvrt_{name}")
+    # 4. LVRT blend signal – lvrt_ext is fed through directly (no ramp lag)
 
     # 5. Algebraic states
     p_s = backend.symbols(f"p_s_{name}")
@@ -281,9 +275,9 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     i_sr_ar = (i_sa_ref * v_sr + i_sr_ref * v_si) / v_m
     i_si_ar = (i_sa_ref * v_si - i_sr_ref * v_sr) / v_m
 
-    # 11. Blend via LVRT ramp
-    i_sr_nosat = (1.0 - lvrt_ext_ramp) * i_sr_pq + lvrt_ext_ramp * i_sr_ar
-    i_si_nosat = (1.0 - lvrt_ext_ramp) * i_si_pq + lvrt_ext_ramp * i_si_ar
+    # 11. Blend via LVRT trigger (fed directly, no ramp dynamics)
+    i_sr_nosat = (1.0 - lvrt_ext) * i_sr_pq + lvrt_ext * i_sr_ar
+    i_si_nosat = (1.0 - lvrt_ext) * i_si_pq + lvrt_ext * i_si_ar
 
     # 12. Soft saturation
     i_mod = backend.sqrt(i_sr_nosat**2 + i_si_nosat**2 + Epsilon)
@@ -298,9 +292,7 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     g_p_s = v_sr * i_sr + v_si * i_si - p_s
     g_q_s = v_si * i_sr - v_sr * i_si - q_s
 
-    # 14. Assembly – VRT ramp dynamic state first, then algebraic
-    grid.dae["f"] += [dlvrt_ext_ramp]
-    grid.dae["x"] += [lvrt_ext_ramp]
+    # 14. Assembly – algebraic injection equations
     grid.dae["g"] += [g_p_s, g_q_s]
     grid.dae["y_ini"] += [p_s, q_s]
     grid.dae["y_run"] += [p_s, q_s]
@@ -336,7 +328,6 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["params_dict"].update({str(Epsilon): Epsilon_val})
 
     # 17. Initialization hints
-    grid.dae["xy_0_dict"].update({str(lvrt_ext_ramp): 0.0})
     grid.dae["xy_0_dict"].update({str(p_s): p_s_ppc_val})
     grid.dae["xy_0_dict"].update({str(q_s): q_s_ppc_val})
 
@@ -345,7 +336,6 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["h_dict"].update({f"q_s_{name}": q_s})
     grid.dae["h_dict"].update({f"i_mod_{name}": i_mod})
     grid.dae["h_dict"].update({f"i_mod_sat_{name}": i_mod_sat})
-    grid.dae["h_dict"].update({f"lvrt_ext_ramp_{name}": lvrt_ext_ramp})
 
     p_W = p_s * S_n
     q_var = q_s * S_n

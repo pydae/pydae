@@ -178,7 +178,8 @@ def reec_b(dae, data, name, bus_name, backend):
         dx_Kqi    = Kqi * (Qref - Qe)
     else:
         Vref_ctrl = Qref      # Qext acts as voltage reference
-        dx_Kqi    = x_Kqi * 0.0
+        # x_Kqi is inactive; decay to 0 keeps CasADi init Jacobian full rank
+        dx_Kqi    = -x_Kqi
 
     if Qflag == 1:
         # error: positive when over-voltage → less reactive injection
@@ -188,7 +189,8 @@ def reec_b(dae, data, name, bus_name, backend):
         dVl_flt = backend.hard_limits((Kvi_out - Vl_flt) / Tiq, dPmin, dPmax)
     else:
         Kvi_out = backend.hard_limits(-Qref / backend.max(Vt_flt, 0.01), Iqmin, Iqmax)
-        dx_Kvi  = x_Kvi * 0.0
+        # x_Kvi is inactive; decay to 0 keeps CasADi init Jacobian full rank
+        dx_Kvi  = -x_Kvi
         dVl_flt = backend.hard_limits((Kvi_out - Vl_flt) / Tiq, dPmin, dPmax)
 
     # ── active power path ─────────────────────────────────────────────────

@@ -7,4 +7,5 @@ Transmission-line models, including dynamic thermal rating variants.
 
 lib_dtr
 line_dtr
+line_dtr_cable
 ```

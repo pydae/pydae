@@ -141,14 +141,22 @@ def validate_buses(model, data,
         dth   = _abs_err(th_mod_d, th_ref_d) if not _isnan(th_mod_d) else float('nan')
 
         v_ok  = (abs(dv)  <= v_atol)  if not _isnan(dv)  else False
-        th_ok = (abs(dth) <= th_atol) if not _isnan(dth) else False
+        # An omitted angle reference (theta_deg/theta_rad absent) means "voltage
+        # only" — the angle is not checked rather than counted as a failure.
+        th_checked = not _isnan(th_ref_d)
+        if th_checked:
+            th_ok = (abs(dth) <= th_atol) if not _isnan(dth) else False
+            th_status = _status(th_ok)
+        else:
+            th_ok = True
+            th_status = '—'
         row_ok = v_ok and th_ok
         all_ok = all_ok and row_ok
 
         rows.append([
             name,
             v_ref,     v_mod,   dv,    _status(v_ok),
-            th_ref_d,  th_mod_d, dth,  _status(th_ok),
+            th_ref_d,  th_mod_d, dth,  th_status,
             _status(row_ok),
         ])
 

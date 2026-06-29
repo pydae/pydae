@@ -89,6 +89,8 @@ class BpsBuilder:
             self.data['transformers'] = []
         if not 'loads' in self.data:
             self.data['loads'] = []
+        if not 'faults' in self.data:
+            self.data['faults'] = []
 
         self.system = data['system']
         self.buses = data['buses']
@@ -96,6 +98,29 @@ class BpsBuilder:
         self.shunts = data['shunts']
         self.transformers = data['transformers']
         self.loads = data['loads']
+        self.faults = data['faults']
+
+        # Each fault creates a shunt at its bus, energised to ~0 admittance (an
+        # open circuit) so the base case is unaffected. The shunt exposes the
+        # g_shunt_{bus}/b_shunt_{bus} parameters; pydae.bps.utils.faults.apply_fault
+        # ramps them to the fault admittance and back to clear the fault. The
+        # fault's target admittance (system base, Y_f = 1/(R_pu + j X_pu)) is
+        # recorded in self.fault_targets and exposed via sys_dict['faults'].
+        self.fault_targets = {}
+        for fault in self.faults:
+            bus_f = fault['bus']
+            S_mva = fault.get('S_mva', 100.0)
+            R_pu = fault.get('R_pu', 0.0005)   # default: deep, low-R fault
+            X_pu = fault.get('X_pu', 0.005)
+            self.shunts.append({'bus': bus_f, 'X_pu': 1e6, 'R_pu': 0.0,
+                                'S_mva': S_mva})
+            S_line = 1e6*S_mva
+            R = R_pu*self.system['S_base']/S_line
+            X = X_pu*self.system['S_base']/S_line
+            self.fault_targets[bus_f] = {
+                'g':  R/(R**2 + X**2),
+                'b': -X/(R**2 + X**2),
+            }
 
         self.use_casadi = use_casadi
         self.backend = MathBackend(use_casadi)
@@ -329,6 +354,14 @@ class BpsBuilder:
         G = self.A.T @ self.G_primitive @ self.A
         B = self.A.T @ self.B_primitive @ self.A
 
+        # Number of equations / variables already registered before the bus
+        # block (normally 0; > 0 when a component such as a DTR line added
+        # algebraic equations during add_lines()). Used below to move the bus
+        # block to the front of g / y_ini / y_run while keeping them aligned.
+        n_pre_g    = len(self.dae['g'])
+        n_pre_yini = len(self.dae['y_ini'])
+        n_pre_yrun = len(self.dae['y_run'])
+
         g = self.backend.zeros(2 * N_bus, 1)
 
         for j in range(N_bus):
@@ -373,10 +406,30 @@ class BpsBuilder:
             self.dae['params_dict'].update({f'U_{bus_name}_n': bus['U_kV'] * 1000})
 
         if self.use_casadi:
-            self.dae['g'] += [g[i] for i in range(g.size1())]
+            bus_eqs = [g[i] for i in range(g.size1())]
         else:
-            self.dae['g'] += list(g)     
-    
+            bus_eqs = list(g)
+        self.dae['g'] += bus_eqs
+
+        # Move the bus block to the FRONT of g / y_ini / y_run, keeping the
+        # three lists mutually aligned. Two builder invariants must both hold:
+        #   (1) device injectors (loads, sources, syns, vscs, pvs, weccs, ...)
+        #       add power into dae['g'][idx_bus*2] / [idx_bus*2+1], i.e. they
+        #       assume the bus block sits at offset 0;
+        #   (2) vsource and the AVR ini/run swaps overwrite dae['g'][idx_V]
+        #       where idx_V is the position of V_bus in y_ini, i.e. they assume
+        #       g[i] is paired with y_ini[i].
+        # Both hold automatically when nothing precedes the bus block, but a DTR
+        # line appends thermal equations/variables during add_lines(). Rotating
+        # the pre-bus entries to the back of all three lists restores (1) and
+        # preserves (2). No-op when n_pre_* == 0.
+        if n_pre_g:
+            self.dae['g']     = self.dae['g'][n_pre_g:]     + self.dae['g'][:n_pre_g]
+        if n_pre_yini:
+            self.dae['y_ini'] = self.dae['y_ini'][n_pre_yini:] + self.dae['y_ini'][:n_pre_yini]
+        if n_pre_yrun:
+            self.dae['y_run'] = self.dae['y_run'][n_pre_yrun:] + self.dae['y_run'][:n_pre_yrun]
+
         if False:
             v_sym_list = []
             for bus in self.buses_list:
@@ -692,7 +745,8 @@ class BpsBuilder:
                          'u_run_dict': self.dae['u_run_dict'],
                          'u_ini_dict': self.dae['u_ini_dict'],
                          'h_dict': self.dae['h_dict'],
-                         'xy_0_dict': self.dae['xy_0_dict']}
+                         'xy_0_dict': self.dae['xy_0_dict'],
+                         'faults': self.fault_targets}
         if self.testing:
             self.sys_dict.update({'testing':True})
 

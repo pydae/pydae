@@ -127,7 +127,7 @@ def vsource(grid, name, bus_name, data_dict):
     V_dummy = backend.symbols(f"V_dummy_{name}")
 
     # 5. Dynamic equation
-    dV_dummy = v_ref - V_dummy
+    dV_dummy = (v_ref - V_dummy)/1e3
 
     # 6. Algebraic equations (pin constraints)
     g_V = V - v_ref

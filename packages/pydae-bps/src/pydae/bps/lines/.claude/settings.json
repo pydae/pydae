@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(conda run *)",
+      "Read(//Users/jmmauricio/workspace/benchmarks_public/cigre/cigre_mv/bps/base/**)",
+      "Bash(ls -la /Users/jmmauricio/workspace/benchmarks_public/cigre/cigre_mv/bps/base_dtr/)",
+      "Read(//Users/jmmauricio/workspace/benchmarks_public/cigre/cigre_mv/bps/base_dtr/**)",
+      "Read(//Users/jmmauricio/workspace/mdbib_bps/**)",
+      "Read(//Users/jmmauricio/workspace/pydaerag/**)"
+    ]
+  }
+}

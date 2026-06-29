@@ -6,8 +6,9 @@ Produces:
 - a pydae Newton-solver seed (``xy_0.json``)
 - optionally, a four-protocol benchmark folder tree (``modbus`` /
   ``iec104`` / ``dnp3`` / ``dds``) ready to be driven by colinker.  The
-  ``modbus`` folder carries a structured ``tests/`` suite (open-/closed-loop
-  step, frequency-response Bode, MITM) copied from ``templates/tests/``.
+  ``modbus`` and ``iec104`` folders carry a structured ``tests/`` suite
+  (open-/closed-loop step, frequency-response Bode, MITM) copied from
+  ``templates/tests/``.
 
 This module is the consolidated successor of the earlier
 ``pv_plant.py`` (templates only) and ``utils/pv_builder/pv_designer.py``
@@ -524,6 +525,24 @@ _PROTOCOL_LABEL = {
     "dds":    "DDS stack",
 }
 
+# IEC 104 runs the PPC control loop slower than the other stacks (which use the
+# designer default 0.1 s): its event-driven c104 link cannot sustain a 10 Hz
+# loop without saturating / oscillating.  See iec104_saturation.md.
+_IEC104_CTRL_DT_S = 1.0
+
+# Protocols that carry the structured tests/ suite (open-/closed-loop step,
+# frequency-response Bode, MITM) instead of the flat run_step.sh + results/.
+# All run the shared ppc_core control API, so the same drivers apply.  dnp3's
+# mitm_attack drives colinker.attacks.dnp3_mitm (a DNP3-aware MITM that
+# re-frames the falsified AI response with fresh DLL CRCs).
+_SUITE_PROTOCOLS = ("modbus", "iec104", "dnp3")
+
+# Protocols whose proxies put engineering units on the wire (wire = pydae *
+# emec_scale) and whose PPC reads them directly — power measurement points
+# therefore need emec_scale=1e-6 (W→MW).  Modbus keeps raw W (scale 1.0) and
+# divides in software, so it is excluded.
+_ENGINEERING_UNIT_WIRE_PROTOCOLS = ("iec104", "dnp3")
+
 _RUN_PY_TEMPLATE = '''#!/usr/bin/env python3
 """Launch the co-simulation (Mininet + pydae + proxies + PPC).
 
@@ -697,6 +716,398 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 '''
+
+
+# IEC 60870-5-104 variant of run.py.  Same skeleton as the Modbus template but
+# the MITM + pcap wiring differs: the attack rewrites an ``M_ME_NC_1`` short
+# float keyed by IOA + common address (not a Modbus register), the value/offset
+# are already in MW on the wire (``emec_scale=1e-6``, no W↔MW factor), the proxy
+# server speaks tcp/2404, and the MITM module is ``colinker.attacks.iec104_mitm``.
+_RUN_PY_TEMPLATE_IEC104 = '''#!/usr/bin/env python3
+"""Launch the co-simulation (Mininet + pydae + proxies + PPC).
+
+Reads the plant JSON sitting next to this file and delegates to
+``colinker.mn.mininet_topo.setup()``. Requires root.
+
+Usage::
+
+    sudo python3 run.py [--no-cli] [--no-ppc]
+    sudo python3 run.py --no-cli --arrivals-dir results_delays/arrivals
+    sudo python3 run.py --no-cli --mitm                 # default: +5% offset
+    sudo python3 run.py --no-cli --mitm --mitm-offset-frac 0.05 \\
+                        --arrivals-dir results_overpower/arrivals \\
+                        --pcap-dir     results_overpower/pcaps
+    sudo python3 run.py --no-cli --mitm --mitm-value-mw __MITM_DEFAULT_VALUE_MW__   # fixed-spoof
+"""
+import argparse
+import os
+import sys
+
+
+_HERE         = os.path.dirname(os.path.abspath(__file__))
+_DEFAULT_JSON = os.path.join(_HERE, "__JSON_FILENAME__")
+_PYTHON       = "/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3"
+_COLINKER_SRC = "/home/jmmmacubu/mac_shared/colinker/src"
+
+# Pcap default capture set: PPC, POI, MITM, plus one host per inverter.
+_PV_HOSTS = __PV_HOSTS_LITERAL__
+
+
+def _check_root() -> None:
+    if os.geteuid() != 0:
+        print("error: Mininet requires root. Re-run with:")
+        print(f"  sudo python3 {sys.argv[0]}")
+        sys.exit(1)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run the co-simulation (__PROTOCOL_LABEL__)"
+    )
+    parser.add_argument("--json", "-j", default=_DEFAULT_JSON,
+                        help=f"Plant JSON path (default: {_DEFAULT_JSON})")
+    parser.add_argument("--no-cli", action="store_true",
+                        help="Skip Mininet CLI; block on SIGINT (headless)")
+    parser.add_argument("--no-ppc", action="store_true",
+                        help="Skip auto-starting the PPC")
+    parser.add_argument("--arrivals-dir", default=None,
+                        help="If set, each pv_proxy writes a 50 ms-cadence CSV "
+                             "of the wire-level setpoint values that arrived "
+                             "at it (one file per inverter, named "
+                             "<emec_id>_arrivals.csv).")
+    parser.add_argument("--mitm", action="store_true",
+                        help="Arm the IEC 104 MITM attack from the MITM host. "
+                             "Default: offset the POI active-power value.")
+    parser.add_argument("--mitm-args", default=None,
+                        help="Override the full argv passed to "
+                             "colinker.attacks.iec104_mitm (when --mitm is set). "
+                             "Implies --mitm.")
+    parser.add_argument("--mitm-value-mw", type=float, default=None,
+                        help="FIXED-spoof mode: pin the POI active-power "
+                             "readback at this constant (MW) while armed. The "
+                             "PI error never closes, so the plant drives to "
+                             "saturation. Mutually exclusive with "
+                             "--mitm-offset-frac / --mitm-offset-mw.")
+    parser.add_argument("--mitm-offset-frac", type=float, default=0.05,
+                        help="OFFSET-spoof mode (default): add this fraction of "
+                             "the REAL POI reading before the PPC sees it "
+                             "(0.05 = +5%%). The PPC settles at a small, "
+                             "non-saturating steady-state error — the plant "
+                             "ends up ~this fraction off target.")
+    parser.add_argument("--mitm-offset-mw", type=float, default=0.0,
+                        help="OFFSET-spoof mode: also add this absolute bias "
+                             "(MW) to the real POI reading. Combined with "
+                             "--mitm-offset-frac.")
+    parser.add_argument("--mitm-start-after", type=float, default=30.0,
+                        help="Seconds after launch before the attack arms.")
+    parser.add_argument("--mitm-duration", type=float, default=60.0,
+                        help="Seconds the attack holds, then disarms.")
+    parser.add_argument("--pcap-dir", default=None,
+                        help="If set, run tcpdump in every host's netns "
+                             "(PPC, POI, all PV hosts, MITM) capturing all "
+                             "IEC 104 (tcp/2404) and ARP traffic to "
+                             "<PCAP_DIR>/<HOST>.pcap.")
+    args = parser.parse_args()
+
+    _check_root()
+
+    if not os.path.exists(args.json):
+        print(f"error: JSON not found: {args.json}")
+        sys.exit(1)
+
+    # sudo-rs blocks env-var forwarding even with -E, so set inline.
+    os.environ.setdefault("COLINKER_PYTHON", _PYTHON)
+
+    if args.arrivals_dir:
+        os.makedirs(args.arrivals_dir, exist_ok=True)
+        os.environ["COLINKER_ARRIVALS_DIR"] = os.path.abspath(args.arrivals_dir)
+        print(f"[run] arrivals CSVs -> {os.environ['COLINKER_ARRIVALS_DIR']}/<name>_arrivals.csv")
+
+    if args.pcap_dir:
+        os.makedirs(args.pcap_dir, exist_ok=True)
+        os.environ["COLINKER_PCAP_DIR"] = os.path.abspath(args.pcap_dir)
+        # PPC/POI/MITM are the three vantage points needed to see the attack
+        # signature (same IOA, different M_ME_NC_1 value bytes).  Per-inverter
+        # captures are optional — drop them to save memory on small VMs.
+        pcap_hosts = ["PPC", "POI", "MITM"]
+        if os.environ.get("COLINKER_PCAP_INCLUDE_PV", "0") not in ("0", "", "false"):
+            pcap_hosts += list(_PV_HOSTS)
+        os.environ["COLINKER_PCAP_HOSTS"] = ",".join(pcap_hosts)
+        # IEC 104 runs on tcp/2404, not the Modbus default (5000/502).
+        os.environ.setdefault("COLINKER_PCAP_PORTS", str(__POI_IEC104_PORT__))
+        print(f"[run] pcap captures (tcp/{os.environ['COLINKER_PCAP_PORTS']}) -> "
+              f"{os.environ['COLINKER_PCAP_DIR']}/<HOST>.pcap")
+
+    if args.mitm or args.mitm_args:
+        # Default attack: falsify the POI active-power measured value
+        # (p_line_POI_GRID, M_ME_NC_1 short float at IOA __POI_P_IOA__) the PPC
+        # reads over IEC 60870-5-104.
+        #
+        #   offset mode (default): add a small bias to the REAL value
+        #     (cur*(1+frac)+abs) → the PPC settles ~frac off target without
+        #     saturating — stealthy, realistic falsification.
+        #   fixed mode (--mitm-value-mw): pin the readback at a constant →
+        #     the PI rails to saturation (the original over-power demo).
+        #
+        # --explicit-redirect mode: the PPC is told via the POI device-ip
+        # override to connect directly to MITM:2404; MITM forwards to the real
+        # POI.  Deterministic test path — the ARP-spoof + NAT path is documented
+        # but not used here (conntrack flakiness inside netns).
+        MITM_IP          = "10.10.0.9"
+        # Listen on the same port the POI server exposes so the PPC's POI
+        # device-ip override (IP only, not port) reaches us.
+        POI_PORT         = __POI_IEC104_PORT__
+        MITM_LISTEN_PORT = POI_PORT
+        # POI information-object address holding p_line_POI_GRID, and the ASDU
+        # common (station) address.  CA is fixed by the colinker iec104 stack
+        # (colinker.iec104_ppc.COMMON_ADDR / iec104_poi_proxy.COMMON_ADDR), not
+        # the JSON device field — keep them in sync if that constant changes.
+        POI_P_IOA        = __POI_P_IOA__
+        COMMON_ADDRESS   = 47
+        # The IEC 104 wire carries the value already scaled to MW
+        # (proxy: pydae_W * emec_scale, emec_scale=1e-6), so the absolute
+        # value/offset are in MW here (no 1e6 factor — unlike the Modbus
+        # path where the register holds raw W). offset-frac is unitless.
+        if args.mitm_value_mw is not None:
+            if args.mitm_offset_mw or args.mitm_offset_frac != 0.05:
+                print("[run] WARNING: --mitm-value-mw (fixed) overrides "
+                      "--mitm-offset-* (offset)")
+            inject_arg = f"--value {args.mitm_value_mw}"
+        else:
+            inject_arg = (f"--offset-frac {args.mitm_offset_frac} "
+                          f"--offset {args.mitm_offset_mw}")
+        default_args = (
+            "--iface mitm-eth0 "
+            "--victim-ip 10.10.0.4   --victim-mac 00:00:00:00:00:04 "
+            "--target-ip 10.10.0.5   --target-mac 00:00:00:00:00:05 "
+            f"--target-port {POI_PORT}  --listen-port {MITM_LISTEN_PORT} "
+            f"--ioa {POI_P_IOA}  --common-address {COMMON_ADDRESS} "
+            f"{inject_arg} "
+            f"--start-after {args.mitm_start_after}  --duration {args.mitm_duration} "
+            "--explicit-redirect"
+        )
+        os.environ["COLINKER_MITM_MODULE"] = "colinker.attacks.iec104_mitm"
+        os.environ["COLINKER_MITM_ARGS"] = args.mitm_args or default_args
+        if "--explicit-redirect" in os.environ["COLINKER_MITM_ARGS"]:
+            os.environ["COLINKER_PPC_POI_IP_OVERRIDE"] = MITM_IP
+            print(f"[run] PPC POI device-ip overridden to MITM ({MITM_IP})")
+        print(f"[run] IEC 104 MITM attack ARMED — args:\\n    {os.environ['COLINKER_MITM_ARGS']}")
+
+    if _COLINKER_SRC not in sys.path:
+        sys.path.insert(0, _COLINKER_SRC)
+
+    from mininet.log import setLogLevel
+    from colinker.mn.mininet_topo import setup
+
+    setLogLevel("info")
+    setup(args.json,
+          interactive=not args.no_cli,
+          ppc_auto=not args.no_ppc)
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+# DNP3 variant of run.py.  Same skeleton as the IEC 104 template but the MITM
+# rewrites a DNP3 Analog Input float (Group 30 Var 5) keyed by object index
+# (not an IOA/common-address or a Modbus register); the proxy server speaks
+# tcp/20000; and the MITM module is ``colinker.attacks.dnp3_mitm``, which
+# re-frames the falsified response with fresh DLL CRCs (a plain byte patch
+# would corrupt the block CRC and black-hole the POI reading).  Value/offset
+# are in MW on the wire (``emec_scale=1e-6``), as for IEC 104.
+_RUN_PY_TEMPLATE_DNP3 = '''#!/usr/bin/env python3
+"""Launch the co-simulation (Mininet + pydae + proxies + PPC).
+
+Reads the plant JSON sitting next to this file and delegates to
+``colinker.mn.mininet_topo.setup()``. Requires root.
+
+Usage::
+
+    sudo python3 run.py [--no-cli] [--no-ppc]
+    sudo python3 run.py --no-cli --arrivals-dir results_delays/arrivals
+    sudo python3 run.py --no-cli --mitm                 # default: +5% offset
+    sudo python3 run.py --no-cli --mitm --mitm-offset-frac 0.05 \\
+                        --arrivals-dir results_overpower/arrivals \\
+                        --pcap-dir     results_overpower/pcaps
+    sudo python3 run.py --no-cli --mitm --mitm-value-mw __MITM_DEFAULT_VALUE_MW__   # fixed-spoof
+"""
+import argparse
+import os
+import sys
+
+
+_HERE         = os.path.dirname(os.path.abspath(__file__))
+_DEFAULT_JSON = os.path.join(_HERE, "__JSON_FILENAME__")
+_PYTHON       = "/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3"
+_COLINKER_SRC = "/home/jmmmacubu/mac_shared/colinker/src"
+
+# Pcap default capture set: PPC, POI, MITM, plus one host per inverter.
+_PV_HOSTS = __PV_HOSTS_LITERAL__
+
+
+def _check_root() -> None:
+    if os.geteuid() != 0:
+        print("error: Mininet requires root. Re-run with:")
+        print(f"  sudo python3 {sys.argv[0]}")
+        sys.exit(1)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Run the co-simulation (__PROTOCOL_LABEL__)"
+    )
+    parser.add_argument("--json", "-j", default=_DEFAULT_JSON,
+                        help=f"Plant JSON path (default: {_DEFAULT_JSON})")
+    parser.add_argument("--no-cli", action="store_true",
+                        help="Skip Mininet CLI; block on SIGINT (headless)")
+    parser.add_argument("--no-ppc", action="store_true",
+                        help="Skip auto-starting the PPC")
+    parser.add_argument("--arrivals-dir", default=None,
+                        help="If set, each pv_proxy writes a 50 ms-cadence CSV "
+                             "of the wire-level setpoint values that arrived "
+                             "at it (one file per inverter, named "
+                             "<emec_id>_arrivals.csv).")
+    parser.add_argument("--mitm", action="store_true",
+                        help="Arm the DNP3 MITM attack from the MITM host. "
+                             "Default: offset the POI active-power value.")
+    parser.add_argument("--mitm-args", default=None,
+                        help="Override the full argv passed to "
+                             "colinker.attacks.dnp3_mitm (when --mitm is set). "
+                             "Implies --mitm.")
+    parser.add_argument("--mitm-value-mw", type=float, default=None,
+                        help="FIXED-spoof mode: pin the POI active-power "
+                             "readback at this constant (MW) while armed. The "
+                             "PI error never closes, so the plant drives to "
+                             "saturation. Mutually exclusive with "
+                             "--mitm-offset-frac / --mitm-offset-mw.")
+    parser.add_argument("--mitm-offset-frac", type=float, default=0.05,
+                        help="OFFSET-spoof mode (default): add this fraction of "
+                             "the REAL POI reading before the PPC sees it "
+                             "(0.05 = +5%%). The PPC settles at a small, "
+                             "non-saturating steady-state error — the plant "
+                             "ends up ~this fraction off target.")
+    parser.add_argument("--mitm-offset-mw", type=float, default=0.0,
+                        help="OFFSET-spoof mode: also add this absolute bias "
+                             "(MW) to the real POI reading. Combined with "
+                             "--mitm-offset-frac.")
+    parser.add_argument("--mitm-start-after", type=float, default=30.0,
+                        help="Seconds after launch before the attack arms.")
+    parser.add_argument("--mitm-duration", type=float, default=60.0,
+                        help="Seconds the attack holds, then disarms.")
+    parser.add_argument("--pcap-dir", default=None,
+                        help="If set, run tcpdump in every host's netns "
+                             "(PPC, POI, all PV hosts, MITM) capturing all "
+                             "DNP3 (tcp/__POI_DNP3_PORT__) and ARP traffic to "
+                             "<PCAP_DIR>/<HOST>.pcap.")
+    args = parser.parse_args()
+
+    _check_root()
+
+    if not os.path.exists(args.json):
+        print(f"error: JSON not found: {args.json}")
+        sys.exit(1)
+
+    # sudo-rs blocks env-var forwarding even with -E, so set inline.
+    os.environ.setdefault("COLINKER_PYTHON", _PYTHON)
+
+    if args.arrivals_dir:
+        os.makedirs(args.arrivals_dir, exist_ok=True)
+        os.environ["COLINKER_ARRIVALS_DIR"] = os.path.abspath(args.arrivals_dir)
+        print(f"[run] arrivals CSVs -> {os.environ['COLINKER_ARRIVALS_DIR']}/<name>_arrivals.csv")
+
+    if args.pcap_dir:
+        os.makedirs(args.pcap_dir, exist_ok=True)
+        os.environ["COLINKER_PCAP_DIR"] = os.path.abspath(args.pcap_dir)
+        # PPC/POI/MITM are the three vantage points needed to see the attack
+        # signature (same AI object index, different float value bytes).
+        # Per-inverter captures are optional — drop them to save memory.
+        pcap_hosts = ["PPC", "POI", "MITM"]
+        if os.environ.get("COLINKER_PCAP_INCLUDE_PV", "0") not in ("0", "", "false"):
+            pcap_hosts += list(_PV_HOSTS)
+        os.environ["COLINKER_PCAP_HOSTS"] = ",".join(pcap_hosts)
+        # DNP3 runs on tcp/__POI_DNP3_PORT__, not the Modbus default (5000/502).
+        os.environ.setdefault("COLINKER_PCAP_PORTS", str(__POI_DNP3_PORT__))
+        print(f"[run] pcap captures (tcp/{os.environ['COLINKER_PCAP_PORTS']}) -> "
+              f"{os.environ['COLINKER_PCAP_DIR']}/<HOST>.pcap")
+
+    if args.mitm or args.mitm_args:
+        # Default attack: falsify the POI active-power measured value
+        # (p_line_POI_GRID, DNP3 Analog Input G30V5 at object index
+        # __POI_P_INDEX__) the PPC reads over DNP3.  The MITM re-frames the
+        # response with fresh DLL CRCs after rewriting the float, so the link
+        # stays in sync (a raw byte patch would corrupt the block CRC and
+        # black-hole the POI reading).
+        #
+        #   offset mode (default): add a small bias to the REAL value
+        #     (cur*(1+frac)+abs) → the PPC settles ~frac off target without
+        #     saturating — stealthy, realistic falsification.
+        #   fixed mode (--mitm-value-mw): pin the readback at a constant →
+        #     the PI rails to saturation (the original over-power demo).
+        #
+        # --explicit-redirect mode: the PPC is told via the POI device-ip
+        # override to connect directly to MITM:__POI_DNP3_PORT__; MITM forwards
+        # to the real POI.  Deterministic test path — the ARP-spoof + NAT path
+        # is documented but not used here (conntrack flakiness inside netns).
+        MITM_IP          = "10.10.0.9"
+        # Listen on the same port the POI server exposes so the PPC's POI
+        # device-ip override (IP only, not port) reaches us.
+        POI_PORT         = __POI_DNP3_PORT__
+        MITM_LISTEN_PORT = POI_PORT
+        # POI Analog Input object index holding p_line_POI_GRID.
+        POI_P_INDEX      = __POI_P_INDEX__
+        # The DNP3 wire carries the value already scaled to MW (proxy:
+        # pydae_W * emec_scale, emec_scale=1e-6), so the absolute value/offset
+        # are in MW here (no 1e6 factor — unlike the Modbus register path's
+        # raw W). offset-frac is unitless.
+        if args.mitm_value_mw is not None:
+            if args.mitm_offset_mw or args.mitm_offset_frac != 0.05:
+                print("[run] WARNING: --mitm-value-mw (fixed) overrides "
+                      "--mitm-offset-* (offset)")
+            inject_arg = f"--value {args.mitm_value_mw}"
+        else:
+            inject_arg = (f"--offset-frac {args.mitm_offset_frac} "
+                          f"--offset {args.mitm_offset_mw}")
+        default_args = (
+            "--iface mitm-eth0 "
+            "--victim-ip 10.10.0.4   --victim-mac 00:00:00:00:00:04 "
+            "--target-ip 10.10.0.5   --target-mac 00:00:00:00:00:05 "
+            f"--target-port {POI_PORT}  --listen-port {MITM_LISTEN_PORT} "
+            f"--ai-index {POI_P_INDEX} "
+            f"{inject_arg} "
+            f"--start-after {args.mitm_start_after}  --duration {args.mitm_duration} "
+            "--explicit-redirect"
+        )
+        os.environ["COLINKER_MITM_MODULE"] = "colinker.attacks.dnp3_mitm"
+        os.environ["COLINKER_MITM_ARGS"] = args.mitm_args or default_args
+        if "--explicit-redirect" in os.environ["COLINKER_MITM_ARGS"]:
+            os.environ["COLINKER_PPC_POI_IP_OVERRIDE"] = MITM_IP
+            print(f"[run] PPC POI device-ip overridden to MITM ({MITM_IP})")
+        print(f"[run] DNP3 MITM attack ARMED — args:\\n    {os.environ['COLINKER_MITM_ARGS']}")
+
+    if _COLINKER_SRC not in sys.path:
+        sys.path.insert(0, _COLINKER_SRC)
+
+    from mininet.log import setLogLevel
+    from colinker.mn.mininet_topo import setup
+
+    setLogLevel("info")
+    setup(args.json,
+          interactive=not args.no_cli,
+          ppc_auto=not args.no_ppc)
+
+
+if __name__ == "__main__":
+    main()
+'''
+
+# Per-protocol run.py template override.  Protocols not listed fall back to the
+# Modbus-style _RUN_PY_TEMPLATE (placeholders that don't apply are simply left
+# unreplaced/unused — dds doesn't yet have its own MITM wiring).
+_RUN_PY_TEMPLATE_BY_PROTOCOL = {
+    "iec104": _RUN_PY_TEMPLATE_IEC104,
+    "dnp3":   _RUN_PY_TEMPLATE_DNP3,
+}
 
 _RUN_STEP_SH = '''#!/usr/bin/env bash
 # PQ step-response benchmark.  Assumes the cosim is already running
@@ -939,9 +1350,9 @@ same PI control law, same step magnitudes. Only the wire layer changes.
 
 Each subdir carries `{name}.json` and a stack-specific `README.md`. The four
 protocol folders carry `run.py` (Mininet cosim); `local/` carries `run.sh`
-(pydae_sim + pydae_ppc). `modbus/` and `local/` additionally carry the
-structured `tests/` suite (open-loop / closed-loop step, frequency response,
-MITM); the other protocols use a flat `run_step.sh` + `results/`.
+(pydae_sim + pydae_ppc). `modbus/`, `iec104/` and `local/` additionally carry
+the structured `tests/` suite (open-loop / closed-loop step, frequency
+response, MITM); `dnp3/`/`dds/` use a flat `run_step.sh` + `results/`.
 
 ## Workflow (any protocol)
 
@@ -956,8 +1367,8 @@ Wait for the topology banner `PPC API (macOS): http://localhost:8090/`.
 ```bash
 # Terminal B — drive the step, record, plot
 cd modbus/      && PY=/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3 \\
-                && $PY tests/closed_loop_step/run.py   # modbus: tests/ suite
-cd <protocol>/  && ./run_step.sh                       # others: flat run_step.sh
+                && $PY tests/closed_loop_step/run.py   # modbus/iec104: tests/ suite
+cd dnp3/        && ./run_step.sh                        # dnp3/dds: flat run_step.sh
 ```
 
 Tear down: `exit` at the `mininet>` prompt in Terminal A.
@@ -1023,12 +1434,57 @@ pip install c104          # or: uv sync --extra iec104
 - `colinker.iec104_ppc` (PPC) — c104 client driving the N-inverter PI
   loop
 
-## Run
+## Run the cosim
 
 ```bash
-sudo python3 run.py
-./run_step.sh
+sudo python3 run.py        # Terminal A — PPC API at http://localhost:8090
 ```
+
+## Tests — `tests/`
+
+Same structured suite as the Modbus variant (shared `colinker.ppc_core`
+control API), each folder emitting CSV + SVG + interactive Plotly HTML:
+
+| Test | What it measures |
+|---|---|
+| `tests/open_loop_step/` | Plant + comms time response (gains=0, feedforward only). |
+| `tests/closed_loop_step/` | Closed-loop PI step response — gain-design workspace. |
+| `tests/frequency_response/` | Sinusoidal Bode sweeps: P-only, Q-only, P+Q at 90°. |
+| `tests/mitm_attack/` | IEC 104 MITM — falsified PPC reading vs true plant (offset bias by default, fixed spoof optional). |
+
+```bash
+PY=/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3   # Terminal B
+$PY tests/closed_loop_step/run.py
+$PY tests/frequency_response/run.py --mode p   # also --mode q, --mode pq90
+```
+
+## MITM attack + pcap forensics
+
+```bash
+sudo python3 run.py --no-cli --mitm \\           # default: +5% offset
+     --pcap-dir results_overpower/pcaps          # capture PPC/POI/MITM (tcp/2404)
+$PY tests/mitm_attack/run.py                      # record believed-vs-true
+python -m colinker.iec104_pcap_report --pcap-dir results_overpower/pcaps \\
+     --ioa 1001 --common-address 47 --scale-mw            # decode the wire
+```
+
+The attack rewrites the POI active-power `M_ME_NC_1` short float in flight,
+keyed by IOA + common address. The pcap report shows the same IOA carrying
+the real value on the POI link and the spoofed value on the PPC link (the
+MITM vantage carries both legs).
+
+## IEC 104 specifics (vs Modbus)
+
+- **Slower control loop** — `ppc.ctrl_dt_s = {_IEC104_CTRL_DT_S}` s (Modbus runs 0.1 s).
+  The event-driven c104 link can't sustain a 10 Hz sample/actuate without
+  saturating the client thread and driving the (same-gain) loop into a limit
+  cycle. Same PI gains, protocol-appropriate sample time. See
+  `iec104_saturation.md`.
+- **Wire carries engineering units** — power measurement points use
+  `emec_scale = 1e-6` (W→MW on the wire), so MITM `--value`/`--offset` are in
+  MW (no 1e6 factor, unlike the Modbus register path).
+- **Common address** is fixed at 47 by `colinker.iec104_ppc` /
+  `iec104_poi_proxy` (`COMMON_ADDR`), not the JSON device field.
 
 ## Gotcha — c104 callback annotations
 
@@ -1061,9 +1517,37 @@ Outstation addresses (master = 1): POI = 10, inverters = 11..{10 + n_inv}
 ## Run
 
 ```bash
-sudo python3 run.py
-./run_step.sh
+sudo python3 run.py                         # launch the cosim
+PY=/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3
+$PY tests/closed_loop_step/run.py           # structured tests/ suite
 ```
+
+## Tests (`tests/`)
+
+Same config-driven suite as `modbus/` and `iec104/` (open-/closed-loop step,
+frequency-response Bode, MITM), all driving the shared `ppc_core` API.
+
+| Test | Purpose |
+|---|---|
+| `tests/open_loop_step/` | Plant + comms time response (gains 0, feedforward only). |
+| `tests/closed_loop_step/` | PI gain-design step response. |
+| `tests/frequency_response/` | Sinusoidal sweeps → Bode (P / Q / PQ90). |
+| `tests/mitm_attack/` | DNP3 MITM — falsified PPC reading vs true plant. |
+
+## MITM attack
+
+```bash
+# over-power: plant driven ~10% above target, readback stays on-target
+sudo python3 run.py --no-cli --mitm --mitm-offset-frac -0.0909 \\
+     --mitm-start-after 30 --mitm-duration 120
+$PY tests/mitm_attack/run.py                # self-timing; auto-detects the window
+```
+
+`colinker.attacks.dnp3_mitm` rewrites the POI active-power **Analog Input float
+(Group 30 Var 5, object index 1)** in flight, then **re-frames the response with
+fresh DLL CRCs** — a plain byte patch would corrupt the block CRC and black-hole
+the POI reading (the PPC would see NaN, not a spoof). Wire carries engineering
+units (`emec_scale = 1e-6`, W→MW), so MITM `--value`/`--offset` are in MW.
 '''
 
 
@@ -1220,7 +1704,7 @@ at this `pydae_sim` via `SIM_URL=http://localhost:8001`.
   Modbus device fields in the JSON are simply ignored.
 - `--api-host` defaults to `0.0.0.0`; the JSON's `api_ip` is a Mininet-namespace
   address and is not used here.
-- `mitm_attack/` is carried for parity with the protocol suites but is a Modbus
+- `mitm_attack/` is carried for parity with the protocol suites but is an
   on-the-wire attack — it has no effect in this no-wire path.
 '''
 
@@ -1371,8 +1855,8 @@ def _write_tests_suite(sub):
     The drivers are name-agnostic — ``tests/lib/common.py`` auto-discovers the
     plant JSON (the one carrying a ``ppc`` block) and reads the inverter list
     and gains from it — so the same files work for any M×N plant.  Emitted for
-    modbus only (the ``/sine`` + feedforward API the suite relies on lives in
-    ``colinker.modbus_ppc``)."""
+    every protocol in ``_SUITE_PROTOCOLS`` — they all expose the same shared
+    ``ppc_core`` ``/sine`` + feedforward control API the suite drives."""
     src = os.path.join(_HERE, "templates", "tests")
     dst = os.path.join(sub, "tests")
     if os.path.exists(dst):
@@ -1406,25 +1890,68 @@ def write_suite(out_dir, plant, name, M, N):
     # demo reads "below limit" while the real plant runs above it.
     p_max_total_mw  = sum(w.get("S_n", 1e6) for w in plant.get("weccs", [])) / 1e6
     mitm_default_mw = round(0.5 * p_max_total_mw, 2)
-    # POI Modbus port from the devices block (first poi device); fall back to 502.
+    # POI ports from the devices block (first poi device); fall back to defaults.
     poi_modbus_port = 502
+    poi_iec104_port = 2404
+    poi_dnp3_port   = 20000
     for d in plant.get("devices", []):
         if d.get("config") == "poi":
             poi_modbus_port = int(d.get("modbus_port", 502))
+            poi_iec104_port = int(d.get("iec104_port", 2404))
+            poi_dnp3_port   = int(d.get("dnp3_port", 20000))
+            break
+    # IOA / DNP3 object index of the POI active-power measurement (the MITM
+    # target), read from the poi config's ActivePower point.  The DNP3 index
+    # defaults to the point's position within the measurements list (matching
+    # colinker.dnp3_codec.load_dnp3_points), unless an explicit dnp3_index is
+    # set; the IEC 104 IOA comes from io_register.  Fall back to 1001 / 1.
+    poi_p_ioa   = 1001
+    poi_p_index = 1
+    poi_cfg = (plant.get("configs", {}) or {}).get("poi", {})
+    for i, m in enumerate(poi_cfg.get("measurements", [])):
+        if m.get("ing_name") == "ActivePower" or (m.get("emec_name") or "").startswith("p_line"):
+            poi_p_ioa   = int(m.get("io_register", 1001))
+            poi_p_index = int(m.get("dnp3_index", i))
             break
 
     for protocol in ("modbus", "iec104", "dnp3", "dds"):
         sub = os.path.join(out_dir, protocol)
         os.makedirs(sub, exist_ok=True)
-        # modbus uses the structured tests/ suite (with its own per-test
-        # csv/ + plots/); the other protocols keep the flat results/ + run_step.sh.
-        if protocol != "modbus":
+        # modbus + iec104 carry the structured tests/ suite (each with its own
+        # per-test csv/ + plots/); dnp3/dds keep the flat results/ + run_step.sh.
+        has_suite = protocol in _SUITE_PROTOCOLS
+        if not has_suite:
             os.makedirs(os.path.join(sub, "results"), exist_ok=True)
 
         # Per-protocol copy with the device-level protocol field stamped.
         plant_p = json.loads(json.dumps(plant))
         for d in plant_p.get("devices", []):
             d["protocol"] = protocol
+
+        # Protocol-appropriate control period.  IEC 104's event-driven c104
+        # link can't sustain the 10 Hz (0.1 s) loop the other stacks use:
+        # sampling/actuating faster than it can read+deliver saturates the
+        # single client thread and, once telemetry is made fresh, drives the
+        # loop (same PI gains) into a limit cycle.  A slower loop both cuts the
+        # command rate and detunes the per-cycle velocity-form integral.  The
+        # benchmark invariant is "same PI gains, protocol-appropriate sample
+        # time".  See copv_*/iec104/iec104_saturation.md.
+        if protocol == "iec104" and "ppc" in plant_p:
+            plant_p["ppc"]["ctrl_dt_s"] = _IEC104_CTRL_DT_S
+
+        # IEC 104 and DNP3 carry the measured value already scaled to
+        # engineering units on the wire (proxy: wire = pydae_W * emec_scale)
+        # and the PPC reads it directly, so power points must use
+        # emec_scale=1e-6 (W→MW).  Modbus instead stores raw W and divides by
+        # 1e6 in the PPC, so it keeps 1.0.  Voltage points are ~1 pu and stay
+        # at their scale.  Power is identified by ing_name / emec_name.
+        if protocol in _ENGINEERING_UNIT_WIRE_PROTOCOLS:
+            for cfg in (plant_p.get("configs", {}) or {}).values():
+                for m in cfg.get("measurements", []):
+                    nm = m.get("emec_name") or ""
+                    if m.get("ing_name") in ("ActivePower", "ReactivePower") \
+                            or nm.startswith(("p_", "q_")):
+                        m["emec_scale"] = 1e-6
 
         with open(os.path.join(sub, json_filename), "w",
                   encoding="utf-8") as f:
@@ -1437,24 +1964,32 @@ def write_suite(out_dir, plant, name, M, N):
                       encoding="utf-8") as f:
                 f.write(xy_0_json)
 
-        run_py = (_RUN_PY_TEMPLATE
+        run_py = (_RUN_PY_TEMPLATE_BY_PROTOCOL.get(protocol, _RUN_PY_TEMPLATE)
                   .replace("__PROTOCOL_LABEL__", _PROTOCOL_LABEL[protocol])
                   .replace("__JSON_FILENAME__", json_filename)
                   .replace("__PV_HOSTS_LITERAL__", pv_hosts_literal)
                   .replace("__MITM_DEFAULT_VALUE_MW__", str(mitm_default_mw))
-                  .replace("__POI_MODBUS_PORT__", str(poi_modbus_port)))
+                  .replace("__POI_MODBUS_PORT__", str(poi_modbus_port))
+                  .replace("__POI_IEC104_PORT__", str(poi_iec104_port))
+                  .replace("__POI_DNP3_PORT__", str(poi_dnp3_port))
+                  .replace("__POI_P_IOA__", str(poi_p_ioa))
+                  .replace("__POI_P_INDEX__", str(poi_p_index)))
         run_py_path = os.path.join(sub, "run.py")
         with open(run_py_path, "w", encoding="utf-8") as f:
             f.write(run_py)
         os.chmod(run_py_path, 0o755)
 
-        if protocol != "modbus":
+        if not has_suite:
             run_sh_path = os.path.join(sub, "run_step.sh")
             with open(run_sh_path, "w", encoding="utf-8") as f:
                 f.write(_RUN_STEP_SH)
             os.chmod(run_sh_path, 0o755)
 
-        # plot_flow.py + the structured tests/ suite — only for modbus.
+        # The structured tests/ suite (shared ppc_core /sine + feedforward API)
+        # is emitted for every suite protocol.  plot_flow.py is Modbus-specific.
+        if has_suite:
+            _write_tests_suite(sub)
+
         if protocol == "modbus":
             plot_flow = _PLOT_FLOW_TEMPLATE.replace(
                 "__PV_IDS_LITERAL__", pv_hosts_literal
@@ -1463,8 +1998,6 @@ def write_suite(out_dir, plant, name, M, N):
             with open(plot_path, "w", encoding="utf-8") as f:
                 f.write(plot_flow)
             os.chmod(plot_path, 0o755)
-
-            _write_tests_suite(sub)
 
         readme = _README_FN[protocol](M, N).replace("{name}", name)
         with open(os.path.join(sub, "README.md"), "w",

@@ -19,7 +19,14 @@
       "Bash(git branch)",
       "Bash(git branch:*)",
       "Bash(ls)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Read(//Users/jmmauricio/workspace/benchmarks_colinker/hoyas_grandes_wecc/iec104/**)",
+      "Read(//Users/jmmauricio/workspace/benchmarks_colinker/hoyas_grandes_wecc/dnp3/**)",
+      "Bash(python -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(conda env *)",
+      "Read(//Users/jmmauricio/workspace/benchmarks_public/nts/cases/pod/**)",
+      "Bash(ls /Users/jmmauricio/workspace/mdbib_bps/ 2>/dev/null | head -50)",
+      "Read(//Users/jmmauricio/workspace/mdbib_bps/**)"
     ],
     "deny": [
       "Bash(git push:*)",

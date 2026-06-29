@@ -120,6 +120,42 @@ class MathBackend:
         else:
             return self.sp.Piecewise(*args)
 
+    def Abs(self, x):
+        if self.use_casadi:
+            return self.ca.fabs(x)
+        else:
+            return self.sp.Abs(x)
+
+    def Mod(self, x, y):
+        if self.use_casadi:
+            return self.ca.fmod(x, y)
+        else:
+            return self.sp.Mod(x, y)
+
+    def And(self, *args):
+        if self.use_casadi:
+            result = args[0]
+            for arg in args[1:]:
+                result = self.ca.logic_and(result, arg)
+            return result
+        else:
+            return self.sp.And(*args)
+
+    def Or(self, *args):
+        if self.use_casadi:
+            result = args[0]
+            for arg in args[1:]:
+                result = self.ca.logic_or(result, arg)
+            return result
+        else:
+            return self.sp.Or(*args)
+
+    def Max(self, *args):
+        return self.max(*args)
+
+    def Min(self, *args):
+        return self.min(*args)
+
     def hard_limits(self, x, x_min, x_max):
         # clip x to [x_min, x_max]
         if self.use_casadi:

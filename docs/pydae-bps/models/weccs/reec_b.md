@@ -141,7 +141,7 @@ At $t=0$, all state derivatives are zero:
 |---|---|
 | $V_{t,flt}$ | $V_0$ (terminal voltage from power flow) |
 | $x_{Pe}$ | $I_{p,0} V_0$ (filtered active power = steady-state) |
-| $x_{Kqi}$ | 0 (no Q error at steady state) |
+| $x_{Kqi}$ | **mode-dependent.** $V_{flag}=1$ (voltage control): 0 — the Q-PI is decoupled and integrates an irrelevant error. $V_{flag}=0$ (Q control / PQ mode): $V_{t,0}$ — the integrator output is the $V_{ref,ctrl}$ that the inner V-PI matches to $V_t$, so seeding it to 0 puts the model far from steady state and the Newton init either NaNs out or settles on $Q\!\approx\!0$ instead of $Q_{ext}$. |
 | $x_{Kvi}$ | $I_{qcmd,0} = -I_{q,0}$ |
 | $V_{l,flt}$ | $I_{qcmd,0} = -I_{q,0}$ |
 | $P_{flt}$ | $P_{ref,0}$ |
@@ -247,10 +247,134 @@ weccs: [
 
 | Flag | Values | Effect |
 |---|---|---|
-| `Vflag` | 0 / 1 | 0 = Q control (Q-PI drives V reference); 1 = voltage control ($Q_{ext}$ is the V reference) |
-| `Qflag` | 0 / 1 | 0 = bypass inner V-PI; 1 = engage inner V-PI |
-| `PFflag` | 0 / 1 | 0 = use $Q_{ext}$ as Q/V reference; 1 = constant power factor |
+| `Vflag` | 0 / 1 | 0 = Q control (Q-PI engaged: $K_{qp}/K_{qi}$ drive $V_{ref,ctrl}$); 1 = voltage control ($Q_{ext}$ acts directly as the V reference) |
+| `Qflag` | 0 / 1 | 0 = bypass inner V-PI; 1 = engage inner V-PI ($K_{vp}/K_{vi}$ drive $I_{qcmd}$) |
+| `PFflag` | 0 / 1 | 0 = use $Q_{ext}$ as Q reference; 1 = constant power factor (Q derived from $x_{Pe}$) |
 | `Pqflag` | 0 / 1 | 0 = Q priority in current limits; 1 = P priority |
+
+```{warning}
+**The pydae `Vflag` / `Qflag` convention is the *opposite* of the
+PSSE/PSLF WECC standard.** Configurations transplanted from PSSE
+without flipping these flags will silently end up in the wrong mode
+(typically "voltage control with no Q tracking").
+```
+
+---
+
+## Operating modes
+
+The four flags select which loops in the reactive path are closed and
+what each one tracks. Three combinations are supported by this
+implementation; the fourth is structurally singular and pydae will
+abort at model build.
+
+| `Vflag` | `Qflag` | `PFflag` | What's tracked | Use case |
+|:---:|:---:|:---:|---|---|
+| 1 | 1 | 0 | $V_t \to Q_{ext}$ (Qext is the *voltage* setpoint) | local voltage regulator |
+| 0 | 1 | 0 | $Q \to Q_{ext}$ via cascaded $K_{qp}/K_{qi}$ → $K_{vp}/K_{vi}$ | **PQ generator** (constant-Q injection) |
+| 0 | 1 | 1 | $Q \to x_{Pe}\tan(\phi)$ | constant power factor |
+| 0 | 0 | — | — | **structurally rank-deficient** — $x_{Kvi}$ has no defining equation, `rootfinder` aborts with `sprank(J) < n` |
+
+Disable the VRT (voltage-ride-through) supplementary injection for all
+three working modes by setting `Kqv = 0` (and widening `dbd1` / `dbd2`
+defensively); otherwise an off-nominal initial $V_t$ adds an unmodeled
+$I_{q,inj}$ during the power-flow initialization.
+
+### Example — PQ generator (track $Q_{ext}$)
+
+The supported way to make an inverter behave as a fixed-PQ source is the
+**cascaded** mode: the outer Q-PI produces a $V_{ref,ctrl}$ that the
+inner V-PI then tracks to a corresponding $I_{qcmd}$.
+
+```python
+wecc = {
+    "type": "regc_a",
+    "name": "PV1",
+    "bus":  "LV_PV1",
+    "S_n":  3_000_000.0,    # inverter nameplate (VA)
+
+    # ---- regc_a internals (defaults shown) ----
+    "Tg": 0.02, "Tfltr": 0.02,
+    "Lvplsw": 1, "Lvpl1": 1.22,
+    "Zerox": 0.4, "Brkpt": 0.9,
+    "rrpwr": 10.0,
+    "lvpnt0": 0.4, "lvpnt1": 0.8,
+    "Volim": 1.2,  "Iolim": -1.3, "Khv": 0.7,
+    "Iqrmax":  999.0, "Iqrmin": -999.0,
+
+    # outer regc_a current-state seeds — MUST match reec.Pref / reec.Qext
+    "Ipcmd":  0.5,
+    "Iqcmd":  0.1,
+    "V_ini":  1.0,
+
+    "reec": {
+        # ---- PQ-mode flags ----
+        "Vflag":  0,        # Q control engaged (Q-PI active)
+        "Qflag":  1,        # inner V-PI engaged (consumes V_ref_ctrl)
+        "PFflag": 0,        # Qext as Q setpoint (not power factor)
+        "Pqflag": 1,        # P priority on the current limit
+
+        # measurement / order filters
+        "Trv": 0.02, "Tp": 0.02, "Tiq": 0.02, "Tpord": 0.1,
+
+        # both PI gains active in cascade
+        "Kvp": 1.0,  "Kvi": 40.0,
+        "Kqp": 1.0,  "Kqi": 10.0,
+
+        # VRT disabled — pure PQ source, no voltage-droop FRT support
+        "Vref0":  1.0,
+        "dbd1":  -0.99, "dbd2": 0.99,
+        "Kqv":    0.0,
+        "Iqhl":   2.0,  "Iqll": -2.0,
+
+        # protection envelope — kept loose so the PF init has headroom
+        "Vmax": 1.1, "Vmin": 0.9, "Imax": 2.0,
+        "Pmax": 1.0, "Pmin": -0.1,
+        "dPmax": 999.0, "dPmin": -999.0,
+
+        # setpoints (pu of S_n)
+        "Pref": 0.5,
+        "Qext": 0.1,
+    },
+}
+```
+
+Matching `xy_0` seed entries for one inverter (see *Initialization* below
+for the per-state derivation):
+
+```python
+def reec_b_xy0_pq(inv_id: str, Pref: float, Qext: float,
+                  Vt0: float = 1.0) -> dict:
+    """xy_0 seed for one REEC_B inverter running in PQ mode (Vflag=0, Qflag=1).
+
+    At steady state with V_t ≈ Vt0:
+        I_q  ≈ -Qext / Vt0     (sign per pydae's REGC_A convention)
+        x_Kqi ≈ Vt0            (V_ref_ctrl that the inner V-PI matches to V_t)
+        x_Kvi ≈ I_qcmd = -I_q
+    """
+    Iq = -Qext / Vt0
+    return {
+        f"V_flt_{inv_id}":  Vt0,
+        f"Vt_flt_{inv_id}": Vt0,
+        f"Vl_flt_{inv_id}": -Iq,
+        f"Ip_{inv_id}":     Pref,
+        f"Iq_{inv_id}":     Iq,
+        f"Ipcmd_{inv_id}":  Pref,
+        f"Iqcmd_{inv_id}":  -Iq,
+        f"P_flt_{inv_id}":  Pref,
+        f"x_Pe_{inv_id}":   Pref,
+        f"x_Kqi_{inv_id}":  Vt0,    # !! NOT 0 in Q-control mode
+        f"x_Kvi_{inv_id}":  -Iq,
+    }
+```
+
+The critical seed — and the one most likely to trip up a hand-written
+`xy_0` — is **`x_Kqi`**. In voltage-control mode (`Vflag=1`) the Q-PI is
+decoupled and `x_Kqi = 0` is fine; in Q-control mode (`Vflag=0`) the Q-PI
+is the upstream regulator and its integrator output *is* the
+$V_{ref,ctrl}$ that the inner V-PI matches to $V_t$. Seeding it to 0
+puts the model far from steady state and the Newton rootfinder either
+diverges to NaN or settles on $Q \approx 0$ instead of $Q = Q_{ext}$.
 
 ## Inputs
 

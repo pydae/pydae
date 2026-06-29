@@ -327,11 +327,17 @@ class RealTimeSimulator:
             self.model.set_value(name, value)
 
     def _enqueue_ramp(self, targets: dict[str, float]) -> None:
-        """Replace any pending ramp with a new one toward ``targets``.
+        """Merge ``targets`` into the pending ramp.
 
         Must be called with ``self._lock`` already held.  Reads each
         variable's *current* value (including any in-progress ramp) and
         spreads the remaining delta evenly over ``_ramp_chunks`` chunks.
+
+        Variables present in *targets* are re-ramped from their current
+        value toward the new target.  Variables already mid-ramp but not
+        in *targets* keep their remaining ramp intact — this lets
+        multi-source co-simulation clients (e.g. one HTTP POST per
+        device) compose ramps without clobbering each other.
         """
         def _current(name: str) -> float:
             u_run_names = self.model.u_run_names
@@ -340,11 +346,26 @@ class RealTimeSimulator:
             return float(self.model.get_value(name))
 
         n = self._ramp_chunks
-        deltas_per_chunk = {
-            name: (target - _current(name)) / n
-            for name, target in targets.items()
-        }
-        self._ramp_queue = [deltas_per_chunk.copy() for _ in range(n)]
+
+        # Preserve in-flight ramps for variables NOT being re-targeted.
+        preserved: dict[str, list[float]] = {}
+        for chunk in self._ramp_queue:
+            for name, delta in chunk.items():
+                if name in targets:
+                    continue
+                preserved.setdefault(name, []).append(delta)
+
+        new_chunks: list[dict[str, float]] = [
+            {name: (target - _current(name)) / n for name, target in targets.items()}
+            for _ in range(n)
+        ]
+
+        # Pad new_chunks with any preserved-variable deltas, position by position.
+        for name, deltas in preserved.items():
+            for i, d in enumerate(deltas):
+                new_chunks[i][name] = d
+
+        self._ramp_queue = new_chunks
 
     def set_input(self, name: str, value: float) -> None:
         """Write a single runtime input via a smooth ramp."""
