@@ -18,7 +18,9 @@ The main public names are:
   (`ini`, `run`, `post`, `get_values`).
 - **`pydae.core.builder.CasadiBuilder`** — CasADi → SX graph pipeline.
   No C compiler required.
-- **`pydae.core.model.CasadiModel`** — CasADi runtime (IDAS integrator).
+- **`pydae.core.model.CasadiModel`** — CasADi runtime. Time-domain `run` offers
+  IDAS (grid or per-`Dt`) and fixed-step implicit (trapezoidal / backward-Euler,
+  with a pluggable scipy/`ca.Linsol` solver) integration.
 - **`pydae.core.common`** — shared parser and symbolic utilities.
 - **`pydae.core.diagnostics`** — Jacobian health checks and structural
   analysis helpers.

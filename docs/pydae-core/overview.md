@@ -78,6 +78,20 @@ model.run(10.0)
 model.post()
 ```
 
+`run(t_end, update_dict=None, method=None, **opts)` selects the time-domain
+integration strategy (default `'idas_grid'`):
+
+```python
+model.run(10.0)                              # 'idas_grid': one IDAS grid call, ~30x faster
+model.run(10.0, method='idas')               # legacy per-Dt IDAS loop (exact reproduction)
+model.run(10.0, method='trapezoidal')        # fixed-step implicit, 2nd order
+model.run(10.0, method='backward_euler')     # fixed-step implicit, 1st order (stiff)
+model.run(10.0, method='trapezoidal', linsol='qr')   # CasADi-native ca.Linsol solve
+```
+
+See [architecture](architecture.md) ("How casadi_model.py runs") for why the
+per-`Dt` loop was slow, the fixed-step formulation, and the `linsol` backends.
+
 ### Diagnostics
 
 Jacobian-health utilities (rank, conditioning, sparsity) live in

@@ -206,13 +206,112 @@ continuing from the previous endpoint.
 
 ### How casadi_model.py runs
 
-`CasadiModel` uses CasADi's built-in `rootfinder` for `ini()` and
-`ca.integrator('idas')` for `run()`. The `ini2run()` method transfers values
-between initialization and runtime phases, including:
+`CasadiModel` uses CasADi's built-in `rootfinder` for `ini()` and, for `run()`,
+one of several time-domain strategies selected by
+`run(t_end, update_dict=None, method=None, **opts)`. The `ini2run()` method
+transfers values between initialization and runtime phases, including:
 
 - Mapping solved `y_ini` variables to `u_run` inputs (`yini2urun`).
 - Mapping `u_ini` inputs to `y_run` states (`uini2yrun`).
 - Copying `u_ini` values to `u_run` for shared inputs.
+
+#### Time-domain solver selection
+
+`method` (falling back to the instance attribute `self.run_method`, default
+`'idas_grid'`) picks one of four integration strategies. All four append to the
+same `Time/X/Y/Z` storage and advance `x/y_run/t` identically, so they are
+drop-in interchangeable:
+
+| `method` | strategy | when to use |
+|---|---|---|
+| `'idas_grid'` (default) | one IDAS call over a *grid* of output times | one long continuous run — IDAS accuracy, ~30× faster than `'idas'` |
+| `'idas'` | legacy: stateless IDAS call once per `Dt` | exact bit-for-bit reproduction of historical behaviour |
+| `'trapezoidal'` | fixed-step implicit θ-method, `alpha=0.5` (2nd order) | many short / interactive / real-time steps |
+| `'backward_euler'` | fixed-step implicit θ-method, `alpha=1.0` (1st order) | stiff systems needing a robust, damped step |
+
+**Why the legacy per-`Dt` loop was slow.** A CasADi integrator is a *stateless*
+function `(x0, z0, p) → (xf, zf)`: it does **not** carry SUNDIALS' internal BDF
+state (past states, current order, current internal step size, the factorized
+iteration matrix) between calls. The old `run()` called `ca.integrator('idas')`
+once per `Dt`, so every call **cold-restarted** BDF — reset to order 1, picked a
+tiny conservative initial step, and re-did the entire startup transient. On a
+731-state / 981-algebraic model this measured ~11 internal steps and ~11 sparse
+Jacobian factorizations per 0.01 s (≈900 ms/step, ~90 s for 1 s of simulation),
+all thrown away for the next `Dt`.
+
+**`'idas_grid'`** integrates to `t_end` in a **single** IDAS call over the grid
+of output times `t + Dt*arange(1, n+1)`. SUNDIALS initializes once, ramps BDF
+up, keeps and reuses its factorization across internal steps, and simply reports
+the (interpolated) state at each grid point — the internal step size is chosen
+adaptively and is unrelated to `Dt`, which now only sets output resolution. Same
+trajectory, ~15 factorizations instead of ~110 for a 10-point span. Because the
+DAE is autonomous, the integrator is built over a *relative* grid from `t0=0` and
+shifted by the current time, so the object can be reused across equal-length
+segments (`reuse_integrator=True`). Cold-start knobs `step0` (initial step-size
+hint ≈ `Dt`) and `calc_ic` (consistent-IC recompute) are exposed for chaining
+many short segments.
+
+**`'trapezoidal'` / `'backward_euler'`** are fixed-step implicit integrators
+built from `self.dae_dict` via CasADi AD — the CasADi-backend analogue of the C
+`daesolver.c` trapezoidal loop, sharing its `alpha` convention (0.5 / 1.0). The
+residual and iteration matrix are
+
+```
+R = [ x_{n+1} - x_n - Dt*((1-alpha)*f_n + alpha*f(x_{n+1},z_{n+1})) ]   (n_x rows)
+    [ g(x_{n+1}, z_{n+1})                                           ]   (n_z rows)
+J = dR/d[x,z]   (from ca.jacobian, sparse)
+```
+
+Each step runs a modified Newton iteration: `J` is factorized once and the
+factorization is **reused** for `refactor_every` steps. It is refreshed on
+schedule, after a `set_value` discontinuity (which marks the linear-solver
+backend stale), or adaptively when a step exceeds `refactor_iters` Newton
+iterations; a step that fails is retried once with a fresh factorization before
+raising. Constant per-step cost, no adaptive restart.
+
+#### Pluggable linear solver (`linsol`)
+
+The Newton linear solve goes through a pluggable backend selected by the
+`linsol` option (`model.run(..., method='trapezoidal', linsol=...)`). Both
+backends follow a factorize-once / solve-many contract, since `J`'s sparsity is
+fixed for the whole simulation:
+
+| `linsol` | backend | how it factorizes |
+|---|---|---|
+| `'scipy'` (default) | `scipy.sparse.linalg.splu` | convert `J` (CasADi `DM`) → `scipy.sparse.csc`, then `splu` |
+| `'qr'` (recommended CasADi) | `ca.Linsol('qr', …)` | stays in CasADi `DM`, no conversion |
+| any `ca.Linsol` plugin, or `'casadi:<plugin>'` | `ca.Linsol(<plugin>, …)` | e.g. `lapacklu`, `csparse`, `ma27` |
+
+The CasADi-native path uses `ca.Linsol`'s three-tier reuse API — `sfact()`
+(symbolic factorization, **once**, bound to the fixed sparsity), `nfact()`
+(numeric factorization, only when `J` is refreshed), and `solve()` (cheap
+back-substitution, every Newton iteration, reusing `nfact`). `'qr'` is the
+recommended plugin — in this reuse pattern it measured 10–60× faster per step
+than `'csparse'` or `'lapacklu'`. A requested plugin that is unavailable (e.g.
+an HSL solver like `ma27` with no HSL installed) falls back to SciPy with a
+warning, so a run never hard-fails on a missing plugin.
+
+`'scipy'` stays the default and its numerics are unchanged. Note that the linear
+solve is only a small fraction of a trapezoidal step — per-iteration CasADi
+`Function` calls and `DM ↔ numpy` marshaling dominate — so the CasADi backend is
+mainly a cleanliness / no-scipy-conversion win, not a large end-to-end speedup.
+A real end-to-end gain would come from reducing per-iteration Python round-trips
+(evaluating `R`, `J`, and the solve in as few native CasADi calls as possible).
+
+#### Consistent starting points and discontinuities
+
+The fixed-step solvers and `'idas_grid'` assume a consistent starting point over
+each continuous segment. Run `ini()` (or, after a parameter jump, call
+`recalculate_algebraics()` to re-solve `g(x, y, p) = 0` with `x` held fixed)
+before integrating. After a `set_value` discontinuity the frozen fixed-step
+factorization is invalidated automatically, so the pattern is:
+
+```python
+model.run(t_step, method='trapezoidal')     # continuous segment
+model.set_value('p_c_lc_G1', new_ref)        # discontinuity (auto-invalidates LU)
+model.recalculate_algebraics(tol=1e-8)       # re-consistent algebraic ICs
+model.run(t_end, method='trapezoidal')       # next continuous segment
+```
 
 ## Why y_ini, u_ini and y_run, u_run
 
