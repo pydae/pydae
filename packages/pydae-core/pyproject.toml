@@ -49,6 +49,9 @@ api = [
     "fastapi>=0.111.0",
     "uvicorn[standard]>=0.29.0",
 ]
+viz = [
+    "plotly>=5.20.0",  # portable interactive HTML reports (ssa.damp html=...)
+]
 
 [project.urls]
 Homepage = "https://github.com/pydae/pydae"

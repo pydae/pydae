@@ -218,7 +218,7 @@ def damp_report(model, sparse=False, tol_part=0.2):
         i = eig[it].imag
         string += f'{it+1:0d}  '.rjust(10, ' ') 
         string += f'{r:0.4f}  '.rjust(10, ' ') 
-        string += f'{i:0.4f}j'.rjust(10, ' ') 
+        string += f'{i:0.4f}'.rjust(10, ' ') 
         string += f'{freqs[it]:0.4f}'.rjust(10, ' ') 
         string += f'{zetas[it]:0.4f}'.rjust(10, ' ') 
 
@@ -261,7 +261,8 @@ def damp_report(model, sparse=False, tol_part=0.2):
 
     return eig_df
 
-def damp(A, sparse=False, model=False, sort=None, part_threshold=0.5):
+def damp(A, sparse=False, model=False, sort=None, part_threshold=0.5, csv=None,
+         html=None):
     """
     Computes eigenvalues, frequencies and damping ratios of matrix A and
     prints a report.
@@ -275,6 +276,18 @@ def damp(A, sparse=False, model=False, sort=None, part_threshold=0.5):
         ``'damp'``  — sort rows by damping ratio (ascending).
         ``'freq'``  — sort rows by oscillation frequency (ascending).
         ``None``    — natural eigenvalue order (default).
+    csv    : str, path-like, bool or None
+        When set, also write the table (in the requested sort order) to a CSV
+        file. A string/path is used as the filename; ``True`` writes to
+        ``'damp.csv'``. Columns: ``Mode, Real, Imag, Freq, Damp`` plus
+        ``Participation`` when ``model`` is provided. ``None`` (default) skips.
+    html   : str, path-like, bool or None
+        When set, also write a **portable, self-contained** HTML report: a
+        click-to-sort table plus an interactive Plotly eigenvalue scatter (the
+        s-plane with 5 %/10 % damping zones, as in :func:`plot_eig`). A
+        string/path is used as the filename; ``True`` writes to ``'damp.html'``.
+        Requires the ``viz`` extra (``pip install pydae[viz]``). ``None``
+        (default) skips.
 
     Returns
     -------
@@ -314,22 +327,37 @@ def damp(A, sparse=False, model=False, sort=None, part_threshold=0.5):
         x_array = np.array(model.x_list)
 
     # ── rows (in sort order) ────────────────────────────────────────────
+    rows = []
     for rank, it in enumerate(idx):
         r = eig[it].real
         i = np.abs(eig[it].imag)
         string += f'{rank + 1:0d}  '.rjust(10, ' ')
         string += f'{r:0.4f}  '.rjust(10, ' ')
-        string += f'{i:0.4f}j'.rjust(10, ' ')
+        string += f'{i:0.4f}'.rjust(10, ' ')
         string += f'{freqs[it]:0.4f}'.rjust(10, ' ')
         string += f'{zetas[it]:0.4f}'.rjust(10, ' ')
+        row = {'Mode': rank + 1, 'Real': r, 'Imag': i,
+               'Freq': freqs[it], 'Damp': zetas[it]}
         if model:
             max_part = np.max(np.abs(participation_matrix)[:, it])
             states_participation = x_array[
                 participation_matrix[:, it] > (max_part * part_threshold)]
             string += f'{str(states_participation)}'.rjust(30, ' ')
+            row['Participation'] = ' '.join(map(str, states_participation))
         string += '\n'
+        rows.append(row)
 
     print(string)
+
+    if csv:
+        path = 'damp.csv' if csv is True else str(csv)
+        pd.DataFrame(rows).to_csv(path, index=False)
+        print(f'saved {path}')
+
+    if html:
+        path = 'damp.html' if html is True else str(html)
+        _damp_report_html(path, rows, eig[idx], freqs[idx], zetas[idx])
+        print(f'saved {path}')
 
     ss_study = {
         'eigvalues':  eig[idx],
@@ -338,6 +366,181 @@ def damp(A, sparse=False, model=False, sort=None, part_threshold=0.5):
         'zetas':      zetas[idx],
     }
     return ss_study
+
+
+def _damp_report_html(path, rows, eig, freqs, zetas):
+    """Write a portable, self-contained HTML damping report: a click-to-sort
+    modes table and an interactive Plotly eigenvalue scatter (the s-plane with
+    5 %/10 % damping zones, as in :func:`plot_eig`).
+
+    ``rows`` (list of dicts, in the report's sort order) and the parallel arrays
+    ``eig`` / ``freqs`` / ``zetas`` describe the same modes in the same order.
+    Everything is embedded in one file (plotly.js inline + vanilla-JS sorter),
+    so the result opens offline with no server. Requires the ``viz`` extra.
+    """
+    try:
+        import plotly.graph_objects as go
+    except ImportError as exc:                     # pragma: no cover
+        raise ImportError(
+            "ssa.damp(html=...) needs plotly; install with `pip install pydae[viz]`"
+        ) from exc
+
+    pi2 = 2 * np.pi
+    re = eig.real
+    im = eig.imag / pi2                            # Hz on the vertical axis
+
+    # ── axis ranges (mirror plot_eig) ──────────────────────────────────────
+    x_lo = float(np.min(re)) * 1.1 if re.size else -1.0
+    if x_lo >= 0:
+        x_lo = -1.0
+    x_hi = max(float(np.max(re)) if re.size else 0.0, 0.0) + 0.04 * abs(x_lo)
+    y_abs = float(np.max(np.abs(im))) if im.size else 1.0
+    y_lim = y_abs * 1.15 if y_abs > 0 else 1.0
+
+    # ── damping zones: wedges by damping ratio (green >10%, orange 5-10%,
+    #    red <5%), mirrored top/bottom, apex at the origin ────────────────────
+    def slope(z):
+        return np.sqrt(1 - z ** 2) / z            # |omega| / |sigma| for damping z
+
+    y10 = abs(x_lo) * slope(0.10) / pi2
+    y05 = abs(x_lo) * slope(0.05) / pi2
+    zones = [
+        # (name, color, x-points, y-points)
+        ('&#950; &gt; 10%', 'rgba(46,125,50,0.14)',
+         [0, x_lo, x_lo, 0], [0, y10, -y10, 0]),
+        ('5% &lt; &#950; &lt; 10%', 'rgba(239,108,0,0.14)',
+         [0, x_lo, x_lo, 0, x_lo, x_lo, 0], [0, y10, y05, 0, -y10, -y05, 0]),
+        ('&#950; &lt; 5%', 'rgba(198,40,40,0.13)',
+         [0, x_lo, x_lo, 0, x_lo, x_lo, 0],
+         [0, y05, y_lim, 0, -y05, -y_lim, 0]),
+    ]
+
+    fig = go.Figure()
+    for name, color, xs, ys in zones:
+        fig.add_trace(go.Scatter(
+            x=xs, y=ys, fill='toself', fillcolor=color,
+            line=dict(width=0), mode='lines', name=name,
+            hoverinfo='skip'))
+
+    # imaginary axis
+    fig.add_shape(type='line', x0=0, x1=0, y0=-y_lim, y1=y_lim,
+                  line=dict(color='black', width=3))
+
+    # ── eigenvalue markers, coloured by damping band, rich hover ────────────
+    def band_color(z):
+        return '#c62828' if z < 0.05 else ('#ef6c00' if z < 0.10 else '#2e7d32')
+
+    hover = []
+    for k, row in enumerate(rows):
+        sign = '+' if eig[k].imag >= 0 else '&#8722;'
+        t = (f"<b>Mode {row['Mode']}</b><br>"
+             f"&#955; = {eig[k].real:.4f} {sign} {abs(eig[k].imag):.4f}j<br>"
+             f"f = {freqs[k]:.4f} Hz<br>&#950; = {zetas[k] * 100:.2f}%")
+        part = row.get('Participation')
+        if part:
+            t += f"<br>{part}"
+        hover.append(t)
+
+    fig.add_trace(go.Scatter(
+        x=re, y=im, mode='markers', name='eigenvalues',
+        marker=dict(size=10, color=[band_color(z) for z in zetas],
+                    line=dict(width=1, color='white'), symbol='circle'),
+        text=hover, hovertemplate='%{text}<extra></extra>'))
+
+    fig.update_layout(
+        template='plotly_white',
+        title='Eigenvalues (s-plane)',
+        xaxis=dict(title='Real (1/s)', range=[x_lo, x_hi], zeroline=False),
+        yaxis=dict(title='Imag / 2&#960; (Hz)', range=[-y_lim, y_lim], zeroline=False),
+        legend=dict(orientation='h', yanchor='bottom', y=1.02, x=0),
+        margin=dict(l=60, r=30, t=60, b=50))
+
+    plot_div = fig.to_html(full_html=False, include_plotlyjs=True,
+                           default_width='100%', default_height='620px',
+                           div_id='eig-plot')
+
+    # ── click-to-sort table (matches the damp_report columns) ───────────────
+    cols = ['Mode', 'Real', 'Imag', 'Freq', 'Damp']
+    if any(r.get('Participation') for r in rows):
+        cols.append('Participation')
+
+    def cell(col, k, row):
+        if col == 'Mode':
+            return str(int(row['Mode']))
+        if col == 'Participation':
+            return _html_escape(str(row.get('Participation', '')))
+        val = {'Real': eig[k].real, 'Imag': eig[k].imag,   # signed imag (as in damp_report)
+               'Freq': freqs[k], 'Damp': zetas[k]}[col]
+        return f'{val:.4f}'
+
+    thead = ''.join(
+        f'<th onclick="sortTable({i})">{c} <span class="arr">&#8597;</span></th>'
+        for i, c in enumerate(cols))
+    tbody = ''.join(
+        '<tr>' + ''.join(f'<td>{cell(c, k, row)}</td>' for c in cols) + '</tr>'
+        for k, row in enumerate(rows))
+
+    doc = _DAMP_HTML_TEMPLATE.format(plot=plot_div, thead=thead, tbody=tbody)
+    with open(path, 'w', encoding='utf-8') as fh:
+        fh.write(doc)
+
+
+def _html_escape(s):
+    return (s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
+
+
+_DAMP_HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pydae &mdash; damping report</title>
+<style>
+  body {{ font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+          margin: 24px; color: #222; }}
+  h1 {{ font-size: 20px; }}
+  h2 {{ font-size: 16px; margin-top: 28px; }}
+  .plot {{ max-width: 900px; }}
+  table {{ border-collapse: collapse; font-variant-numeric: tabular-nums;
+           font-size: 14px; }}
+  thead th {{ position: sticky; top: 0; background: #1f2937; color: #fff;
+              padding: 8px 12px; cursor: pointer; user-select: none;
+              text-align: right; white-space: nowrap; }}
+  thead th:first-child, tbody td:first-child {{ text-align: center; }}
+  thead th:last-child, tbody td:last-child {{ text-align: left; }}
+  .arr {{ opacity: 0.5; font-size: 11px; }}
+  tbody td {{ padding: 6px 12px; text-align: right; border-bottom: 1px solid #eee;
+              white-space: nowrap; }}
+  tbody tr:nth-child(even) {{ background: #f7f7f9; }}
+  tbody tr:hover {{ background: #eef3ff; }}
+</style>
+</head>
+<body>
+<h1>Small-signal damping report</h1>
+<div class="plot">{plot}</div>
+<h2>Modes <small style="font-weight:normal;color:#666">(click a header to sort)</small></h2>
+<table id="damp-table">
+<thead><tr>{thead}</tr></thead>
+<tbody>{tbody}</tbody>
+</table>
+<script>
+function sortTable(col) {{
+  var t = document.getElementById('damp-table'), tb = t.tBodies[0];
+  var rows = Array.prototype.slice.call(tb.rows);
+  var asc = !(t.dataset.col === String(col) && t.dataset.dir === 'asc');
+  rows.sort(function (a, b) {{
+    var x = a.cells[col].innerText, y = b.cells[col].innerText;
+    var nx = parseFloat(x), ny = parseFloat(y), c;
+    if (!isNaN(nx) && !isNaN(ny)) c = nx - ny; else c = x.localeCompare(y);
+    return asc ? c : -c;
+  }});
+  rows.forEach(function (r) {{ tb.appendChild(r); }});
+  t.dataset.col = col; t.dataset.dir = asc ? 'asc' : 'desc';
+}}
+</script>
+</body>
+</html>
+"""
 
 
 def participation(system, method='kundur'):
