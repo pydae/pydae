@@ -7,4 +7,5 @@ Pitch, mechanical, and electrical-machine models for wind turbines.
 
 full_converter
 pmsm_1
+pmsm_pq_ss
 ```
