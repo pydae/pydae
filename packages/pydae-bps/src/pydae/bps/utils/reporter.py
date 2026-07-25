@@ -206,13 +206,17 @@ def report_gens(model, data, print_table=True):
 
     Columns: Gen | Bus | Type | S_n (MVA) | P_g (MW) | Q_g (Mvar) | p_m (pu) | v_f (pu) | V (pu)
 
-    Both synchronous machines (``syns``) and PV inverters (``pvs``) are reported:
+    Synchronous machines (``syns``), PV inverters (``pvs``) and wind turbines
+    (``wecs``) are all reported:
 
     - P_g, Q_g  — active / reactive grid injection in MW/Mvar. For synchronous
-      machines from the algebraic states ``p_g``/``q_g``; for PV inverters from
-      the terminal-power states ``p_s``/``q_s`` (both pu on the unit's S_n).
-    - p_m       — mechanical power in machine pu (syns only; ``—`` for PV).
-    - v_f       — field voltage in machine pu (syns only; ``—`` for PV).
+      machines from the algebraic states ``p_g``/``q_g``; for PV inverters and
+      wind turbines from the terminal-power states ``p_s``/``q_s`` (both pu on
+      the unit's S_n).
+    - p_m       — mechanical power in machine pu (syns only; ``—`` for
+      converters).
+    - v_f       — field voltage in machine pu (syns only; ``—`` for
+      converters).
     """
     data_dict = _load_data(data)
     S_base    = data_dict.get('system', {}).get('S_base', 100e6)
@@ -249,6 +253,22 @@ def report_gens(model, data, print_table=True):
 
         # p_m / v_f do not apply to PV inverters
         rows.append([name, bus, pv.get('type', 'pv'), s_mva,
+                     p_mw, q_mvar, float('nan'), float('nan'), v_bus])
+
+    for wt in data_dict.get('wecs', []):
+        bus  = str(wt['bus'])
+        name = wt.get('name', bus)
+        s_mva = wt.get('S_n', S_base) / 1e6
+
+        p_s_pu = _get(model, f'p_s_{name}')
+        q_s_pu = _get(model, f'q_s_{name}')
+        v_bus  = _get(model, f'V_{bus}')
+
+        p_mw   = p_s_pu * s_mva if not math.isnan(p_s_pu) else float('nan')
+        q_mvar = q_s_pu * s_mva if not math.isnan(q_s_pu) else float('nan')
+
+        # p_m / v_f do not apply to wind-turbine converters
+        rows.append([name, bus, wt.get('type', 'wecs'), s_mva,
                      p_mw, q_mvar, float('nan'), float('nan'), v_bus])
 
     headers = ['Gen', 'Bus', 'Type', 'S_n (MVA)', 'P_g (MW)', 'Q_g (Mvar)',
