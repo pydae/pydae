@@ -6,7 +6,7 @@ Three functions produce GitHub-flavoured markdown tables printed to stdout
 and returned as strings:
 
     report_buses(model, data)   — bus voltages, angles, load injections
-    report_gens(model, data)    — generator P, Q, v_f, p_m, p_g
+    report_gens(model, data)    — synchronous machine & PV inverter P, Q, v_f, p_m
     report_lines(model, data)   — line / transformer power flows
 
 *data* may be any of:
@@ -204,11 +204,15 @@ def report_gens(model, data, print_table=True):
     """
     Markdown table of generator operating points after ini().
 
-    Columns: Gen | Bus | S_n (MVA) | P_g (MW) | Q_g (Mvar) | p_m (pu) | v_f (pu) | V (pu)
+    Columns: Gen | Bus | Type | S_n (MVA) | P_g (MW) | Q_g (Mvar) | p_m (pu) | v_f (pu) | V (pu)
 
-    - P_g, Q_g  — active / reactive grid injection (from algebraic states p_g, q_g)
-    - p_m       — mechanical power in machine pu (input or algebraic depending on gov)
-    - v_f       — field voltage in machine pu (input or algebraic depending on AVR)
+    Both synchronous machines (``syns``) and PV inverters (``pvs``) are reported:
+
+    - P_g, Q_g  — active / reactive grid injection in MW/Mvar. For synchronous
+      machines from the algebraic states ``p_g``/``q_g``; for PV inverters from
+      the terminal-power states ``p_s``/``q_s`` (both pu on the unit's S_n).
+    - p_m       — mechanical power in machine pu (syns only; ``—`` for PV).
+    - v_f       — field voltage in machine pu (syns only; ``—`` for PV).
     """
     data_dict = _load_data(data)
     S_base    = data_dict.get('system', {}).get('S_base', 100e6)
@@ -217,8 +221,7 @@ def report_gens(model, data, print_table=True):
     for syn in data_dict.get('syns', []):
         bus  = str(syn['bus'])
         name = syn.get('name', bus)
-        s_n  = syn.get('S_n', S_base)
-        s_mva = s_n / 1e6
+        s_mva = syn.get('S_n', S_base) / 1e6
 
         p_g_pu = _get(model, f'p_g_{name}')
         q_g_pu = _get(model, f'q_g_{name}')
@@ -229,11 +232,28 @@ def report_gens(model, data, print_table=True):
         p_mw   = p_g_pu * s_mva if not math.isnan(p_g_pu) else float('nan')
         q_mvar = q_g_pu * s_mva if not math.isnan(q_g_pu) else float('nan')
 
-        rows.append([name, bus, s_mva, p_mw, q_mvar, p_m_pu, v_f_pu, v_bus])
+        rows.append([name, bus, syn.get('type', 'syn'), s_mva,
+                     p_mw, q_mvar, p_m_pu, v_f_pu, v_bus])
 
-    headers = ['Gen', 'Bus', 'S_n (MVA)', 'P_g (MW)', 'Q_g (Mvar)',
+    for pv in data_dict.get('pvs', []):
+        bus  = str(pv['bus'])
+        name = pv.get('name', bus)
+        s_mva = pv.get('S_n', S_base) / 1e6
+
+        p_s_pu = _get(model, f'p_s_{name}')
+        q_s_pu = _get(model, f'q_s_{name}')
+        v_bus  = _get(model, f'V_{bus}')
+
+        p_mw   = p_s_pu * s_mva if not math.isnan(p_s_pu) else float('nan')
+        q_mvar = q_s_pu * s_mva if not math.isnan(q_s_pu) else float('nan')
+
+        # p_m / v_f do not apply to PV inverters
+        rows.append([name, bus, pv.get('type', 'pv'), s_mva,
+                     p_mw, q_mvar, float('nan'), float('nan'), v_bus])
+
+    headers = ['Gen', 'Bus', 'Type', 'S_n (MVA)', 'P_g (MW)', 'Q_g (Mvar)',
                'p_m (pu)', 'v_f (pu)', 'V (pu)']
-    fmts    = ['{}', '{}', '{:.1f}', '{:.1f}', '{:.1f}',
+    fmts    = ['{}', '{}', '{}', '{:.1f}', '{:.1f}', '{:.1f}',
                '{:.4f}', '{:.4f}', '{:.4f}']
     table   = _md_table(headers, rows, fmts)
 
