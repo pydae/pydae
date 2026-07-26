@@ -23,15 +23,17 @@ $$c_p = C_1(C_2/\lambda_i - C_3\beta - C_4)e^{-C_5/\lambda_i} + C_6\lambda,
 $$2H_t\,\dot\omega_t = p_w - K_{tr}\theta_{tr} - D_{tr}(\omega_t-\omega_r), \quad
   2H_r\,\dot\omega_r = K_{tr}\theta_{tr} + D_{tr}(\omega_t-\omega_r) - p_r$$
 
-MPPT sets the electrical (rotor-braking) power reference:
+MPPT sets the base electrical power; the plant-controller command
+$p_{s,ppc}$ is added on top (as in ``pmsm_1``), and this total is both the
+rotor-braking power and the grid active-power reference:
 
 $$p_{mppt} = K_{mppt3}\,\omega_t^3, \qquad
   T_{mppt}\,\dot p_{w,mppt} = p_{mppt} + p_{ref,ext} - p_{w,mppt}, \qquad
-  p_r = p_{w,mppt}$$
+  p_r = p_{w,mppt} + p_{s,ppc}$$
 
 **Grid injection (algebraic p/q, from pv_pq_ss)**
 
-$$p_{s,ref} = p_{w,mppt}, \qquad q_{s,ref} = q_{s,ppc}$$
+$$p_{s,ref} = p_{w,mppt} + p_{s,ppc}, \qquad q_{s,ref} = q_{s,ppc}$$
 $$i_{sr,pq} = \frac{p_{s,ref} v_{sr} + q_{s,ref} v_{si}}{v_{sr}^2+v_{si}^2+\epsilon},
   \quad
   i_{si,pq} = \frac{p_{s,ref} v_{si} - q_{s,ref} v_{sr}}{v_{sr}^2+v_{si}^2+\epsilon}$$
@@ -77,6 +79,8 @@ def descriptions():
     # Inputs
     d += [{"type": "Input", "tex": "\\nu_{w,0}", "data": "nu_w_0", "model": "nu_w_0",
            "default": 10.0, "description": "Base wind speed", "units": "m/s"}]
+    d += [{"type": "Input", "tex": "p_{s,ppc}", "data": "p_s_ppc", "model": "p_s_ppc",
+           "default": 0.0, "description": "Active power command from PPC (added to MPPT)", "units": "pu"}]
     d += [{"type": "Input", "tex": "q_{s,ppc}", "data": "q_s_ppc", "model": "q_s_ppc",
            "default": 0.0, "description": "Reactive power reference from PPC", "units": "pu"}]
     d += [{"type": "Input", "tex": "p_{ref,ext}", "data": "p_ref_ext", "model": "p_ref_ext",
@@ -166,6 +170,7 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     # 2. Inputs
     nu_w_0 = sym.Symbol(f"nu_w_0_{name}", real=True)
     dnu_w_ramp_ref = sym.Symbol(f"dnu_w_ramp_ref_{name}", real=True)
+    p_s_ppc = sym.Symbol(f"p_s_ppc_{name}", real=True)
     q_s_ppc = sym.Symbol(f"q_s_ppc_{name}", real=True)
     p_ref_ext = sym.Symbol(f"p_ref_ext_{name}", real=True)
     beta_ext = sym.Symbol(f"beta_ext_{name}", real=True)
@@ -226,7 +231,10 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     p_mppt_ref = K_mppt3 * omega_t**3
     p_m_ref = sym.Piecewise((p_mppt_ref + p_ref_ext, p_ref_ext < 0.0), (p_mppt_ref, True))
     dp_w_mppt_lpf = 1.0 / T_mppt * (p_m_ref - p_w_mppt_lpf)
-    p_r = p_w_mppt_lpf                                # electrical power extracted from the rotor
+    # PPC active-power command is added after the filter (as in pmsm_1:
+    # p_r_ref = p_w_mppt_lpf + p_ppc). It is extracted from the rotor and
+    # injected to the grid, keeping the power balance consistent (no DC link).
+    p_r = p_w_mppt_lpf + p_s_ppc                      # electrical power extracted from the rotor
 
     # 8. Pitch control (limits rotor overspeed above Omega_r_max)
     epsilon_beta_nosat = omega_r - Omega_r_max
@@ -258,8 +266,8 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
         grid.dae["x"] += list(sys_q["x"])
         grid.dae["params_dict"].update(sys_q["params_dict"])
 
-    # 11. Grid injection references (active from MPPT, reactive from PPC)
-    p_s_ref = p_w_mppt_lpf
+    # 11. Grid injection references (active = MPPT + PPC command, reactive = PPC)
+    p_s_ref = p_r
     q_s_ref = q_s_ppc_d
 
     # 12. Grid voltages in stationary (r-i) frame
@@ -300,7 +308,8 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
 
     # 18. Inputs
     inputs = {
-        nu_w_0: par("nu_w_0"), dnu_w_ramp_ref: 0.0, q_s_ppc: par("q_s_ppc"),
+        nu_w_0: par("nu_w_0"), dnu_w_ramp_ref: 0.0,
+        p_s_ppc: par("p_s_ppc"), q_s_ppc: par("q_s_ppc"),
         p_ref_ext: par("p_ref_ext"), beta_ext: par("beta_ext"),
         lvrt_ext: 0.0, i_sa_ref: 0.0, i_sr_ref: 0.0,
     }

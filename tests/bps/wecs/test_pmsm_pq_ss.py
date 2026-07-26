@@ -89,3 +89,12 @@ def test_wind_step_increases_power(model):
     # higher wind -> rotor speeds up and more power is delivered
     assert float(model.get_value("omega_t_WT1")) > w0
     assert float(model.get_value("p_s_WT1")) > p0
+
+
+def test_ppc_active_curtailment(model):
+    # a negative p_s_ppc command curtails the injected active power (sustainable,
+    # unlike a positive command which is capped by the available wind power)
+    p0 = float(model.get_value("p_s_WT1"))
+    model.run(model.t_start + 40.0, {"p_s_ppc_WT1": -0.2})
+    model.post()
+    assert float(model.get_value("p_s_WT1")) < p0 - 0.1

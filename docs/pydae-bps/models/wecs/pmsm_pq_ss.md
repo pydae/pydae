@@ -27,15 +27,17 @@ $$c_p = C_1(C_2/\lambda_i - C_3\beta - C_4)e^{-C_5/\lambda_i} + C_6\lambda,
 $$2H_t\,\dot\omega_t = p_w - K_{tr}\theta_{tr} - D_{tr}(\omega_t-\omega_r), \quad
   2H_r\,\dot\omega_r = K_{tr}\theta_{tr} + D_{tr}(\omega_t-\omega_r) - p_r$$
 
-MPPT sets the electrical (rotor-braking) power reference:
+MPPT sets the base electrical power; the plant-controller command
+$p_{s,ppc}$ is added on top (as in ``pmsm_1``), and this total is both the
+rotor-braking power and the grid active-power reference:
 
 $$p_{mppt} = K_{mppt3}\,\omega_t^3, \qquad
   T_{mppt}\,\dot p_{w,mppt} = p_{mppt} + p_{ref,ext} - p_{w,mppt}, \qquad
-  p_r = p_{w,mppt}$$
+  p_r = p_{w,mppt} + p_{s,ppc}$$
 
 **Grid injection (algebraic p/q, from pv_pq_ss)**
 
-$$p_{s,ref} = p_{w,mppt}, \qquad q_{s,ref} = q_{s,ppc}$$
+$$p_{s,ref} = p_{w,mppt} + p_{s,ppc}, \qquad q_{s,ref} = q_{s,ppc}$$
 $$i_{sr,pq} = \frac{p_{s,ref} v_{sr} + q_{s,ref} v_{si}}{v_{sr}^2+v_{si}^2+\epsilon},
   \quad
   i_{si,pq} = \frac{p_{s,ref} v_{si} - q_{s,ref} v_{sr}}{v_{sr}^2+v_{si}^2+\epsilon}$$
@@ -79,6 +81,7 @@ section of the network JSON (see [Overview](../../overview.md)).
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
 | $\nu_{w,0}$ | `nu_w_0` | 10.0 | m/s | Base wind speed |
+| $p_{s,ppc}$ | `p_s_ppc` | 0.0 | pu | Active power command from PPC (added to MPPT) |
 | $q_{s,ppc}$ | `q_s_ppc` | 0.0 | pu | Reactive power reference from PPC |
 | $p_{ref,ext}$ | `p_ref_ext` | 0.0 | pu | External active-power adjustment (≤0 curtails) |
 | $\beta_{ext}$ | `beta_ext` | 0.0 | deg | External pitch-angle adder |
