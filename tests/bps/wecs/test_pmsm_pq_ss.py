@@ -92,9 +92,35 @@ def test_wind_step_increases_power(model):
 
 
 def test_ppc_active_curtailment(model):
-    # a negative p_s_ppc command curtails the injected active power (sustainable,
-    # unlike a positive command which is capped by the available wind power)
-    p0 = float(model.get_value("p_s_WT1"))
-    model.run(model.t_start + 40.0, {"p_s_ppc_WT1": -0.2})
+    # p_s_ppc sets the output = min(command, available wind power); commanding
+    # below the available power curtails the injection to exactly the command.
+    model.run(model.t_start + 40.0, {"p_s_ppc_WT1": 0.3})
     model.post()
-    assert float(model.get_value("p_s_WT1")) < p0 - 0.1
+    assert float(model.get_value("p_s_WT1")) == pytest.approx(0.3, abs=2e-2)
+
+
+def test_powerflow_constant_power(tmp_path, monkeypatch):
+    """Power-flow use case: high wind -> constant-power region -> output = p_s_ppc."""
+    from pydae.bps import BpsBuilder
+    from pydae.core import Builder, Model
+
+    monkeypatch.chdir(tmp_path)
+    g = json.loads(json.dumps(GRID))            # deep copy
+    g["system"]["name"] = "pmsm_pf"
+    g["wecs"][0]["nu_w_0"] = 16.0               # high wind (constant-power region)
+    g["wecs"][0]["p_s_ppc"] = 0.5              # command below rated
+    path = tmp_path / "pf.json"
+    json.dump(g, open(path, "w"))
+
+    grid = BpsBuilder(str(path))
+    grid.checker()
+    grid.uz_jacs = False
+    grid.construct("pmsm_pf")
+    Builder(grid.sys_dict, target="ctypes", sparse=False).build()
+
+    m = Model("pmsm_pf")
+    assert m.ini({}, grid.dae["xy_0_dict"])
+    # output equals the PPC command; speed is pitch-limited and pitch is spilling
+    assert float(m.get_value("p_s_WT1")) == pytest.approx(0.5, abs=1e-3)
+    assert float(m.get_value("omega_t_WT1")) == pytest.approx(1.2, abs=0.05)
+    assert float(m.get_value("beta_WT1")) > 1.0

@@ -23,17 +23,22 @@ $$c_p = C_1(C_2/\lambda_i - C_3\beta - C_4)e^{-C_5/\lambda_i} + C_6\lambda,
 $$2H_t\,\dot\omega_t = p_w - K_{tr}\theta_{tr} - D_{tr}(\omega_t-\omega_r), \quad
   2H_r\,\dot\omega_r = K_{tr}\theta_{tr} + D_{tr}(\omega_t-\omega_r) - p_r$$
 
-MPPT sets the base electrical power; the plant-controller command
-$p_{s,ppc}$ is added on top (as in ``pmsm_1``), and this total is both the
-rotor-braking power and the grid active-power reference:
+The delivered active power is the **minimum of the PPC command
+$p_{s,ppc}$ and the available wind power** — the MPPT cubic law
+$p_{mppt}=K_{mppt3}\,\omega_t^3$, which tracks the wind below rated and
+saturates at the rated value once the pitch controller pins $\omega_t$ at high
+wind.  This reference brakes the rotor and is injected to the grid:
 
-$$p_{mppt} = K_{mppt3}\,\omega_t^3, \qquad
-  T_{mppt}\,\dot p_{w,mppt} = p_{mppt} + p_{ref,ext} - p_{w,mppt}, \qquad
-  p_r = p_{w,mppt} + p_{s,ppc}$$
+$$p_{cmd} = \min(p_{s,ppc},\, p_{mppt}), \qquad
+  T_{mppt}\,\dot p_{w,mppt} = p_{cmd} - p_{w,mppt}, \qquad p_r = p_{w,mppt}$$
+
+For a power flow, set the wind high so the turbine sits in the constant-power
+region and the output equals $p_{s,ppc}$ (up to the rated power).  The
+$\min$ is smoothed as $\tfrac12(a+b-\sqrt{(a-b)^2+\epsilon})$.
 
 **Grid injection (algebraic p/q, from pv_pq_ss)**
 
-$$p_{s,ref} = p_{w,mppt} + p_{s,ppc}, \qquad q_{s,ref} = q_{s,ppc}$$
+$$p_{s,ref} = p_{w,mppt}, \qquad q_{s,ref} = q_{s,ppc}$$
 $$i_{sr,pq} = \frac{p_{s,ref} v_{sr} + q_{s,ref} v_{si}}{v_{sr}^2+v_{si}^2+\epsilon},
   \quad
   i_{si,pq} = \frac{p_{s,ref} v_{si} - q_{s,ref} v_{sr}}{v_{sr}^2+v_{si}^2+\epsilon}$$
@@ -80,11 +85,9 @@ def descriptions():
     d += [{"type": "Input", "tex": "\\nu_{w,0}", "data": "nu_w_0", "model": "nu_w_0",
            "default": 10.0, "description": "Base wind speed", "units": "m/s"}]
     d += [{"type": "Input", "tex": "p_{s,ppc}", "data": "p_s_ppc", "model": "p_s_ppc",
-           "default": 0.0, "description": "Active power command from PPC (added to MPPT)", "units": "pu"}]
+           "default": 1.2, "description": "Active-power command from PPC; output = min(p_s_ppc, available wind power)", "units": "pu"}]
     d += [{"type": "Input", "tex": "q_{s,ppc}", "data": "q_s_ppc", "model": "q_s_ppc",
            "default": 0.0, "description": "Reactive power reference from PPC", "units": "pu"}]
-    d += [{"type": "Input", "tex": "p_{ref,ext}", "data": "p_ref_ext", "model": "p_ref_ext",
-           "default": 0.0, "description": "External active-power adjustment (≤0 curtails)", "units": "pu"}]
     d += [{"type": "Input", "tex": "\\beta_{ext}", "data": "beta_ext", "model": "beta_ext",
            "default": 0.0, "description": "External pitch-angle adder", "units": "deg"}]
     d += [{"type": "Input", "tex": "\\text{lvrt}_{ext}", "data": "lvrt_ext", "model": "lvrt_ext",
@@ -172,7 +175,6 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     dnu_w_ramp_ref = sym.Symbol(f"dnu_w_ramp_ref_{name}", real=True)
     p_s_ppc = sym.Symbol(f"p_s_ppc_{name}", real=True)
     q_s_ppc = sym.Symbol(f"q_s_ppc_{name}", real=True)
-    p_ref_ext = sym.Symbol(f"p_ref_ext_{name}", real=True)
     beta_ext = sym.Symbol(f"beta_ext_{name}", real=True)
     lvrt_ext = sym.Symbol(f"lvrt_ext_{name}", real=True)
     i_sa_ref = sym.Symbol(f"i_sa_ref_{name}", real=True)
@@ -227,14 +229,22 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     p_w = sym.Piecewise((0.0, p_w_nosat < 0.0), (p_w_nosat, True))
     dnu_w_ramp = dnu_w_ramp_ref - 1e-4 * nu_w_ramp
 
-    # 7. MPPT: cubic power–speed law, low-pass filtered → rotor-braking power
-    p_mppt_ref = K_mppt3 * omega_t**3
-    p_m_ref = sym.Piecewise((p_mppt_ref + p_ref_ext, p_ref_ext < 0.0), (p_mppt_ref, True))
-    dp_w_mppt_lpf = 1.0 / T_mppt * (p_m_ref - p_w_mppt_lpf)
-    # PPC active-power command is added after the filter (as in pmsm_1:
-    # p_r_ref = p_w_mppt_lpf + p_ppc). It is extracted from the rotor and
-    # injected to the grid, keeping the power balance consistent (no DC link).
-    p_r = p_w_mppt_lpf + p_s_ppc                      # electrical power extracted from the rotor
+    # 7. Power reference: min(PPC command, available wind power).
+    #
+    # The MPPT cubic law p_mppt = K_mppt3·ω_t³ is the extractable (available)
+    # power at the current operating point: below rated it tracks the wind, and
+    # at high wind the pitch controller pins ω_t at Omega_r_max so it saturates
+    # at the rated value.  The PPC command p_s_ppc caps this — so the turbine
+    # delivers min(p_s_ppc, available).  For a power flow, set the wind high so
+    # the unit sits in the constant-power region and the output equals p_s_ppc.
+    #
+    # The min is a smooth (soft) minimum so the Jacobian stays continuous:
+    #   min(a, b) = ½·(a + b − √((a − b)² + ε)).
+    p_mppt_ref = K_mppt3 * omega_t**3                 # available power at the operating point
+    p_cmd = 0.5 * (p_s_ppc + p_mppt_ref
+                   - sym.sqrt((p_s_ppc - p_mppt_ref)**2 + Epsilon))
+    dp_w_mppt_lpf = 1.0 / T_mppt * (p_cmd - p_w_mppt_lpf)
+    p_r = p_w_mppt_lpf                                # electrical power extracted from the rotor
 
     # 8. Pitch control (limits rotor overspeed above Omega_r_max)
     epsilon_beta_nosat = omega_r - Omega_r_max
@@ -266,8 +276,8 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
         grid.dae["x"] += list(sys_q["x"])
         grid.dae["params_dict"].update(sys_q["params_dict"])
 
-    # 11. Grid injection references (active = MPPT + PPC command, reactive = PPC)
-    p_s_ref = p_r
+    # 11. Grid injection references: active = min(p_s_ppc, available), reactive = PPC
+    p_s_ref = p_w_mppt_lpf
     q_s_ref = q_s_ppc_d
 
     # 12. Grid voltages in stationary (r-i) frame
@@ -310,7 +320,7 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     inputs = {
         nu_w_0: par("nu_w_0"), dnu_w_ramp_ref: 0.0,
         p_s_ppc: par("p_s_ppc"), q_s_ppc: par("q_s_ppc"),
-        p_ref_ext: par("p_ref_ext"), beta_ext: par("beta_ext"),
+        beta_ext: par("beta_ext"),
         lvrt_ext: 0.0, i_sa_ref: 0.0, i_sr_ref: 0.0,
     }
     for sym_in, val in inputs.items():
@@ -346,12 +356,18 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     for sym_p, val in params.items():
         grid.dae["params_dict"].update({str(sym_p): val})
 
-    # 20. Initialization hints
-    p_0 = par("K_mppt3") * 1.2**3
+    # 20. Initialization hints. When the data imply above-rated / curtailed
+    # operation (high wind or a low PPC command), seed the pitched operating
+    # point so the pitch integrator converges to the physical root rather than a
+    # spurious high-speed one. beta_seed grows with wind above rated (~11 m/s).
+    p_rated = par("K_mppt3") * 1.2**3
+    p_seed = min(par("p_s_ppc"), p_rated)
+    beta_seed = max(0.0, 3.0 * (par("nu_w_0") - 11.0))
     grid.dae["xy_0_dict"].update({
         str(nu_w_ramp): 0.0, str(omega_t): 1.2, str(omega_r): 1.2,
-        str(theta_tr): p_0 / max(K_tr_val, 1e-6), str(xi_beta): 0.0, str(beta): 0.0,
-        str(p_w_mppt_lpf): p_0, str(p_s): p_0, str(q_s): par("q_s_ppc"),
+        str(theta_tr): p_seed / max(K_tr_val, 1e-6),
+        str(xi_beta): beta_seed, str(beta): beta_seed,
+        str(p_w_mppt_lpf): p_seed, str(p_s): p_seed, str(q_s): par("q_s_ppc"),
     })
 
     # 21. Outputs
