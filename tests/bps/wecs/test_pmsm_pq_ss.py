@@ -99,6 +99,31 @@ def test_ppc_active_curtailment(model):
     assert float(model.get_value("p_s_WT1")) == pytest.approx(0.3, abs=2e-2)
 
 
+def test_casadi_backend_parity(tmp_path, monkeypatch):
+    """Dual-backend: the model builds and inis on the CasADi backend (no leftover
+    SymPy expressions in the SX graph) and matches the SymPy operating point."""
+    from pydae.bps import BpsBuilder
+    from pydae.core.builder import CasadiBuilder, CasadiModel
+
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "grid_ca.json"
+    json.dump(GRID, open(path, "w"))
+
+    grid = BpsBuilder(str(path), use_casadi=True)
+    grid.checker()
+    grid.uz_jacs = False
+    grid.construct("pmsm_pq_ss_ca")
+    # every f/g entry must be a CasADi SX (a leftover sympy expr breaks vertcat)
+    mc = CasadiModel(CasadiBuilder(grid.sys_dict).build())
+    mc.ini({}, xy_0=grid.dae["xy_0_dict"])
+
+    p_s = float(mc.get_value("p_s_WT1"))
+    omega_t = float(mc.get_value("omega_t_WT1"))
+    assert p_s == pytest.approx(0.4 * omega_t**3, abs=1e-4)   # MPPT steady state
+    assert p_s == pytest.approx(0.5553, abs=2e-3)             # matches SymPy backend
+    assert float(mc.get_value("beta_WT1")) == pytest.approx(0.0, abs=1e-3)
+
+
 def test_powerflow_constant_power(tmp_path, monkeypatch):
     """Power-flow use case: high wind -> constant-power region -> output = p_s_ppc."""
     from pydae.bps import BpsBuilder

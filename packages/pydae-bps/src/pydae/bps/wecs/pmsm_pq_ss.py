@@ -50,7 +50,6 @@ $$0 = v_{sr} i_{sr} + v_{si} i_{si} - p_s, \qquad
 import io
 
 import numpy as np
-import sympy as sym
 
 
 def descriptions():
@@ -143,7 +142,8 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     Parameters
     ----------
     grid : BpsBuilder
-        Builder instance (SymPy backend — this model is not CasADi-ported).
+        Builder instance. Dual-backend: works on both the SymPy and CasADi
+        backends (all math goes through ``grid.backend``).
     name : str
         Unique instance identifier.
     bus_name : str
@@ -157,8 +157,9 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     p_W, q_var : expressions
         Active (W) and reactive (var) injection into the bus.
     """
-    sin = sym.sin
-    cos = sym.cos
+    backend = grid.backend
+    sin = backend.sin
+    cos = backend.cos
 
     meta = descriptions()
     default_map = {it["data"]: it["default"] for it in meta if it.get("data")}
@@ -167,66 +168,66 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
         return data_dict.get(key, default_map.get(key))
 
     # 1. Bus voltages
-    V_s = sym.Symbol(f"V_{bus_name}", real=True)
-    theta_s = sym.Symbol(f"theta_{bus_name}", real=True)
+    V_s = backend.symbols(f"V_{bus_name}", real=True)
+    theta_s = backend.symbols(f"theta_{bus_name}", real=True)
 
     # 2. Inputs
-    nu_w_0 = sym.Symbol(f"nu_w_0_{name}", real=True)
-    dnu_w_ramp_ref = sym.Symbol(f"dnu_w_ramp_ref_{name}", real=True)
-    p_s_ppc = sym.Symbol(f"p_s_ppc_{name}", real=True)
-    q_s_ppc = sym.Symbol(f"q_s_ppc_{name}", real=True)
-    beta_ext = sym.Symbol(f"beta_ext_{name}", real=True)
-    lvrt_ext = sym.Symbol(f"lvrt_ext_{name}", real=True)
-    i_sa_ref = sym.Symbol(f"i_sa_ref_{name}", real=True)
-    i_sr_ref = sym.Symbol(f"i_sr_ref_{name}", real=True)
+    nu_w_0 = backend.symbols(f"nu_w_0_{name}", real=True)
+    dnu_w_ramp_ref = backend.symbols(f"dnu_w_ramp_ref_{name}", real=True)
+    p_s_ppc = backend.symbols(f"p_s_ppc_{name}", real=True)
+    q_s_ppc = backend.symbols(f"q_s_ppc_{name}", real=True)
+    beta_ext = backend.symbols(f"beta_ext_{name}", real=True)
+    lvrt_ext = backend.symbols(f"lvrt_ext_{name}", real=True)
+    i_sa_ref = backend.symbols(f"i_sa_ref_{name}", real=True)
+    i_sr_ref = backend.symbols(f"i_sr_ref_{name}", real=True)
 
     # 3. Dynamic states
-    nu_w_ramp = sym.Symbol(f"nu_w_ramp_{name}", real=True)
-    theta_tr = sym.Symbol(f"theta_tr_{name}", real=True)
-    omega_t = sym.Symbol(f"omega_t_{name}", real=True)
-    omega_r = sym.Symbol(f"omega_r_{name}", real=True)
-    xi_beta = sym.Symbol(f"xi_beta_{name}", real=True)
-    beta = sym.Symbol(f"beta_{name}", real=True)
-    p_w_mppt_lpf = sym.Symbol(f"p_w_mppt_lpf_{name}", real=True)
+    nu_w_ramp = backend.symbols(f"nu_w_ramp_{name}", real=True)
+    theta_tr = backend.symbols(f"theta_tr_{name}", real=True)
+    omega_t = backend.symbols(f"omega_t_{name}", real=True)
+    omega_r = backend.symbols(f"omega_r_{name}", real=True)
+    xi_beta = backend.symbols(f"xi_beta_{name}", real=True)
+    beta = backend.symbols(f"beta_{name}", real=True)
+    p_w_mppt_lpf = backend.symbols(f"p_w_mppt_lpf_{name}", real=True)
 
     # 4. Algebraic states
-    p_s = sym.Symbol(f"p_s_{name}", real=True)
-    q_s = sym.Symbol(f"q_s_{name}", real=True)
+    p_s = backend.symbols(f"p_s_{name}", real=True)
+    q_s = backend.symbols(f"q_s_{name}", real=True)
 
     # 5. Parameters
-    S_n = sym.Symbol(f"S_n_{name}", real=True)
-    K_mppt3 = sym.Symbol(f"K_mppt3_{name}", real=True)
-    T_mppt = sym.Symbol(f"T_mppt_{name}", real=True)
-    T_beta = sym.Symbol(f"T_beta_{name}", real=True)
-    K_p_beta = sym.Symbol(f"K_p_beta_{name}", real=True)
-    K_i_beta = sym.Symbol(f"K_i_beta_{name}", real=True)
-    Omega_r_max = sym.Symbol(f"Omega_r_max_{name}", real=True)
-    H_t = sym.Symbol(f"H_t_{name}", real=True)
-    H_r = sym.Symbol(f"H_r_{name}", real=True)
-    K_tr = sym.Symbol(f"K_tr_{name}", real=True)
-    D_tr = sym.Symbol(f"D_tr_{name}", real=True)
-    C_1 = sym.Symbol(f"C_1_{name}", real=True)
-    C_2 = sym.Symbol(f"C_2_{name}", real=True)
-    C_3 = sym.Symbol(f"C_3_{name}", real=True)
-    C_4 = sym.Symbol(f"C_4_{name}", real=True)
-    C_5 = sym.Symbol(f"C_5_{name}", real=True)
-    C_6 = sym.Symbol(f"C_6_{name}", real=True)
-    Nu_w_b = sym.Symbol(f"Nu_w_b_{name}", real=True)
-    Lam_b = sym.Symbol(f"Lam_b_{name}", real=True)
-    Omega_t_b = sym.Symbol(f"Omega_t_b_{name}", real=True)
-    K_pow = sym.Symbol(f"K_pow_{name}", real=True)
-    C_p_b = sym.Symbol(f"C_p_b_{name}", real=True)
-    I_max = sym.Symbol(f"I_max_{name}", real=True)
-    Epsilon = sym.Symbol(f"Epsilon_{name}", real=True)
+    S_n = backend.symbols(f"S_n_{name}", real=True)
+    K_mppt3 = backend.symbols(f"K_mppt3_{name}", real=True)
+    T_mppt = backend.symbols(f"T_mppt_{name}", real=True)
+    T_beta = backend.symbols(f"T_beta_{name}", real=True)
+    K_p_beta = backend.symbols(f"K_p_beta_{name}", real=True)
+    K_i_beta = backend.symbols(f"K_i_beta_{name}", real=True)
+    Omega_r_max = backend.symbols(f"Omega_r_max_{name}", real=True)
+    H_t = backend.symbols(f"H_t_{name}", real=True)
+    H_r = backend.symbols(f"H_r_{name}", real=True)
+    K_tr = backend.symbols(f"K_tr_{name}", real=True)
+    D_tr = backend.symbols(f"D_tr_{name}", real=True)
+    C_1 = backend.symbols(f"C_1_{name}", real=True)
+    C_2 = backend.symbols(f"C_2_{name}", real=True)
+    C_3 = backend.symbols(f"C_3_{name}", real=True)
+    C_4 = backend.symbols(f"C_4_{name}", real=True)
+    C_5 = backend.symbols(f"C_5_{name}", real=True)
+    C_6 = backend.symbols(f"C_6_{name}", real=True)
+    Nu_w_b = backend.symbols(f"Nu_w_b_{name}", real=True)
+    Lam_b = backend.symbols(f"Lam_b_{name}", real=True)
+    Omega_t_b = backend.symbols(f"Omega_t_b_{name}", real=True)
+    K_pow = backend.symbols(f"K_pow_{name}", real=True)
+    C_p_b = backend.symbols(f"C_p_b_{name}", real=True)
+    I_max = backend.symbols(f"I_max_{name}", real=True)
+    Epsilon = backend.symbols(f"Epsilon_{name}", real=True)
 
     # 6. Aerodynamics
     nu_w = nu_w_0 + nu_w_ramp
     lam = Lam_b * (omega_t / Omega_t_b) / (nu_w / Nu_w_b)
     inv_lam_i = 1 / (lam + 0.08 * beta) - 0.035 / (beta**3 + 1.0)
-    c_p = C_1 * (C_2 * inv_lam_i - C_3 * beta - C_4) * sym.exp(-C_5 * inv_lam_i) + C_6 * lam
+    c_p = C_1 * (C_2 * inv_lam_i - C_3 * beta - C_4) * backend.exp(-C_5 * inv_lam_i) + C_6 * lam
     c_p_pu = c_p / C_p_b
     p_w_nosat = K_pow * c_p_pu * (nu_w / Nu_w_b)**3
-    p_w = sym.Piecewise((0.0, p_w_nosat < 0.0), (p_w_nosat, True))
+    p_w = backend.Piecewise((0.0, p_w_nosat < 0.0), (p_w_nosat, True))
     dnu_w_ramp = dnu_w_ramp_ref - 1e-4 * nu_w_ramp
 
     # 7. Power reference: min(PPC command, available wind power).
@@ -242,20 +243,20 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     #   min(a, b) = ½·(a + b − √((a − b)² + ε)).
     p_mppt_ref = K_mppt3 * omega_t**3                 # available power at the operating point
     p_cmd = 0.5 * (p_s_ppc + p_mppt_ref
-                   - sym.sqrt((p_s_ppc - p_mppt_ref)**2 + Epsilon))
+                   - backend.sqrt((p_s_ppc - p_mppt_ref)**2 + Epsilon))
     dp_w_mppt_lpf = 1.0 / T_mppt * (p_cmd - p_w_mppt_lpf)
     p_r = p_w_mppt_lpf                                # electrical power extracted from the rotor
 
     # 8. Pitch control (limits rotor overspeed above Omega_r_max)
     epsilon_beta_nosat = omega_r - Omega_r_max
-    epsilon_beta = sym.Piecewise((0.0, epsilon_beta_nosat < 0.0), (epsilon_beta_nosat, True))
+    epsilon_beta = backend.Piecewise((0.0, epsilon_beta_nosat < 0.0), (epsilon_beta_nosat, True))
     beta_ref = K_p_beta * epsilon_beta + K_i_beta * xi_beta
     dxi_beta = epsilon_beta - xi_beta * 1e-8
     dbeta = 1.0 / T_beta * (beta_ref + beta_ext - beta)
 
     # 9. Two-mass mechanical drivetrain
-    omega_t_abs = sym.Abs(omega_t) + 0.01
-    omega_r_abs = sym.Abs(omega_r) + 0.01
+    omega_t_abs = backend.Abs(omega_t) + 0.01
+    omega_r_abs = backend.Abs(omega_r) + 0.01
     dtheta_tr = omega_t - omega_r
     domega_t = 1.0 / (2 * H_t * omega_t_abs) * (p_w - K_tr * theta_tr - D_tr * (omega_t - omega_r))
     domega_r = 1.0 / (2 * H_r * omega_r_abs) * (K_tr * theta_tr + D_tr * (omega_t - omega_r) - p_r)
@@ -264,16 +265,28 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     q_s_ppc_d = q_s_ppc
     if "A_q" in data_dict:
         from pydae.bps.utils.ss_num2sym import ss_num2sym
+
+        def _replace(expr, old, new):
+            if backend.use_casadi:
+                import casadi as ca
+                return ca.substitute(expr, old, new)
+            return expr.replace(old, new)
+
+        def _to_list(mat):
+            if backend.use_casadi:
+                return [mat[i, 0] for i in range(mat.shape[0])]
+            return list(mat)
+
         A_q = np.array(data_dict["A_q"])
         B_q = np.array(data_dict["B_q"])
         C_q = np.array(data_dict["C_q"])
         D_q = np.array(data_dict["D_q"])
-        sys_q = ss_num2sym(f"q_{name}", A_q, B_q, C_q, D_q)
-        sys_q["dx"] = sys_q["dx"].replace(sys_q["u"][0, 0], q_s_ppc)
-        sys_q["z_evaluated"] = sys_q["z_evaluated"].replace(sys_q["u"][0, 0], q_s_ppc)
+        sys_q = ss_num2sym(f"q_{name}", A_q, B_q, C_q, D_q, backend=backend)
+        sys_q["dx"] = _replace(sys_q["dx"], sys_q["u"][0, 0], q_s_ppc)
+        sys_q["z_evaluated"] = _replace(sys_q["z_evaluated"], sys_q["u"][0, 0], q_s_ppc)
         q_s_ppc_d = sys_q["z_evaluated"][0, 0]
-        grid.dae["f"] += list(sys_q["dx"])
-        grid.dae["x"] += list(sys_q["x"])
+        grid.dae["f"] += _to_list(sys_q["dx"])
+        grid.dae["x"] += _to_list(sys_q["x"])
         grid.dae["params_dict"].update(sys_q["params_dict"])
 
     # 11. Grid injection references: active = min(p_s_ppc, available), reactive = PPC
@@ -284,7 +297,7 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     v_sr = V_s * cos(theta_s)
     v_si = V_s * sin(theta_s)
     v_sq_mag = v_sr**2 + v_si**2 + Epsilon
-    v_m = sym.sqrt(v_sq_mag)
+    v_m = backend.sqrt(v_sq_mag)
 
     # 13. PQ-mode current references
     i_sr_pq = (p_s_ref * v_sr + q_s_ref * v_si) / v_sq_mag
@@ -297,8 +310,8 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     # 15. Blend via LVRT trigger + smooth current saturation
     i_sr_nosat = (1.0 - lvrt_ext) * i_sr_pq + lvrt_ext * i_sr_ar
     i_si_nosat = (1.0 - lvrt_ext) * i_si_pq + lvrt_ext * i_si_ar
-    i_mod = sym.sqrt(i_sr_nosat**2 + i_si_nosat**2 + Epsilon)
-    i_mod_sat = 0.5 * (i_mod + I_max - sym.sqrt((i_mod - I_max)**2 + Epsilon))
+    i_mod = backend.sqrt(i_sr_nosat**2 + i_si_nosat**2 + Epsilon)
+    i_mod_sat = 0.5 * (i_mod + I_max - backend.sqrt((i_mod - I_max)**2 + Epsilon))
     ratio = i_mod_sat / i_mod
     i_sr = i_sr_nosat * ratio
     i_si = i_si_nosat * ratio
@@ -316,16 +329,15 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["y_ini"] += [p_s, q_s]
     grid.dae["y_run"] += [p_s, q_s]
 
-    # 18. Inputs
-    inputs = {
-        nu_w_0: par("nu_w_0"), dnu_w_ramp_ref: 0.0,
-        p_s_ppc: par("p_s_ppc"), q_s_ppc: par("q_s_ppc"),
-        beta_ext: par("beta_ext"),
-        lvrt_ext: 0.0, i_sa_ref: 0.0, i_sr_ref: 0.0,
+    # 18. Inputs (string-keyed: CasADi SX symbols are not usable as dict keys)
+    input_defaults = {
+        str(nu_w_0): par("nu_w_0"), str(dnu_w_ramp_ref): 0.0,
+        str(p_s_ppc): par("p_s_ppc"), str(q_s_ppc): par("q_s_ppc"),
+        str(beta_ext): par("beta_ext"),
+        str(lvrt_ext): 0.0, str(i_sa_ref): 0.0, str(i_sr_ref): 0.0,
     }
-    for sym_in, val in inputs.items():
-        grid.dae["u_ini_dict"].update({str(sym_in): val})
-        grid.dae["u_run_dict"].update({str(sym_in): val})
+    grid.dae["u_ini_dict"].update(input_defaults)
+    grid.dae["u_run_dict"].update(input_defaults)
 
     # 19. Parameters
     S_n_val = par("S_n")
@@ -345,16 +357,15 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
                * np.exp(-C_vals["C_5_"] * inv_lam_i_b) + C_vals["C_6_"] * Lam_b_v)
 
     params = {
-        S_n: S_n_val, K_mppt3: par("K_mppt3"), T_mppt: par("T_mppt"),
-        T_beta: 2.0, K_p_beta: 100.0, K_i_beta: 1.0, Omega_r_max: 1.2,
-        H_t: H_t_val, H_r: H_r_val, K_tr: K_tr_val, D_tr: D_tr_val,
-        Nu_w_b: Nu_w_b_v, Lam_b: Lam_b_v, Omega_t_b: Omega_t_b_v,
-        K_pow: K_pow_v, C_p_b: C_p_b_v,
-        I_max: par("I_max"), Epsilon: par("Epsilon"),
+        str(S_n): S_n_val, str(K_mppt3): par("K_mppt3"), str(T_mppt): par("T_mppt"),
+        str(T_beta): 2.0, str(K_p_beta): 100.0, str(K_i_beta): 1.0, str(Omega_r_max): 1.2,
+        str(H_t): H_t_val, str(H_r): H_r_val, str(K_tr): K_tr_val, str(D_tr): D_tr_val,
+        str(Nu_w_b): Nu_w_b_v, str(Lam_b): Lam_b_v, str(Omega_t_b): Omega_t_b_v,
+        str(K_pow): K_pow_v, str(C_p_b): C_p_b_v,
+        str(I_max): par("I_max"), str(Epsilon): par("Epsilon"),
     }
-    params.update({sym.Symbol(f"{k}{name}", real=True): v for k, v in C_vals.items()})
-    for sym_p, val in params.items():
-        grid.dae["params_dict"].update({str(sym_p): val})
+    params.update({f"{k}{name}": v for k, v in C_vals.items()})
+    grid.dae["params_dict"].update(params)
 
     # 20. Initialization hints. When the data imply above-rated / curtailed
     # operation (high wind or a low PPC command), seed the pitched operating
