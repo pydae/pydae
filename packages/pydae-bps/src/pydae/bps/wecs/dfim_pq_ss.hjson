@@ -1,0 +1,10 @@
+{
+    "system":{"name":"dfim_pq_ss","S_base":100e6},
+    "buses":[{"name":"1","P_W":0.0,"Q_var":0.0,"U_kV":20.0}],
+    "wecs":[{"type":"dfim_pq_ss","bus":"1","name":"WT1",
+             "S_n":3e6,"F_n":50.0,
+             "H_t":4.0,"H_r":0.8,"w_tr":2.0,"d_tr":0.1,
+             "K_mppt3":0.4,"T_mppt":5.0,
+             "X_m":3.0,"X_s":3.05,"I_max_r":1.2}],
+    "sources":[{"type":"vsource","bus":"1"}]
+}

@@ -9,6 +9,7 @@ import numpy as np
 from pydae.bps.wecs.full_converter import full_converter
 from pydae.bps.wecs.pmsm_1 import pmsm_1
 from pydae.bps.wecs.pmsm_pq_ss import pmsm_pq_ss
+from pydae.bps.wecs.dfim_pq_ss import dfim_pq_ss
 
 from pydae.bps.vsc_ctrls.vsc_ctrls import add_ctrl
 from pydae.bps.vsc_models.vsc_models import add_model
@@ -44,6 +45,8 @@ def add_wecs(grid):
             p_W, q_var = pmsm_1(grid,name,bus_name,data_dict)
         if item['type'] == 'pmsm_pq_ss':
             p_W, q_var = pmsm_pq_ss(grid,name,bus_name,data_dict)
+        if item['type'] == 'dfim_pq_ss':
+            p_W, q_var = dfim_pq_ss(grid,name,bus_name,data_dict)
 
         # grid power injection
         idx_bus = buses_list.index(bus_name) # get the number of the bus where the syn is connected
