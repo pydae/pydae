@@ -3,12 +3,16 @@
 Produces:
 
 - a single pydae-compatible plant JSON (electrical + comms + cosim configs)
-- a pydae Newton-solver seed (``xy_0.json``)
-- optionally, a four-protocol benchmark folder tree (``modbus`` /
-  ``iec104`` / ``dnp3`` / ``dds``) ready to be driven by colinker.  The
-  ``modbus`` and ``iec104`` folders carry a structured ``tests/`` suite
-  (open-/closed-loop step, frequency-response Bode, MITM) copied from
-  ``templates/tests/``.
+- a full benchmark folder tree ready to be driven by colinker: four networked
+  SCADA stacks (``modbus`` / ``iec104`` / ``dnp3`` / ``dds``) plus a no-Mininet
+  ``local`` case.  Every stack carries the structured ``tests/`` suite
+  (open-/closed-loop step, frequency-response Bode, over-power MITM) copied from
+  ``templates/tests/``, and the tree carries a ``common/`` folder with the
+  ``run_all_tests.py`` orchestrator (+ monitor / plot / metrics).  Run scripts,
+  common tooling and the top README are stamped from files under ``templates/``.
+
+The pydae Newton seed (``xy_0.json``) is *not* shipped in the scaffold —
+``colinker.pydae_sim`` writes it at model-build time.
 
 This module is the consolidated successor of the earlier
 ``pv_plant.py`` (templates only) and ``utils/pv_builder/pv_designer.py``
@@ -32,11 +36,51 @@ import glob
 import json
 import os
 import shutil
+import sys
+import tempfile
 
 import numpy as np
 
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+# Must mirror INV_HOP in _apply_link_delays; lifted here so
+# _modbus_timeout_for_hops can size the Modbus client timeout from the same
+# per-hop latency budget.
+_INV_HOP_MS = [(5, 2), (8, 3), (10, 3), (15, 5), (18, 5),
+               (20, 6), (22, 6), (25, 7)]
+
+
+def _pydae_chunk_ms_for_size(M: int, N: int) -> int:
+    """Pick a pydae simulator chunk size (ms) that keeps the integrator
+    above real time as the plant grows.  Baseline: 20 ms per 25-inverter
+    "unit"; larger plants get proportionally bigger chunks so IDAS setup cost
+    stays amortised.  Concrete tiers:
+
+      M×N ≤ 25 → 20 ms   (unchanged — matches all pre-existing plants)
+      26–50    → 40 ms
+      51–75    → 60 ms
+      76+      → 80 ms
+    """
+    n_inv = max(1, M * N)
+    return 20 * ((n_inv - 1) // 25 + 1)
+
+
+def _modbus_timeout_for_hops(N: int, with_link_delays: bool) -> float:
+    """Recommend a Modbus TCP client timeout (seconds) that covers TCP connect
+    through the deepest inverter in a branch.  ~3x the accumulated peak RTT
+    (one-way delay + 2σ jitter) to the N-th inverter, floored at 0.15 s.
+    When ``with_link_delays`` is False the topology is instantaneous, so the
+    old 0.15 s default suffices."""
+    if not with_link_delays:
+        return 0.15
+    n = min(max(N, 1), len(_INV_HOP_MS))
+    trunk_ms   = 3.0                                   # PPC↔sPOI + host last-mile
+    one_way_ms = trunk_ms + sum(d for d, _ in _INV_HOP_MS[:n])
+    jitter_ms  = sum(j for _, j in _INV_HOP_MS[:n])
+    peak_rtt_s = 2.0 * (one_way_ms + 2.0 * jitter_ms) / 1000.0
+    return round(max(0.15, 3.0 * peak_rtt_s), 3)
 
 
 # ---------------------------------------------------------------------------
@@ -90,6 +134,10 @@ def designer(M, N, output_file='.', S_base=100e6, P_inv_max=3e6,
             "K_p_agc": 0.0,
             "K_i_agc": 0.0,
             "K_xif": 0.01,
+        },
+        "pydae_sim": {
+            "chunk_ms":    _pydae_chunk_ms_for_size(M, N),
+            "ramp_chunks": 2,
         },
         "buses": [],
         "lines": [
@@ -275,6 +323,13 @@ def designer(M, N, output_file='.', S_base=100e6, P_inv_max=3e6,
               'r') as fobj:
         com_dev_data = json.loads(fobj.read())
 
+    # Every device is its own Modbus outstation (own IP:port), so their
+    # register spaces are isolated — reg_0 does NOT need to be globally
+    # unique.  Using a fixed low value keeps ``reg_abs = reg_0 + register``
+    # inside the 16-bit Modbus wire address space regardless of M×N; the
+    # earlier ``reg_0 += 1000`` scheme silently overflowed uint16 past ~63
+    # devices, causing pymodbus to reject every write with
+    # ``'H' format requires 0 <= number <= 65535``.
     reg_0 = 1000
     com_dev_data['devices'] += [{
         "ing_id": "poi", "ing_type": "poi", "emec_id": "POI",
@@ -287,7 +342,6 @@ def designer(M, N, output_file='.', S_base=100e6, P_inv_max=3e6,
     for i_m in range(1, M + 1):
         for i_n in range(1, N + 1):
             name = f"{i_m}".zfill(2) + f"{i_n}".zfill(2)
-            reg_0 += 1000
             com_dev_data['devices'] += [{
                 "ing_id": f"inv{name}", "ing_type": "inverter",
                 "emec_id": f"LV{name}",
@@ -334,6 +388,7 @@ def designer(M, N, output_file='.', S_base=100e6, P_inv_max=3e6,
         # ~100 ms/write transport delay).  The aggressive K_ip=2.0 / ctrl_dt=0.02
         # set oscillates at cold start through that delay; these settle cleanly.
         "ctrl_dt_s":   0.1,
+        "modbus_timeout_s": _modbus_timeout_for_hops(N, with_link_delays),
         "p_max_mw":    P_inv_max / 1e6,
         "p_min_mw":    0.0,
         "q_max_mvar":  0.5 * P_inv_max / 1e6,
@@ -352,6 +407,9 @@ def designer(M, N, output_file='.', S_base=100e6, P_inv_max=3e6,
 
     if output_file == '.':
         output_file = f'pv_{M}_{N}.json'
+    out_parent = os.path.dirname(output_file)
+    if out_parent:
+        os.makedirs(out_parent, exist_ok=True)
     print(f'Writing file: {output_file}')
     with open(output_file, 'w') as fobj:
         fobj.write(formatted_json)
@@ -514,28 +572,14 @@ def make_xy_0(plant):
 #         dds/     -> ...
 #         reporter/report.ipynb
 #
-# Run.py / run_step.sh target the standard Linux VM layout (pydae_dev conda
-# env, COLINKER_PYTHON, sudo-rs). Edit the constants inside the emitted
-# run.py if your paths differ.
-
-_PROTOCOL_LABEL = {
-    "modbus": "Modbus TCP stack",
-    "iec104": "IEC 60870-5-104 stack",
-    "dnp3":   "DNP3 stack",
-    "dds":    "DDS stack",
-}
+# Run.py targets the standard Linux VM layout (pydae_dev conda env,
+# COLINKER_PYTHON, sudo-rs). Edit the constants inside the emitted run.py (or
+# the templates/run_py/<proto>.py sources) if your paths differ.
 
 # IEC 104 runs the PPC control loop slower than the other stacks (which use the
 # designer default 0.1 s): its event-driven c104 link cannot sustain a 10 Hz
 # loop without saturating / oscillating.  See iec104_saturation.md.
 _IEC104_CTRL_DT_S = 1.0
-
-# Protocols that carry the structured tests/ suite (open-/closed-loop step,
-# frequency-response Bode, MITM) instead of the flat run_step.sh + results/.
-# All run the shared ppc_core control API, so the same drivers apply.  dnp3's
-# mitm_attack drives colinker.attacks.dnp3_mitm (a DNP3-aware MITM that
-# re-frames the falsified AI response with fresh DLL CRCs).
-_SUITE_PROTOCOLS = ("modbus", "iec104", "dnp3")
 
 # Protocols whose proxies put engineering units on the wire (wire = pydae *
 # emec_scale) and whose PPC reads them directly — power measurement points
@@ -543,836 +587,53 @@ _SUITE_PROTOCOLS = ("modbus", "iec104", "dnp3")
 # divides in software, so it is excluded.
 _ENGINEERING_UNIT_WIRE_PROTOCOLS = ("iec104", "dnp3")
 
-_RUN_PY_TEMPLATE = '''#!/usr/bin/env python3
-"""Launch the co-simulation (Mininet + pydae + proxies + PPC).
-
-Reads the plant JSON sitting next to this file and delegates to
-``colinker.mn.mininet_topo.setup()``. Requires root.
-
-Usage::
-
-    sudo python3 run.py [--no-cli] [--no-ppc]
-    sudo python3 run.py --no-cli --arrivals-dir results_delays/arrivals
-    sudo python3 run.py --no-cli --mitm                 # default: +5% offset
-    sudo python3 run.py --no-cli --mitm --mitm-offset-frac 0.05 \\
-                        --arrivals-dir results_overpower/arrivals \\
-                        --pcap-dir     results_overpower/pcaps
-    sudo python3 run.py --no-cli --mitm --mitm-value-mw __MITM_DEFAULT_VALUE_MW__   # fixed-spoof
-"""
-import argparse
-import os
-import sys
-
-
-_HERE         = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_JSON = os.path.join(_HERE, "__JSON_FILENAME__")
-_PYTHON       = "/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3"
-_COLINKER_SRC = "/home/jmmmacubu/mac_shared/colinker/src"
-
-# Pcap default capture set: PPC, POI, MITM, plus one host per inverter.
-_PV_HOSTS = __PV_HOSTS_LITERAL__
-
-
-def _check_root() -> None:
-    if os.geteuid() != 0:
-        print("error: Mininet requires root. Re-run with:")
-        print(f"  sudo python3 {sys.argv[0]}")
-        sys.exit(1)
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run the co-simulation (__PROTOCOL_LABEL__)"
-    )
-    parser.add_argument("--json", "-j", default=_DEFAULT_JSON,
-                        help=f"Plant JSON path (default: {_DEFAULT_JSON})")
-    parser.add_argument("--no-cli", action="store_true",
-                        help="Skip Mininet CLI; block on SIGINT (headless)")
-    parser.add_argument("--no-ppc", action="store_true",
-                        help="Skip auto-starting the PPC")
-    parser.add_argument("--arrivals-dir", default=None,
-                        help="If set, each pv_proxy writes a 50 ms-cadence CSV "
-                             "of the wire-level setpoint values that arrived "
-                             "at it (one file per inverter, named "
-                             "<emec_id>_arrivals.csv).")
-    parser.add_argument("--mitm", action="store_true",
-                        help="Arm the Modbus MITM attack from the MITM host. "
-                             "Default: spoof POI active-power reading.")
-    parser.add_argument("--mitm-args", default=None,
-                        help="Override the full argv passed to "
-                             "colinker.attacks.modbus_mitm (when --mitm is set). "
-                             "Implies --mitm.")
-    parser.add_argument("--mitm-value-mw", type=float, default=None,
-                        help="FIXED-spoof mode: pin the POI active-power "
-                             "readback at this constant (MW) while armed. The "
-                             "PI error never closes, so the plant drives to "
-                             "saturation. Mutually exclusive with "
-                             "--mitm-offset-frac / --mitm-offset-mw.")
-    parser.add_argument("--mitm-offset-frac", type=float, default=0.05,
-                        help="OFFSET-spoof mode (default): add this fraction of "
-                             "the REAL POI reading before the PPC sees it "
-                             "(0.05 = +5%%). The PPC settles at a small, "
-                             "non-saturating steady-state error — the plant "
-                             "ends up ~this fraction off target.")
-    parser.add_argument("--mitm-offset-mw", type=float, default=0.0,
-                        help="OFFSET-spoof mode: also add this absolute bias "
-                             "(MW) to the real POI reading. Combined with "
-                             "--mitm-offset-frac.")
-    parser.add_argument("--mitm-start-after", type=float, default=30.0,
-                        help="Seconds after launch before the attack arms.")
-    parser.add_argument("--mitm-duration", type=float, default=60.0,
-                        help="Seconds the attack holds, then disarms.")
-    parser.add_argument("--pcap-dir", default=None,
-                        help="If set, run tcpdump in every host's netns "
-                             "(PPC, POI, all PV hosts, MITM) capturing all "
-                             "Modbus (tcp/5000 + tcp/502) and ARP traffic to "
-                             "<PCAP_DIR>/<HOST>.pcap.")
-    args = parser.parse_args()
-
-    _check_root()
-
-    if not os.path.exists(args.json):
-        print(f"error: JSON not found: {args.json}")
-        sys.exit(1)
-
-    # sudo-rs blocks env-var forwarding even with -E, so set inline.
-    os.environ.setdefault("COLINKER_PYTHON", _PYTHON)
-
-    if args.arrivals_dir:
-        os.makedirs(args.arrivals_dir, exist_ok=True)
-        os.environ["COLINKER_ARRIVALS_DIR"] = os.path.abspath(args.arrivals_dir)
-        print(f"[run] arrivals CSVs -> {os.environ['COLINKER_ARRIVALS_DIR']}/<name>_arrivals.csv")
-
-    if args.pcap_dir:
-        os.makedirs(args.pcap_dir, exist_ok=True)
-        os.environ["COLINKER_PCAP_DIR"] = os.path.abspath(args.pcap_dir)
-        # PPC/POI/MITM are the three vantage points needed to see the attack
-        # signature (same Modbus tid, different payload bytes).  Per-inverter
-        # captures are optional — drop them to save memory on small VMs.
-        pcap_hosts = ["PPC", "POI", "MITM"]
-        if os.environ.get("COLINKER_PCAP_INCLUDE_PV", "0") not in ("0", "", "false"):
-            pcap_hosts += list(_PV_HOSTS)
-        os.environ["COLINKER_PCAP_HOSTS"] = ",".join(pcap_hosts)
-        print(f"[run] pcap captures -> {os.environ['COLINKER_PCAP_DIR']}/<HOST>.pcap")
-
-    if args.mitm or args.mitm_args:
-        # Default attack: falsify the POI active-power register
-        # (p_line_POI_GRID, float32 CDAB, raw W) the PPC reads.
-        #
-        #   offset mode (default): add a small bias to the REAL reading
-        #     (cur*(1+frac)+abs) → the PPC settles ~frac off target without
-        #     saturating — stealthy, realistic falsification.
-        #   fixed mode (--mitm-value-mw): pin the readback at a constant →
-        #     the PI rails to saturation (the original over-power demo).
-        #
-        # --explicit-redirect mode: the PPC is told via --device-ip POI=<MITM>
-        # to connect directly to MITM:5000; MITM forwards to the real POI.
-        # Deterministic test path — the ARP-spoof + iptables NAT path is
-        # documented but not used here (conntrack flakiness inside netns).
-        MITM_IP          = "10.10.0.9"
-        # Listen on the same port the POI exposes so the PPC's
-        # `--device-ip POI=<MITM>` override (IP only, not port) reaches us.
-        POI_PORT         = __POI_MODBUS_PORT__
-        MITM_LISTEN_PORT = POI_PORT
-        # POI register holding p_line_POI_GRID (offset 370 from reg_0=1000).
-        POI_P_REGISTER   = 1370
-        if args.mitm_value_mw is not None:
-            if args.mitm_offset_mw or args.mitm_offset_frac != 0.05:
-                print("[run] WARNING: --mitm-value-mw (fixed) overrides "
-                      "--mitm-offset-* (offset)")
-            inject_arg = f"--value {args.mitm_value_mw * 1e6}"
-        else:
-            # offset mode: bias real reading by frac (+ abs MW → W)
-            inject_arg = (f"--offset-frac {args.mitm_offset_frac} "
-                          f"--offset {args.mitm_offset_mw * 1e6}")
-        default_args = (
-            "--iface mitm-eth0 "
-            "--victim-ip 10.10.0.4   --victim-mac 00:00:00:00:00:04 "
-            "--target-ip 10.10.0.5   --target-mac 00:00:00:00:00:05 "
-            f"--target-port {POI_PORT}  --listen-port {MITM_LISTEN_PORT} "
-            f"--register {POI_P_REGISTER}  --n-regs 2  --dtype float32  --fmt CDAB "
-            f"{inject_arg} "
-            f"--start-after {args.mitm_start_after}  --duration {args.mitm_duration} "
-            "--explicit-redirect"
-        )
-        os.environ["COLINKER_MITM_ARGS"] = args.mitm_args or default_args
-        if "--explicit-redirect" in os.environ["COLINKER_MITM_ARGS"]:
-            os.environ["COLINKER_PPC_POI_IP_OVERRIDE"] = MITM_IP
-            print(f"[run] PPC POI device-ip overridden to MITM ({MITM_IP})")
-        print(f"[run] MITM attack ARMED — args:\\n    {os.environ['COLINKER_MITM_ARGS']}")
-
-    if _COLINKER_SRC not in sys.path:
-        sys.path.insert(0, _COLINKER_SRC)
-
-    from mininet.log import setLogLevel
-    from colinker.mn.mininet_topo import setup
-
-    setLogLevel("info")
-    setup(args.json,
-          interactive=not args.no_cli,
-          ppc_auto=not args.no_ppc)
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-
-# IEC 60870-5-104 variant of run.py.  Same skeleton as the Modbus template but
-# the MITM + pcap wiring differs: the attack rewrites an ``M_ME_NC_1`` short
-# float keyed by IOA + common address (not a Modbus register), the value/offset
-# are already in MW on the wire (``emec_scale=1e-6``, no W↔MW factor), the proxy
-# server speaks tcp/2404, and the MITM module is ``colinker.attacks.iec104_mitm``.
-_RUN_PY_TEMPLATE_IEC104 = '''#!/usr/bin/env python3
-"""Launch the co-simulation (Mininet + pydae + proxies + PPC).
-
-Reads the plant JSON sitting next to this file and delegates to
-``colinker.mn.mininet_topo.setup()``. Requires root.
-
-Usage::
-
-    sudo python3 run.py [--no-cli] [--no-ppc]
-    sudo python3 run.py --no-cli --arrivals-dir results_delays/arrivals
-    sudo python3 run.py --no-cli --mitm                 # default: +5% offset
-    sudo python3 run.py --no-cli --mitm --mitm-offset-frac 0.05 \\
-                        --arrivals-dir results_overpower/arrivals \\
-                        --pcap-dir     results_overpower/pcaps
-    sudo python3 run.py --no-cli --mitm --mitm-value-mw __MITM_DEFAULT_VALUE_MW__   # fixed-spoof
-"""
-import argparse
-import os
-import sys
-
-
-_HERE         = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_JSON = os.path.join(_HERE, "__JSON_FILENAME__")
-_PYTHON       = "/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3"
-_COLINKER_SRC = "/home/jmmmacubu/mac_shared/colinker/src"
-
-# Pcap default capture set: PPC, POI, MITM, plus one host per inverter.
-_PV_HOSTS = __PV_HOSTS_LITERAL__
-
-
-def _check_root() -> None:
-    if os.geteuid() != 0:
-        print("error: Mininet requires root. Re-run with:")
-        print(f"  sudo python3 {sys.argv[0]}")
-        sys.exit(1)
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run the co-simulation (__PROTOCOL_LABEL__)"
-    )
-    parser.add_argument("--json", "-j", default=_DEFAULT_JSON,
-                        help=f"Plant JSON path (default: {_DEFAULT_JSON})")
-    parser.add_argument("--no-cli", action="store_true",
-                        help="Skip Mininet CLI; block on SIGINT (headless)")
-    parser.add_argument("--no-ppc", action="store_true",
-                        help="Skip auto-starting the PPC")
-    parser.add_argument("--arrivals-dir", default=None,
-                        help="If set, each pv_proxy writes a 50 ms-cadence CSV "
-                             "of the wire-level setpoint values that arrived "
-                             "at it (one file per inverter, named "
-                             "<emec_id>_arrivals.csv).")
-    parser.add_argument("--mitm", action="store_true",
-                        help="Arm the IEC 104 MITM attack from the MITM host. "
-                             "Default: offset the POI active-power value.")
-    parser.add_argument("--mitm-args", default=None,
-                        help="Override the full argv passed to "
-                             "colinker.attacks.iec104_mitm (when --mitm is set). "
-                             "Implies --mitm.")
-    parser.add_argument("--mitm-value-mw", type=float, default=None,
-                        help="FIXED-spoof mode: pin the POI active-power "
-                             "readback at this constant (MW) while armed. The "
-                             "PI error never closes, so the plant drives to "
-                             "saturation. Mutually exclusive with "
-                             "--mitm-offset-frac / --mitm-offset-mw.")
-    parser.add_argument("--mitm-offset-frac", type=float, default=0.05,
-                        help="OFFSET-spoof mode (default): add this fraction of "
-                             "the REAL POI reading before the PPC sees it "
-                             "(0.05 = +5%%). The PPC settles at a small, "
-                             "non-saturating steady-state error — the plant "
-                             "ends up ~this fraction off target.")
-    parser.add_argument("--mitm-offset-mw", type=float, default=0.0,
-                        help="OFFSET-spoof mode: also add this absolute bias "
-                             "(MW) to the real POI reading. Combined with "
-                             "--mitm-offset-frac.")
-    parser.add_argument("--mitm-start-after", type=float, default=30.0,
-                        help="Seconds after launch before the attack arms.")
-    parser.add_argument("--mitm-duration", type=float, default=60.0,
-                        help="Seconds the attack holds, then disarms.")
-    parser.add_argument("--pcap-dir", default=None,
-                        help="If set, run tcpdump in every host's netns "
-                             "(PPC, POI, all PV hosts, MITM) capturing all "
-                             "IEC 104 (tcp/2404) and ARP traffic to "
-                             "<PCAP_DIR>/<HOST>.pcap.")
-    args = parser.parse_args()
-
-    _check_root()
-
-    if not os.path.exists(args.json):
-        print(f"error: JSON not found: {args.json}")
-        sys.exit(1)
-
-    # sudo-rs blocks env-var forwarding even with -E, so set inline.
-    os.environ.setdefault("COLINKER_PYTHON", _PYTHON)
-
-    if args.arrivals_dir:
-        os.makedirs(args.arrivals_dir, exist_ok=True)
-        os.environ["COLINKER_ARRIVALS_DIR"] = os.path.abspath(args.arrivals_dir)
-        print(f"[run] arrivals CSVs -> {os.environ['COLINKER_ARRIVALS_DIR']}/<name>_arrivals.csv")
-
-    if args.pcap_dir:
-        os.makedirs(args.pcap_dir, exist_ok=True)
-        os.environ["COLINKER_PCAP_DIR"] = os.path.abspath(args.pcap_dir)
-        # PPC/POI/MITM are the three vantage points needed to see the attack
-        # signature (same IOA, different M_ME_NC_1 value bytes).  Per-inverter
-        # captures are optional — drop them to save memory on small VMs.
-        pcap_hosts = ["PPC", "POI", "MITM"]
-        if os.environ.get("COLINKER_PCAP_INCLUDE_PV", "0") not in ("0", "", "false"):
-            pcap_hosts += list(_PV_HOSTS)
-        os.environ["COLINKER_PCAP_HOSTS"] = ",".join(pcap_hosts)
-        # IEC 104 runs on tcp/2404, not the Modbus default (5000/502).
-        os.environ.setdefault("COLINKER_PCAP_PORTS", str(__POI_IEC104_PORT__))
-        print(f"[run] pcap captures (tcp/{os.environ['COLINKER_PCAP_PORTS']}) -> "
-              f"{os.environ['COLINKER_PCAP_DIR']}/<HOST>.pcap")
-
-    if args.mitm or args.mitm_args:
-        # Default attack: falsify the POI active-power measured value
-        # (p_line_POI_GRID, M_ME_NC_1 short float at IOA __POI_P_IOA__) the PPC
-        # reads over IEC 60870-5-104.
-        #
-        #   offset mode (default): add a small bias to the REAL value
-        #     (cur*(1+frac)+abs) → the PPC settles ~frac off target without
-        #     saturating — stealthy, realistic falsification.
-        #   fixed mode (--mitm-value-mw): pin the readback at a constant →
-        #     the PI rails to saturation (the original over-power demo).
-        #
-        # --explicit-redirect mode: the PPC is told via the POI device-ip
-        # override to connect directly to MITM:2404; MITM forwards to the real
-        # POI.  Deterministic test path — the ARP-spoof + NAT path is documented
-        # but not used here (conntrack flakiness inside netns).
-        MITM_IP          = "10.10.0.9"
-        # Listen on the same port the POI server exposes so the PPC's POI
-        # device-ip override (IP only, not port) reaches us.
-        POI_PORT         = __POI_IEC104_PORT__
-        MITM_LISTEN_PORT = POI_PORT
-        # POI information-object address holding p_line_POI_GRID, and the ASDU
-        # common (station) address.  CA is fixed by the colinker iec104 stack
-        # (colinker.iec104_ppc.COMMON_ADDR / iec104_poi_proxy.COMMON_ADDR), not
-        # the JSON device field — keep them in sync if that constant changes.
-        POI_P_IOA        = __POI_P_IOA__
-        COMMON_ADDRESS   = 47
-        # The IEC 104 wire carries the value already scaled to MW
-        # (proxy: pydae_W * emec_scale, emec_scale=1e-6), so the absolute
-        # value/offset are in MW here (no 1e6 factor — unlike the Modbus
-        # path where the register holds raw W). offset-frac is unitless.
-        if args.mitm_value_mw is not None:
-            if args.mitm_offset_mw or args.mitm_offset_frac != 0.05:
-                print("[run] WARNING: --mitm-value-mw (fixed) overrides "
-                      "--mitm-offset-* (offset)")
-            inject_arg = f"--value {args.mitm_value_mw}"
-        else:
-            inject_arg = (f"--offset-frac {args.mitm_offset_frac} "
-                          f"--offset {args.mitm_offset_mw}")
-        default_args = (
-            "--iface mitm-eth0 "
-            "--victim-ip 10.10.0.4   --victim-mac 00:00:00:00:00:04 "
-            "--target-ip 10.10.0.5   --target-mac 00:00:00:00:00:05 "
-            f"--target-port {POI_PORT}  --listen-port {MITM_LISTEN_PORT} "
-            f"--ioa {POI_P_IOA}  --common-address {COMMON_ADDRESS} "
-            f"{inject_arg} "
-            f"--start-after {args.mitm_start_after}  --duration {args.mitm_duration} "
-            "--explicit-redirect"
-        )
-        os.environ["COLINKER_MITM_MODULE"] = "colinker.attacks.iec104_mitm"
-        os.environ["COLINKER_MITM_ARGS"] = args.mitm_args or default_args
-        if "--explicit-redirect" in os.environ["COLINKER_MITM_ARGS"]:
-            os.environ["COLINKER_PPC_POI_IP_OVERRIDE"] = MITM_IP
-            print(f"[run] PPC POI device-ip overridden to MITM ({MITM_IP})")
-        print(f"[run] IEC 104 MITM attack ARMED — args:\\n    {os.environ['COLINKER_MITM_ARGS']}")
-
-    if _COLINKER_SRC not in sys.path:
-        sys.path.insert(0, _COLINKER_SRC)
-
-    from mininet.log import setLogLevel
-    from colinker.mn.mininet_topo import setup
-
-    setLogLevel("info")
-    setup(args.json,
-          interactive=not args.no_cli,
-          ppc_auto=not args.no_ppc)
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-# DNP3 variant of run.py.  Same skeleton as the IEC 104 template but the MITM
-# rewrites a DNP3 Analog Input float (Group 30 Var 5) keyed by object index
-# (not an IOA/common-address or a Modbus register); the proxy server speaks
-# tcp/20000; and the MITM module is ``colinker.attacks.dnp3_mitm``, which
-# re-frames the falsified response with fresh DLL CRCs (a plain byte patch
-# would corrupt the block CRC and black-hole the POI reading).  Value/offset
-# are in MW on the wire (``emec_scale=1e-6``), as for IEC 104.
-_RUN_PY_TEMPLATE_DNP3 = '''#!/usr/bin/env python3
-"""Launch the co-simulation (Mininet + pydae + proxies + PPC).
-
-Reads the plant JSON sitting next to this file and delegates to
-``colinker.mn.mininet_topo.setup()``. Requires root.
-
-Usage::
-
-    sudo python3 run.py [--no-cli] [--no-ppc]
-    sudo python3 run.py --no-cli --arrivals-dir results_delays/arrivals
-    sudo python3 run.py --no-cli --mitm                 # default: +5% offset
-    sudo python3 run.py --no-cli --mitm --mitm-offset-frac 0.05 \\
-                        --arrivals-dir results_overpower/arrivals \\
-                        --pcap-dir     results_overpower/pcaps
-    sudo python3 run.py --no-cli --mitm --mitm-value-mw __MITM_DEFAULT_VALUE_MW__   # fixed-spoof
-"""
-import argparse
-import os
-import sys
-
-
-_HERE         = os.path.dirname(os.path.abspath(__file__))
-_DEFAULT_JSON = os.path.join(_HERE, "__JSON_FILENAME__")
-_PYTHON       = "/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3"
-_COLINKER_SRC = "/home/jmmmacubu/mac_shared/colinker/src"
-
-# Pcap default capture set: PPC, POI, MITM, plus one host per inverter.
-_PV_HOSTS = __PV_HOSTS_LITERAL__
-
-
-def _check_root() -> None:
-    if os.geteuid() != 0:
-        print("error: Mininet requires root. Re-run with:")
-        print(f"  sudo python3 {sys.argv[0]}")
-        sys.exit(1)
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run the co-simulation (__PROTOCOL_LABEL__)"
-    )
-    parser.add_argument("--json", "-j", default=_DEFAULT_JSON,
-                        help=f"Plant JSON path (default: {_DEFAULT_JSON})")
-    parser.add_argument("--no-cli", action="store_true",
-                        help="Skip Mininet CLI; block on SIGINT (headless)")
-    parser.add_argument("--no-ppc", action="store_true",
-                        help="Skip auto-starting the PPC")
-    parser.add_argument("--arrivals-dir", default=None,
-                        help="If set, each pv_proxy writes a 50 ms-cadence CSV "
-                             "of the wire-level setpoint values that arrived "
-                             "at it (one file per inverter, named "
-                             "<emec_id>_arrivals.csv).")
-    parser.add_argument("--mitm", action="store_true",
-                        help="Arm the DNP3 MITM attack from the MITM host. "
-                             "Default: offset the POI active-power value.")
-    parser.add_argument("--mitm-args", default=None,
-                        help="Override the full argv passed to "
-                             "colinker.attacks.dnp3_mitm (when --mitm is set). "
-                             "Implies --mitm.")
-    parser.add_argument("--mitm-value-mw", type=float, default=None,
-                        help="FIXED-spoof mode: pin the POI active-power "
-                             "readback at this constant (MW) while armed. The "
-                             "PI error never closes, so the plant drives to "
-                             "saturation. Mutually exclusive with "
-                             "--mitm-offset-frac / --mitm-offset-mw.")
-    parser.add_argument("--mitm-offset-frac", type=float, default=0.05,
-                        help="OFFSET-spoof mode (default): add this fraction of "
-                             "the REAL POI reading before the PPC sees it "
-                             "(0.05 = +5%%). The PPC settles at a small, "
-                             "non-saturating steady-state error — the plant "
-                             "ends up ~this fraction off target.")
-    parser.add_argument("--mitm-offset-mw", type=float, default=0.0,
-                        help="OFFSET-spoof mode: also add this absolute bias "
-                             "(MW) to the real POI reading. Combined with "
-                             "--mitm-offset-frac.")
-    parser.add_argument("--mitm-start-after", type=float, default=30.0,
-                        help="Seconds after launch before the attack arms.")
-    parser.add_argument("--mitm-duration", type=float, default=60.0,
-                        help="Seconds the attack holds, then disarms.")
-    parser.add_argument("--pcap-dir", default=None,
-                        help="If set, run tcpdump in every host's netns "
-                             "(PPC, POI, all PV hosts, MITM) capturing all "
-                             "DNP3 (tcp/__POI_DNP3_PORT__) and ARP traffic to "
-                             "<PCAP_DIR>/<HOST>.pcap.")
-    args = parser.parse_args()
-
-    _check_root()
-
-    if not os.path.exists(args.json):
-        print(f"error: JSON not found: {args.json}")
-        sys.exit(1)
-
-    # sudo-rs blocks env-var forwarding even with -E, so set inline.
-    os.environ.setdefault("COLINKER_PYTHON", _PYTHON)
-
-    if args.arrivals_dir:
-        os.makedirs(args.arrivals_dir, exist_ok=True)
-        os.environ["COLINKER_ARRIVALS_DIR"] = os.path.abspath(args.arrivals_dir)
-        print(f"[run] arrivals CSVs -> {os.environ['COLINKER_ARRIVALS_DIR']}/<name>_arrivals.csv")
-
-    if args.pcap_dir:
-        os.makedirs(args.pcap_dir, exist_ok=True)
-        os.environ["COLINKER_PCAP_DIR"] = os.path.abspath(args.pcap_dir)
-        # PPC/POI/MITM are the three vantage points needed to see the attack
-        # signature (same AI object index, different float value bytes).
-        # Per-inverter captures are optional — drop them to save memory.
-        pcap_hosts = ["PPC", "POI", "MITM"]
-        if os.environ.get("COLINKER_PCAP_INCLUDE_PV", "0") not in ("0", "", "false"):
-            pcap_hosts += list(_PV_HOSTS)
-        os.environ["COLINKER_PCAP_HOSTS"] = ",".join(pcap_hosts)
-        # DNP3 runs on tcp/__POI_DNP3_PORT__, not the Modbus default (5000/502).
-        os.environ.setdefault("COLINKER_PCAP_PORTS", str(__POI_DNP3_PORT__))
-        print(f"[run] pcap captures (tcp/{os.environ['COLINKER_PCAP_PORTS']}) -> "
-              f"{os.environ['COLINKER_PCAP_DIR']}/<HOST>.pcap")
-
-    if args.mitm or args.mitm_args:
-        # Default attack: falsify the POI active-power measured value
-        # (p_line_POI_GRID, DNP3 Analog Input G30V5 at object index
-        # __POI_P_INDEX__) the PPC reads over DNP3.  The MITM re-frames the
-        # response with fresh DLL CRCs after rewriting the float, so the link
-        # stays in sync (a raw byte patch would corrupt the block CRC and
-        # black-hole the POI reading).
-        #
-        #   offset mode (default): add a small bias to the REAL value
-        #     (cur*(1+frac)+abs) → the PPC settles ~frac off target without
-        #     saturating — stealthy, realistic falsification.
-        #   fixed mode (--mitm-value-mw): pin the readback at a constant →
-        #     the PI rails to saturation (the original over-power demo).
-        #
-        # --explicit-redirect mode: the PPC is told via the POI device-ip
-        # override to connect directly to MITM:__POI_DNP3_PORT__; MITM forwards
-        # to the real POI.  Deterministic test path — the ARP-spoof + NAT path
-        # is documented but not used here (conntrack flakiness inside netns).
-        MITM_IP          = "10.10.0.9"
-        # Listen on the same port the POI server exposes so the PPC's POI
-        # device-ip override (IP only, not port) reaches us.
-        POI_PORT         = __POI_DNP3_PORT__
-        MITM_LISTEN_PORT = POI_PORT
-        # POI Analog Input object index holding p_line_POI_GRID.
-        POI_P_INDEX      = __POI_P_INDEX__
-        # The DNP3 wire carries the value already scaled to MW (proxy:
-        # pydae_W * emec_scale, emec_scale=1e-6), so the absolute value/offset
-        # are in MW here (no 1e6 factor — unlike the Modbus register path's
-        # raw W). offset-frac is unitless.
-        if args.mitm_value_mw is not None:
-            if args.mitm_offset_mw or args.mitm_offset_frac != 0.05:
-                print("[run] WARNING: --mitm-value-mw (fixed) overrides "
-                      "--mitm-offset-* (offset)")
-            inject_arg = f"--value {args.mitm_value_mw}"
-        else:
-            inject_arg = (f"--offset-frac {args.mitm_offset_frac} "
-                          f"--offset {args.mitm_offset_mw}")
-        default_args = (
-            "--iface mitm-eth0 "
-            "--victim-ip 10.10.0.4   --victim-mac 00:00:00:00:00:04 "
-            "--target-ip 10.10.0.5   --target-mac 00:00:00:00:00:05 "
-            f"--target-port {POI_PORT}  --listen-port {MITM_LISTEN_PORT} "
-            f"--ai-index {POI_P_INDEX} "
-            f"{inject_arg} "
-            f"--start-after {args.mitm_start_after}  --duration {args.mitm_duration} "
-            "--explicit-redirect"
-        )
-        os.environ["COLINKER_MITM_MODULE"] = "colinker.attacks.dnp3_mitm"
-        os.environ["COLINKER_MITM_ARGS"] = args.mitm_args or default_args
-        if "--explicit-redirect" in os.environ["COLINKER_MITM_ARGS"]:
-            os.environ["COLINKER_PPC_POI_IP_OVERRIDE"] = MITM_IP
-            print(f"[run] PPC POI device-ip overridden to MITM ({MITM_IP})")
-        print(f"[run] DNP3 MITM attack ARMED — args:\\n    {os.environ['COLINKER_MITM_ARGS']}")
-
-    if _COLINKER_SRC not in sys.path:
-        sys.path.insert(0, _COLINKER_SRC)
-
-    from mininet.log import setLogLevel
-    from colinker.mn.mininet_topo import setup
-
-    setLogLevel("info")
-    setup(args.json,
-          interactive=not args.no_cli,
-          ppc_auto=not args.no_ppc)
-
-
-if __name__ == "__main__":
-    main()
-'''
-
-# Per-protocol run.py template override.  Protocols not listed fall back to the
-# Modbus-style _RUN_PY_TEMPLATE (placeholders that don't apply are simply left
-# unreplaced/unused — dds doesn't yet have its own MITM wiring).
-_RUN_PY_TEMPLATE_BY_PROTOCOL = {
-    "iec104": _RUN_PY_TEMPLATE_IEC104,
-    "dnp3":   _RUN_PY_TEMPLATE_DNP3,
-}
-
-_RUN_STEP_SH = '''#!/usr/bin/env bash
-# PQ step-response benchmark.  Assumes the cosim is already running
-# (sudo python3 run.py in a separate terminal) and the PPC HTTP API is
-# reachable via the socat relay at http://localhost:8090.
-#
-# Usage:   ./run_step.sh [out.csv]
-set -euo pipefail
-
-OUT="${1:-step.csv}"
-PYTHON="/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3"
-
-echo "[bench] recorder start -> $OUT  (auto-arm on |dtarget_mw| >= 0.1, 3 s pre, 10 s post)"
-"$PYTHON" -m colinker.record_ctl start --out "$OUT" \\
-    --trigger-mw 0.1 --pre 3 --post 10
-
-echo "[bench] PQ step:  P 2.0 -> 3.0 MW @ t=1 s   Q 0 -> 1.0 Mvar @ t=5 s   (end @ t=15 s)"
-"$PYTHON" -m colinker.poi_step_test \\
-    --p-initial 2.0 --p-step 3.0 --q-step 1.0 --t-end 15
-
-echo "[bench] recorder stop"
-"$PYTHON" -m colinker.record_ctl stop
-
-SVG="${OUT%.csv}.svg"
-echo "[bench] plot -> $SVG"
-"$PYTHON" -m colinker.report --csv "$OUT" --out "$SVG"
-
-echo "[bench] done."
-echo "  CSV:  $OUT"
-echo "  SVG:  $SVG"
-'''
-
-
-_PLOT_FLOW_TEMPLATE = '''#!/usr/bin/env python3
-"""Plot the three-stage signal flow for this Modbus benchmark.
-
-Layout: (1 + N_inv) rows × 2 cols.
-
-Row 0 — POI active / reactive overlay
-        (target → PPC reading → pydae ground truth).
-Rows 1..N — one row per inverter, each with active (left) / reactive (right):
-  * PPC sent — from ``step.csv`` ``pv{i}_sp_{mw,mvar}``.
-  * PV received — from ``arrivals/<LVid>_arrivals.csv`` (``Pref_LVid_pu``).
-  * Inverter output — pydae ground-truth ``sim_p_g_LV<id>`` from step.csv.
-
-Usage::
-
-    python plot_flow.py                              # results_delays/flow.svg
-    python plot_flow.py --results results_overpower/
-    python plot_flow.py --out /tmp/x.svg
-"""
-import argparse
-import csv
-import os
-from datetime import datetime
-
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-
-
-P_NOMINAL_MW   = 1.0   # 1.0 pu = 1 MW per inverter (S_n = 1 MVA)
-Q_NOMINAL_MVAR = 1.0   # 1.0 pu = 1 Mvar (= S_n)
-
-INV_IDS = __PV_IDS_LITERAL__
-
-
-def _parse_iso(s: str) -> float:
-    return datetime.fromisoformat(s).timestamp()
-
-
-def _load_step(path):
-    cols = {}
-    t_wall = []
-    with open(path) as f:
-        for row in csv.DictReader(f):
-            t_wall.append(_parse_iso(row["ts_iso"]))
-            for k, v in row.items():
-                if k == "ts_iso":
-                    continue
-                try:
-                    cols.setdefault(k, []).append(float(v))
-                except ValueError:
-                    cols.setdefault(k, []).append(float("nan"))
-    return t_wall, cols
-
-
-def _load_arrivals(path, p_col, q_col):
-    t, p, q = [], [], []
-    with open(path) as f:
-        for row in csv.DictReader(f):
-            t.append(float(row["t_wall"]))
-            p.append(float(row[p_col]))
-            q.append(float(row[q_col]))
-    return t, p, q
-
-
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    here = os.path.dirname(os.path.abspath(__file__))
-    parser.add_argument("--results", default=os.path.join(here, "results_delays"))
-    parser.add_argument("--out", default=None)
-    args = parser.parse_args()
-
-    step_path = os.path.join(args.results, "step.csv")
-    out_path  = args.out or os.path.join(args.results, "flow.svg")
-
-    step_t, step = _load_step(step_path)
-    t0 = step_t[0]
-    step_rel = [t - t0 for t in step_t]
-    t_max = step_rel[-1]
-
-    arrivals = {}
-    for inv_id in INV_IDS:
-        path = os.path.join(args.results, "arrivals", f"{inv_id}_arrivals.csv")
-        if not os.path.exists(path):
-            arrivals[inv_id] = None
-            continue
-        t, p_pu, q_pu = _load_arrivals(path,
-                                        f"Pref_{inv_id}_pu",
-                                        f"Qext_{inv_id}_pu")
-        t_rel = [x - t0 for x in t]
-        keep = [i for i, x in enumerate(t_rel) if 0.0 <= x <= t_max + 0.5]
-        arrivals[inv_id] = (
-            [t_rel[i] for i in keep],
-            [p_pu[i]   for i in keep],
-            [q_pu[i]   for i in keep],
-        )
-
-    n_rows = 1 + len(INV_IDS)
-    fig, axes = plt.subplots(n_rows, 2, figsize=(11, 2.0 + 1.7 * n_rows),
-                             sharex=True)
-    fig.suptitle("Modbus + realistic link delays — signal flow POI → inverters\\n"
-                 "(reference → PPC reading via wire → pydae ground truth, "
-                 "then PPC → inverter)",
-                 fontsize=11)
-
-    # Row 0 — POI summary
-    ax = axes[0][0]
-    ax.plot(step_rel, step["target_mw"], "--", color="#888888", lw=1.5,
-            label="target_mw (reference)")
-    ax.plot(step_rel, step["poi_mw"], "-", color="#1f77b4", lw=1.5,
-            label="poi_mw (PPC reading)")
-    if "sim_p_line_POI_GRID" in step:
-        ax.plot(step_rel, [v / 1e6 for v in step["sim_p_line_POI_GRID"]],
-                "-", color="#2ca02c", lw=1.2,
-                label="pydae ground truth (p_line_POI_GRID)")
-    ax.set_title("POI — active power")
-    ax.set_ylabel("MW")
-    ax.grid(True, alpha=0.3)
-    ax.legend(loc="lower right", fontsize=8)
-
-    ax = axes[0][1]
-    ax.plot(step_rel, step["target_mvar"], "--", color="#888888", lw=1.5,
-            label="target_mvar (reference)")
-    ax.plot(step_rel, step["poi_mvar"], "-", color="#1f77b4", lw=1.5,
-            label="poi_mvar (PPC reading)")
-    if "sim_q_line_POI_GRID" in step:
-        ax.plot(step_rel, [v / 1e6 for v in step["sim_q_line_POI_GRID"]],
-                "-", color="#2ca02c", lw=1.2,
-                label="pydae ground truth (q_line_POI_GRID)")
-    ax.set_title("POI — reactive power")
-    ax.set_ylabel("Mvar")
-    ax.grid(True, alpha=0.3)
-
-    # Rows 1..N: per-inverter
-    for row_idx, inv_id in enumerate(INV_IDS, start=1):
-        sp_p  = f"pv{row_idx}_sp_mw"
-        sp_q  = f"pv{row_idx}_sp_mvar"
-        sim_p = f"sim_p_g_{inv_id}"
-        sim_q = f"sim_q_g_{inv_id}"
-
-        # Active (col 0)
-        ax = axes[row_idx][0]
-        if sp_p in step:
-            ax.plot(step_rel, step[sp_p], "-", color="#1f77b4", lw=1.5,
-                    label="PPC sent (MW)")
-        if arrivals[inv_id] is not None:
-            arr_t, arr_p_pu, _ = arrivals[inv_id]
-            ax.plot(arr_t, [v * P_NOMINAL_MW for v in arr_p_pu],
-                    "-", color="#ff7f0e", lw=1.2, label="PV received")
-        if sim_p in step:
-            ax.plot(step_rel, [v * P_NOMINAL_MW for v in step[sim_p]],
-                    "-", color="#2ca02c", lw=1.2, label="Inverter output")
-        ax.set_title(f"INV {inv_id} — active")
-        ax.set_ylabel("MW")
-        ax.grid(True, alpha=0.3)
-        if row_idx == 1:
-            ax.legend(loc="lower right", fontsize=8)
-
-        # Reactive (col 1)
-        ax = axes[row_idx][1]
-        if sp_q in step:
-            ax.plot(step_rel, step[sp_q], "-", color="#1f77b4", lw=1.5,
-                    label="PPC sent (Mvar)")
-        if arrivals[inv_id] is not None:
-            arr_t, _, arr_q_pu = arrivals[inv_id]
-            ax.plot(arr_t, [v * Q_NOMINAL_MVAR for v in arr_q_pu],
-                    "-", color="#ff7f0e", lw=1.2, label="PV received")
-        if sim_q in step:
-            ax.plot(step_rel, [v * Q_NOMINAL_MVAR for v in step[sim_q]],
-                    "-", color="#2ca02c", lw=1.2, label="Inverter output")
-        ax.set_title(f"INV {inv_id} — reactive")
-        ax.set_ylabel("Mvar")
-        ax.grid(True, alpha=0.3)
-
-    for ax in axes[-1]:
-        ax.set_xlabel("t (s, from recorder start)")
-
-    plt.tight_layout(rect=[0, 0, 1, 0.98])
-    plt.savefig(out_path)
-    print(f"[plot_flow] wrote {out_path}")
-
-
-if __name__ == "__main__":
-    main()
-'''
+# ---------------------------------------------------------------------------
+# Emission templates live as files under templates/ (run_py/<proto>.py,
+# common/*, local_run.sh, tests/*), synced from the known-good case folder and
+# stamped by the builder — no giant embedded strings.
+# ---------------------------------------------------------------------------
+_TEMPLATES    = os.path.join(_HERE, "templates")
+_RUN_PY_FILES = {p: os.path.join(_TEMPLATES, "run_py", f"{p}.py")
+                 for p in ("modbus", "iec104", "dnp3", "dds")}
+_MODBUS_REG_BASE = 1000   # POI device reg_0; wire register = base + point register
+
+
+def _load(path):
+    with open(path, encoding="utf-8") as f:
+        return f.read()
+
+
+def _stamp(text, **subs):
+    for k, v in subs.items():
+        text = text.replace(k, str(v))
+    return text
+
+
+def _write_common(out_dir, name, py_interp, mitm_cap_mw):
+    """Emit the common/ orchestration folder: run_all_tests.py (stamped with the
+    interpreter path + this plant's MITM cap) plus monitor.py, plot_pq_compare.py
+    and compute_closed_loop_metrics.py (all name-agnostic — they derive ROOT from
+    their own location and discover the plant JSON)."""
+    dst  = os.path.join(out_dir, "common")
+    cdir = os.path.join(_TEMPLATES, "common")
+    os.makedirs(dst, exist_ok=True)
+    for fn in ("monitor.py", "plot_pq_compare.py", "compute_closed_loop_metrics.py"):
+        shutil.copy(os.path.join(cdir, fn), os.path.join(dst, fn))
+    rat = _stamp(_load(os.path.join(cdir, "run_all_tests.py")),
+                 __PY_INTERP__=py_interp, __MITM_CAP_MW__=repr(float(mitm_cap_mw)))
+    with open(os.path.join(dst, "run_all_tests.py"), "w", encoding="utf-8") as f:
+        f.write(rat)
+    for fn in ("run_all_tests.py", "monitor.py", "plot_pq_compare.py",
+               "compute_closed_loop_metrics.py"):
+        os.chmod(os.path.join(dst, fn), 0o755)
 
 
 def _readme_top(name: str, M: int, N: int) -> str:
-    n_inv = M * N
-    return f'''# {name} — protocol benchmark suite
-
-Auto-generated by ``pydae.bps.builders.pv_designer``. Parallel
-co-simulations of the **{name}** plant ({M} feeder(s) × {N} inverter(s)
-per feeder = {n_inv} inverters total) — one per SCADA stack supported
-by ``colinker``, plus a no-Mininet ``local`` case. Same electrical model,
-same PI control law, same step magnitudes. Only the wire layer changes.
-
-## Layout
-
-```
-{name}/
-├── modbus/    # pymodbus 3.13
-├── iec104/    # c104 v2.2.x  (M_ME_NC_1 / C_SE_NC_1)
-├── dnp3/      # in-tree pure-Python codec, AI G30v5 / AO G41v3
-├── dds/       # cyclonedds  (OpenFMB-style profiles)
-└── local/     # direct pydae HTTP — pydae_ppc, no Mininet, no wire stack
-```
-
-Each subdir carries `{name}.json` and a stack-specific `README.md`. The four
-protocol folders carry `run.py` (Mininet cosim); `local/` carries `run.sh`
-(pydae_sim + pydae_ppc). `modbus/`, `iec104/` and `local/` additionally carry
-the structured `tests/` suite (open-loop / closed-loop step, frequency
-response, MITM); `dnp3/`/`dds/` use a flat `run_step.sh` + `results/`.
-
-## Workflow (any protocol)
-
-```bash
-# Terminal A — launch the cosim (stays attached to mininet>)
-cd <protocol>/
-sudo python3 run.py
-```
-
-Wait for the topology banner `PPC API (macOS): http://localhost:8090/`.
-
-```bash
-# Terminal B — drive the step, record, plot
-cd modbus/      && PY=/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3 \\
-                && $PY tests/closed_loop_step/run.py   # modbus/iec104: tests/ suite
-cd dnp3/        && ./run_step.sh                        # dnp3/dds: flat run_step.sh
-```
-
-Tear down: `exit` at the `mininet>` prompt in Terminal A.
-'''
+    """Top-level suite README (workflow, run_all_tests.py, MITM/pcap, outputs,
+    how to modify parameters) — loaded from templates/README_top.md and stamped
+    with this plant's name / M / N."""
+    return _stamp(_load(os.path.join(_TEMPLATES, "README_top.md")),
+                  __NAME__=name, __M__=M, __N__=N, __MN__=M * N)
 
 
 def _readme_modbus(M: int, N: int) -> str:
@@ -1604,43 +865,6 @@ _README_FN = {
 # against the bare plant model.  Emitted alongside the four protocol folders.
 # ---------------------------------------------------------------------------
 
-_LOCAL_RUN_SH = '''#!/usr/bin/env bash
-# Direct (no-Mininet) plant: pydae_sim + pydae_ppc, talking over plain HTTP.
-#
-# Brings up the bare pydae model and the controller in one terminal; the PPC
-# management API is then reachable at http://localhost:<API_PORT>/ for the test
-# drivers (Terminal B).  Ctrl-C stops the controller; the simulator is torn
-# down on exit.
-#
-#   ./run.sh                 # defaults below
-#   PYDAE_PORT=8001 API_PORT=5500 ./run.sh
-set -euo pipefail
-
-_HERE="$(cd "$(dirname "$0")" && pwd)"
-PY="${PY:-/home/jmmmacubu/miniforge3/envs/pydae_dev/bin/python3}"
-JSON="$_HERE/__JSON_FILENAME__"
-PYDAE_PORT="${PYDAE_PORT:-8001}"
-API_PORT="${API_PORT:-5500}"
-
-echo "[local] launching pydae_sim on :$PYDAE_PORT (building model) …"
-"$PY" -m colinker.pydae_sim --json "$JSON" --port "$PYDAE_PORT" &
-SIM_PID=$!
-trap 'echo; echo "[local] stopping pydae_sim ($SIM_PID)"; kill "$SIM_PID" 2>/dev/null || true' EXIT
-
-echo "[local] waiting for pydae_sim …"
-until curl -s -o /dev/null --max-time 2 "http://localhost:$PYDAE_PORT/cosim/measurements"; do
-    kill -0 "$SIM_PID" 2>/dev/null || { echo "[local] ERROR: pydae_sim died"; exit 1; }
-    sleep 1
-done
-
-echo "[local] pydae_ppc -> http://localhost:$PYDAE_PORT   PPC API on :$API_PORT"
-echo "[local] (Terminal B:  PPC_URL=http://localhost:$API_PORT \\$PY tests/frequency_response/run.py --mode p)"
-exec "$PY" -m colinker.pydae_ppc --json "$JSON" \\
-    --pydae-url "http://localhost:$PYDAE_PORT" \\
-    --api-host 0.0.0.0 --api-port "$API_PORT"
-'''
-
-
 def _readme_local(M: int, N: int) -> str:
     return f'''# {{name}} — local (direct pydae HTTP, no Mininet)
 
@@ -1679,6 +903,19 @@ $PY -m colinker.pydae_ppc --json {{name}}.json \\
 The PPC management API is then at `http://localhost:5500/` (`/status`,
 `/setpoints`, `/sine`) — identical surface to the protocol PPCs.
 
+## Debugging model init
+
+If the cosim fails to boot (`Connection refused` on the pydae port) run:
+
+```bash
+./ini.py                       # builds the pydae model and calls model.ini({{}})
+```
+
+which reproduces the pydae initialisation step in isolation — no FastAPI, no
+proxies. On success it prints `OK — initialisation converged`; on failure it
+exits non-zero with the IDAS / Newton traceback so you can see which algebraic
+constraint the solver choked on.
+
 ## Tests
 
 This folder carries its own copy of the [`tests/`](tests/) suite (same
@@ -1709,242 +946,131 @@ at this `pydae_sim` via `SIM_URL=http://localhost:8001`.
 '''
 
 
-def _write_local_case(out_dir, plant, name, M, N, json_filename):
-    """Emit the ``local/`` folder: direct pydae-HTTP controller (pydae_ppc),
-    a run.sh launching pydae_sim + pydae_ppc, the plant JSON + xy_0 seeds,
-    the structured tests/ suite, and a README.
-
-    No Mininet, no wire protocol — the device-level ``protocol`` field is left
-    as modbus (pydae_ppc reads the modbus_codec ``pydae_key``/``emec_scale``
-    fields and ignores the rest)."""
+def _write_local_case(out_dir, plant, name, M, N, json_filename, mitm_cap_mw):
+    """Emit the local/ folder: direct pydae-HTTP controller (pydae_ppc), a
+    run.sh launching pydae_sim + pydae_ppc, the plant JSON, the structured
+    tests/ suite, and a README.  No Mininet, no wire protocol (the device-level
+    protocol field is left as-is; pydae_ppc only reads the electrical model +
+    pydae_key/emec_scale)."""
     sub = os.path.join(out_dir, "local")
     os.makedirs(sub, exist_ok=True)
-
     with open(os.path.join(sub, json_filename), "w", encoding="utf-8") as f:
         json.dump(plant, f, indent=2)
-
-    xy_0_json = json.dumps(make_xy_0(plant), indent=4)
-    for fname in (f"{name}_xy_0.json", "xy_0.json"):
-        with open(os.path.join(sub, fname), "w", encoding="utf-8") as f:
-            f.write(xy_0_json)
-
-    run_sh = _LOCAL_RUN_SH.replace("__JSON_FILENAME__", json_filename)
+    run_sh = _stamp(_load(os.path.join(_TEMPLATES, "local_run.sh")),
+                    __JSON_FILENAME__=json_filename)
     run_sh_path = os.path.join(sub, "run.sh")
     with open(run_sh_path, "w", encoding="utf-8") as f:
         f.write(run_sh)
     os.chmod(run_sh_path, 0o755)
-
-    _write_tests_suite(sub)
-
+    ini_py = _stamp(_load(os.path.join(_TEMPLATES, "local_ini.py")),
+                    __JSON_FILENAME__=json_filename)
+    ini_py_path = os.path.join(sub, "ini.py")
+    with open(ini_py_path, "w", encoding="utf-8") as f:
+        f.write(ini_py)
+    os.chmod(ini_py_path, 0o755)
+    _write_tests_suite(sub, mitm_cap_mw)
     readme = _readme_local(M, N).replace("{name}", name)
     with open(os.path.join(sub, "README.md"), "w", encoding="utf-8") as f:
         f.write(readme)
 
 
-def _report_notebook(name: str) -> str:
-    """Return a Jupyter notebook (nbformat 4) that overlays the step.csv
-    from each protocol's results/ folder for direct comparison."""
-    nb = {
-        "cells": [
-            {"cell_type": "markdown", "metadata": {},
-             "source": [
-                f"# {name} — protocol comparison\n",
-                "\n",
-                "After running `./run_step.sh` inside each `<protocol>/` "
-                "directory, the step-response CSVs live at "
-                "`../<protocol>/results/step.csv`. This notebook overlays "
-                "the four traces for direct comparison."]},
-            {"cell_type": "code", "metadata": {}, "execution_count": None,
-             "outputs": [], "source": [
-                "import os\n",
-                "import pandas as pd\n",
-                "import plotly.express as px\n",
-                "\n",
-                "PROTOCOLS = ['modbus', 'iec104', 'dnp3', 'dds']\n",
-                "ROOT = os.path.abspath(os.path.join(os.getcwd(), '..'))\n",
-                "\n",
-                "frames = []\n",
-                "for proto in PROTOCOLS:\n",
-                "    path = os.path.join(ROOT, proto, 'results', 'step.csv')\n",
-                "    if not os.path.exists(path):\n",
-                "        print(f'missing: {path}')\n",
-                "        continue\n",
-                "    df = pd.read_csv(path, parse_dates=['ts_iso'])\n",
-                "    df['protocol'] = proto\n",
-                "    df['t_s'] = (df['ts_iso'] - df['ts_iso'].iloc[0])"
-                ".dt.total_seconds()\n",
-                "    frames.append(df)\n",
-                "\n",
-                "data = pd.concat(frames, ignore_index=True) "
-                "if frames else pd.DataFrame()\n",
-                "data.head()"]},
-            {"cell_type": "markdown", "metadata": {},
-             "source": ["## Active power at POI — all protocols"]},
-            {"cell_type": "code", "metadata": {}, "execution_count": None,
-             "outputs": [], "source": [
-                "fig = px.line(\n",
-                "    data, x='t_s', y='poi_mw', color='protocol',\n",
-                "    title='POI active power (MW) — step response',\n",
-                "    labels={'t_s': 'Time (s)', 'poi_mw': 'Power (MW)'},\n",
-                "    template='plotly_white',\n",
-                ")\n",
-                "fig.add_scatter(x=data['t_s'], y=data['target_mw'], "
-                "mode='lines', name='target', line=dict(dash='dot', "
-                "color='black'))\n",
-                "fig.update_layout(hovermode='x unified')\n",
-                "fig.show()"]},
-            {"cell_type": "markdown", "metadata": {},
-             "source": ["## Reactive power at POI — all protocols"]},
-            {"cell_type": "code", "metadata": {}, "execution_count": None,
-             "outputs": [], "source": [
-                "fig = px.line(\n",
-                "    data, x='t_s', y='poi_mvar', color='protocol',\n",
-                "    title='POI reactive power (Mvar) — step response',\n",
-                "    labels={'t_s': 'Time (s)', 'poi_mvar': 'Q (Mvar)'},\n",
-                "    template='plotly_white',\n",
-                ")\n",
-                "fig.add_scatter(x=data['t_s'], y=data['target_mvar'], "
-                "mode='lines', name='target', line=dict(dash='dot', "
-                "color='black'))\n",
-                "fig.update_layout(hovermode='x unified')\n",
-                "fig.show()"]},
-            {"cell_type": "markdown", "metadata": {},
-             "source": [
-                "## Per-inverter setpoints (one protocol at a time)\n",
-                "\n",
-                "Pick a protocol from the dropdown above the chart to "
-                "see how the PPC fanned out the POI command across the "
-                "M*N inverters."]},
-            {"cell_type": "code", "metadata": {}, "execution_count": None,
-             "outputs": [], "source": [
-                "SHOW = 'modbus'  # change to iec104 / dnp3 / dds\n",
-                "sub = data[data['protocol'] == SHOW]\n",
-                "sp_cols = sorted([c for c in sub.columns "
-                "if c.startswith('pv') and c.endswith('_sp_mw')])\n",
-                "if sub.empty or not sp_cols:\n",
-                "    print(f'no data for {SHOW}')\n",
-                "else:\n",
-                "    fig = px.line(\n",
-                "        sub, x='t_s', y=sp_cols,\n",
-                "        title=f'Per-inverter active setpoints ({SHOW})',\n",
-                "        labels={'t_s': 'Time (s)', 'value': 'P_sp (MW)'},\n",
-                "        template='plotly_white',\n",
-                "    )\n",
-                "    fig.update_layout(hovermode='x unified')\n",
-                "    fig.show()"]},
-        ],
-        "metadata": {
-            "kernelspec": {
-                "display_name": "Python 3",
-                "language": "python",
-                "name": "python3"},
-            "language_info": {"name": "python"}},
-        "nbformat": 4,
-        "nbformat_minor": 5,
-    }
-    for i, cell in enumerate(nb["cells"]):
-        cell["id"] = f"cell-{i:02d}"
-    return json.dumps(nb, indent=1)
-
-
-def _write_tests_suite(sub):
-    """Copy the structured `tests/` suite (lib + 4 experiment drivers + READMEs)
-    from ``templates/tests/`` into a protocol folder, and create the per-test
-    ``csv/`` and ``plots/`` output dirs.
-
-    The drivers are name-agnostic — ``tests/lib/common.py`` auto-discovers the
-    plant JSON (the one carrying a ``ppc`` block) and reads the inverter list
-    and gains from it — so the same files work for any M×N plant.  Emitted for
-    every protocol in ``_SUITE_PROTOCOLS`` — they all expose the same shared
-    ``ppc_core`` ``/sine`` + feedforward control API the suite drives."""
-    src = os.path.join(_HERE, "templates", "tests")
+def _write_tests_suite(sub, mitm_cap_mw):
+    """Copy the structured tests/ suite (lib + 4 drivers + READMEs) from
+    templates/tests/ into a folder and create per-test csv/ + plots/.  The
+    drivers are config-driven (tests/lib/common.py auto-discovers the plant
+    JSON), so the same files work for any M×N plant; only the mitm_attack
+    driver's default --cap-mw is stamped for this plant's nameplate."""
+    src = os.path.join(_TEMPLATES, "tests")
     dst = os.path.join(sub, "tests")
     if os.path.exists(dst):
         shutil.rmtree(dst)
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns(
         "__pycache__", "*.pyc", ".DS_Store"))
-    for t in ("open_loop_step", "closed_loop_step",
-              "frequency_response", "mitm_attack"):
-        os.makedirs(os.path.join(dst, t, "csv"), exist_ok=True)
-        os.makedirs(os.path.join(dst, t, "plots"), exist_ok=True)
+    mitm = os.path.join(dst, "mitm_attack", "run.py")
+    with open(mitm, encoding="utf-8") as f:
+        txt = f.read()
+    with open(mitm, "w", encoding="utf-8") as f:
+        f.write(_stamp(txt, __MITM_CAP_MW__=repr(float(mitm_cap_mw))))
+    for tst in ("open_loop_step", "closed_loop_step",
+                "frequency_response", "mitm_attack"):
+        os.makedirs(os.path.join(dst, tst, "csv"), exist_ok=True)
+        os.makedirs(os.path.join(dst, tst, "plots"), exist_ok=True)
     for run_py in glob.glob(os.path.join(dst, "*", "run.py")):
         os.chmod(run_py, 0o755)
 
 
 def write_suite(out_dir, plant, name, M, N):
-    """Emit the four-protocol benchmark folder tree around ``plant``.
-
-    The plant JSON is identical across protocols; only the ``protocol``
-    field on each device entry varies, since ``configs`` in the template
-    already carries both modbus (``register``/``format``/``type``) and
-    iec104 (``io_register``/``type_iec104``) fields per point.
-    """
+    """Emit the benchmark folder tree around ``plant``: four networked protocol
+    stacks (modbus/iec104/dnp3/dds) + a no-Mininet ``local`` case, each with the
+    structured ``tests/`` suite, plus the cross-protocol ``common/`` orchestration
+    (``run_all_tests.py`` + monitor / plot / metrics).  The plant JSON is
+    identical across protocols; only the device-level ``protocol`` field and a
+    few wire-scale fields vary."""
     os.makedirs(out_dir, exist_ok=True)
     json_filename = f"{name}.json"
+    py_interp = sys.executable
 
-    # PV hosts list for the modbus run.py (one entry per inverter).
-    pv_hosts = [f"LV{f'{i_m}'.zfill(2)}{f'{i_n}'.zfill(2)}"
+    pv_hosts = [f"LV{i_m:02d}{i_n:02d}"
                 for i_m in range(1, M + 1) for i_n in range(1, N + 1)]
     pv_hosts_literal = "[" + ", ".join(f'"{h}"' for h in pv_hosts) + "]"
-    # Default MITM spoof = 0.5 × (total plant nameplate) so the over-power
-    # demo reads "below limit" while the real plant runs above it.
-    p_max_total_mw  = sum(w.get("S_n", 1e6) for w in plant.get("weccs", [])) / 1e6
-    mitm_default_mw = round(0.5 * p_max_total_mw, 2)
-    # POI ports from the devices block (first poi device); fall back to defaults.
-    poi_modbus_port = 502
-    poi_iec104_port = 2404
-    poi_dnp3_port   = 20000
+
+    # Plant nameplate (MW) and the MITM operating cap.  0.8 x nameplate leaves
+    # headroom so the +10% over-power attack (real = cap/(1+offset)) stays under
+    # the nameplate -> no inverter saturation, so the breach is stealthy.
+    p_max_total_mw = sum(w.get("S_n", 1e6) for w in plant.get("weccs", [])) / 1e6
+    mitm_cap_mw    = round(0.8 * p_max_total_mw, 1)
+
+    # POI wire coordinates of the active-power point (the MITM target), read from
+    # the poi config.  Modbus register = base + point register; IEC 104 IOA =
+    # io_register; DNP3 index = position (or explicit dnp3_index).  Ports/common
+    # address come from the poi device entry.  Fall back to copv_3_5 defaults.
+    poi_modbus_port, poi_iec104_port, poi_dnp3_port = 502, 2404, 20000
+    # IEC 104 common address is fixed by the proxy (colinker.iec104_pv_proxy
+    # hardcodes COMMON_ADDR = 47), not the JSON common_address field — so the
+    # MITM must target 47 to match the wire.
+    poi_common_address = 47
     for d in plant.get("devices", []):
         if d.get("config") == "poi":
-            poi_modbus_port = int(d.get("modbus_port", 502))
-            poi_iec104_port = int(d.get("iec104_port", 2404))
-            poi_dnp3_port   = int(d.get("dnp3_port", 20000))
+            poi_modbus_port    = int(d.get("modbus_port", 502))
+            poi_iec104_port    = int(d.get("iec104_port", 2404))
+            poi_dnp3_port      = int(d.get("dnp3_port", 20000))
             break
-    # IOA / DNP3 object index of the POI active-power measurement (the MITM
-    # target), read from the poi config's ActivePower point.  The DNP3 index
-    # defaults to the point's position within the measurements list (matching
-    # colinker.dnp3_codec.load_dnp3_points), unless an explicit dnp3_index is
-    # set; the IEC 104 IOA comes from io_register.  Fall back to 1001 / 1.
-    poi_p_ioa   = 1001
-    poi_p_index = 1
+    poi_p_register, poi_p_ioa, poi_p_index = 1370, 1001, 1
     poi_cfg = (plant.get("configs", {}) or {}).get("poi", {})
     for i, m in enumerate(poi_cfg.get("measurements", [])):
         if m.get("ing_name") == "ActivePower" or (m.get("emec_name") or "").startswith("p_line"):
-            poi_p_ioa   = int(m.get("io_register", 1001))
-            poi_p_index = int(m.get("dnp3_index", i))
+            poi_p_register = _MODBUS_REG_BASE + int(m.get("register", 370))
+            poi_p_ioa      = int(m.get("io_register", 1001))
+            poi_p_index    = int(m.get("dnp3_index", i))
             break
+
+    run_subs = dict(
+        __JSON_FILENAME__=json_filename,
+        __PV_HOSTS_LITERAL__=pv_hosts_literal,
+        __POI_MODBUS_PORT__=poi_modbus_port,
+        __POI_IEC104_PORT__=poi_iec104_port,
+        __POI_DNP3_PORT__=poi_dnp3_port,
+        __POI_P_REGISTER__=poi_p_register,
+        __POI_P_IOA__=poi_p_ioa,
+        __POI_COMMON_ADDRESS__=poi_common_address,
+        __POI_P_INDEX__=poi_p_index,
+    )
 
     for protocol in ("modbus", "iec104", "dnp3", "dds"):
         sub = os.path.join(out_dir, protocol)
         os.makedirs(sub, exist_ok=True)
-        # modbus + iec104 carry the structured tests/ suite (each with its own
-        # per-test csv/ + plots/); dnp3/dds keep the flat results/ + run_step.sh.
-        has_suite = protocol in _SUITE_PROTOCOLS
-        if not has_suite:
-            os.makedirs(os.path.join(sub, "results"), exist_ok=True)
 
-        # Per-protocol copy with the device-level protocol field stamped.
+        # Per-protocol plant with the device-level protocol field stamped.
         plant_p = json.loads(json.dumps(plant))
         for d in plant_p.get("devices", []):
             d["protocol"] = protocol
-
-        # Protocol-appropriate control period.  IEC 104's event-driven c104
-        # link can't sustain the 10 Hz (0.1 s) loop the other stacks use:
-        # sampling/actuating faster than it can read+deliver saturates the
-        # single client thread and, once telemetry is made fresh, drives the
-        # loop (same PI gains) into a limit cycle.  A slower loop both cuts the
-        # command rate and detunes the per-cycle velocity-form integral.  The
-        # benchmark invariant is "same PI gains, protocol-appropriate sample
-        # time".  See copv_*/iec104/iec104_saturation.md.
+        # IEC 104's event-driven link can't sustain the 0.1 s loop the others
+        # use (see iec104_saturation.md): same PI gains, slower sample time.
         if protocol == "iec104" and "ppc" in plant_p:
             plant_p["ppc"]["ctrl_dt_s"] = _IEC104_CTRL_DT_S
-
-        # IEC 104 and DNP3 carry the measured value already scaled to
-        # engineering units on the wire (proxy: wire = pydae_W * emec_scale)
-        # and the PPC reads it directly, so power points must use
-        # emec_scale=1e-6 (W→MW).  Modbus instead stores raw W and divides by
-        # 1e6 in the PPC, so it keeps 1.0.  Voltage points are ~1 pu and stay
-        # at their scale.  Power is identified by ing_name / emec_name.
+        # IEC 104 / DNP3 carry the measured value already in engineering units on
+        # the wire (emec_scale=1e-6, W->MW); Modbus keeps raw W (1.0) and the PPC
+        # divides.  Power points identified by ing_name / emec_name.
         if protocol in _ENGINEERING_UNIT_WIRE_PROTOCOLS:
             for cfg in (plant_p.get("configs", {}) or {}).values():
                 for m in cfg.get("measurements", []):
@@ -1952,73 +1078,29 @@ def write_suite(out_dir, plant, name, M, N):
                     if m.get("ing_name") in ("ActivePower", "ReactivePower") \
                             or nm.startswith(("p_", "q_")):
                         m["emec_scale"] = 1e-6
-
-        with open(os.path.join(sub, json_filename), "w",
-                  encoding="utf-8") as f:
+        with open(os.path.join(sub, json_filename), "w", encoding="utf-8") as f:
             json.dump(plant_p, f, indent=2)
 
-        xy_0      = make_xy_0(plant_p)
-        xy_0_json = json.dumps(xy_0, indent=4)
-        for fname in (f"{name}_xy_0.json", "xy_0.json"):
-            with open(os.path.join(sub, fname), "w",
-                      encoding="utf-8") as f:
-                f.write(xy_0_json)
-
-        run_py = (_RUN_PY_TEMPLATE_BY_PROTOCOL.get(protocol, _RUN_PY_TEMPLATE)
-                  .replace("__PROTOCOL_LABEL__", _PROTOCOL_LABEL[protocol])
-                  .replace("__JSON_FILENAME__", json_filename)
-                  .replace("__PV_HOSTS_LITERAL__", pv_hosts_literal)
-                  .replace("__MITM_DEFAULT_VALUE_MW__", str(mitm_default_mw))
-                  .replace("__POI_MODBUS_PORT__", str(poi_modbus_port))
-                  .replace("__POI_IEC104_PORT__", str(poi_iec104_port))
-                  .replace("__POI_DNP3_PORT__", str(poi_dnp3_port))
-                  .replace("__POI_P_IOA__", str(poi_p_ioa))
-                  .replace("__POI_P_INDEX__", str(poi_p_index)))
+        run_py = _stamp(_load(_RUN_PY_FILES[protocol]), **run_subs)
         run_py_path = os.path.join(sub, "run.py")
         with open(run_py_path, "w", encoding="utf-8") as f:
             f.write(run_py)
         os.chmod(run_py_path, 0o755)
 
-        if not has_suite:
-            run_sh_path = os.path.join(sub, "run_step.sh")
-            with open(run_sh_path, "w", encoding="utf-8") as f:
-                f.write(_RUN_STEP_SH)
-            os.chmod(run_sh_path, 0o755)
-
-        # The structured tests/ suite (shared ppc_core /sine + feedforward API)
-        # is emitted for every suite protocol.  plot_flow.py is Modbus-specific.
-        if has_suite:
-            _write_tests_suite(sub)
-
-        if protocol == "modbus":
-            plot_flow = _PLOT_FLOW_TEMPLATE.replace(
-                "__PV_IDS_LITERAL__", pv_hosts_literal
-            )
-            plot_path = os.path.join(sub, "plot_flow.py")
-            with open(plot_path, "w", encoding="utf-8") as f:
-                f.write(plot_flow)
-            os.chmod(plot_path, 0o755)
+        _write_tests_suite(sub, mitm_cap_mw)
 
         readme = _README_FN[protocol](M, N).replace("{name}", name)
-        with open(os.path.join(sub, "README.md"), "w",
-                  encoding="utf-8") as f:
+        with open(os.path.join(sub, "README.md"), "w", encoding="utf-8") as f:
             f.write(readme)
 
-    # local case — direct pydae-HTTP controller, no Mininet (uses the
-    # unstamped plant so pydae_ppc reads the modbus_codec key/scale fields).
-    _write_local_case(out_dir, plant, name, M, N, json_filename)
-
-    with open(os.path.join(out_dir, "README.md"), "w",
-              encoding="utf-8") as f:
+    # local case (no Mininet) + cross-protocol common/ + top README.
+    _write_local_case(out_dir, plant, name, M, N, json_filename, mitm_cap_mw)
+    _write_common(out_dir, name, py_interp, mitm_cap_mw)
+    with open(os.path.join(out_dir, "README.md"), "w", encoding="utf-8") as f:
         f.write(_readme_top(name, M, N))
 
-    reporter_dir = os.path.join(out_dir, "reporter")
-    os.makedirs(reporter_dir, exist_ok=True)
-    with open(os.path.join(reporter_dir, "report.ipynb"), "w",
-              encoding="utf-8") as f:
-        f.write(_report_notebook(name))
-
-    print(f"wrote suite at {out_dir}: M={M} N={N} ({M * N} inverters)")
+    print(f"wrote suite at {out_dir}: M={M} N={N} ({M * N} inverters), "
+          f"nameplate {p_max_total_mw:.1f} MW, MITM cap {mitm_cap_mw} MW")
 
 
 __all__ = ["designer", "make_xy_0", "write_suite"]
@@ -2028,9 +1110,9 @@ if __name__ == "__main__":
     # Plant parameters
     M, N = 5, 10
     NAME = f"copv_{M}_{N}"
-    OUT_DIR = f"/Users/jmmauricio/workspace/benchmarks_colinker/{NAME}_wecc"
+    OUT_DIR = f"/home/jmmmacubu/mac_shared/benchmarks_colinker/{NAME}_wecc"
 
-    # 1. Build the plant dict (and write a flat <NAME>.json next to this file)
+    # 1. Build the plant dict (and write a flat <NAME>.json next to this file).
     plant = designer(
         M, N,
         output_file=os.path.join(_HERE, f"{NAME}.json"),
@@ -2038,17 +1120,21 @@ if __name__ == "__main__":
         Pref_pq=0.5, Qext_pq=0.1,
     )
 
-    # 2. Scaffold the four-protocol suite around it.
+    # 2. Scaffold the four-protocol + local suite (with common/run_all_tests.py).
     write_suite(OUT_DIR, plant, name=NAME, M=M, N=N)
 
-    # 3. Sanity-check: build and init the model via pydae.
+    # 3. Sanity-check: build and init the model via pydae.  The scaffold does
+    #    not ship xy_0.json (pydae_sim.construct() writes it at runtime), so
+    #    seed the init from a temp file here.
     from pydae.bps import BpsBuilder
     from pydae.core.builder.casadi_builder import CasadiBuilder
     from pydae.core.model.casadi_model import CasadiModel
     from pydae.bps.utils.reporter import report_all
 
     plant_json = os.path.join(OUT_DIR, "modbus", f"{NAME}.json")
-    xy_0_json  = os.path.join(OUT_DIR, "modbus", "xy_0.json")
+    xy_0_json  = os.path.join(tempfile.gettempdir(), f"{NAME}_xy_0.json")
+    with open(xy_0_json, "w", encoding="utf-8") as f:
+        json.dump(make_xy_0(plant), f, indent=4)
     print(f"\n[sanity] BpsBuilder({plant_json})")
     grid = BpsBuilder(plant_json, use_casadi=True)
     grid.construct(plant_json)

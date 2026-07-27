@@ -75,6 +75,11 @@ def regc_b_model():
 
 
 @pytest.fixture(scope='module')
+def reec_a_model():
+    return _build(WECCS_DIR, 'reec_a.hjson', 'temp_reec_a_test')
+
+
+@pytest.fixture(scope='module')
 def reec_b_model():
     return _build(WECCS_DIR, 'reec_b.hjson', 'temp_reec_b_test')
 
@@ -337,6 +342,79 @@ class TestReecB:
         """REGC_A + REEC_B remains bounded and finite over 2 s."""
         _ini(WECCS_DIR, reec_b_model, self.XY0)
         m = reec_b_model
+        with _in_dir(WECCS_DIR):
+            m.run(2.0, {})
+            m.post()
+        for var in ['Ip_1', 'Iq_1', 'Ipcmd_1', 'Iqcmd_1', 'Vt_flt_1', 'P_flt_1']:
+            vals = m.get_values(var)
+            assert np.all(np.isfinite(vals)), f"{var} went non-finite"
+            assert np.max(np.abs(vals)) < 5.0, (
+                f"{var} exceeded bounds: max|v|={np.max(np.abs(vals)):.2f}"
+            )
+
+
+# --------------------------------------------------------------------------- #
+# 3b. REGC_A + REEC_A — local electrical controls with VDL current limits      #
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.bps
+@pytest.mark.build
+class TestReecA:
+    """REEC_A: like REEC_B but with voltage-dependent current-limit tables.
+
+    With the default *flat* VDL tables (constant at Imax) REEC_A must reproduce
+    the REEC_B steady state, so the same operating-point assertions apply.
+    """
+
+    XY0 = 'temp_reec_a_test_xy_0.json'
+
+    def test_ini_converges(self, reec_a_model):
+        _ini(WECCS_DIR, reec_a_model, self.XY0)
+
+    def test_active_current_steady_state(self, reec_a_model):
+        """P_flt converges to Pref → Ip ≈ 0.8 pu and Ip ≈ Ipcmd."""
+        _ini(WECCS_DIR, reec_a_model, self.XY0)
+        m   = reec_a_model
+        Ip  = m.get_value('Ip_1')
+        Ipc = m.get_value('Ipcmd_1')
+        assert abs(Ip - 0.8) < 0.05, f"Ip={Ip:.4f} not close to 0.8 pu"
+        assert abs(Ip - Ipc) < 0.01, f"Ip={Ip:.4f} != Ipcmd={Ipc:.4f}"
+
+    def test_voltage_control_holds_setpoint(self, reec_a_model):
+        """Voltage control (Vflag=1) holds V_1 = Qext = 1.0 at steady state."""
+        _ini(WECCS_DIR, reec_a_model, self.XY0)
+        m   = reec_a_model
+        V_1 = m.get_value('V_1')
+        Iq  = m.get_value('Iq_1')
+        Iqc = m.get_value('Iqcmd_1')
+        assert abs(V_1 - 1.0) < 0.01, f"V_1={V_1:.4f} voltage control should hold ~1.0 pu"
+        assert abs(Iq + Iqc)  < 0.01, f"Iq={Iq:.4f} should equal -Iqcmd={Iqc:.4f}"
+
+    def test_p_flt_tracks_pref_at_steady_state(self, reec_a_model):
+        """P_flt integrates to Pref over 10×Tpord = 1 s."""
+        _ini(WECCS_DIR, reec_a_model, self.XY0)
+        m = reec_a_model
+        with _in_dir(WECCS_DIR):
+            m.run(1.0, {})
+            m.post()
+        P_flt = m.get_values('P_flt_1')[-1]
+        Pref  = m.get_value('Pref_1')
+        assert abs(P_flt - Pref) < 0.02, f"P_flt={P_flt:.4f} did not reach Pref={Pref:.4f}"
+
+    def test_step_pref_reduces_ip(self, reec_a_model):
+        """Pref step 0.8 → 0.5: Ip must decrease toward 0.5 pu."""
+        _ini(WECCS_DIR, reec_a_model, self.XY0)
+        m = reec_a_model
+        with _in_dir(WECCS_DIR):
+            m.run(0.5, {'Pref_1': 0.5})
+            m.post()
+        Ip_final = m.get_values('Ip_1')[-1]
+        assert Ip_final < 0.75, f"Ip={Ip_final:.4f} did not decrease toward 0.5"
+
+    def test_simulation_stable_over_2s(self, reec_a_model):
+        """REGC_A + REEC_A remains bounded and finite over 2 s."""
+        _ini(WECCS_DIR, reec_a_model, self.XY0)
+        m = reec_a_model
         with _in_dir(WECCS_DIR):
             m.run(2.0, {})
             m.post()

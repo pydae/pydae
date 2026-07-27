@@ -42,12 +42,25 @@ def main() -> None:
         v = getattr(args, k)
         if v is not None:
             gains[k] = v
+    import time
     print(f"[closed-loop] gains {gains}  feedforward={args.ff}")
-    ppc_api.set_setpoints(feedforward=args.ff, **gains)
-
-    print("[closed-loop] pre-settle at 2.0 MW …")
+    # Pre-settle with feedforward OFF so the reactive integral nulls Q to its
+    # target (0). With feedforward on, the integral is frozen while
+    # |err_Q| > ff_i_band (0.15 Mvar), so on networked stacks Q parks at a
+    # residual and the step can never track. Pure PI nulls cleanly; we then
+    # re-enable feedforward (args.ff) for the recorded step so it still tracks
+    # fast AND to target.
+    ppc_api.set_setpoints(feedforward=False, **gains)
+    print("[closed-loop] pre-settle at 2.0 MW (ff off; nulling Q) …")
     capture.pre_settle(2.0, 0.0)
-    print("[closed-loop] recording PQ step …")
+    deadline = time.monotonic() + 60.0
+    while time.monotonic() < deadline:
+        q = ppc_api.status().get("poi_mvar", float("nan"))
+        if q is not None and abs(q) <= 0.05:
+            break
+        time.sleep(0.5)
+    ppc_api.set_setpoints(feedforward=args.ff)
+    print(f"[closed-loop] feedforward={args.ff}; recording PQ step …")
     with capture.Recorder(csv_path, pre=3, post=10, trigger_mw=0.1):
         capture.drive_pq_step(p_initial=2.0, p_step=3.0, q_step=1.0, t_end=15)
 

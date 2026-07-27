@@ -18,6 +18,7 @@ from pydae.bps.weccs.regc_a   import regc_a
 from pydae.bps.weccs.regc_b   import regc_b
 from pydae.bps.weccs.regfm_a1 import regfm_a1
 from pydae.bps.weccs.regfm_b1 import regfm_b1
+from pydae.bps.weccs.reec_a   import reec_a
 from pydae.bps.weccs.reec_b   import reec_b
 from pydae.bps.weccs.reec_e   import reec_e
 
@@ -41,8 +42,9 @@ def add_weccs(grid):
         item['name'] = name
 
         # ── base converter (REGC_A) — always required ────────────────────
+        # 'regcau' / 'regcau1' are the PSS/E names for REGC_A.
         wecc_type = item.get('type', 'regc_a')
-        if wecc_type == 'regc_a':
+        if wecc_type in ('regc_a', 'regcau', 'regcau1'):
             p_W, q_var = regc_a(grid, name, bus_name, data_dict)
         elif wecc_type == 'regc_b':
             p_W, q_var = regc_b(grid, name, bus_name, data_dict)
@@ -63,9 +65,12 @@ def add_weccs(grid):
         grid.dae['g'][idx_bus * 2 + 1] += -q_var / S_base
 
         # ── local electrical controls ────────────────────────────────────
+        # 'reecau' / 'reecau1' are the PSS/E names for REEC_A.
         if 'reec' in item:
             reec_type = item['reec'].get('type', 'reec_b')
             if reec_type == 'reec_e':
                 reec_e(grid.dae, item, name, bus_name, grid.backend)
+            elif reec_type in ('reec_a', 'reecau', 'reecau1'):
+                reec_a(grid.dae, item, name, bus_name, grid.backend)
             else:
                 reec_b(grid.dae, item, name, bus_name, grid.backend)

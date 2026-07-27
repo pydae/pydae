@@ -1,157 +1,114 @@
 #!/usr/bin/env python3
-"""Man-in-the-middle attack capture (protocol-agnostic).
+"""Man-in-the-middle over-power attack capture (protocol-agnostic).
 
-The attack falsifies the POI active-power measurement so the PPC reads a
-doctored value; the controller then drives the *real* plant to the wrong
-operating point.  The attack is armed when the cosim is launched (the
-protocol-specific ``colinker.attacks.*_mitm`` module wired by the benchmark's
-own ``run.py``) — it is NOT controlled from here — so this driver only records
-a window and plots:
+Falsifies the POI active-power reading the PPC receives so the controller
+drives the *real* plant off target.  This driver records three signals and
+plots them:
 
   * PPC readback  (poi_mw)            — what the controller believes
   * plant ground truth (sim_p_line)   — what the plant actually does
   * the gap between them               — the attack's physical effect
 
-Attack policies (set on the cosim's ``run.py``):
-  * over-power offset (``--mitm-offset-frac`` negative, e.g. -0.0909): readback
-    tracks target while the real plant is driven ~10 % ABOVE it — a quiet
-    grid-code breach with no saturation or alarm.
-  * under-power offset (positive frac): plant settles below target.
-  * fixed (``--mitm-value-mw``): readback pinned, the PI rails to saturation.
+**Over-power (serve mode, default).**  The cosim is launched idle with
+``run.py --no-cli --mitm-serve`` (an in-path proxy that does nothing until
+armed).  This driver parks the plant at its cap with **feedforward off** (so the
+PI integral is free to wind), then arms→records→disarms via the control file
+``/tmp/colinker_mitm_<proto>.ctl``.  The readback is biased LOW
+(``offset_frac<0``, spoofed = real·(1+frac)); the controller drives the
+falsified reading to the cap, so the **real plant is pushed to cap/(1+frac)** —
+e.g. a 12 MW cap with ``-0.0909`` lands the plant at ~13.2 MW, +10 % over, with
+no saturation or alarm.
 
-Self-timing capture (default)
------------------------------
-Rather than blind-recording a fixed window (which has to be hand-aligned to the
-attack), this driver records continuously and watches the live readback-vs-
-ground-truth divergence: it detects when the attack ARMS, then keeps recording
-``--record`` more seconds to span the attack steady state and the recovery after
-it disarms.  So it captures a clean episode regardless of exactly when it is
-launched, as long as it starts before the attack disarms.
-
-Relaunch the cosim with the attack armed, then run this::
-
-    # Terminal A — over-power offset, held long enough to record comfortably
-    sudo python3 run.py --no-cli --mitm --mitm-offset-frac -0.0909 \\
-         --mitm-start-after 30 --mitm-duration 120
-    # Terminal B (this script) — auto-detects the window
+    # Terminal A
+    cd <proto>/ && sudo python3 run.py --no-cli --mitm-serve
+    # Terminal B (this driver): arm → record → disarm
     python tests/mitm_attack/run.py
 
-Use ``--target-mw`` to park the plant at a specific operating point first (e.g.
-to match a reference case); pass ``--blind SECONDS`` for the old fixed window.
+If no serve-mode cosim is detected it falls back to a passive record window
+(the attack must then be armed at launch with ``run.py --mitm``).
 
-Prereq: cosim running WITH --mitm, PPC API at http://localhost:8090.
+The protocol is inferred from the folder (``<proto>/tests/mitm_attack/``), so
+the same driver works for every stack.  Prereq: cosim up, PPC API at
+http://localhost:8090.
 """
 import argparse
 import json
-import math
 import os
 import sys
 import time
-import urllib.request
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HERE))
 from lib import capture, plots, ppc_api               # noqa: E402
 
-
-def _readback_mw():
-    """PPC's (possibly falsified) POI active-power readback, in MW."""
-    try:
-        return float(ppc_api.status().get("poi_mw", float("nan")))
-    except Exception:
-        return float("nan")
+# Protocol = the case-folder name two levels up (<proto>/tests/mitm_attack/).
+_PROTO = os.path.basename(os.path.dirname(os.path.dirname(_HERE)))
+_LABEL = {"modbus": "Modbus", "iec104": "IEC 104",
+          "dnp3": "DNP3", "dds": "DDS"}.get(_PROTO, _PROTO.upper())
+CTRL_FILE = f"/tmp/colinker_mitm_{_PROTO}.ctl"       # matches run.py --mitm-serve
 
 
-def _real_poi_mw():
-    """Plant ground-truth POI active power from pydae, in MW (wire is W)."""
-    url = capture.SIM_URL.rstrip("/") + "/cosim/measurements"
-    try:
-        with urllib.request.urlopen(url, timeout=2.0) as r:
-            data = json.loads(r.read()).get("data", {})
-        raw = data.get("sim_p_line_POI_GRID", data.get("p_line_POI_GRID"))
-        return float(raw) / 1e6
-    except Exception:
-        return float("nan")
-
-
-def _capture_auto(*, settle_max, record_after, thresh, poll_dt):
-    """Record continuously, detect the attack arming via readback-vs-truth
-    divergence, then keep recording ``record_after`` s past detection.
-
-    Returns the elapsed seconds spent recording."""
-    t0 = time.perf_counter()
-    armed_t = None
-    print(f"[mitm] watching readback vs plant ground truth "
-          f"(arm threshold {thresh:.0%} of target) …")
-    while True:
-        now = time.perf_counter() - t0
-        rb, real = _readback_mw(), _real_poi_mw()
-        try:
-            target = abs(float(ppc_api.status().get("target_mw", 0.0))) or 1.0
-        except Exception:
-            target = 1.0
-        gap = abs(rb - real) if (math.isfinite(rb) and math.isfinite(real)) else 0.0
-        rel = gap / target
-
-        if armed_t is None and rel >= thresh:
-            armed_t = now
-            print(f"[mitm]   t={now:5.1f}s ATTACK DETECTED — readback={rb:.3f} "
-                  f"real={real:.3f} MW  gap={gap:+.3f} ({rel:+.1%})")
-        if armed_t is not None and (now - armed_t) >= record_after:
-            print(f"[mitm]   captured {now - armed_t:.0f}s past detection — done")
-            return now
-        if armed_t is None and now >= settle_max:
-            print(f"[mitm]   no attack seen in {settle_max:.0f}s — stopping "
-                  f"(is the cosim armed with --mitm?)")
-            return now
-        time.sleep(poll_dt)
+def _write_ctl(path: str, **kw) -> None:
+    with open(path, "w") as f:
+        json.dump(kw, f)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--name", default="mitm_attack")
-    ap.add_argument("--target-mw", type=float, default=None,
-                    help="Set the PPC active-power setpoint (MW) before "
-                         "recording, to park the plant at a specific operating "
-                         "point. Default: leave the cosim's current setpoint.")
-    ap.add_argument("--target-mvar", type=float, default=0.0,
-                    help="Reactive setpoint (Mvar) to apply with --target-mw.")
-    ap.add_argument("--blind", type=float, default=None,
-                    help="Fixed-window mode: record this many seconds and stop "
-                         "(no attack detection). Use when you time the window "
-                         "by hand.")
-    ap.add_argument("--record", type=float, default=150.0,
-                    help="Auto mode: seconds to keep recording after the attack "
-                         "is detected (spans the attack hold + recovery).")
-    ap.add_argument("--settle-max", type=float, default=240.0,
-                    help="Auto mode: give up if no attack is seen within this "
-                         "many seconds.")
-    ap.add_argument("--thresh", type=float, default=0.03,
-                    help="Auto mode: |readback-truth|/target divergence that "
-                         "counts as the attack being armed (default 3%%).")
-    ap.add_argument("--poll-dt", type=float, default=0.5)
+    ap.add_argument("--duration", type=float, default=90.0,
+                    help="legacy passive mode: total capture window (s)")
+    ap.add_argument("--control-file", default=CTRL_FILE,
+                    help="serve-mode control file written by run.py --mitm-serve")
+    ap.add_argument("--offset-frac", type=float, default=-0.090909,
+                    help="serve mode: bias the POI reading by this fraction "
+                         "(spoofed=real*(1+frac)). Negative under-reports, so the "
+                         "PI drives the real plant OVER target: -0.0909 => +10%%.")
+    ap.add_argument("--cap-mw", type=float, default=__MITM_CAP_MW__,
+                    help="serve mode: operate at this plant cap (feedforward off) "
+                         "before arming, so the attack drives the real plant "
+                         "cap/(1+offset_frac).")
+    ap.add_argument("--baseline", type=float, default=15.0,
+                    help="serve mode: clean seconds before arming")
+    ap.add_argument("--attack", type=float, default=30.0,
+                    help="serve mode: seconds the attack is armed")
+    ap.add_argument("--recovery", type=float, default=15.0,
+                    help="serve mode: clean seconds after disarming")
     args = ap.parse_args()
 
     csv_path  = os.path.join(_HERE, "csv", f"{args.name}.csv")
     plot_base = os.path.join(_HERE, "plots", args.name)
+    title = f"{_LABEL} MITM — PPC readback (falsified) vs plant ground truth"
 
-    if args.target_mw is not None:
-        print(f"[mitm] setting operating point to {args.target_mw} MW / "
-              f"{args.target_mvar} Mvar …")
-        settled = capture.pre_settle(args.target_mw, args.target_mvar)
-        print(f"[mitm]   settled poi_mw = {settled:.3f}")
+    # Serve mode is active when the proxy has written its status file.
+    serve = os.path.exists(args.control_file + ".status")
 
-    with capture.Recorder(csv_path, pre=2, post=0, trigger_mw=1e9) as rec:
-        rec.arm()                       # start writing now; no step trigger
-        if args.blind is not None:
-            print(f"[mitm] blind recording {args.blind:.0f} s window …")
-            time.sleep(args.blind)
-        else:
-            _capture_auto(settle_max=args.settle_max, record_after=args.record,
-                          thresh=args.thresh, poll_dt=args.poll_dt)
+    if serve:
+        print(f"[mitm] {_PROTO} serve mode — over-power via {args.control_file} "
+              f"(cap={args.cap_mw} MW, offset_frac={args.offset_frac:+.4f} "
+              f"=> ~{args.cap_mw / (1 + args.offset_frac):.2f} MW real)")
+        # Operate at the cap with feedforward OFF so the integral is free to wind
+        # (the ff_i_band freeze would otherwise defeat the over-power attack).
+        ppc_api.set_setpoints(target_mw=args.cap_mw, target_mvar=0.0,
+                              feedforward=False)
+        capture.pre_settle(args.cap_mw, 0.0)
+        _write_ctl(args.control_file, armed=False)          # ensure clean start
+        with capture.Recorder(csv_path, pre=2, post=0, trigger_mw=1e9) as rec:
+            rec.arm()
+            time.sleep(args.baseline)                        # clean baseline
+            print("[mitm] ARM"); _write_ctl(args.control_file,
+                                            armed=True, offset_frac=args.offset_frac)
+            time.sleep(args.attack)                          # attack window
+            print("[mitm] DISARM"); _write_ctl(args.control_file, armed=False)
+            time.sleep(args.recovery)                        # recovery
+    else:
+        print(f"[mitm] passive mode — recording {args.duration} s "
+              "(attack must be armed at cosim launch) …")
+        with capture.Recorder(csv_path, pre=2, post=0, trigger_mw=1e9) as rec:
+            rec.arm()
+            time.sleep(args.duration)
 
-    plots.step_figure(csv_path, plot_base,
-                      "MITM — PPC readback (falsified) vs plant ground truth")
+    plots.step_figure(csv_path, plot_base, title)
     print(f"[mitm] wrote {csv_path}")
     print(f"[mitm] wrote {plot_base}.svg / .html")
 

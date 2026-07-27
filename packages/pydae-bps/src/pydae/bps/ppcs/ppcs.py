@@ -19,7 +19,8 @@ def add_ppcs(grid):
         ppc_type = item.get('type', 'repc_a')
         name     = item.get('name', f"{ppc_type}{idx + 1}")
 
-        if ppc_type == 'repc_a':
+        # 'repcau' / 'repcau1' are the PSS/E names for REPC_A.
+        if ppc_type in ('repc_a', 'repcau', 'repcau1'):
             _repc_a(grid.dae, item, name, grid.backend)
         elif ppc_type == 'repc_d':
             _repc_d(grid.dae, item, name, grid.backend)

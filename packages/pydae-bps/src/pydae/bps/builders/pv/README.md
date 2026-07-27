@@ -3,11 +3,16 @@
 Generator for **utility-scale PV plant** models — produces:
 
 1. A pydae-ready plant JSON (electrical + comms + cosim configs),
-2. A matching pydae steady-state seed (`xy_0.json`),
-3. Optionally, a four-protocol **benchmark suite** folder ready to be
-   driven by [`colinker`](https://github.com/pydae/colinker), and
-4. A topology diagram (PNG / SVG / PDF) of the plant and its comms
-   network.
+2. Optionally, a full **benchmark suite** folder ready to be driven by
+   [`colinker`](https://github.com/pydae/colinker): four networked SCADA
+   stacks (`modbus` / `iec104` / `dnp3` / `dds`) plus a no-Mininet `local`
+   case — each with the structured `tests/` suite — and a `common/` folder
+   with the `run_all_tests.py` orchestrator (+ monitor / plot / metrics), and
+3. A topology diagram (PNG / SVG / PDF) of the plant and its comms network.
+
+The pydae steady-state seed (`xy_0.json`) is **not** shipped in the scaffold —
+`colinker.pydae_sim` writes it at model-build time. `make_xy_0(plant)` is still
+available to build a seed in-memory (e.g. for a standalone `model.ini`).
 
 The plant topology, cable sizing, and per-inverter REEC_B control mode
 are all derived from a few high-level parameters: number of feeders,
@@ -22,9 +27,11 @@ setpoints.
 pydae/bps/builders/pv/
 ├── __init__.py                              re-exports public API
 ├── README.md                                this file
-├── pv_designer.py                           electrical + comms + xy_0 + suite scaffold
+├── pv_designer.py                           electrical + comms + suite scaffold
 ├── topology.py                              diagram renderer
-└── template_mininet_local_modbus.json       comms-plane template (hosts/switches/links/configs)
+├── template_mininet_local_modbus.json       comms-plane template (hosts/switches/links/configs)
+└── templates/                               stamped into each suite: run_py/<proto>.py,
+                                             common/*, local_run.sh, README_top.md, tests/
 ```
 
 Public API:
@@ -33,7 +40,7 @@ Public API:
 |---|---|
 | `designer(M, N, …)` | Build the plant dict, write a flat `<output_file>.json`, return the dict |
 | `make_xy_0(plant)` | Build the pydae Newton-solver seed for a plant dict |
-| `write_suite(out_dir, plant, name, M, N)` | Drop the four-protocol benchmark folder tree |
+| `write_suite(out_dir, plant, name, M, N)` | Drop the full benchmark folder tree (4 stacks + local + common/) |
 | `draw_topology(json_or_dict, out=…)` | Render the topology to SVG / PNG / PDF |
 
 All four are also importable directly from `pydae.bps.builders`.
@@ -55,7 +62,7 @@ plant = designer(
     Pref_pq=0.5, Qext_pq=0.1,      # PQ-mode setpoints (pu of S_n)
 )
 
-# 2. Scaffold the four-protocol benchmark suite around the plant.
+# 2. Scaffold the benchmark suite (4 stacks + local + common/run_all_tests) around the plant.
 write_suite("./copv_5_10_wecc", plant, name="copv_5_10", M=5, N=10)
 
 # 3. Render a topology diagram.
@@ -171,47 +178,57 @@ and contributes:
 
 ```
 <out_dir>/
-├── README.md                              suite overview + workflow
+├── README.md                              suite overview + workflow + run_all_tests
+├── common/
+│   ├── run_all_tests.py                   drives every test for every stack (sudo)
+│   ├── monitor.py                         live POI P/Q dashboard (read-only)
+│   ├── plot_pq_compare.py                 cross-protocol P-Q overlay
+│   └── compute_closed_loop_metrics.py     settling time + overshoot table
 ├── modbus/
 │   ├── <name>.json                        plant JSON (protocol="modbus" on each device)
-│   ├── xy_0.json                          pydae steady-state seed
-│   ├── <name>_xy_0.json                   identical copy (hoyas convention)
-│   ├── run.py                             sudo-friendly Mininet launcher
-│   ├── run_step.sh                        recorder -> PQ step -> SVG plot
+│   ├── run.py                             sudo-friendly Mininet launcher (--mitm-serve, --pcap-dir)
 │   ├── README.md                          stack-specific notes
-│   └── results/                           populated at runtime
+│   └── tests/                             open_loop_step, closed_loop_step,
+│       │                                  frequency_response, mitm_attack (+ lib/)
+│       └── */{csv,plots}/                 populated at runtime
 ├── iec104/   ... same shape, protocol="iec104"
 ├── dnp3/     ... same shape, protocol="dnp3"
 ├── dds/      ... same shape, protocol="dds"
-└── reporter/
-    └── report.ipynb                       4-protocol step-response comparison
+└── local/    direct pydae-HTTP (run.sh, no Mininet) + same tests/ suite
 ```
+
+The pydae seed (`xy_0.json`) is not shipped — `pydae_sim` writes it at
+model-build time.  Post-run analysis artifacts (`packet_analysis.md`,
+`closed_loop_metrics.md`, …) are produced by running the suite, not scaffolded.
 
 The plant JSON is identical across protocols; only the per-device
 `protocol` field varies. This works because the shared `configs` block
 already carries both modbus and IEC 104 wire-level fields.
 
-### Driving a co-simulation
+### Driving the suite
 
-In the Linux VM:
+The whole matrix (every test for every stack + `local`) runs in one shot from
+the Linux VM:
+
+```bash
+cd <out_dir>
+sudo python3 common/run_all_tests.py            # all stacks
+sudo python3 common/run_all_tests.py --only-mitm # just the over-power MITM phase
+python3 common/monitor.py                        # live POI P/Q dashboard (separate terminal)
+```
+
+Or drive a single stack by hand:
 
 ```bash
 # Terminal A — launch the cosim (stays attached to mininet>)
-cd <out_dir>/<protocol>/
-sudo python3 run.py
+cd <out_dir>/<protocol>/ && sudo python3 run.py
+
+# Terminal B — one test against it
+cd <out_dir>/<protocol>/ && $PY tests/closed_loop_step/run.py
 ```
 
-Wait for the topology banner `PPC API (macOS): http://localhost:8090/`.
-
-```bash
-# Terminal B — drive the step, record, plot
-cd <out_dir>/<protocol>/
-./run_step.sh                              # default: results/step.csv + step.svg
-./run_step.sh my_experiment.csv            # or pick a per-experiment name
-```
-
-Tear down: `exit` at the `mininet>` prompt in Terminal A. Open
-`<out_dir>/reporter/report.ipynb` for the cross-protocol comparison.
+See the generated `<out_dir>/README.md` for the full workflow (MITM serve mode,
+pcap capture, outputs, and how to modify parameters).
 
 ---
 

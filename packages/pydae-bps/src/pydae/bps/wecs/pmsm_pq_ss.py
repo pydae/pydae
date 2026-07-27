@@ -370,10 +370,31 @@ def pmsm_pq_ss(grid, name, bus_name, data_dict):
     # 20. Initialization hints. When the data imply above-rated / curtailed
     # operation (high wind or a low PPC command), seed the pitched operating
     # point so the pitch integrator converges to the physical root rather than a
-    # spurious high-speed one. beta_seed grows with wind above rated (~11 m/s).
+    # spurious high-speed one. At steady state the aerodynamic power equals the
+    # delivered power p_seed, so beta_seed is obtained by inverting the c_p curve
+    # for p_w(beta) == p_seed at omega_t = 1.2 and the given wind speed (a crude
+    # linear beta guess leaves the rotor far from balance and the Newton fails).
     p_rated = par("K_mppt3") * 1.2**3
     p_seed = min(par("p_s_ppc"), p_rated)
-    beta_seed = max(0.0, 3.0 * (par("nu_w_0") - 11.0))
+
+    def _p_w_aero(b):
+        lam = Lam_b_v * (1.2 / Omega_t_b_v) / (par("nu_w_0") / Nu_w_b_v)
+        inv_li = 1.0 / (lam + 0.08 * b) - 0.035 / (b**3 + 1.0)
+        cp = (C_vals["C_1_"] * (C_vals["C_2_"] * inv_li - C_vals["C_3_"] * b - C_vals["C_4_"])
+              * np.exp(-C_vals["C_5_"] * inv_li) + C_vals["C_6_"] * lam)
+        return K_pow_v * max(cp, 0.0) / C_p_b_v * (par("nu_w_0") / Nu_w_b_v)**3
+
+    if _p_w_aero(0.0) <= p_seed:
+        beta_seed = 0.0                       # below rated: MPPT region, no pitch
+    else:
+        lo, hi = 0.0, 60.0                    # bisection: aero power decreases with beta
+        for _ in range(100):
+            mid = 0.5 * (lo + hi)
+            if _p_w_aero(mid) > p_seed:
+                lo = mid
+            else:
+                hi = mid
+        beta_seed = 0.5 * (lo + hi)
     grid.dae["xy_0_dict"].update({
         str(nu_w_ramp): 0.0, str(omega_t): 1.2, str(omega_r): 1.2,
         str(theta_tr): p_seed / max(K_tr_val, 1e-6),

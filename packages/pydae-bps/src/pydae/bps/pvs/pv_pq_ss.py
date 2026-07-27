@@ -74,6 +74,15 @@ def descriptions():
         {"type": "Parameter", "tex": "\\epsilon", "data": "Epsilon",
          "model": "Epsilon", "default": 1e-8,
          "description": "Regularization for soft saturation", "units": "-"}]
+    descriptions_list += [
+        {"type": "Parameter", "tex": "K_{qv}", "data": "K_qv",
+         "model": "K_qv", "default": 0.0,
+         "description": "Q-V droop gain (reactive absorbed per pu overvoltage)",
+         "units": "pu/pu"}]
+    descriptions_list += [
+        {"type": "Parameter", "tex": "V_{qref}", "data": "V_qref",
+         "model": "V_qref", "default": 1.0,
+         "description": "Q-V droop reference voltage", "units": "pu"}]
 
     # Inputs
     descriptions_list += [
@@ -193,6 +202,8 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     I_max = backend.symbols(f"I_max_{name}")
     T_lvrt = backend.symbols(f"T_lvrt_{name}")
     Epsilon = backend.symbols(f"Epsilon_{name}")
+    K_qv = backend.symbols(f"K_qv_{name}")        # Q-V droop gain (pu Q per pu V)
+    V_qref = backend.symbols(f"V_qref_{name}")    # droop reference voltage (pu)
 
     # 7. Optional state-space filter for p/q references
     from pydae.bps.utils.ss_num2sym import ss_num2sym
@@ -267,9 +278,16 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     v_sq_mag = v_sr**2 + v_si**2 + Epsilon
     v_m = backend.sqrt(v_sq_mag)
 
-    # 9. PQ-mode current references (use filtered references)
-    i_sr_pq = (p_s_ppc_d * v_sr + q_s_ppc_d * v_si) / v_sq_mag
-    i_si_pq = (p_s_ppc_d * v_si - q_s_ppc_d * v_sr) / v_sq_mag
+    # 8b. Q-V droop: as the terminal voltage rises above V_qref the inverter
+    # absorbs reactive power (grid-code voltage support). With K_qv = 0 (default)
+    # this term vanishes and the model reduces to the fixed-reference behaviour.
+    # V_qref should be seeded to the equilibrium voltage so the droop contributes
+    # nothing at the operating point (load flow preserved).
+    q_s_ppc_droop = q_s_ppc_d + K_qv * (V_qref - v_m)
+
+    # 9. PQ-mode current references (use filtered + droop-adjusted references)
+    i_sr_pq = (p_s_ppc_d * v_sr + q_s_ppc_droop * v_si) / v_sq_mag
+    i_si_pq = (p_s_ppc_d * v_si - q_s_ppc_droop * v_sr) / v_sq_mag
 
     # 10. Arbitrary-mode current references
     i_sr_ar = (i_sa_ref * v_sr + i_sr_ref * v_si) / v_m
@@ -322,10 +340,15 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     T_lvrt_val = data_dict.get("T_lvrt", default_map.get("T_lvrt", 0.02))
     Epsilon_val = data_dict.get("Epsilon", default_map.get("Epsilon", 1e-8))
 
+    K_qv_val = data_dict.get("K_qv", default_map.get("K_qv", 0.0))
+    V_qref_val = data_dict.get("V_qref", default_map.get("V_qref", 1.0))
+
     grid.dae["params_dict"].update({str(S_n): S_n_val})
     grid.dae["params_dict"].update({str(I_max): I_max_val})
     grid.dae["params_dict"].update({str(T_lvrt): T_lvrt_val})
     grid.dae["params_dict"].update({str(Epsilon): Epsilon_val})
+    grid.dae["params_dict"].update({str(K_qv): K_qv_val})
+    grid.dae["params_dict"].update({str(V_qref): V_qref_val})
 
     # 17. Initialization hints
     grid.dae["xy_0_dict"].update({str(p_s): p_s_ppc_val})
@@ -336,11 +359,89 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     grid.dae["h_dict"].update({f"q_s_{name}": q_s})
     grid.dae["h_dict"].update({f"i_mod_{name}": i_mod})
     grid.dae["h_dict"].update({f"i_mod_sat_{name}": i_mod_sat})
+    grid.dae["h_dict"].update({f"q_s_ppc_droop_{name}": q_s_ppc_droop})
 
     p_W = p_s * S_n
     q_var = q_s * S_n
 
     return p_W, q_var
+
+
+# =============================================================================
+# Runtime fault-ride-through (FRT) control
+# =============================================================================
+# The discrete grid-code ride-through relay is the *particular* behaviour of the
+# grid-following converter, so it lives with the model (not in the generic
+# pydae.bps.utils.faults.FaultManager). It drives the model inputs
+# ``lvrt_ext`` / ``i_sr_ref`` / ``i_sa_ref`` of any converter exposing that
+# interface (pv_pq_ss inverters and, sharing the same interface, bess_pq_ss
+# VSCs). The same iq_po123 curve is used by FaultManager during the fault switch
+# (relaxed to a fixed point) and by vrt() during the time-domain integration
+# (rate-limited).
+def iq_po123(V, v_dead=0.85, v_full=0.5, iq_max=1.0):
+    """Reactive-current-vs-voltage characteristic (Spanish REE PO 12.3 style).
+
+    Piecewise-linear grid-code FRT curve::
+
+        V >= v_dead            : i_q = 0            (dead band near nominal)
+        v_full < V < v_dead    : i_q = iq_max * (v_dead - V) / (v_dead - v_full)
+        V <= v_full            : i_q = iq_max       (saturated, deep dip)
+
+    Defaults give the commonly used curve: dead band above 0.85 pu, full
+    reactive current at/below 0.5 pu, slope ~2.86 pu/pu in between. Adjust
+    v_dead / v_full / iq_max to the exact PO 12.3 figure for your plant.
+    """
+    if V >= v_dead:
+        return 0.0
+    if V <= v_full:
+        return iq_max
+    return iq_max * (v_dead - V) / (v_dead - v_full)
+
+
+def _ramp(cur, tgt, rate):
+    return min(tgt, cur + rate) if tgt > cur else max(tgt, cur - rate)
+
+
+def vrt(model, target, level, iq_level, v_enter=0.85, v_exit=0.9,
+        rate=0.2, iq_rate=0.2, iq_curve=iq_po123, verbose=False):
+    """Discrete grid-code fault-ride-through relay driving the PO 12.3 reactive
+    current curve, with hysteresis and rate-limited commutation.
+
+    Call once per time step. Each converter *enters* LVRT when its own terminal
+    voltage drops to ``v_enter`` (the curve dead-band edge, 0.85 pu) and
+    *returns* to PQ once it recovers to ``v_exit`` (0.9 pu); in between it holds
+    its target mode (latched, no chatter). While in LVRT the reactive current
+    reference tracks the voltage-dependent curve ``iq_curve(V)`` -- more support
+    for deeper dips, self-limiting near the dead band so it cannot overvolt.
+
+    Both the mode (``lvrt_ext``) and the reactive reference (``i_sr_ref``) are
+    rate-limited toward their targets so the commutation and the current change
+    span several steps -- an abrupt step would jump the terminal voltage across
+    the relay threshold in one shot, which a fixed-step integrator cannot cross.
+
+    ``target`` (latched mode), ``level`` (ramped lvrt_ext) and ``iq_level``
+    (ramped i_sr_ref) are dicts keyed by converter bus, updated in place; seed
+    them from the state FaultManager leaves after apply()/clear() so the relay
+    and the fault continuation stay consistent. Returns the number of converters
+    in LVRT.
+    """
+    n_lvrt = 0
+    for bus in target:
+        V = model.get_value(f'V_{bus}')
+        if V <= v_enter:               # dipped -> target LVRT
+            target[bus] = 1.0
+        elif V >= v_exit:              # recovered -> target PQ
+            target[bus] = 0.0
+        iq_tgt = iq_curve(V) if target[bus] else 0.0
+        level[bus] = _ramp(level[bus], target[bus], rate)
+        iq_level[bus] = _ramp(iq_level[bus], iq_tgt, iq_rate)
+        model.set_value(f'lvrt_ext_{bus}', level[bus])
+        model.set_value(f'i_sr_ref_{bus}', iq_level[bus])
+        model.set_value(f'i_sa_ref_{bus}', 0.0)
+        n_lvrt += level[bus] > 0.5
+    if verbose:
+        print(f"  vrt: {n_lvrt}/{len(target)} converters in LVRT")
+    return n_lvrt
 
 
 # =============================================================================

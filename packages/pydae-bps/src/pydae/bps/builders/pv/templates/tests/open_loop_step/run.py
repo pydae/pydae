@@ -41,14 +41,29 @@ def main() -> None:
     try:
         # 1) Settle closed-loop at the pre-step IC (P=2, Q=0) so the
         #    incremental feedforward starts from the correct absolute setpoint.
-        print(f"[open-loop] closed-loop pre-settle at P=2, Q=0 (gains {g}, ff ON)…")
-        ppc_api.set_setpoints(feedforward=True, **g)
+        #    Settle with feedforward OFF: with ff on, the shared control law
+        #    freezes the integral while |err| > ff_i_band (0.15 Mvar), so the
+        #    reactive channel can't reach target=0 and parks at an arbitrary
+        #    residual.  Pure PI (ff off) is never frozen and nulls Q to ~0.
+        print(f"[open-loop] closed-loop pre-settle at P=2, Q=0 (gains {g}, ff OFF)…")
+        ppc_api.set_setpoints(feedforward=False, **g)
         capture.pre_settle(2.0, 0.0)
-        time.sleep(2.0)                       # let Q settle to 0 as well
+        # pre_settle only blocks on the active channel; wait for Q to reach
+        # target too before freezing the gains.
+        deadline = time.monotonic() + 60.0
+        q = float("nan")
+        while time.monotonic() < deadline:
+            q = ppc_api.status().get("poi_mvar", float("nan"))
+            if q is not None and abs(q) <= 0.05:
+                break
+            time.sleep(0.5)
+        print(f"[open-loop] reactive channel settled at poi_mvar={q:.3f}")
 
-        # 2) Drop to open loop: zero PI gains, feedforward only.
+        # 2) Drop to open loop: zero PI gains, feedforward on (drives the step
+        #    via ΔT/N with no feedback correction).
         print("[open-loop] gains -> 0 (feedforward only); recording PQ step …")
-        ppc_api.set_setpoints(K_pp=0.0, K_ip=0.0, K_pq=0.0, K_iq=0.0)
+        ppc_api.set_setpoints(K_pp=0.0, K_ip=0.0, K_pq=0.0, K_iq=0.0,
+                              feedforward=True)
         with capture.Recorder(csv_path, pre=3, post=10, trigger_mw=0.1):
             capture.drive_pq_step(p_initial=2.0, p_step=3.0, q_step=1.0, t_end=15)
     finally:
