@@ -77,7 +77,30 @@ then:
    converters back to PQ.
 
 The caller resumes the post-fault simulation afterwards. The function returns the
-resolved per-device LVRT modes.
+per-device hold command applied during the fault.
+
+### Decoupled apply/clear ({class}`~pydae.bps.utils.faults.FaultManager`)
+
+`apply_fault` is a thin wrapper over `FaultManager`, which splits the event into
+separate `apply()` and `clear()` calls so **the caller owns the hold** — the
+natural shape for event-driven simulation, variable fault durations, or
+inspecting the plant mid-fault:
+
+```python
+from pydae.bps.utils.faults import FaultManager
+
+fm = FaultManager(model, "POI")     # same options as apply_fault
+model.run(1.0, {})
+
+hold_cmd = fm.apply()               # apply the fault (frozen time)
+model.run(1.2, hold_cmd)            # hold for as long as you like
+fm.clear()                          # clear (frozen time)
+model.run(10.0, {})
+```
+
+`apply()` returns the LVRT hold command to pass to `model.run` during the fault;
+`clear()` returns the converters to PQ. The manager keeps its own fault target
+and device list, so repeated apply/clear cycles are cheap.
 
 ### Signature
 

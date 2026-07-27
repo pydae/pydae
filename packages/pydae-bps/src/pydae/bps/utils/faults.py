@@ -2,285 +2,342 @@
 r"""
 Shunt-fault application/clearing with grid-following converter ride-through.
 
-``apply_fault`` drives a balanced shunt fault at a bus through to clearing,
-managing the low-voltage ride-through (LVRT) of every grid-following converter
-in the model (``pv_pq_ss`` inverters, ``bess_pq_ss`` VSCs, ... any unit that
-exposes the ``lvrt_ext_<name>`` / ``i_sr_ref_<name>`` / ``i_sa_ref_<name>``
-interface).
+A **fault** is a balanced shunt impedance $Z_f = R_{pu} + jX_{pu}$ switched onto
+a bus (declared in a ``"faults"`` section of the network data, which
+``BpsBuilder`` turns into an off shunt plus a target admittance in
+``model.sys_dict['faults']``). This module drives the event and manages the
+low-voltage ride-through (LVRT) of every grid-following converter that exposes
+the ``lvrt_ext_<name>`` / ``i_sr_ref_<name>`` / ``i_sa_ref_<name>`` interface
+(``pv_pq_ss`` inverters, ``bess_pq_ss`` VSCs, ...).
 
-The fault itself is a shunt impedance ``Z_f = R_pu + j X_pu`` declared in the
-network data under a ``"faults"`` section, which ``BpsBuilder`` turns into an
-*off* shunt at the bus (exposing ``g_shunt_<bus>`` / ``b_shunt_<bus>``) plus a
-target admittance recorded in ``model.sys_dict['faults']``.
+Two entry points:
+
+* :class:`FaultManager` -- decoupled ``apply()`` / ``clear()`` for event-driven
+  simulation, where the caller owns the hold integration between the two.
+* :func:`apply_fault` -- a convenience wrapper that applies, holds for
+  ``t_clear`` and clears in one call.
 
 Why this is not a single Newton solve
---------------------------------------
-The converters are constant-power in normal (PQ) operation, so their AC current
-``~ S/V`` diverges as the bus voltage collapses and the algebraic Jacobian goes
-singular. To ride through, each unit can switch to *bounded current injection*
-(``p_s = V i_sa_ref``, ``q_s = V i_sr_ref``) via ``lvrt_ext``. Applying the
-fault is therefore a continuation in which the fault admittance is ramped in
-while the converters move into LVRT, with the algebraic system re-solved at
-every step (states frozen). Two relay strategies are provided:
+-------------------------------------
+Grid-following converters are **constant power** in normal (PQ) operation, so
+their AC current $i_s \sim S/V$ diverges as the faulted bus voltage collapses
+and the algebraic Jacobian goes singular. Applying a deep fault is therefore a
+*continuation* (fault admittance ramped in, algebraic system re-solved at every
+step, states frozen) during which the converters switch to *bounded current
+injection* ($p_s = V\,i_{sa,ref}$, $q_s = V\,i_{sr,ref}$) via ``lvrt_ext``. Two
+relay strategies decide each converter's ``lvrt_ext``:
 
-* **hard** (default): a one-way, latched per-device relay. Every unit enters
-  LVRT together with the fault; once a unit's terminal recovers above
-  ``v_lvrt`` it latches back to PQ and never returns. Matches a hard
-  undervoltage relay threshold.
-* **soft** (``lvrt_soft=True``): each unit's ``lvrt_ext`` follows a continuous
-  ramp of its own undervoltage, ``clip((v_lvrt - V)/lvrt_band, 0, 1)``, solved
-  as a damped fixed point inside each step. No mode discontinuity, so it crosses
-  the intermediate fault-severity band where the hard relay's simultaneous
-  (symmetric-plant) switch folds the solve.
+* **hard** (default): a one-way, latched per-device relay keyed on ``v_lvrt``.
+* **soft** (``lvrt_soft=True``): ``lvrt_ext`` follows a continuous ramp of the
+  unit's own undervoltage, solved as a damped fixed point inside each step, so
+  it crosses the intermediate fault-severity band where the hard relay's
+  simultaneous (symmetric-plant) switch folds the solve.
 """
 import numpy as np
+from typing import Any, Callable, Dict, Optional, Tuple
+
+
+class FaultManager:
+    """
+    Manages the discrete application and clearing of a shunt fault.
+    Handles the low-voltage ride-through (LVRT) continuation solvers.
+    """
+    def __init__(self, model: Any, bus_name: str, lvrt_iq: float = 0.5,
+                 lvrt_id: float = 0.0, v_lvrt: float = 0.5, lvrt_soft: bool = False,
+                 lvrt_band: float = 0.2, fault_steps: int = 100, verbose: bool = True):
+        self.model = model
+        self.bus_name = bus_name
+        self.lvrt_iq = lvrt_iq
+        self.lvrt_id = lvrt_id
+        self.v_lvrt = v_lvrt
+        self.lvrt_soft = lvrt_soft
+        self.lvrt_band = lvrt_band
+        self.fault_steps = fault_steps
+        self.verbose = verbose
+
+        # 1. Validate and Setup Fault Targets
+        faults = getattr(model, 'sys_dict', {}).get('faults', {})
+        if bus_name not in faults:
+            raise ValueError(
+                f"No fault declared at bus '{bus_name}'. Declared fault buses: "
+                f"{sorted(faults.keys())}. Add a 'faults' section to the network data."
+            )
+
+        self.g_fault = faults[bus_name]['g']
+        self.b_fault = faults[bus_name]['b']
+
+        g_name = f'g_shunt_{bus_name}'
+        b_name = f'b_shunt_{bus_name}'
+        self.fault_on = {g_name: self.g_fault, b_name: self.b_fault}
+        self.fault_off = {g_name: 0.0, b_name: -1e-6}
+
+        # 2. Discover Converters
+        self.devices = [
+            name[len('lvrt_ext_'):] for name in model.u_run_names
+            if name.startswith('lvrt_ext_')
+        ]
+
+        # 3. Pre-compute LVRT commands for all devices
+        self.lvrt_on = {}
+        self.lvrt_off = {}
+        for device in self.devices:
+            self.lvrt_on.update(self._get_lvrt_command(device, 1.0))
+            self.lvrt_off.update(self._get_lvrt_command(device, 0.0))
+
+    # ------------------------------------------------------------------ #
+    # Public API: Apply and Clear
+    # ------------------------------------------------------------------ #
+    def apply(self) -> Dict[str, float]:
+        """
+        Applies the fault instantaneously (frozen time) via continuation.
+        Returns the command dictionary required to hold the units in LVRT during integration.
+        """
+        if self.lvrt_soft:
+            return self._apply_soft()
+        else:
+            return self._apply_hard()
+
+    def clear(self):
+        """
+        Clears the fault instantaneously (frozen time) and returns converters to PQ mode.
+        """
+        if self.lvrt_soft:
+            self._clear_soft()
+        else:
+            self._clear_hard()
+
+    # ------------------------------------------------------------------ #
+    # Internal Split Logic: Hard Relay
+    # ------------------------------------------------------------------ #
+    def _apply_hard(self) -> Dict[str, float]:
+        mode = self._apply_fault_hard_relay()
+        hold_cmd = {}
+        for device in self.devices:
+            hold_cmd.update(self._get_lvrt_command(device, mode[device]))
+        return hold_cmd
+
+    def _clear_hard(self):
+        self._clear_fault_hard_relay()
+
+    # ------------------------------------------------------------------ #
+    # Internal Split Logic: Soft Relay
+    # ------------------------------------------------------------------ #
+    def _apply_soft(self) -> Dict[str, float]:
+        for device in self.devices:
+            self.model.set_value(f'i_sr_ref_{device}', self.lvrt_iq)
+            self.model.set_value(f'i_sa_ref_{device}', self.lvrt_id)
+
+        self._soft_continue(self.fault_on, self.fault_steps)
+
+        hold_cmd = {}
+        mode = {}
+        for device in self.devices:
+            lvrt_val = self.model.get_value(f'lvrt_ext_{device}')
+            mode[device] = lvrt_val
+            hold_cmd[f'lvrt_ext_{device}'] = lvrt_val
+            hold_cmd[f'i_sr_ref_{device}'] = self.lvrt_iq
+            hold_cmd[f'i_sa_ref_{device}'] = self.lvrt_id
+
+        active_count = sum(1 for val in mode.values() if val > 0.5)
+        self._report(
+            f'LVRT soft relay: {active_count}/{len(self.devices)} devices >50% into LVRT '
+            f'(lvrt_ext range {min(mode.values()):.2f}-{max(mode.values()):.2f})'
+        )
+        return hold_cmd
+
+    def _clear_soft(self):
+        self._soft_continue(self.fault_off, self.fault_steps, tol=1e-5)
+        self._continue_to(self.lvrt_off, nominal_steps=8)
+
+    # ------------------------------------------------------------------ #
+    # Mathematical Solvers & Continuation
+    # ------------------------------------------------------------------ #
+    def _apply_fractional_targets(self, targets: Dict[str, float], progress: float, start_values: Dict[str, float]):
+        for name, target_val in targets.items():
+            current_start = start_values[name]
+            self.model.set_value(name, current_start + progress * (target_val - current_start))
+
+    def _adaptive_continue(self, targets: Dict[str, float], nominal_steps: int,
+                           tol: float = 1e-8, on_step: Optional[Callable] = None):
+        start_values = {name: self.model.get_value(name) for name in targets}
+
+        progress = 0.0
+        step_size = 1.0 / nominal_steps
+        max_step_size = step_size
+
+        while progress < 1.0 - 1e-9:
+            next_progress = min(1.0, progress + step_size)
+            self._apply_fractional_targets(targets, next_progress, start_values)
+
+            try:
+                self.model.recalculate_algebraics(tol=tol)
+            except RuntimeError:
+                self._apply_fractional_targets(targets, progress, start_values)
+                step_size *= 0.5
+                if step_size < 1e-7:
+                    raise RuntimeError("Solver failed to converge even at minimum step size.")
+                continue
+
+            progress = next_progress
+            if on_step is not None:
+                on_step()
+            step_size = min(max_step_size, step_size * 1.5)
+
+    def _continue_to(self, targets: Dict[str, float], nominal_steps: int, tol: float = 1e-8):
+        self._adaptive_continue(targets, nominal_steps, tol)
+
+    def _soft_continue(self, targets: Dict[str, float], nominal_steps: int, tol: float = 1e-8):
+        start_values = {name: self.model.get_value(name) for name in targets}
+
+        progress = 0.0
+        step_size = 1.0 / nominal_steps
+        max_step_size = step_size
+
+        while progress < 1.0 - 1e-9:
+            next_progress = min(1.0, progress + step_size)
+            snapshot = self._snapshot_state()
+            self._apply_fractional_targets(targets, next_progress, start_values)
+
+            try:
+                self.model.recalculate_algebraics(tol=tol)
+                for _ in range(20):
+                    if self._relax_lvrt(tol=tol) < 1e-5:
+                        break
+            except RuntimeError:
+                self._restore_state(snapshot)
+                step_size *= 0.5
+                if step_size < 1e-7:
+                    raise RuntimeError("Soft continuation solver failed.")
+                continue
+
+            progress = next_progress
+            step_size = min(max_step_size, step_size * 1.5)
+
+    # ------------------------------------------------------------------ #
+    # Relay Logic (Hard / Soft)
+    # ------------------------------------------------------------------ #
+    def _apply_fault_hard_relay(self) -> Dict[str, float]:
+        snapshot = self._snapshot_state()
+        try:
+            combined_targets = {**self.fault_on, **self.lvrt_on}
+            self._adaptive_continue(combined_targets, self.fault_steps)
+        except RuntimeError:
+            self._restore_state(snapshot)
+            self._adaptive_continue(self.fault_on, self.fault_steps)
+
+        mode = {device: self.model.get_value(f'lvrt_ext_{device}') for device in self.devices}
+        for _ in range(len(self.devices) + 1):
+            demote_cmd = {}
+            for device in self.devices:
+                if mode[device] and self.model.get_value(f'V_{device}') > self.v_lvrt:
+                    mode[device] = 0.0
+                    demote_cmd.update(self._get_lvrt_command(device, 0.0))
+
+            if not demote_cmd:
+                break
+            self._continue_to(demote_cmd, nominal_steps=12)
+
+        active_lvrt = int(sum(mode.values()))
+        self._report(f'LVRT relay: {active_lvrt}/{len(self.devices)} devices in LVRT, '
+                     f'{len(self.devices) - active_lvrt} in PQ (threshold V = {self.v_lvrt})')
+        return mode
+
+    def _clear_fault_hard_relay(self):
+        v_relax = self.v_lvrt - 0.1
+
+        def relay_off():
+            switch_cmd = {}
+            for device in self.devices:
+                if (self.model.get_value(f'lvrt_ext_{device}') and
+                        self.model.get_value(f'V_{device}') > v_relax):
+                    switch_cmd.update(self._get_lvrt_command(device, 0.0))
+            if switch_cmd:
+                self._continue_to(switch_cmd, nominal_steps=8)
+
+        snapshot = self._snapshot_state()
+        try:
+            combined_targets = {**self.fault_off, **self.lvrt_off}
+            self._adaptive_continue(combined_targets, self.fault_steps, tol=1e-5)
+        except RuntimeError:
+            self._restore_state(snapshot)
+            self._adaptive_continue(self.fault_off, self.fault_steps, tol=1e-5, on_step=relay_off)
+            self._continue_to(self.lvrt_off, nominal_steps=8)
+
+    def _relax_lvrt(self, tol: float = 1e-8) -> float:
+        max_change = 0.0
+        for device in self.devices:
+            V = self.model.get_value(f'V_{device}')
+            target = min(1.0, max(0.0, (self.v_lvrt - V) / self.lvrt_band))
+            current = self.model.get_value(f'lvrt_ext_{device}')
+
+            new_val = current + 0.5 * (target - current)
+            max_change = max(max_change, abs(new_val - current))
+            self.model.set_value(f'lvrt_ext_{device}', new_val)
+
+        self.model.recalculate_algebraics(tol=tol)
+        return max_change
+
+    # ------------------------------------------------------------------ #
+    # Utilities
+    # ------------------------------------------------------------------ #
+    def _get_lvrt_command(self, device_name: str, mode: float) -> Dict[str, float]:
+        return {
+            f'lvrt_ext_{device_name}': mode,
+            f'i_sr_ref_{device_name}': self.lvrt_iq if mode else 0.0,
+            f'i_sa_ref_{device_name}': self.lvrt_id if mode else 0.0,
+        }
+
+    def _snapshot_state(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        return (
+            self.model.x.copy(),
+            self.model.y_run.copy(),
+            self.model.p_vals.copy(),
+            self.model.u_run_vals.copy()
+        )
+
+    def _restore_state(self, snapshot: Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]):
+        self.model.x[:], self.model.y_run[:], self.model.p_vals[:], self.model.u_run_vals[:] = (
+            s.copy() for s in snapshot
+        )
+
+    def _report(self, msg: str):
+        if self.verbose:
+            print(msg)
 
 
 def apply_fault(model, bus_name, t_clear,
                 lvrt_iq=0.5, lvrt_id=0.0, v_lvrt=0.5,
-                lvrt_soft=False, lvrt_band=0.2, fault_steps=100,
-                verbose=True):
-    r"""Apply, hold and clear a shunt fault, managing converter LVRT.
+                lvrt_soft=False, lvrt_band=0.2, fault_steps=100, verbose=True):
+    r"""Apply, hold and clear a shunt fault in one call (convenience wrapper).
 
-    The model is assumed to be initialised and time-stepped up to fault
-    inception (``model.run(t_fault, ...)`` already done). This function applies
-    the fault instantaneously (algebraic continuation at frozen time), holds it
-    for ``t_clear`` seconds (``model.run`` is advanced), then clears it
-    instantaneously. The caller resumes the post-fault simulation afterwards.
+    Thin wrapper around :class:`FaultManager`: applies the fault at the current
+    model time (frozen-time continuation), holds it for ``t_clear`` seconds
+    (``model.run`` is advanced), then clears it. The caller resumes the
+    post-fault simulation afterwards. For finer control over the hold interval,
+    use :class:`FaultManager` and call ``apply()`` / ``clear()`` directly.
 
     Parameters
     ----------
     model : CasadiModel
-        Model built from data that contains a ``"faults"`` section; the fault
-        target admittance is read from ``model.sys_dict['faults'][bus_name]``.
+        Initialised model built from data containing a ``"faults"`` section.
     bus_name : str
         Bus at which the fault is applied (must match a declared fault).
     t_clear : float
-        Fault duration in seconds (the shunt is removed at ``t + t_clear``).
-    lvrt_iq, lvrt_id : float, optional
-        Reactive / active current references commanded in LVRT (pu). Default
-        ``0.5`` reactive (voltage-supporting), ``0.0`` active.
-    v_lvrt : float, optional
-        Terminal-voltage threshold separating LVRT from PQ operation.
-    lvrt_soft : bool, optional
-        Use the continuous (soft) relay instead of the hard latched relay.
-    lvrt_band : float, optional
-        Voltage band of the soft relay (full LVRT at ``v_lvrt - lvrt_band``).
-    fault_steps : int, optional
-        Nominal number of continuation steps for the fault ramp (adaptive).
-    verbose : bool, optional
-        Print a one-line summary of the resolved per-device modes.
+        Fault duration in seconds.
+    lvrt_iq, lvrt_id, v_lvrt, lvrt_soft, lvrt_band, fault_steps, verbose
+        Forwarded to :class:`FaultManager`.
 
     Returns
     -------
     dict
-        Resolved per-device ``lvrt_ext`` values at the fault hold.
+        The per-device hold command (``lvrt_ext`` / ``i_sr_ref`` / ``i_sa_ref``)
+        applied during the fault.
     """
-    faults = getattr(model, 'sys_dict', {}).get('faults', {})
-    if bus_name not in faults:
-        raise ValueError(
-            f"No fault declared at bus '{bus_name}'. Declared fault buses: "
-            f"{sorted(faults)}. Add a 'faults' section to the network data.")
-    g_fault = faults[bus_name]['g']
-    b_fault = faults[bus_name]['b']
-    g_name = f'g_shunt_{bus_name}'
-    b_name = f'b_shunt_{bus_name}'
-    fault_on = {g_name: g_fault, b_name: b_fault}
-    fault_off = {g_name: 0.0, b_name: -1e-6}
-
-    # Discover the grid-following converters from the LVRT interface.
-    devices = [n[len('lvrt_ext_'):] for n in model.u_run_names
-               if n.startswith('lvrt_ext_')]
-
-    def lvrt_cmd(bus, mode):
-        # mode 1.0 -> LVRT (bounded current injection); 0.0 -> normal PQ.
-        return {
-            f'lvrt_ext_{bus}': mode,
-            f'i_sr_ref_{bus}': lvrt_iq if mode else 0.0,
-            f'i_sa_ref_{bus}': lvrt_id if mode else 0.0,
-        }
-
-    lvrt_on = {k: v for b in devices for k, v in lvrt_cmd(b, 1.0).items()}
-    lvrt_off = {k: v for b in devices for k, v in lvrt_cmd(b, 0.0).items()}
-
-    def report(msg):
-        if verbose:
-            print(msg)
-
-    # ------------------------------------------------------------------ #
-    # Continuation primitives
-    # ------------------------------------------------------------------ #
-    def adaptive_continue(targets, steps, tol=1e-8, on_step=None):
-        # Walk {param: target} from current values to the targets, halving the
-        # step on a failed solve and growing it again on success, so fine
-        # resolution is spent only where the operating point is stiff.
-        start = {name: model.get_value(name) for name in targets}
-
-        def set_frac(f):
-            for name, target in targets.items():
-                model.set_value(name, start[name] + f*(target - start[name]))
-
-        f, df, df_max = 0.0, 1.0/steps, 1.0/steps
-        while f < 1.0 - 1e-9:
-            nf = min(1.0, f + df)
-            set_frac(nf)
-            try:
-                model.recalculate_algebraics(tol=tol)
-            except RuntimeError:
-                set_frac(f)
-                df *= 0.5
-                if df < 1e-7:
-                    raise
-                continue
-            f = nf
-            if on_step is not None:
-                on_step()
-            df = min(df_max, df*1.5)
-
-    def continue_to(targets, steps, tol=1e-8):
-        adaptive_continue(targets, steps, tol=tol)
-
-    def snapshot():
-        return (model.x.copy(), model.y_run.copy(),
-                model.p_vals.copy(), model.u_run_vals.copy())
-
-    def restore(snap):
-        model.x[:], model.y_run[:], model.p_vals[:], model.u_run_vals[:] = (
-            s.copy() for s in snap)
-
-    # ------------------------------------------------------------------ #
-    # Hard latched relay
-    # ------------------------------------------------------------------ #
-    def apply_fault_with_lvrt(steps):
-        # Step 1: bring the plant into the faulted state. Try ramping the fault
-        # in with all converters going into LVRT together (bounded current, good
-        # conditioning for hard faults); if that folds -- milder faults, where
-        # reactive injection at healthy terminals overvolts -- fall back to plain
-        # PQ.
-        snap = snapshot()
-        try:
-            adaptive_continue({**fault_on, **lvrt_on}, steps)
-        except RuntimeError:
-            restore(snap)
-            adaptive_continue(fault_on, steps)
-
-        # Step 2: demote-only per-device relay. Keep LVRT only while the unit's
-        # own terminal is at/below v_lvrt; latch any recovered unit back to PQ.
-        # Monotone (each unit switches at most once), so it always terminates.
-        mode = {b: model.get_value(f'lvrt_ext_{b}') for b in devices}
-        for _ in range(len(devices) + 1):
-            demote = {}
-            for b in devices:
-                if mode[b] and model.get_value(f'V_{b}') > v_lvrt:
-                    mode[b] = 0.0
-                    demote.update(lvrt_cmd(b, 0.0))
-            if not demote:
-                break
-            continue_to(demote, steps=12)
-        n_lvrt = int(sum(mode.values()))
-        report(f'LVRT relay: {n_lvrt}/{len(devices)} devices in LVRT, '
-               f'{len(devices) - n_lvrt} in PQ (threshold V = {v_lvrt})')
-        return mode
-
-    def clear_fault_hard():
-        v_relax = v_lvrt - 0.1
-
-        def relay_off():
-            switch = {}
-            for b in devices:
-                if (model.get_value(f'lvrt_ext_{b}')
-                        and model.get_value(f'V_{b}') > v_relax):
-                    switch.update(lvrt_cmd(b, 0.0))
-            if switch:
-                continue_to(switch, steps=8)
-
-        # Symmetric single-mode plants clear via the proportional reverse
-        # co-ramp; mixed-mode states need the latched relay. Try co-ramp first.
-        snap = snapshot()
-        try:
-            adaptive_continue({**fault_off, **lvrt_off}, fault_steps, tol=1e-5)
-        except RuntimeError:
-            restore(snap)
-            adaptive_continue(fault_off, fault_steps, tol=1e-5,
-                              on_step=relay_off)
-            continue_to(lvrt_off, steps=8)
-
-    # ------------------------------------------------------------------ #
-    # Soft continuous relay
-    # ------------------------------------------------------------------ #
-    def relax_lvrt(tol=1e-8):
-        # One damped fixed-point sweep: lvrt_ext -> clip((v_lvrt - V)/band, 0, 1).
-        changed = 0.0
-        for b in devices:
-            V = model.get_value(f'V_{b}')
-            target = min(1.0, max(0.0, (v_lvrt - V) / lvrt_band))
-            cur = model.get_value(f'lvrt_ext_{b}')
-            new = cur + 0.5*(target - cur)
-            changed = max(changed, abs(new - cur))
-            model.set_value(f'lvrt_ext_{b}', new)
-        model.recalculate_algebraics(tol=tol)
-        return changed
-
-    def soft_continue(targets, steps, tol=1e-8):
-        # Adaptive continuation that relaxes the soft relay to its fixed point
-        # within each step; the whole step is rolled back and halved if it fails.
-        start = {name: model.get_value(name) for name in targets}
-
-        def set_frac(f):
-            for name, target in targets.items():
-                model.set_value(name, start[name] + f*(target - start[name]))
-
-        f, df, df_max = 0.0, 1.0/steps, 1.0/steps
-        while f < 1.0 - 1e-9:
-            nf = min(1.0, f + df)
-            snap = snapshot()
-            set_frac(nf)
-            try:
-                model.recalculate_algebraics(tol=tol)
-                for _ in range(20):
-                    if relax_lvrt(tol=tol) < 1e-5:
-                        break
-            except RuntimeError:
-                restore(snap)
-                df *= 0.5
-                if df < 1e-7:
-                    raise
-                continue
-            f = nf
-            df = min(df_max, df*1.5)
-
-    # ------------------------------------------------------------------ #
-    # Drive the event: apply (frozen) -> hold (integrate t_clear) -> clear
-    # ------------------------------------------------------------------ #
+    manager = FaultManager(model, bus_name, lvrt_iq=lvrt_iq, lvrt_id=lvrt_id,
+                           v_lvrt=v_lvrt, lvrt_soft=lvrt_soft, lvrt_band=lvrt_band,
+                           fault_steps=fault_steps, verbose=verbose)
     t_incept = model.t
-
-    if lvrt_soft:
-        for b in devices:                       # arm the current references
-            model.set_value(f'i_sr_ref_{b}', lvrt_iq)
-            model.set_value(f'i_sa_ref_{b}', lvrt_id)
-        soft_continue(fault_on, fault_steps)
-        hold_cmd = {}
-        mode = {}
-        for b in devices:
-            le = model.get_value(f'lvrt_ext_{b}')
-            mode[b] = le
-            hold_cmd[f'lvrt_ext_{b}'] = le
-            hold_cmd[f'i_sr_ref_{b}'] = lvrt_iq
-            hold_cmd[f'i_sa_ref_{b}'] = lvrt_id
-        n_act = sum(1 for b in devices if mode[b] > 0.5)
-        report(f'LVRT soft relay: {n_act}/{len(devices)} devices >50% into LVRT '
-               f'(lvrt_ext range {min(mode.values()):.2f}-{max(mode.values()):.2f})')
-
-        model.run(t_incept + t_clear, hold_cmd)
-
-        soft_continue(fault_off, fault_steps, tol=1e-5)
-        continue_to(lvrt_off, steps=8)
-    else:
-        mode = apply_fault_with_lvrt(fault_steps)
-        hold_cmd = {k: v for b in devices for k, v in lvrt_cmd(b, mode[b]).items()}
-
-        model.run(t_incept + t_clear, hold_cmd)
-
-        clear_fault_hard()
-
-    return mode
+    hold_cmd = manager.apply()
+    model.run(t_incept + t_clear, hold_cmd)
+    manager.clear()
+    return hold_cmd
