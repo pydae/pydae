@@ -79,3 +79,5 @@ docs/**/_autosummary/
 
 
 prompts/
+# local publish staging
+dist_publish/
