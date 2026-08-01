@@ -27,6 +27,12 @@ from pydae.utils.dates import (
     get_absolute_hour_of_year_with_dst,
 )
 
+from pydae.utils.pod_wph import (
+    pod_wph,
+    pod_chain_tf,
+    pod_chain_phase_deg,
+)
+
 __all__ = [
     # utils.py
     "read_data",
@@ -39,4 +45,8 @@ __all__ = [
     "get_file_mod_time",
     # dates.py
     "get_absolute_hour_of_year_with_dst",
+    # pod_wph.py
+    "pod_wph",
+    "pod_chain_tf",
+    "pod_chain_phase_deg",
 ]
