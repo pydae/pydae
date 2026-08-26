@@ -91,7 +91,7 @@ def pod_chain_phase_deg(omega, T_lead, T_lag, T_lpf, T_wo):
 
 
 def pod_wph(omega_target, phi_req_deg, *, T_lpf=0.0, T_wo=(), n_stages=3, weights=None,
-            alpha_max=12.0, T_min=0.015, wc_min=None, wc_max=None, x0=None,
+            alpha_max=12.0, T_min=0.015, T_max=None, wc_min=None, wc_max=None, x0=None,
             ipopt_tol=1e-10, verbose=True):
     """Fit the lead-lag stages of a POD/PSS so the chain supplies ``phi_req_deg``.
 
@@ -114,6 +114,13 @@ def pod_wph(omega_target, phi_req_deg, *, T_lpf=0.0, T_wo=(), n_stages=3, weight
         ``arcsin((alpha_max-1)/(alpha_max+1))`` (57.8 deg for 12).
     T_min : float
         Lower bound on every designed time constant [s] (keeps the fastest lag realisable).
+    T_max : float, optional
+        Upper bound on every designed time constant [s]. Unbounded by default. Use it to keep the
+        compensator *faster than the mode it damps*: a chain whose slowest pole approaches the
+        target eigenvalue under-delivers against its own first-order estimate
+        ``Dlambda = R*H(lambda)``, and a phase-only objective cannot see that -- it will happily
+        buy phase with slow stages. ``T_max = 1/(k*abs(lam.real))`` with ``k`` around 3 puts the
+        slowest pole a factor ``k`` to the left of the mode.
     wc_min, wc_max : float, optional
         Bounds on each stage centre frequency [rad/s]. Default: 0.1x the lowest target and
         10x the highest.
@@ -175,7 +182,8 @@ def pod_wph(omega_target, phi_req_deg, *, T_lpf=0.0, T_wo=(), n_stages=3, weight
     sol = solver(x0=x0,
                  lbx=[wc_min] * n_stages + [-phi_max_rad] * n_stages,
                  ubx=[wc_max] * n_stages + [phi_max_rad] * n_stages,
-                 lbg=[T_min] * (2 * n_stages), ubg=[ca.inf] * (2 * n_stages))
+                 lbg=[T_min] * (2 * n_stages),
+                 ubg=[ca.inf if T_max is None else T_max] * (2 * n_stages))
 
     x_opt = np.array(sol['x']).flatten()
     wc_opt, phim_opt = x_opt[:n_stages], x_opt[n_stages:]

@@ -1,6 +1,6 @@
 import numpy as np
 
-def residue(model, input_name, output_name, mode_idx):
+def residue(model, input_name, output_name, mode_idx, verbose=True):
     """
     Calculates the residue and required phase compensation for a Power System Stabilizer (PSS).
     
@@ -58,15 +58,18 @@ def residue(model, input_name, output_name, mode_idx):
     phi_lead_deg = (phi_lead_deg + 180) % 360 - 180
 
     # 7. Print the report
-    print('\n')
-    print("-" * 50)
-    print(f"Residue for {input_name} -> {output_name}:")
-    print("-" * 50)
-    print(f"Analyzed mode                   : {lambda_i:.4f}")
-    print(f"Natural frequency (rad/s)       : {np.imag(lambda_i):.4f}")
-    print(f"Residue Angle (R_i)             : {residue_angle_deg:.2f}º")
-    print(f"Required PSS Compensation       : {phi_lead_deg:.2f}º")
-    print("-" * 50)
+    if verbose:
+        print('\n')
+        print("-" * 50)
+        print(f"Residue for {input_name} -> {output_name}:")
+        print("-" * 50)
+        print(f"Analyzed mode                   : {lambda_i:.4f}")
+        freq_hz = np.imag(lambda_i) / (2 * np.pi)
+        print(f"Natural frequency (rad/s)       : {np.imag(lambda_i):.4f} ({freq_hz:.4f} Hz)")
+        print(f"Residue Magnitude (|R_i|)       : {np.abs(R_i[0, 0]):.4f}")
+        print(f"Residue Angle (R_i)             : {residue_angle_deg:.2f}º")
+        print(f"Required PSS/POD Compensation       : {phi_lead_deg:.2f}º")
+        print("-" * 50)
     
     return R_i
 
