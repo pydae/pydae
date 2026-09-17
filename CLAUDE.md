@@ -179,7 +179,7 @@ mc = CasadiModel(CasadiBuilder(grid.sys_dict).build())
 mc.ini({}, xy_0=grid.dae["xy_0_dict"]); mc.run(t_end, {}); mc.post()
 ```
 
-Both builders accept `use_casadi=` and expose `.construct(name)`, `.sys_dict`, `.dae`, and `.build(name)`. `construct()` is misspelled `contruct_grid()` internally for the grid-assembly step — that name is load-bearing, do not "fix" it.
+Both builders accept `use_casadi=` and expose `.construct(name)`, `.sys_dict`, `.dae`, `.build(name)`, and `.build_mlx(name, **kwargs)` — the last being `construct()` + `MlxBuilder(sys_dict, **kwargs).build()` in one call (no C compilation; kwargs forwarded to `MlxBuilder`). `MathBackend` itself is still a two-way SymPy/CasADi switch and will stay that way: MLX has no symbolic layer, so it is a *lowering target* consumed after `sys_dict` exists, not a third construction backend. `construct()` is misspelled `contruct_grid()` internally for the grid-assembly step — that name is load-bearing, do not "fix" it.
 
 **pydae-uds specifics** (three-phase, 4-wire by default): each bus carries `N_nodes` (defaults to 4 = phases a,b,c + neutral n). Node voltages are modelled in rectangular form as `V_{bus}_{node}_{r|i}` (real/imag per node), with phase-neutral magnitudes exposed as `h_dict` outputs like `V_A1_an`. The builder assembles branch incidence matrices (`A`, `At`) and primitive admittances (`G_primitive`, `B_primitive`) through a `MathBackend` (`pydae.core.builder.casadi_builder`) so the same construction code emits either SymPy or CasADi graphs. Backend parity (both must converge to the same node voltages) is enforced by `tests/uds/test_uds_grid.py`. The UDS data dict uses top-level `system` (`S_base`), `buses`, `lines`, `transformers`, `shunts`, `sources`, `loads` keys.
 
@@ -199,7 +199,7 @@ ppcs/repc_a.py    — plant-level controller; monitors POI bus, commands Pref/Qe
 weccs/reec_b.py   — local electrical control; sits between REPC_A and REGC_A, commands Ipcmd/Iqcmd
 weccs/regc_a.py   — generator/converter interface; injects Ip/Iq into the network
 ```
-REEC_B and REGC_A are nested inside a `weccs` HJSON entry (same pattern as an AVR inside `syns`). REPC_A is a separate plant-level entry in `ppcs`. Available variants: `reec_b`, `reec_e`; `regc_a`, `regc_b`, `regfm_a1`, `regfm_b1`; `repc_a`, `repc_d`.
+REEC_B and REGC_A are nested inside a `weccs` HJSON entry (same pattern as an AVR inside `syns`). REPC_A is a separate plant-level entry in `ppcs`. Available variants: `reec_b`, `reec_e`; `regc_a`, `regc_b`, `regfm_a1`, `regfm_b1`; `repc_a`, `repc_d`, `sppc`. **`ppcs/sppc.py`** is a minimal *open-loop* plant controller: its builder just registers `p_poi_ref`/`q_poi_ref` inputs and records a `pvs`/`bess` converter list in `sys_dict['sppc']`; its dispatch is a **discrete** controller (`SppcController`, `make_discrete_controller`) running on the **`"high"` (~200 ms) tier**, broadcasting those refs to each converter's `p_s_ppc`/`q_s_ppc` (or splitting by count with `share:true`). It **freezes** the dispatch while the regulated bus voltage (`reg_bus`, default the ppc name) is below `freeze_v` (default 0.8 pu) so it doesn't fight the local FRT relay during a fault, resuming on recovery. No DAE states/equations.
 
 **AGC (Automatic Generation Control)**: activated by an `agc` key in the HJSON data dict. `BpsBuilder.construct()` calls `add_agc(self)` after all other builders, so the governor's `p_c_{gen}` (or `p_m_{gen}`) already exists in `u_ini_dict`/`u_run_dict` — `add_agc` pops it and replaces it with an algebraic variable driven by a PI on rotor speed. Config format:
 
@@ -208,6 +208,57 @@ agc: {gen: "2", K_p_agc: 10.0, K_i_agc: 2.0}
 ```
 
 `gen` is the generator name (matches the bus name used in `syns`). Outputs `p_agc` and `xi_agc` in `h_dict`.
+
+### Dynamic thermal rating (DTR) lines — `pydae-bps/lines/`
+
+A `dtr` block on a `lines[]` entry (or a shared `dtr_codes` entry it references) turns an ordinary π-section into a **thermally coupled** line: the conductor temperature becomes a DAE state and the series admittance `g_{line}`/`b_{line}` becomes an *algebraic variable* evaluated from `R(T) = R_20·(1 + α_R·(T − 20))`, so temperature feeds back into losses and voltage drop. One `R_20` (from the line's `R_km`) and one `alpha_R` drive both the admittance and the heat balance.
+
+Two thermal models, dispatched on the resolved `dtr` data:
+
+| Model | Module | Physics |
+|---|---|---|
+| `overhead` (default) | `lines/line_dtr.py` | IEEE-738 bare conductor in air: Joule + solar in, forced/natural convection + radiation out. One conductor node. |
+| `cable` (`dtr: {model: "cable", …}`) | `lines/line_dtr_cable.py` | Buried cable: heat conducted out through insulation/sheath/jacket into soil. IEC 60287 resistances, IEC 60853 two-node ladder — **or** an n-stage Cauer ladder. |
+
+**Two-node vs n-stage — and when the two-node form is not enough.** The IEC 60853 form is `θ_c —T1— θ_e —T4— θ_soil` with Van Wormer-split capacitances `Q1`/`Q2`. Its two time constants on the CIGRE MV benchmark are ~2 min and ~1.5 days, and **a daily load cycle falls straight into the gap between them**: the two-node model reproduces the steady state exactly (same DC thermal resistance) but under-predicts the daily conductor swing by about 2×, hence the peak — the unsafe direction for a rating study. Supplying `R` and `C` as *lists* instead of `T1/T4/Q1/Q2/p` builds an n-stage Cauer ladder that closes that gap. The two parameter sets are **mutually exclusive** and giving both raises rather than silently dropping one. In the ladder form `t_sheath` does not exist; the interior nodes are `t_ladder_{i}_{line}` and node 1 is always `t_conductor_{line}` (the admittance equation is written against that name).
+
+Three things here are load-bearing:
+- **The ladder takes the *total* loss `(1+λ₁)·W_c + W_d` at node 1**, where the two-node form injects `W_c` at the conductor and `λ₁·W_c` at the external node. That is not a simplification: `cable_fem.identify_ladder` drives the FEM with the real *spatial* loss distribution (W_c in the conductor, W_s at the screen) and reduces the result, so the identified R/C already carry the split. Re-splitting it here would double-count it.
+- **A DTR line appends algebraic equations during `add_lines()`, i.e. *before* the bus block.** Device injectors write into `dae['g'][idx_bus*2]` assuming the bus block sits at offset 0, and the vsource/AVR ini-run swaps assume `g[i]` is paired with `y_ini[i]`. `contruct_grid()` therefore **rotates the pre-bus entries to the back of `g`/`y_ini`/`y_run`** (no-op when nothing precedes the bus block). Without that rotation a DTR model fails `ini()` with a singular Jacobian that looks like a thermal-model bug and is not one.
+- **Ladder node temperatures are time constants, not radii.** The stages come from a Foster→Cauer identification of the FEM step response, so an interior node is *not* a physical layer. Only the conductor node and the total `sum(R)` (the exact DC conductor-to-soil resistance per unit of total loss) have a direct physical reading. Locating a physical surface in the ladder means walking the resistance out from the conductor — see `cover_temperature()` in `cable_fem_example.py`.
+
+**FEM identification — `lines/cable_fem.py`** works out *what the dtr parameters should be* for a real, geometrically resolved circuit, in four stages:
+
+```
+1. geometry     Layer / CableDesign / Installation / Backfill / CableCase
+                concentric layer stack, flat or trefoil, native soil or backfilled trench
+                CABLE_LIBRARY ships the CIGRE TB 575 European-MV benchmark (NA2XS2Y_120_AL)
+2. field        ThermalFEM — graded tensor mesh + adaptive refinement (no external mesher),
+                -div(k grad T) = q_v, Robin ground surface, Dirichlet far field
+3. ladder       identify_ladder() — rational Krylov reduction of Z(s) = cᵀ(K+sM)⁻¹b,
+                Foster form (positive residues => realisable) -> Cauer by continued fractions
+                => LadderModel; ladder_dtr() emits the R/C block
+4. two-node     fit_two_node() — T1 analytic from the layer stack, T4 from the FEM conductor
+                temperature, Q1/Q2 least-squares on the step response with DC pinned
+                => TwoNodeFit; .as_dtr() emits the block; verify_with_pydae() builds the real
+                   pydae-bps model with it and checks against the FEM
+```
+
+- **`T4` from the FEM embeds the mutual heating of the neighbouring phases** (~30 % of the conductor rise on the benchmark), which the isolated-cable Kennelly formula cannot. `library_defaults()` / `compare_with_library()` quantify the difference — on the benchmark the library defaults would rate the cable 459 A against the FEM's 297 A.
+- **The single-phase equivalent is exact only under balance.** `pydae.bps` is positive-sequence (one current per line); thermally the three cables are coupled, but under balanced loading superposition collapses the 3×3 mutual matrix to `Z_hot = Z_self + 2·Z_mutual`, so one ladder suffices *provided T4 carries that sum*. `LadderModel.z_self` / `z_mutual` are reported separately because the collapse is invalid the moment the phases are unbalanced.
+- **Soil capacitance is lumped over a finite shell** of outer diameter `soil_shell × De` (default 3) rather than IEC 60853's exponential-integral response — the standard simplification for real-time/control studies. Tune `soil_shell`, or override `Q2`/`T4`, to match a reference.
+- **`scikit-fem`/`scipy`/`matplotlib` are imported lazily**, inside the functions that need them, so importing `pydae.bps` never pays for them: `pip install "pydae-bps[fem]"`.
+
+**Worked example — `lines/cable_fem_example.py`** narrates the whole path end to end (geometry → field → ladder → both dtr blocks → ampacity → `ini()` → a 24 h load cycle through the real simulator → figures), building *both* thermal models side by side so the cost of the truncation is visible rather than asserted:
+
+```bash
+python -m pydae.bps.lines.cable_fem_example --plot .     # ~17 s, writes cable_cycle.png + cable_field.png
+python -m pydae.bps.lines.cable_fem_example --dt 3600 --no-step-check
+```
+
+The cycle is set by `CYCLE_BASE` / `CYCLE_AMPLITUDE` (amperes, mean ± swing) and starts from the steady state at the *mean* current so the day carries no start transient of its own. `CURRENT` is separate — it is the characterisation current for steps 1–6, not the cycle. The script also self-checks: it pushes the model's own `W_total` series through the same R/C integrated in plain Python and confirms the residual is first order in `dt` (a wrong network sits on a floor instead).
+
+The same path expressed as assertions is `tests/bps/test_cable_fem_dtr.py` (markers `bps`, `slow`, some `model`), where every link is checked against something that does *not* come from that link: the FEM field against Kennelly + the analytic layer-stack formula, the Cauer ladder against a direct backward-Euler transient FEM solve, the exported block against the parameter contract `line_dtr_cable.descriptions()` publishes, and the `run()` trajectory against an independent scipy integration.
 
 ### CasADi backend solver internals
 
@@ -227,6 +278,51 @@ m = Model(name); m.ini({}, "xy_0.json")
 xy = {n: float(m.get_value(n)) for n in m.x_list + m.y_run_list}
 mc.ini({}, xy_0=xy)   # full-coverage seed → step 1 converges
 ```
+
+### MLX backend (Apple Silicon) — `builder/mlx_builder.py`, `builder/mlx_sparsity.py`, `builder/mlx_sweep.py`
+
+A third backend alongside SymPy→C and CasADi. `MlxBuilder(sys_dict).build()` lowers the equations onto `mlx.core` graphs (accepting **either** SymPy or CasADi `SX` expressions — `_sympy_to_mlx` uses `lambdify` onto an mlx-backed numpy shim, `_casadi_to_mlx` replays the `SX` instruction tape), takes Jacobians by MLX autodiff, and wraps the Newton iteration in `@mx.compile`. Both classes are exported lazily from `pydae.core.builder` so importing pydae on non-Apple platforms still works; install with `pip install pydae[mlx]`.
+
+**Do not reach for it as a faster scalar solver** — a single small system cannot keep a GPU busy and the per-op dispatch cost is paid either way. Its reason to exist is `MlxSweep`.
+
+**Structural sparsity (`builder/mlx_sparsity.py`, `sparse=True` by default).** Every Jacobian — ini, trapezoidal, `Fx`/`Fy`/`Gx`/`Gy`/`Hx`… and the augmented SSA block — is built by Curtis-Powell-Reid **column compression**: columns that share no equation are perturbed together, so one forward-mode `jvp` per colour replaces one reverse-mode `vjp` per equation. Measured: `genrou` 16 columns → 7 passes, `k12p6` 87 → 8, a 24-machine system 507 → 11. `model.patterns['ini']` reports nnz, colours and pass count.
+
+Four things here are load-bearing:
+- **Dense rows go to reverse mode instead.** One dense equation makes every pair of columns conflict and collapses the colouring to one colour per column. The COI speed `omega_coi = sum(H_i omega_i)/sum(H_i)` is exactly that row and gets denser as the network grows — on a 24-machine system it is the difference between 11 passes and 29. The densest few rows are excluded from the conflict graph and recovered with one `vjp` each (a cut-down Coleman-Verma bicolouring).
+- **The pattern must be deduplicated.** Recovery accumulates, so a repeated `(row, col)` doubles that entry. The trapezoidal pattern hits this whenever a state appears in its own derivative: the step's explicit `x_n` and the equation's own reference land on the same diagonal slot.
+- **Recovery uses structured ops only** (`take` along the colour axis, transpose, multiply by a mask), never a flat list of `n*n` scalar slot indices — the per-element form measured *slower* than dense reverse mode on a 121-equation model and threw the whole saving away.
+- **The scalar choice is measured, not ruled.** At B=1 `vmap` batches the identity rows into one dispatch, so 87 passes cost barely more than 8 and the fixed recovery cost can dominate; compression is 1.3-1.6x ahead on trigonometric power-system models and ~15% behind on models built from many trivially cheap equations. `build()` times both on the seed point and keeps the winner (`model._sparse_used`). Batched Jacobians (`_jac_ini_batched`, `_jac_trap_batched`, used by `MlxSweep`) are always compressed — there each pass carries real work, worth up to 106x on the Jacobian alone at B=10,000.
+
+**The linear solve stays dense**, deliberately and by measurement: MLX arrays are immutable, so the in-place update of any sparse factorization (`values.at[dst].add(...)`) copies the whole value array per pivot. A batched sparse LU of the `k12p6` Jacobian needs 170 stages = 331 ms over a `(2246, 10000)` array, against 603 ms for the dense `mx.linalg.solve` it would replace, plus a static pivot order that can fail. Don't rebuild it. Every build checks `J @ tangent` against a plain `jvp` and refuses to build on a mismatch; `sparse=False` forces plain reverse-mode AD.
+
+**`MlxSweep` — B copies of one DAE at once** (`model.sweep({...})`). The lowered functions are elementwise, so passing `(n_vars, B)` arrays instead of `(n_vars,)` evaluates B independent systems in one graph with no change to the lowering; B=1 reproduces the scalar path exactly. Measured on `genrou`: 10,000 steady states in 0.29 s (381x the scalar `ini`), 50,000 in 0.84 s (704x); batched transients reach 0.013 ms/step/case at B=10,000.
+
+```python
+m.ini({'p_m_1': 0.5})                                     # nominal anchor + seed
+sw = m.sweep({'p_m_1': np.linspace(0.05, 0.95, 10_000)})
+sw.ini(); q = sw.get_values('q_g_1')                      # (B,), NaN where infeasible
+sw.run(5.0, {'p_m_1': 0.65}, record=['omega_1'])          # (n_samples, B)
+sw.A_eval(); sw.eigenvalues()                             # damping locus vs the swept value
+```
+
+**Memory.** Scalar simulation is free (`k12p6`: 0.42 MB of MLX allocation, 0.53 MB of trajectory buffers for 10 s at Dt=0.01; the ~287 MB RSS is ~214 MB of Python + numpy/sympy/casadi). Batched peak tracks **`chunk`, never `B`** — 10k and 50k cases peak identically — at about `8·n²·itemsize` per case (measured 245.6 kB at n=87 float32 against a 250 kB estimate; 10.6 vs 10.5 kB at n=16). `_auto_chunk` caps at **4096** because throughput saturates there: on `k12p6` chunk 4096 is 0.96 s/996 MB against 8192's 0.97 s/1988 MB and 16384's 1.05 s/3943 MB — flat in time, linear in memory, slower beyond. `memory_budget_gb` (2.0) is a ceiling on top of that; lower it for memory, never raise it for speed. Compression cut peak memory 16-33× as well as time (chunk 4096: 986 MB sparse vs 15.4 GB dense). **`mx.get_peak_memory()` under-reports the CPU stream**, so it cannot check float64 (k12p6 float64 measures 253 kB/case vs float32's 246 kB, where it should be double) — use RSS there.
+
+Three things load-bearing enough not to "simplify":
+- **A swept name is written to every block that carries it** (`_locate`), unlike `_route_dict`'s first-match. `p_m_1` is in both `u_ini_dict` and `u_run_dict`; writing only the ini copy initialises correctly and then runs at nominal dispatch.
+- **Converged/failed cases are frozen by substituting an identity system inside the compiled kernel.** MLX aborts the *entire* batched `linalg.solve` if any one element is singular, so masking only the update is not enough.
+- **Non-convergence is data, not an error.** A wide sweep legitimately contains infeasible points — `p_m` at fixed `v_f` stops solving at the pull-out limit `E·V/X_d`, which `feasible_range()` reports (0.702 measured vs 0.7026 analytic). `ini()` never raises unless `require_all=True`.
+
+MLX limits worth knowing: `float64` is CPU-only, `linalg.solve`/`eigvals` are CPU-only at any dtype, and `sin`/`cos`/`exp` are float32-accurate *even on float64 arrays*, so residuals floor near 1e-8 regardless — hence the Newton driver also accepts a solve that demonstrably stops improving (`stall_tol`).
+
+**Sparse small-signal analysis** (`builder/mlx_ssa.py`, `model.small_signal(Shift=...)`). Solves the *generalized* problem `Λ_ξ φ = λ E φ` on the augmented state `ξ = [x; y]` with `E = diag(I, 0)`, so `A = Fx - Fy·Gy⁻¹·Gx` is never formed and `Gy` is never inverted. The pencil's `N_x` finite eigenvalues equal `eigvals(A)` (verified to 1e-13); its `N_y` infinite ones collapse to `μ = 0` under shift-invert and filter themselves out. `Λ_ξ v` is an `mx.jvp` pass and `Λ_ξᵀ w` an `mx.vjp` pass (the latter gives the left eigenvectors), both `@mx.compile`d; the shift-invert solve is matrix-free GMRES over those products. Returns eigenvalues, right/left eigenvectors and Kundur participation, all matching the dense path to ~1e-12.
+
+Four things here are load-bearing:
+- **Modes are selected on the Ritz residual, not on `|μ|`.** A float32 Krylov basis loses orthogonality (measured `‖VᵀV − I‖ = 0.9`) and emits ghost Ritz pairs with plausible `|μ|`; ranking by `|μ|` let one displace three genuine eigenvalues.
+- **`Restart` defaults to the full system order.** Restarted GMRES stagnates on an augmented power-system Jacobian — on Kundur two-area (n=87), `Restart=60` flatlines at 4e-1 and the eigenvalues come out wrong by 1.55, while full GMRES reaches 5e-12.
+- **Left eigenvectors normalise with the plain transpose `ψᵀEφ = 1`, never `ψᴴEφ`.** For a complex mode `conj(ψ)` is the left vector of the *conjugate* eigenvalue, so the conjugate-transpose product is ~0 by biorthogonality and normalising against it divides by noise.
+- **Unconverged modes are returned but flagged** (`mode_converged`, `mode_residual`, plus a `RuntimeWarning`) — silently returning the least-bad Ritz pairs would look exactly like eigenvalues.
+
+`matrix_free=False` instead forms `Λ_ξ` (compressed, via the `'aug'` pattern) and factorises it on the CPU: 0.02 s vs 0.83 s on genrou, 22 s vs 74 s on Kundur two-area, same answers. Matrix-free is for when memory, not time, is the constraint.
 
 ### SSA Module (src/pydae/ssa/)
 
@@ -264,8 +360,12 @@ Because `grid.sys_dict` (after `BpsBuilder.construct()`) has the same keys, `pyd
 from pydae.api.realtime_api import app
 app.state.model        = model          # CasadiModel, already ini()-ed
 app.state.chunk_ms     = 50.0           # integration chunk in ms
+app.state.solver       = "idas"         # per-chunk integrator: "idas" | "trapezoidal" (faster)
 app.state.ramp_chunks  = 20             # chunks to spread each setpoint change over
 app.state.cosim_config = grid.data.get("configs", {})  # optional co-sim config
+# optional injected bps layers (duck-typed; core never imports pydae-bps):
+app.state.discrete     = DiscreteOrchestrator.from_model(model)  # per-chunk discrete control
+app.state.faults       = FaultController(model, iq=iq_po123)     # fault apply/clear
 uvicorn.run(app, host="0.0.0.0", port=8000)
 ```
 
@@ -275,17 +375,36 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 |---|---|---|
 | `GET` | `/measurements` | All h_dict outputs (browser-friendly) |
 | `POST` | `/measurements` | Selective h_dict outputs by name list |
+| `GET` | `/inputs` | All runtime input (u_run setpoint) values |
 | `GET` | `/cosim/measurements` | Only measurements declared in `configs` |
-| `POST` | `/setpoints` | Write any u_run inputs (ramped); body: `{"setpoints": {...}, "timestamp": float\|null}` |
+| `POST` | `/setpoints` | Write any u_run inputs (ramped); body: `{"setpoints": {...}, "timestamp": float\|null}` **or** a flat `{name: value}` mapping (no-`setpoints`-key body is treated as flat) |
 | `POST` | `/cosim/setpoints` | Write setpoints restricted to `configs` — rejects unknown keys with 422 |
 | `POST` | `/set_input` | Write a single input (ramped) |
 | `GET` | `/status` | `{"is_running": bool, "t_sim": float}` |
+| `GET` | `/faults` | `{"declared": [...], "active": [...], "t_sim": float}` (501 if no fault controller) |
+| `POST` | `/faults/apply` | Apply a shunt fault; body `{"bus": str, "t_clear": float\|null, "X_fault": float\|null, "fault_steps": int\|null}` (422 unknown bus). `X_fault` overrides the reactance (larger = softer); fewer `fault_steps` = faster soft fault |
+| `POST` | `/faults/clear` | Clear a shunt fault; body `{"bus": str}` |
 
 **Key design points:**
+- **Per-chunk solver** is selectable via `app.state.solver`: `"idas"` (default; adaptive SUNDIALS, robust) or `"trapezoidal"` (fixed-step implicit trapezoid). The trapezoid reuses the model's cached fixed-step CasADi functions (`_build_fixed_step_fns`) + a modified-Newton with factorization reuse, so it avoids IDAS's per-chunk cold restart and runs ~3× faster on a settled plant with the same trajectory. It advances `trapezoidal_substeps` sub-steps/chunk (default `round(chunk_sec/Dt)`); the factorization is refreshed on schedule, adaptively, and after a fault. The Newton linear backend is `app.state.trapezoidal_linsol` (`"scipy"` default, or a `ca.Linsol` plugin like `"qr"`).
 - Setpoint changes are ramped over `ramp_chunks` chunks to avoid `IDA_LINESEARCH_FAIL` on large steps.
 - The background thread catches `RuntimeError` from failed IDAS steps and logs them rather than crashing.
 - CORS is open (`allow_origins=["*"]`) for browser and co-simulation client access.
 - `cosim_config` uses the `configs` section of the co-simulation JSON. Variable names are resolved via `emec_name` (exact), `emec_prefix` (prefix match), or `emec_template` (regex with `<emec_id>` backreference). Measurements resolve against `h_dict`; setpoints against `u_run_names`.
+- **`discrete` / `faults` are injected duck-typed** (`app.state.discrete` needs `step(model[, t])`; `app.state.faults` needs `apply(bus)`/`clear(bus)`/`buses`), so `pydae-core` keeps **no dependency on `pydae-bps`**. The loop calls `discrete.step(model, t_sim)` before each chunk and services fault apply/clear + auto-clear **under the integrator lock**. See "Discrete control & faults (pydae-bps)" below.
+- A fault apply/clear runs a blocking continuation under the lock, so afterwards the wall-clock pacing is **re-baselined** (`_rebase_pacing`) — the lag is dropped, not fast-forwarded, so real time resumes cleanly and a short `t_clear` fault stays observable to a polling client. Sub-millisecond overruns are not reported.
+
+### Discrete control & faults (pydae-bps)
+
+Two cooperating subsystems in `pydae-bps` model **discrete control** and **shunt faults**. Both keep a *generic* layer separate from the *particular* per-model behaviour, and both are consumed identically by the offline `model.run` loop and the real-time API (the API only ever sees the generic, duck-typed hooks — it never imports `pydae-bps`).
+
+**Discrete control orchestration** (`pydae.bps.discrete.DiscreteOrchestrator`). A DAE model is continuous; some elements also need a per-step discrete part (read outputs, write inputs before the next integration). `DiscreteOrchestrator` is the generic hook: `from_model(model)` discovers discrete-capable models (an explicit `DEFAULT_DISCRETE_MODULES` list + a `register_discrete` registry — **no blind package scan**, since the model dirs hold dev/test scripts), builds each model's controller, and `step(model, t)` runs them all. A controller is any object with `step(model)` (+ optional `sync(model)`), built by a module-level `make_discrete_controller(model)` factory returning `None` when absent.
+- **Latency tiers**: each controller declares `level` (`"low"`=every step / `"mid"`=0.05 s / `"high"`=0.2 s, overridable `tiers=` dict) or an explicit `period` (seconds); the orchestrator gates each by the sim clock so slow centralized controls (e.g. the `ppcs/sppc.py` plant dispatcher on the `"high"` tier) run less often than a local relay (`vrt`, `"low"`). Cadence is in **seconds** (ports across offline `Dt` and RT `chunk_sec`). Tiers gate cadence, not order; `step` returns a `controllers`-aligned list (`None` for skipped). `reset_schedule()` re-fires all after a discontinuity.
+
+**Faults** (`pydae.bps.utils.faults`). A fault is a balanced shunt impedance $Z_f=R+jX$ switched onto a bus, declared in a `"faults"` data section (`{bus, R_pu, X_pu, S_mva}`) that `BpsBuilder` turns into an *off* shunt plus a target admittance in `model.sys_dict['faults']`. The shunt exposes `g_shunt_<bus>`/`b_shunt_<bus>` **parameters**.
+- `FaultManager(model, bus)` — **generic**: robustly ramps the bus admittance in/out via frozen-time **continuation** (adaptive step + snapshot/restore + per-step fixed-point relaxation of an `on_step` callback). Deep faults (V→0 with constant-power converters) only converge because the converters reach bounded current injection *through* the continuation, not a time-domain ramp. `recalculate_algebraics` mutates only `y_run`.
+- The converter's *particular* ride-through is injected as `on_step`: `lvrt_response(devices, iq=...)` builds the standard grid-following LVRT callback; the discrete time-domain relay `vrt()` / `VrtController` (the "low"-tier discrete controller) and the PO 12.3 curve `iq_po123(V)` are **shared grid-following-converter behaviour** in `utils/frt.py`, re-exported by both `pvs/pv_pq_ss.py` and `vscs/bess_pq_ss.py` (they share the `lvrt_ext_<name>`/`i_sr_ref_<name>`/`i_sa_ref_<name>` interface), so one `VrtController` — discovered via the single `utils/frt` factory (`DEFAULT_DISCRETE_MODULES`) — drives both PV and BESS.
+- `FaultController(model, iq=...)` — the **live-model** wrapper (apply/clear a fault without owning the time loop); it is what the real-time API takes on `app.state.faults`, running the continuation under the integrator lock. `apply(bus, X_fault=, fault_steps=, ...)` can override the reactance (softer fault) and continuation resolution per event; `fault_admittance(R_pu, X_pu, S_mva, S_base)` recomputes the shunt `(g, b)` for an overridden `X` (the builder stores `R_pu`/`X_pu`/`S_mva`/`S_base` in `sys_dict['faults'][bus]` for this). `apply_fault(model, bus, t_clear, ...)` is the older offline convenience wrapper that advances `model.run` itself.
 
 ## Import Paths
 
@@ -293,6 +412,10 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 from pydae.core import Builder, Model
 from pydae.core.builder import CasadiBuilder, CasadiModel, MathBackend  # CasADi backend
 from pydae.bps import BpsBuilder
+from pydae.bps.discrete import DiscreteOrchestrator          # per-step discrete control (latency tiers)
+from pydae.bps.utils.faults import FaultManager, FaultController, lvrt_response
+from pydae.bps.utils.frt import vrt, VrtController, iq_po123  # shared FRT relay + PO 12.3 curve (also re-exported by pv_pq_ss / bess_pq_ss)
+from pydae.bps.lines.cable_fem import CableCase, run_suite, ladder_dtr  # FEM -> dtr identification (needs pydae-bps[fem])
 from pydae.uds import UdsBuilder
 from pydae.ssa.ssa import eig, damp, participation
 from pydae.control.control_builder import ControlBuilder
@@ -359,7 +482,7 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 - `packages/pydae-core/src/pydae/ssa/` — small-signal analysis (separate sibling namespace, not under `core/`).
 - `packages/pydae-core/src/pydae/svg_tools/` — SVG topology annotator (sibling namespace, restored from the `v0-legacy` tag). Exposes the `svg` class (`from pydae.svg_tools import svg`) used by `pydae.uds.utils.model2svg`. Depends on `svgwrite` and `xml.etree`.
 - `packages/pydae-core/src/pydae/daesolver/` — C runtime: `daesolver.c/.h`, `daesolver_dense.{c,h}`, `daesolver_dlu_klu.c`, `daesolver_run_lapack.{c,h}`.
-- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `vsc_ctrls/`, `vsc_models/`, `vsgs/`, `wecs/`, `weccs/`, `ppcs/`, `pvs/`, `psss/`, `pssdesigner/`, `pods/`, `loads/`, `lines/`, `sources/`, `miscellaneous/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`. `utils/` contains `visualizer.py` (`PowerSystemVisualizer` — draws reactance-weighted topology diagrams via networkx), `ss_num2sym.py`, `reporter.py`, and `validator.py`.
+- `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `vsc_ctrls/`, `vsc_models/`, `vsgs/`, `wecs/`, `weccs/`, `ppcs/`, `pvs/`, `psss/`, `pssdesigner/`, `pods/`, `loads/`, `lines/`, `sources/`, `miscellaneous/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`. `discrete.py` (the `DiscreteOrchestrator` per-step control hook) sits at the package root. `lines/` also holds the DTR stack: `line_dtr.py` (IEEE-738 overhead), `line_dtr_cable.py` (IEC 60853 two-node / n-stage Cauer cable), `cable_fem.py` (the scikit-fem identification suite behind the `[fem]` extra) and `cable_fem_example.py` (the narrated end-to-end walkthrough; `--plot` writes `cable_cycle.png` / `cable_field.png`, both gitignorable artefacts). `utils/` contains `visualizer.py` (`PowerSystemVisualizer` — draws reactance-weighted topology diagrams via networkx), `faults.py` (`FaultManager` / `FaultController` / `lvrt_response`), `frt.py` (the shared grid-following FRT relay `vrt` / `VrtController` / `iq_po123`, re-exported by `pvs/pv_pq_ss` and `vscs/bess_pq_ss`), `ss_num2sym.py`, `reporter.py`, and `validator.py`.
 - `packages/pydae-uds/src/pydae/uds/` — unbalanced (three-phase) distribution builder. Component families: `vscs/` (largest), `vsgs/` (grid-forming), `genapes/`, `ess/`, `fcs/`, `pvs/`, `loads/`, `lines/`, `transformers/`, `shunts/`, `sources/`, `vsc_ctrls/`, `miscellaneous/`.
 - `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
 - `examples/` — standalone scripts (`pendulum.py`, `milano*ord*.py`). Build artefacts (`*_data.json`, `*.svg`) are gitignored.

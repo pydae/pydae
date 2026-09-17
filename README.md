@@ -54,6 +54,14 @@ pip install pydae-bps          # + Balanced power systems builder
 pip install pydae-uds          # + Unbalanced distribution systems builder
 ```
 
+Optional extras:
+
+```bash
+pip install "pydae[api]"       # FastAPI + uvicorn real-time server
+pip install "pydae[mlx]"       # MLX backend (Apple Silicon): batched sweeps, sparse SSA
+pip install "pydae-bps[fem]"   # scikit-fem cable thermal identification (cable_fem)
+```
+
 ### For developers (full monorepo)
 
 ```bash
@@ -151,6 +159,32 @@ model = CasadiModel(bld)
 model.ini({'theta': np.deg2rad(10)}, xy_0={...})
 model.run(10.0)
 model.post()
+```
+
+### Dynamic thermal rating of an underground cable
+
+A `dtr` block on a `lines[]` entry makes the conductor temperature a state of the
+DAE and the line admittance a function of it. `pydae.bps.lines.cable_fem` derives
+that block from a 2D finite-element solution of the real cable geometry, so the
+thermal parameters come from the cable as installed rather than from
+isolated-cable textbook formulas:
+
+```python
+from pydae.bps.lines.cable_fem import run_suite, ladder_dtr
+
+result = run_suite()                      # CIGRE TB 575 European MV, 200 A
+print(result['fit'].as_dtr())             # IEC 60853 two-node block
+print(ladder_dtr(result['ladder'],        # n-stage Cauer ladder, for cyclic work
+                 result['fit']))
+```
+
+Paste either into a `lines[]` entry (or a shared `dtr_codes` entry) and build as
+usual. Two nodes reproduce the steady state exactly but flatten a daily load
+cycle by about 2x, which under-predicts the peak — use the ladder for cyclic
+rating studies. The full path, narrated end to end and simulated in both forms:
+
+```bash
+python -m pydae.bps.lines.cable_fem_example --plot .
 ```
 
 ## Migration Guide (from old structure)
