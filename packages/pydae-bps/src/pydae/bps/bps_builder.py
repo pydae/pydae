@@ -516,23 +516,58 @@ class BpsBuilder:
                     self.dae['h_dict'].update({f'p_line_{bus_k}_{bus_j}':p_line_from_pu*S_base})
                     self.dae['h_dict'].update({f'q_line_{bus_k}_{bus_j}':q_line_from_pu*S_base})
 
-                    # Branch current magnitude is a *monitoring* quantity, so
-                    # it is an h_dict output and not an algebraic variable. In
-                    # amperes it runs 3-5 orders above the per-unit voltages
-                    # and powers beside it in y, so as a member of y it puts
-                    # entries of ~1e5 into a Gy row whose own diagonal is 1 --
-                    # bad scaling that every solve then pays for. Measured on a
-                    # 14-branch PV plant: cond(Gy) = 1.2e10 with these in y,
-                    # 1.4e5 with them in h_dict, same trajectories either way.
-                    # The +EPS keeps d|S|/dp = p/sqrt(p**2+q**2) bounded at
-                    # exactly zero flow (reachable: a grid-following converter
-                    # commanded to zero current leaves its branch at exactly
-                    # zero flow), which otherwise puts a NaN in Hy. At 1e-18
-                    # pu**2 it is ~1e-9 pu of current -- nine orders below
-                    # anything meaningful.
+                    # Branch current straight from Ohm's law on the branch
+                    # admittance, I_jk = y*(V_j - V_k) + j*(bs/2)*V_j, rather
+                    # than from |S|/V. Same current, but the voltage sits in
+                    # the NUMERATOR: nothing blows up as V collapses during a
+                    # fault, and the current no longer depends on the
+                    # p_line/q_line algebraic variables at all.
+                    #
+                    # The per-branch primitive (g_, b_, bs_) is used rather
+                    # than the Ybus off-diagonal G[j,k]/B[j,k]: those are
+                    # summed over the incidence matrix, so two parallel
+                    # circuits between the same pair of buses would collapse
+                    # into a single current instead of one per circuit.
+                    #
+                    # Unlike |S_jk|/V_j this includes the line charging
+                    # current, which is what a CT at the j end actually sees.
+                    # The two agree exactly when bs = 0.
+                    #
+                    # It is a *monitoring* quantity, so it is an h_dict output
+                    # and not an algebraic variable. In amperes it runs 3-5
+                    # orders above the per-unit voltages and powers beside it
+                    # in y, so as a member of y it put entries of ~1e5 into a
+                    # Gy row whose own diagonal is 1 -- bad scaling every solve
+                    # then paid for. Measured on a 14-branch PV plant:
+                    # cond(Gy) = 1.2e10 with these in y, 1.4e5 without.
+                    #
+                    # The +EPS only keeps d|I|/dI_r bounded at exactly zero
+                    # current (reachable: a grid-following converter commanded
+                    # to zero current leaves its branch at exactly zero flow),
+                    # which would otherwise put a NaN in Hy. At 1e-18 pu**2 it
+                    # is ~1e-9 pu -- nine orders below anything meaningful.
+                    g_jk  = self.backend.symbols(f"g_{line_name}")
+                    b_jk  = self.backend.symbols(f"b_{line_name}")
+                    bs_jk = self.backend.symbols(f"bs_{line_name}")
+
+                    v_jr = V_j*self.backend.cos(theta_j)
+                    v_ji = V_j*self.backend.sin(theta_j)
+                    v_kr = V_k*self.backend.cos(theta_k)
+                    v_ki = V_k*self.backend.sin(theta_k)
+
+                    dv_r = v_jr - v_kr
+                    dv_i = v_ji - v_ki
+
+                    # (g + jb)*(V_j - V_k) + j*(bs/2)*V_j
+                    i_jk_r = g_jk*dv_r - b_jk*dv_i - bs_jk/2*v_ji
+                    i_jk_i = g_jk*dv_i + b_jk*dv_r + bs_jk/2*v_jr
+                    # (g + jb)*(V_k - V_j) + j*(bs/2)*V_k
+                    i_kj_r = -g_jk*dv_r + b_jk*dv_i - bs_jk/2*v_ki
+                    i_kj_i = -g_jk*dv_i - b_jk*dv_r + bs_jk/2*v_kr
+
                     EPS = 1e-18
-                    I_j_k_eq = (  p_line_to_pu**2 +   q_line_to_pu**2 + EPS)**0.5/V_j*I_base_j
-                    I_k_j_eq = (p_line_from_pu**2 + q_line_from_pu**2 + EPS)**0.5/V_k*I_base_k
+                    I_j_k_eq = (i_jk_r**2 + i_jk_i**2 + EPS)**0.5*I_base_j
+                    I_k_j_eq = (i_kj_r**2 + i_kj_i**2 + EPS)**0.5*I_base_k
 
                     if line.get('dtr'):
                         # A DTR branch is the exception: there the current
@@ -620,24 +655,42 @@ class BpsBuilder:
                 f'q_line_{bus_k}_{bus_j}': q_from_pu * sys['S_base'],
             })
 
-            # Monitoring currents are h_dict outputs, never algebraic
-            # variables -- see the line monitoring block above for the
-            # conditioning measurement. A transformer has no DTR variant, so
-            # there is no exception here: the current is always an output.
-            # The +EPS is load-bearing. Without it d|S|/dp = p/sqrt(p**2+q**2)
-            # is 0/0 at exactly zero flow, so a monitored branch carrying
-            # nothing puts a NaN in the output Jacobian Hy. That is reachable
-            # in normal operation: a grid-following converter commanded to
-            # exactly zero current leaves its branch at exactly zero flow. At
-            # 1e-18 pu**2 this is ~1e-9 pu of current on a 100 MVA base --
-            # nine orders below anything meaningful -- and the derivative
-            # stays bounded everywhere.
+            # Current from the branch admittance and the bus voltages, as in
+            # the line block above -- voltage in the numerator, no |S|/V. The
+            # tap is on the bus_j side, so the branch carries V_j/tap towards
+            # bus_k and the j-side current picks up a second 1/tap when it is
+            # referred back through the ideal transformer:
+            #
+            #   I_jk = y_cc * (V_j/tap**2 - V_k/tap)
+            #   I_kj = y_cc * (V_k - V_j/tap)
+            #
+            # which reproduces the P_to/Q_to/P_from/Q_from above exactly via
+            # S = V * conj(I). A transformer has no DTR variant and no shunt
+            # branch, so the current is always an output and there is no
+            # charging term. The +EPS only keeps d|I|/dI_r bounded at exactly
+            # zero current, which would otherwise put a NaN in Hy; at 1e-18
+            # pu**2 it is ~1e-9 pu, nine orders below anything meaningful.
+            v_jr = V_j * self.backend.cos(theta_j)
+            v_ji = V_j * self.backend.sin(theta_j)
+            v_kr = V_k * self.backend.cos(theta_k)
+            v_ki = V_k * self.backend.sin(theta_k)
+
+            dv_jk_r = v_jr / tap**2 - v_kr / tap
+            dv_jk_i = v_ji / tap**2 - v_ki / tap
+            dv_kj_r = v_kr - v_jr / tap
+            dv_kj_i = v_ki - v_ji / tap
+
+            i_jk_r = G_t * dv_jk_r - B_t * dv_jk_i
+            i_jk_i = G_t * dv_jk_i + B_t * dv_jk_r
+            i_kj_r = G_t * dv_kj_r - B_t * dv_kj_i
+            i_kj_i = G_t * dv_kj_i + B_t * dv_kj_r
+
             EPS = 1e-18
             self.dae['h_dict'].update({
                 f'I_line_{bus_j}_{bus_k}':
-                    (p_to_pu**2   + q_to_pu**2   + EPS)**0.5 / V_j * I_base_j,
+                    (i_jk_r**2 + i_jk_i**2 + EPS)**0.5 * I_base_j,
                 f'I_line_{bus_k}_{bus_j}':
-                    (p_from_pu**2 + q_from_pu**2 + EPS)**0.5 / V_k * I_base_k,
+                    (i_kj_r**2 + i_kj_i**2 + EPS)**0.5 * I_base_k,
             })
 
             self.dae['xy_0_dict'].update({
