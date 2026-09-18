@@ -502,37 +502,63 @@ class BpsBuilder:
                     self.dae['y_ini'] += [p_line_to_pu,q_line_to_pu,p_line_from_pu,q_line_from_pu]
                     self.dae['y_run'] += [p_line_to_pu,q_line_to_pu,p_line_from_pu,q_line_from_pu]
                     
-                    U_base = self.buses[idx_j]['U_kV']*1000
-                    I_base = S_base/(np.sqrt(3)*U_base)
+                    # Each end is referred to its OWN voltage base. Using
+                    # bus_j's base for both directions understates or
+                    # overstates the k->j current by the voltage ratio whenever
+                    # the branch spans two levels -- reachable here because a
+                    # converter step-up is often modelled as a line with an
+                    # X_pu rather than as a transformer entry.
+                    I_base_j = S_base/(np.sqrt(3)*self.buses[idx_j]['U_kV']*1000)
+                    I_base_k = S_base/(np.sqrt(3)*self.buses[idx_k]['U_kV']*1000)
 
                     self.dae['h_dict'].update({f'p_line_{bus_j}_{bus_k}':p_line_to_pu*S_base})
                     self.dae['h_dict'].update({f'q_line_{bus_j}_{bus_k}':q_line_to_pu*S_base})
                     self.dae['h_dict'].update({f'p_line_{bus_k}_{bus_j}':p_line_from_pu*S_base})
                     self.dae['h_dict'].update({f'q_line_{bus_k}_{bus_j}':q_line_from_pu*S_base})
 
-                    I_j_k, I_k_j = self.backend.symbols(f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
+                    # Branch current magnitude is a *monitoring* quantity, so
+                    # it is an h_dict output and not an algebraic variable. In
+                    # amperes it runs 3-5 orders above the per-unit voltages
+                    # and powers beside it in y, so as a member of y it puts
+                    # entries of ~1e5 into a Gy row whose own diagonal is 1 --
+                    # bad scaling that every solve then pays for. Measured on a
+                    # 14-branch PV plant: cond(Gy) = 1.2e10 with these in y,
+                    # 1.4e5 with them in h_dict, same trajectories either way.
+                    # The +EPS keeps d|S|/dp = p/sqrt(p**2+q**2) bounded at
+                    # exactly zero flow (reachable: a grid-following converter
+                    # commanded to zero current leaves its branch at exactly
+                    # zero flow), which otherwise puts a NaN in Hy. At 1e-18
+                    # pu**2 it is ~1e-9 pu of current -- nine orders below
+                    # anything meaningful.
+                    EPS = 1e-18
+                    I_j_k_eq = (  p_line_to_pu**2 +   q_line_to_pu**2 + EPS)**0.5/V_j*I_base_j
+                    I_k_j_eq = (p_line_from_pu**2 + q_line_from_pu**2 + EPS)**0.5/V_k*I_base_k
 
-                    I_j_k_eq = (  p_line_to_pu**2 +   q_line_to_pu**2)**0.5/V_j*I_base
-                    I_k_j_eq = (p_line_from_pu**2 + q_line_from_pu**2)**0.5/V_k*I_base
+                    if line.get('dtr'):
+                        # A DTR branch is the exception: there the current
+                        # drives the conductor thermal state, so it is a real
+                        # DAE quantity and line_dtr / line_dtr_cable need a
+                        # symbol to write their heat-balance equations against.
+                        I_j_k, I_k_j = self.backend.symbols(
+                            f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
 
-                    self.dae['g'] += [I_j_k_eq - I_j_k]
+                        self.dae['g'] += [I_j_k_eq - I_j_k, I_k_j_eq - I_k_j]
 
-                    self.dae['y_ini'] += [I_j_k]
-                    self.dae['y_run'] += [I_j_k]
+                        self.dae['y_ini'] += [I_j_k, I_k_j]
+                        self.dae['y_run'] += [I_j_k, I_k_j]
 
+                        self.dae['xy_0_dict'].update({str(I_j_k):0.1})
+                        self.dae['xy_0_dict'].update({str(I_k_j):-0.1})
 
-                    self.dae['g'] += [I_k_j_eq - I_k_j]
+                        I_j_k_out, I_k_j_out = I_j_k, I_k_j
+                    else:
+                        I_j_k_out, I_k_j_out = I_j_k_eq, I_k_j_eq
 
-                    self.dae['y_ini'] += [I_k_j]
-                    self.dae['y_run'] += [I_k_j]
-
-                    self.dae['h_dict'].update({f'I_line_{bus_j}_{bus_k}':I_j_k})
-                    self.dae['h_dict'].update({f'I_line_{bus_k}_{bus_j}':I_k_j})
+                    self.dae['h_dict'].update({f'I_line_{bus_j}_{bus_k}':I_j_k_out})
+                    self.dae['h_dict'].update({f'I_line_{bus_k}_{bus_j}':I_k_j_out})
 
                     self.dae['xy_0_dict'].update({str(p_line_to_pu):0.1})
                     self.dae['xy_0_dict'].update({str(p_line_from_pu):-0.1})
-                    self.dae['xy_0_dict'].update({str(I_j_k):0.1})
-                    self.dae['xy_0_dict'].update({str(I_k_j):-0.1})
 
         ### Transformer monitoring
         # Tap-aware branch flows for transformers carrying `monitor: true`.
@@ -594,24 +620,29 @@ class BpsBuilder:
                 f'q_line_{bus_k}_{bus_j}': q_from_pu * sys['S_base'],
             })
 
-            I_j_k, I_k_j = self.backend.symbols(
-                f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
-            self.dae['g'] += [
-                (p_to_pu**2   + q_to_pu**2)**0.5  / V_j * I_base_j - I_j_k,
-                (p_from_pu**2 + q_from_pu**2)**0.5 / V_k * I_base_k - I_k_j,
-            ]
-            self.dae['y_ini'] += [I_j_k, I_k_j]
-            self.dae['y_run'] += [I_j_k, I_k_j]
+            # Monitoring currents are h_dict outputs, never algebraic
+            # variables -- see the line monitoring block above for the
+            # conditioning measurement. A transformer has no DTR variant, so
+            # there is no exception here: the current is always an output.
+            # The +EPS is load-bearing. Without it d|S|/dp = p/sqrt(p**2+q**2)
+            # is 0/0 at exactly zero flow, so a monitored branch carrying
+            # nothing puts a NaN in the output Jacobian Hy. That is reachable
+            # in normal operation: a grid-following converter commanded to
+            # exactly zero current leaves its branch at exactly zero flow. At
+            # 1e-18 pu**2 this is ~1e-9 pu of current on a 100 MVA base --
+            # nine orders below anything meaningful -- and the derivative
+            # stays bounded everywhere.
+            EPS = 1e-18
             self.dae['h_dict'].update({
-                f'I_line_{bus_j}_{bus_k}': I_j_k,
-                f'I_line_{bus_k}_{bus_j}': I_k_j,
+                f'I_line_{bus_j}_{bus_k}':
+                    (p_to_pu**2   + q_to_pu**2   + EPS)**0.5 / V_j * I_base_j,
+                f'I_line_{bus_k}_{bus_j}':
+                    (p_from_pu**2 + q_from_pu**2 + EPS)**0.5 / V_k * I_base_k,
             })
 
             self.dae['xy_0_dict'].update({
                 str(p_to_pu):   0.1,
                 str(p_from_pu): -0.1,
-                str(I_j_k):     0.1,
-                str(I_k_j):     -0.1,
             })
 
         for bus in self.buses:
