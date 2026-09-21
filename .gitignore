@@ -81,3 +81,10 @@ docs/**/_autosummary/
 prompts/
 # local publish staging
 dist_publish/
+
+# Parity fixtures dropped in the cwd by tests/uds/test_uds_grid.py
+uds_*_parity_sym_data.json
+
+# Figures written by cable_fem_example.py --plot
+packages/pydae-bps/src/pydae/bps/lines/cable_cycle.png
+packages/pydae-bps/src/pydae/bps/lines/cable_field.png

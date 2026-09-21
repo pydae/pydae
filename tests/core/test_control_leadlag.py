@@ -28,7 +28,7 @@ def leadlag_model():
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    leadlag(dae, '1', {'T_num': 1.0, 'T_den': 0.5, 'u': 0.0}, backend)
+    leadlag(dae, '1', backend, {'T_num': 1.0, 'T_den': 0.5, 'u': 0.0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])
@@ -97,7 +97,7 @@ def test_zero_T_num_matches_lpf1():
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    leadlag(dae, '1', {'T_num': 0.0, 'T_den': T_den, 'u': 0.0}, backend)
+    leadlag(dae, '1', backend, {'T_num': 0.0, 'T_den': T_den, 'u': 0.0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])

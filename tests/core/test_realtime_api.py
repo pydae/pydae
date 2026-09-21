@@ -156,11 +156,14 @@ class TestRealTimeSimulator:
         """set_input writes the new value into u_run_vals and it is visible to the integrator."""
         from pydae.api.realtime_api import RealTimeSimulator
 
-        sim = RealTimeSimulator(pendulum_model, chunk_ms=50.0)
+        # ramp_chunks=1 writes the target in one chunk. The default (20)
+        # spreads it over ~1 s, so a 50 ms wait would see the ramp partway and
+        # this test would be asserting the ramp schedule, not the write.
+        sim = RealTimeSimulator(pendulum_model, chunk_ms=50.0, ramp_chunks=1)
         sim.start()
         time.sleep(0.1)
         sim.set_input("f_x", 5.0)
-        time.sleep(0.05)
+        time.sleep(0.15)
         idx = pendulum_model.u_run_names.index("f_x")
         val = pendulum_model.u_run_vals[idx]
         sim.stop()
@@ -171,11 +174,11 @@ class TestRealTimeSimulator:
         """setpoints writes several inputs atomically in one lock acquisition."""
         from pydae.api.realtime_api import RealTimeSimulator
 
-        sim = RealTimeSimulator(pendulum_model, chunk_ms=50.0)
+        sim = RealTimeSimulator(pendulum_model, chunk_ms=50.0, ramp_chunks=1)
         sim.start()
         time.sleep(0.1)
         sim.setpoints({"f_x": 3.0, "u_dummy": 0.1})
-        time.sleep(0.05)
+        time.sleep(0.15)
         sim.stop()
 
         idx_fx = pendulum_model.u_run_names.index("f_x")
@@ -187,11 +190,11 @@ class TestRealTimeSimulator:
         """setpoints with a single-entry dict behaves like set_input."""
         from pydae.api.realtime_api import RealTimeSimulator
 
-        sim = RealTimeSimulator(pendulum_model, chunk_ms=50.0)
+        sim = RealTimeSimulator(pendulum_model, chunk_ms=50.0, ramp_chunks=1)
         sim.start()
         time.sleep(0.1)
         sim.setpoints({"f_x": 7.5})
-        time.sleep(0.05)
+        time.sleep(0.15)
         sim.stop()
 
         idx = pendulum_model.u_run_names.index("f_x")
@@ -256,6 +259,9 @@ class TestRealTimeAPIEndpoints:
         from pydae.api.realtime_api import app
         app.state.model = pendulum_model
         app.state.chunk_ms = 50.0
+        # Apply setpoints in a single chunk; the default 20-chunk ramp would
+        # still be in flight when these short tests read the value back.
+        app.state.ramp_chunks = 1
 
     def test_status_reports_running(self, pendulum_model):
         """GET /status returns is_running=True while the lifespan is active."""
@@ -358,7 +364,7 @@ class TestRealTimeAPIEndpoints:
 
         with TestClient(app) as client:
             client.post("/setpoints", json={"setpoints": {"f_x": 7.0}})
-            time.sleep(0.1)
+            time.sleep(0.15)
             resp = client.post("/measurements", json={"names": ["f_x_out"]})
 
         assert resp.status_code == 200

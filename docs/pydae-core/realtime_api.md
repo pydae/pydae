@@ -98,6 +98,100 @@ app.state.ramp_chunks = 10   # faster ramp: 10 × chunk_ms
 If a step still fails (e.g. model instability), the background thread logs the
 error and continues from the next chunk rather than crashing.
 
+### Solver: IDAS vs trapezoidal
+
+Each chunk is advanced by one of two integrators, chosen with `app.state.solver`:
+
+- **`"idas"`** (default) — the adaptive SUNDIALS BDF integrator, built once for
+  the interval `[0, chunk_sec]`. Most robust; corrects algebraic consistency
+  each chunk via `calc_ic`.
+- **`"trapezoidal"`** — a fixed-step implicit trapezoid. It reuses the model's
+  own cached fixed-step CasADi functions (residual, iteration matrix, slope) and
+  a modified-Newton solve whose factorization is reused across steps. Because it
+  avoids IDAS's per-chunk cold restart, it is typically **~3× faster** on a
+  settled plant while producing the same trajectory; the coupled `[differential;
+  algebraic]` Newton keeps the algebraic block consistent without a separate
+  `calc_ic`. It advances the chunk in `trapezoidal_substeps` sub-steps (default
+  `round(chunk_sec / model.Dt)`) so accuracy matches the model's `Dt`. IDAS
+  remains the safer choice for very stiff or fast-transient models.
+
+The factorization is refreshed on a schedule, adaptively when a step needs many
+iterations, and after a fault (whose continuation jumps the operating point). The
+Newton linear solve uses `app.state.trapezoidal_linsol` — `"scipy"` (default,
+`scipy.sparse.linalg.splu`) or a `ca.Linsol` plugin such as `"qr"`; on typical
+models it changes little end-to-end since the per-iteration CasADi function
+evaluations dominate, not the solve.
+
+### Discrete control layer
+
+A DAE model captures the *continuous* dynamics. Some elements also need a small
+**discrete** control part that runs once per solver step — for example the
+grid-code fault-ride-through relay of a grid-following converter, which reads
+the terminal voltages and rewrites `lvrt_ext` / `i_sr_ref` before the next
+integration.
+
+The real-time loop should not know *which* elements have such a part or *how*
+to call them. It only calls a single generic hook — any object exposing
+`step(model)` — attached to `app.state.discrete` (or carried on the model as a
+`discrete` attribute). It is invoked once per chunk, **before** the integration
+step, so the inputs it writes are the ones the next step integrates with. The
+hook is duck-typed, so `pydae-core` keeps no dependency on `pydae-bps`.
+
+In practice the hook is a
+{class}`~pydae.bps.discrete.DiscreteOrchestrator`, which discovers every model
+with a discrete part and drives their controllers generically:
+
+```python
+from pydae.bps.discrete import DiscreteOrchestrator
+
+app.state.model    = model
+app.state.discrete = DiscreteOrchestrator.from_model(model)
+```
+
+The loop calls the hook as `step(model, t_sim)`, passing the simulation clock so
+**latency-tiered** controllers fire at their own cadence — a local FRT relay
+every chunk (`low`), a centralized controller only every ~200 ms (`high`). See
+the [discrete control orchestrator](https://pydae-bps.readthedocs.io/en/latest/discrete.html).
+The `t_sim` argument is passed only when the hook's `step` accepts it (detected
+once by signature), so a legacy `step(model)`-only hook still works.
+
+With no `discrete` hook the loop behaves exactly as before (continuous-only).
+A failure inside a controller is logged and swallowed so one misbehaving
+element cannot kill the real-time loop.
+
+### Faults
+
+A **fault** — a shunt impedance switched onto a bus — can be injected on the
+live model over REST. Because a grid-following plant crosses a bifurcation as the
+faulted voltage collapses, applying a fault is a *continuation*, not a single
+solve. That robust logic lives in `pydae-bps`
+({class}`~pydae.bps.utils.faults.FaultController`) and is attached, duck-typed,
+to `app.state.faults`; the API keeps no dependency on `pydae-bps`.
+
+```python
+from pydae.bps.utils.faults import FaultController
+from pydae.bps.pvs.pv_pq_ss import iq_po123
+
+app.state.model  = model
+app.state.faults = FaultController(model, iq=iq_po123)
+```
+
+`apply_fault(bus, t_clear=None)` / `clear_fault(bus)` on the simulator run the
+controller's frozen-time continuation **under the integrator lock**, between
+chunks, so it never races a step; the state and converter ride-through inputs it
+writes are integrated from on the next chunk. Applying briefly pauses the loop
+(one self-corrected overrun warning). With `t_clear` set, the fault auto-clears
+after that many seconds of sim time (serviced in the loop under the lock). The
+REST endpoints are `POST /faults/apply`, `POST /faults/clear`, `GET /faults`
+(see below). With a `discrete` orchestrator also attached, it is re-seeded after
+each apply/clear so the per-chunk relay continues from the new operating point.
+
+Because the apply/clear continuation blocks the loop for longer than a chunk,
+the pacing is **re-baselined** afterwards: the accumulated wall-clock lag is
+dropped instead of fast-forwarded, so real time resumes cleanly (no `[RT
+overrun]` burst) and a short `t_clear` fault stays observable to a polling
+client rather than being compressed out by the catch-up.
+
 ### CORS
 
 `CORSMiddleware` is enabled with `allow_origins=["*"]` so the API is
@@ -118,6 +212,7 @@ sequenceDiagram
     loop every chunk_sec
         Thread->>Lock: acquire
         Thread->>Thread: apply ramp step (if pending)
+        Thread->>Thread: discrete.step(model) (if attached)
         Thread->>IDAS: integrator(x, y_run, p)
         IDAS-->>Thread: x_next, y_run_next
         Thread->>Thread: t_sim += chunk_sec
@@ -326,6 +421,22 @@ once per request regardless of how many names are listed.
 
 ---
 
+### `GET /inputs`
+
+Returns the current value of every runtime input (`u_run` setpoint) — the
+counterpart to `POST /setpoints`. Browser-friendly, no request body.
+
+**Response**
+
+```json
+{
+  "data": {"p_s_ppc_LV0101": 1.0, "lvrt_ext_LV0101": 0.0, "...": 0.0},
+  "t_sim": 3.15
+}
+```
+
+---
+
 ### `GET /cosim/measurements`
 
 Returns current values of the measurements declared in the `configs` section
@@ -349,6 +460,64 @@ Returns **501** if no co-simulation config was loaded.
   "t_sim": 197.5
 }
 ```
+
+---
+
+### `GET /faults`
+
+List the buses with a declared fault and those currently faulted. Requires
+`app.state.faults`; returns **501** if none is attached.
+
+**Response**
+
+```json
+{"declared": ["POI"], "active": ["POI"], "t_sim": 12.35}
+```
+
+---
+
+### `POST /faults/apply`
+
+Apply a shunt fault at `bus`, optionally auto-clearing after `t_clear` seconds.
+Runs the ride-through continuation under the integrator lock. Unknown buses are
+rejected with **422**; **501** if no fault controller is attached.
+
+`X_fault` (optional) overrides the declared fault reactance (pu on the fault's
+`S_mva` base) — a larger value is a *softer* fault. `fault_steps` (optional)
+sets the continuation resolution; a soft fault converges in fewer steps, so the
+under-lock pause (and any real-time overrun) is smaller.
+
+**Request body**
+
+```json
+{"bus": "POI", "t_clear": 0.2, "X_fault": 0.2, "fault_steps": 10}
+```
+
+**Response**
+
+```json
+{
+  "status": "ok",
+  "fault": {"bus": "POI", "converters_in_lvrt": 14, "n_converters": 14},
+  "active": ["POI"],
+  "t_sim": 12.35
+}
+```
+
+---
+
+### `POST /faults/clear`
+
+Clear the shunt fault at `bus`. `fault_steps` (optional) sets the continuation
+resolution for the clear, just as for apply — fewer steps = faster.
+
+**Request body**
+
+```json
+{"bus": "POI", "fault_steps": 20}
+```
+
+**Response** — same structure as `POST /faults/apply`.
 
 ---
 
@@ -378,16 +547,23 @@ ramp so that the solver never sees a partially-updated input vector.
 
 An optional `timestamp` field (wall-clock seconds from the sender) is echoed
 back in the response and can be used by the co-simulation framework for
-latency accounting.
+latency accounting.  It does **not** schedule when the setpoints apply.
 
-**Request body**
+**Request body** — two equivalent shapes are accepted:
 
 ```json
-{
-  "setpoints": {"f_x": 5.0, "K_d": 0.05},
-  "timestamp": 1716500000.123
-}
+{ "setpoints": {"f_x": 5.0, "K_d": 0.05}, "timestamp": 1716500000.123 }
 ```
+
+or the **flat** convenience form (the whole body is the setpoints mapping; no
+`timestamp`):
+
+```json
+{ "f_x": 5.0, "K_d": 0.05 }
+```
+
+A body without a `setpoints` key is treated as the flat form, so an input
+literally named `setpoints` must use the envelope form.
 
 **Response**
 
@@ -444,8 +620,13 @@ Returns **501** if no co-simulation config was loaded.
 |---|---|---|---|
 | `model` | `CasadiModel` | *required* | Initialised model (`ini()` already called) |
 | `chunk_ms` | `float` | `50.0` | Integration chunk size in milliseconds |
+| `solver` | `str` | `"idas"` | Per-chunk integrator: `"idas"` (adaptive SUNDIALS, robust) or `"trapezoidal"` (fixed-step, faster) |
+| `trapezoidal_substeps` | `int` | `None` | Trapezoid sub-steps per chunk (`None` → `round(chunk_sec/Dt)`) |
+| `trapezoidal_linsol` | `str` | `"scipy"` | Newton linear backend: `"scipy"` (sparse LU) or a `ca.Linsol` plugin (`"qr"`, `"lapacklu"`, …) |
 | `ramp_chunks` | `int` | `20` | Number of chunks to spread each setpoint change over |
 | `cosim_config` | `dict` | `{}` | Parsed `configs` section from the co-simulation JSON |
+| `discrete` | `object` | `None` | Discrete-control hook with `step(model)` (e.g. {class}`~pydae.bps.discrete.DiscreteOrchestrator`), run once per chunk before integrating |
+| `faults` | `object` | `None` | Fault controller with `apply(bus)` / `clear(bus)` / `buses` (e.g. {class}`~pydae.bps.utils.faults.FaultController`), driven under the lock by the fault endpoints |
 
 ---
 
@@ -454,7 +635,8 @@ Returns **501** if no co-simulation config was loaded.
 ```{eval-rst}
 .. autoclass:: pydae.api.realtime_api.RealTimeSimulator
    :members: start, stop, set_input, setpoints, measurements,
-             load_cosim_config, cosim_measurements
+             load_cosim_config, cosim_measurements,
+             apply_fault, clear_fault, declared_fault_buses, active_faults
    :undoc-members:
    :show-inheritance:
 ```
@@ -469,6 +651,12 @@ Returns **501** if no co-simulation config was loaded.
    :inherited-members: BaseModel
 
 .. autopydantic_model:: pydae.api.realtime_api.MeasurementsRequest
+   :inherited-members: BaseModel
+
+.. autopydantic_model:: pydae.api.realtime_api.FaultApplyPayload
+   :inherited-members: BaseModel
+
+.. autopydantic_model:: pydae.api.realtime_api.FaultClearPayload
    :inherited-members: BaseModel
 ```
 

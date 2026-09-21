@@ -452,6 +452,20 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
 
 
 # =============================================================================
+# Runtime fault-ride-through (FRT) control
+# =============================================================================
+# The BESS VSC is a grid-following converter and rides through faults with the
+# same discrete grid-code relay as pv_pq_ss (both expose the ``lvrt_ext_`` /
+# ``i_sr_ref_`` / ``i_sa_ref_`` interface). That relay is defined once in
+# pydae.bps.utils.frt and re-exported here so the BESS model presents the same
+# vrt() / VrtController / iq_po123 API. The discrete orchestrator discovers it
+# through a single factory, so PV and BESS converters are driven together.
+from pydae.bps.utils.frt import (  # noqa: E402,F401  (re-export)
+    iq_po123, vrt, VrtController, make_discrete_controller,
+)
+
+
+# =============================================================================
 # Sphinx Documentation Auto-Generator
 # =============================================================================
 def dict_list_to_aligned_markdown_table(data: list[dict]) -> str:

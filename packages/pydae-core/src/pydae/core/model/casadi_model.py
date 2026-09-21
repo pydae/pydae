@@ -487,10 +487,27 @@ class CasadiModel:
         impedance switching). State variables (x) remain fixed while algebraic
         variables (y_run) jump instantaneously to satisfy g(x, y, p) = 0.
 
+        **The trust region is load-bearing — do not swap ``hybr`` for a plain
+        Newton.** It looks like the wrong tool (every caller arrives with an
+        excellent initial guess, and densifying the analytic Jacobian at the
+        ``np.array`` below throws away a ~97 % sparse ``Gy``), but it was tried
+        and measured: on a faulted distribution network the algebraic system is
+        badly scaled — ``cond(Gy) ~ 1e10``, from branch currents in amperes
+        sitting alongside voltages in pu — while remaining non-singular. The
+        undamped Newton direction is then genuinely poor: with the residual
+        concentrated on two bus equations it asks for a step of ~34 in a branch
+        current, and an Armijo backtracking line search on ``||g||^2`` creeps
+        instead of converging. MINPACK's dogleg caps the step and degrades
+        toward steepest descent exactly where that happens.
+
+        A sparse replacement therefore needs a *trust region* (Levenberg-
+        Marquardt or dogleg) plus variable scaling, not a Newton iteration.
+
         Parameters
         ----------
         tol : float, optional
-            Convergence tolerance for the rootfinder (default: 1e-8).
+            Rootfinder tolerance (default: 1e-8). Note ``root`` forwards this to
+            ``hybr`` as ``xtol`` — a *step* tolerance, not a residual bound.
 
         Raises
         ------

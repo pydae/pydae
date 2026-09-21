@@ -432,11 +432,38 @@ class UdsBuilder:
         self.construct(name)    
         self.compile_numba(name)  
 
+    def build_mlx(self, name, **kwargs):
+        """Construct the network and build it on the MLX backend (Apple Silicon).
+
+        Collapses ``construct(name)`` plus
+        ``MlxBuilder(self.sys_dict, **kwargs).build()`` into one call::
+
+            model = UdsBuilder(data).build_mlx('acdc_7bus')
+            model.ini({})                     # seeded from sys_dict['xy_0_dict']
+
+        Nothing is compiled to C: MLX lowers the equations to Metal kernels
+        in-process. ``**kwargs`` are forwarded to
+        :class:`~pydae.core.builder.mlx_builder.MlxBuilder` (``dtype``, ``Dt``,
+        ``verbose``, ...).
+
+        Notes
+        -----
+        Distribution models mix per-unit and SI bus voltages, which is exactly
+        the scaling that float32 handles poorly. Prefer ``dtype='float64'`` here
+        unless a batched sweep makes the GPU worth the precision.
+        """
+        # Imported here, not at module scope: mlx is an Apple Silicon extra and
+        # pydae-uds has to import on every platform.
+        from pydae.core.builder.mlx_builder import MlxBuilder
+
+        self.construct(name)
+        return MlxBuilder(self.sys_dict, **kwargs).build()
+
     def build_mkl(self, name=''):
         if name == '':
             print('Error: name is not provided.')
-        self.construct(name)  
-        self.uz_jacs = False  
+        self.construct(name)
+        self.uz_jacs = False
         self.compile_mkl(name)  
 
     

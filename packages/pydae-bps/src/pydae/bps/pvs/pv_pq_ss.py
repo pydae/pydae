@@ -2,11 +2,18 @@
 r"""
 PV inverter with VRT and optional state-space p/q reference filter.
 
-Combines the VRT ramp and soft-saturation blending of ``pv_dq_vrt`` with the
+Combines the VRT blending and soft saturation of ``pv_dq_vrt`` with the
 optional state-space low-pass filter for active/reactive power references from
 ``pv_dq_ss``.  No DC-link, PV-array physics, or L-filter — the model is purely
-algebraic in p/q injection with one VRT dynamic state plus the optional SS
-filter states.
+algebraic in p/q injection, and its only dynamic states are those of the
+optional SS filter.
+
+Unlike ``pv_dq_vrt``, the LVRT trigger has **no ramp state**: ``lvrt_ext``
+enters the blend directly.  The commutation is rate-limited outside the DAE
+instead, by the discrete relay in :mod:`pydae.bps.utils.frt` (re-exported
+below), which steps ``lvrt_ext`` toward its target once per time step.  Keeping
+it out of the DAE means the relay's hysteresis and rate limit can be retuned
+without rebuilding the model.
 
 **Auxiliary equations**
 
@@ -16,8 +23,6 @@ $$v_m = \sqrt{v_{sq\_mag}}$$
 
 **Dynamic equations**
 
-$$\frac{d\,\text{lvrt\_ext\_ramp}}{dt} = \frac{\text{lvrt\_ext} - \text{lvrt\_ext\_ramp}}{T_{lvrt}}$$
-
 Optional state-space filter for p/q references (active when ``A_pq`` or
 ``A_p`` are supplied in data_dict):
 
@@ -25,10 +30,18 @@ $$\dot{x} = A_{pq}\, x + B_{pq} \begin{bmatrix} p_{s,ppc} \\ q_{s,ppc} \end{bmat
 $$\begin{bmatrix} p_{s,ppc,d} \\ q_{s,ppc,d} \end{bmatrix} =
 C_{pq}\, x + D_{pq} \begin{bmatrix} p_{s,ppc} \\ q_{s,ppc} \end{bmatrix}$$
 
+**Q-V droop**
+
+Reactive power absorbed in proportion to the overvoltage, so the inverter
+supports the terminal voltage.  With the default $K_{qv} = 0$ the term
+vanishes and the fixed reference is used unchanged:
+
+$$q_{s,ppc,droop} = q_{s,ppc,d} + K_{qv}\,(V_{qref} - v_m)$$
+
 **Current references (PQ mode)**
 
-$$i_{sr,pq} = \frac{p_{s,ppc,d}\, v_{sr} + q_{s,ppc,d}\, v_{si}}{v_{sq\_mag}}$$
-$$i_{si,pq} = \frac{p_{s,ppc,d}\, v_{si} - q_{s,ppc,d}\, v_{sr}}{v_{sq\_mag}}$$
+$$i_{sr,pq} = \frac{p_{s,ppc,d}\, v_{sr} + q_{s,ppc,droop}\, v_{si}}{v_{sq\_mag}}$$
+$$i_{si,pq} = \frac{p_{s,ppc,d}\, v_{si} - q_{s,ppc,droop}\, v_{sr}}{v_{sq\_mag}}$$
 
 **Current references (arbitrary mode)**
 
@@ -37,8 +50,8 @@ $$i_{si,ar} = \frac{i_{sa,ref}\, v_{si} - i_{sr,ref}\, v_{sr}}{v_m}$$
 
 **Blending and soft saturation**
 
-$$i_{sr,nosat} = (1 - \text{lvrt\_ramp})\, i_{sr,pq} + \text{lvrt\_ramp}\cdot i_{sr,ar}$$
-$$i_{si,nosat} = (1 - \text{lvrt\_ramp})\, i_{si,pq} + \text{lvrt\_ramp}\cdot i_{si,ar}$$
+$$i_{sr,nosat} = (1 - \text{lvrt\_ext})\, i_{sr,pq} + \text{lvrt\_ext}\cdot i_{sr,ar}$$
+$$i_{si,nosat} = (1 - \text{lvrt\_ext})\, i_{si,pq} + \text{lvrt\_ext}\cdot i_{si,ar}$$
 $$i_{mod} = \sqrt{i_{sr,nosat}^2 + i_{si,nosat}^2 + \epsilon}$$
 $$i_{mod,sat} = \tfrac{1}{2}\!\left(i_{mod} + I_{max}
     - \sqrt{(i_{mod} - I_{max})^2 + \epsilon}\right)$$
@@ -66,10 +79,6 @@ def descriptions():
         {"type": "Parameter", "tex": "I_{max}", "data": "I_max",
          "model": "I_max", "default": 1.2,
          "description": "Maximum current magnitude", "units": "pu"}]
-    descriptions_list += [
-        {"type": "Parameter", "tex": "T_{lvrt}", "data": "T_lvrt",
-         "model": "T_lvrt", "default": 0.02,
-         "description": "LVRT ramp time constant", "units": "s"}]
     descriptions_list += [
         {"type": "Parameter", "tex": "\\epsilon", "data": "Epsilon",
          "model": "Epsilon", "default": 1e-8,
@@ -200,7 +209,6 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     # 6. Parameters
     S_n = backend.symbols(f"S_n_{name}")
     I_max = backend.symbols(f"I_max_{name}")
-    T_lvrt = backend.symbols(f"T_lvrt_{name}")
     Epsilon = backend.symbols(f"Epsilon_{name}")
     K_qv = backend.symbols(f"K_qv_{name}")        # Q-V droop gain (pu Q per pu V)
     V_qref = backend.symbols(f"V_qref_{name}")    # droop reference voltage (pu)
@@ -337,7 +345,6 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
     # 16. Parameters
     S_n_val = data_dict.get("S_n", default_map.get("S_n", 1e6))
     I_max_val = data_dict.get("I_max", default_map.get("I_max", 1.2))
-    T_lvrt_val = data_dict.get("T_lvrt", default_map.get("T_lvrt", 0.02))
     Epsilon_val = data_dict.get("Epsilon", default_map.get("Epsilon", 1e-8))
 
     K_qv_val = data_dict.get("K_qv", default_map.get("K_qv", 0.0))
@@ -345,7 +352,6 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
 
     grid.dae["params_dict"].update({str(S_n): S_n_val})
     grid.dae["params_dict"].update({str(I_max): I_max_val})
-    grid.dae["params_dict"].update({str(T_lvrt): T_lvrt_val})
     grid.dae["params_dict"].update({str(Epsilon): Epsilon_val})
     grid.dae["params_dict"].update({str(K_qv): K_qv_val})
     grid.dae["params_dict"].update({str(V_qref): V_qref_val})
@@ -370,78 +376,14 @@ def pv_pq_ss(grid, name, bus_name, data_dict):
 # =============================================================================
 # Runtime fault-ride-through (FRT) control
 # =============================================================================
-# The discrete grid-code ride-through relay is the *particular* behaviour of the
-# grid-following converter, so it lives with the model (not in the generic
-# pydae.bps.utils.faults.FaultManager). It drives the model inputs
-# ``lvrt_ext`` / ``i_sr_ref`` / ``i_sa_ref`` of any converter exposing that
-# interface (pv_pq_ss inverters and, sharing the same interface, bess_pq_ss
-# VSCs). The same iq_po123 curve is used by FaultManager during the fault switch
-# (relaxed to a fixed point) and by vrt() during the time-domain integration
-# (rate-limited).
-def iq_po123(V, v_dead=0.85, v_full=0.5, iq_max=1.0):
-    """Reactive-current-vs-voltage characteristic (Spanish REE PO 12.3 style).
-
-    Piecewise-linear grid-code FRT curve::
-
-        V >= v_dead            : i_q = 0            (dead band near nominal)
-        v_full < V < v_dead    : i_q = iq_max * (v_dead - V) / (v_dead - v_full)
-        V <= v_full            : i_q = iq_max       (saturated, deep dip)
-
-    Defaults give the commonly used curve: dead band above 0.85 pu, full
-    reactive current at/below 0.5 pu, slope ~2.86 pu/pu in between. Adjust
-    v_dead / v_full / iq_max to the exact PO 12.3 figure for your plant.
-    """
-    if V >= v_dead:
-        return 0.0
-    if V <= v_full:
-        return iq_max
-    return iq_max * (v_dead - V) / (v_dead - v_full)
-
-
-def _ramp(cur, tgt, rate):
-    return min(tgt, cur + rate) if tgt > cur else max(tgt, cur - rate)
-
-
-def vrt(model, target, level, iq_level, v_enter=0.85, v_exit=0.9,
-        rate=0.2, iq_rate=0.2, iq_curve=iq_po123, verbose=False):
-    """Discrete grid-code fault-ride-through relay driving the PO 12.3 reactive
-    current curve, with hysteresis and rate-limited commutation.
-
-    Call once per time step. Each converter *enters* LVRT when its own terminal
-    voltage drops to ``v_enter`` (the curve dead-band edge, 0.85 pu) and
-    *returns* to PQ once it recovers to ``v_exit`` (0.9 pu); in between it holds
-    its target mode (latched, no chatter). While in LVRT the reactive current
-    reference tracks the voltage-dependent curve ``iq_curve(V)`` -- more support
-    for deeper dips, self-limiting near the dead band so it cannot overvolt.
-
-    Both the mode (``lvrt_ext``) and the reactive reference (``i_sr_ref``) are
-    rate-limited toward their targets so the commutation and the current change
-    span several steps -- an abrupt step would jump the terminal voltage across
-    the relay threshold in one shot, which a fixed-step integrator cannot cross.
-
-    ``target`` (latched mode), ``level`` (ramped lvrt_ext) and ``iq_level``
-    (ramped i_sr_ref) are dicts keyed by converter bus, updated in place; seed
-    them from the state FaultManager leaves after apply()/clear() so the relay
-    and the fault continuation stay consistent. Returns the number of converters
-    in LVRT.
-    """
-    n_lvrt = 0
-    for bus in target:
-        V = model.get_value(f'V_{bus}')
-        if V <= v_enter:               # dipped -> target LVRT
-            target[bus] = 1.0
-        elif V >= v_exit:              # recovered -> target PQ
-            target[bus] = 0.0
-        iq_tgt = iq_curve(V) if target[bus] else 0.0
-        level[bus] = _ramp(level[bus], target[bus], rate)
-        iq_level[bus] = _ramp(iq_level[bus], iq_tgt, iq_rate)
-        model.set_value(f'lvrt_ext_{bus}', level[bus])
-        model.set_value(f'i_sr_ref_{bus}', iq_level[bus])
-        model.set_value(f'i_sa_ref_{bus}', 0.0)
-        n_lvrt += level[bus] > 0.5
-    if verbose:
-        print(f"  vrt: {n_lvrt}/{len(target)} converters in LVRT")
-    return n_lvrt
+# The discrete grid-code ride-through relay is shared grid-following-converter
+# behaviour (pv_pq_ss inverters and bess_pq_ss VSCs expose the same
+# ``lvrt_ext_`` / ``i_sr_ref_`` / ``i_sa_ref_`` interface), so it is defined once
+# in pydae.bps.utils.frt and re-exported here (and by bess_pq_ss). Import from
+# either model, or from pydae.bps.utils.frt directly.
+from pydae.bps.utils.frt import (  # noqa: E402,F401  (re-export)
+    iq_po123, vrt, VrtController, make_discrete_controller,
+)
 
 
 # =============================================================================
@@ -564,10 +506,13 @@ def test_run():
     axes[1].legend()
     axes[1].grid(True)
 
-    axes[2].plot(model.Time, model.get_values("lvrt_ext_ramp_1"),
-                 label="$\\text{lvrt\\_ramp}$")
+    # lvrt_ext is an input fed straight into the blend (no ramp state), so the
+    # interesting trace here is what the saturation does to the current.
+    axes[2].plot(model.Time, model.get_values("i_mod_1"), label="$i_{mod}$")
+    axes[2].plot(model.Time, model.get_values("i_mod_sat_1"), '--',
+                 label="$i_{mod,sat}$")
     axes[2].set_xlabel("Time (s)")
-    axes[2].set_ylabel("LVRT ramp")
+    axes[2].set_ylabel("Current magnitude (pu)")
     axes[2].legend()
     axes[2].grid(True)
 

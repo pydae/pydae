@@ -5,20 +5,24 @@
 `pydae-core` takes a symbolic description of a DAE system and turns it into a
 fast, standalone simulation object. The package supports **two independent
 pipelines** — a compiled C pipeline and a CasADi-native pipeline — each with
-its own Builder and Model:
+its own Builder and Model, plus an optional [MLX backend](mlx.md) for running
+many parameter sets in parallel on Apple Silicon:
 
 ```{mermaid}
 flowchart TD
     A[sys_dict] --> B{Choose backend}
     B -->|SymPy| C[SymPyBuilder]
     B -->|CasADi| D[CasadiBuilder]
+    B -->|MLX| K[MlxBuilder]
     C --> E[Generated C code]
     E --> F[Compiled .so / .dll]
     F --> G[CtypesModel / CasadiModel\nbinary load]
     D --> H[CasADi SX graph]
     H --> I[CasadiModel\nsymbolic or precompiled]
+    K --> L[MlxSweep\nB cases at once]
     G --> J[ini / run / post]
     I --> J
+    L --> J
 ```
 
 The key idea is that **building is symbolic and slow, simulation is numerical

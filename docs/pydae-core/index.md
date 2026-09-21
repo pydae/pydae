@@ -42,6 +42,7 @@ api
 ssa
 control
 realtime_api
+mlx
 ```
 
 ## Related packages

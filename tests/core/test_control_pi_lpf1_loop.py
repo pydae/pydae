@@ -47,12 +47,12 @@ def _build_pi_lpf1_loop_model(name='1', K_p=2.0, K_i=1.0, T=0.5, K_aw=2.0,
     backend = MathBackend(use_casadi=True)
 
     # Controller: PI
-    pi(dae, name, {'K_p': K_p, 'K_i': K_i, 'K_aw': K_aw,
-                    'z_min': z_min, 'z_max': z_max,
-                    'u': 0.0, 'xi_0': 0.0}, backend)
+    pi(dae, name, backend, {'K_p': K_p, 'K_i': K_i, 'K_aw': K_aw,
+                            'z_min': z_min, 'z_max': z_max,
+                            'u': 0.0, 'xi_0': 0.0})
 
     # Plant: first-order low-pass filter
-    lpf1(dae, name, {'T': T, 'u': 0.0}, backend)
+    lpf1(dae, name, backend, {'T': T, 'u': 0.0})
 
     xi_pi = dae['x_list'][-2]
     x_plant = dae['x_list'][-1]

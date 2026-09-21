@@ -92,7 +92,7 @@ def pod_chain_phase_deg(omega, T_lead, T_lag, T_lpf, T_wo):
 
 def pod_wph(omega_target, phi_req_deg, *, T_lpf=0.0, T_wo=(), n_stages=3, weights=None,
             alpha_max=12.0, T_min=0.015, T_max=None, wc_min=None, wc_max=None, x0=None,
-            ipopt_tol=1e-10, verbose=True):
+            gain_weight=0.0, ipopt_tol=1e-10, verbose=True):
     """Fit the lead-lag stages of a POD/PSS so the chain supplies ``phi_req_deg``.
 
     Parameters
@@ -126,6 +126,19 @@ def pod_wph(omega_target, phi_req_deg, *, T_lpf=0.0, T_wo=(), n_stages=3, weight
         10x the highest.
     x0 : array_like, optional
         Initial guess ``[wc..., phim...]``. Default spreads the stages over the target band.
+    gain_weight : float
+        Weight of a penalty on ``ln|H_ll(jw)|**2``, the squared log-magnitude of the *lead-lag*
+        product at each target (the fixed ``T_lpf``/``T_wo`` terms are excluded -- they cannot be
+        traded). 0.0 (default) reproduces the pure phase fit.
+
+        The phase objective sees only the *sum* of the stage phases, so whenever the required
+        phase is reachable the solution is massively degenerate and the solver returns an
+        arbitrary member of that set -- often one that spends every stage and throws the loop gain
+        away. A lag target is the worst case: three stages each at ``alpha ~ 0.26`` deliver the
+        phase while attenuating ~50x, where one lag stage and two pass-throughs would give the
+        same phase at ~4x. This term breaks the tie toward unity chain gain, so ``K_stab`` is not
+        spent undoing the compensator's own attenuation. Start around 1.0 and raise it until the
+        phase ``rms_deg`` starts to suffer.
     verbose : bool
         Print the design and the phase validation table.
 
@@ -169,6 +182,15 @@ def pod_wph(omega_target, phi_req_deg, *, T_lpf=0.0, T_wo=(), n_stages=3, weight
         for i in range(n_stages):
             phase += ca.atan(w * T_lead[i]) - ca.atan(w * T_lag[i])
         J += weights[k] * (phase - phi_req_rad[k])**2
+
+        if gain_weight:
+            # ln|H_ll| = sum_i 0.5*(ln(1+(w T_lead_i)^2) - ln(1+(w T_lag_i)^2)); pull it
+            # toward 0 (unity gain) to pick a cheap member of the degenerate phase solution.
+            log_mag = 0
+            for i in range(n_stages):
+                log_mag += 0.5 * (ca.log(1 + (w * T_lead[i])**2)
+                                  - ca.log(1 + (w * T_lag[i])**2))
+            J += gain_weight * weights[k] * log_mag**2
 
     nlp = {'x': ca.vertcat(wc, phim), 'f': J, 'g': ca.vertcat(T_lead, T_lag)}
     solver = ca.nlpsol('solver', 'ipopt', nlp,

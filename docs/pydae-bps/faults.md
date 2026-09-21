@@ -8,7 +8,7 @@ a short time. Two layers cooperate to simulate one:
   about converters or grid codes.
 - The **converter's own response** — *particular*. It is injected into
   `FaultManager` as an `on_step` callback, and applied again during the
-  time-domain integration by a per-step relay ({func}`~pydae.bps.pvs.pv_pq_ss.vrt`).
+  time-domain integration by a per-step relay ({func}`~pydae.bps.utils.frt.vrt`).
 
 ```{admonition} Why a fault is not just one solve
 :class: note
@@ -132,18 +132,22 @@ curve `iq(V)`:
 lvrt_response(devices, v_lvrt=0.85, iq=0.5, i_active=0.0, gain=0.5)
 ```
 
-## The converter law lives with the model
+## The converter law is shared by the converter models
 
 The *particular* control — the grid-code reactive-current characteristic and the
-discrete time-domain relay — belongs to the converter model, in
-{mod}`pydae.bps.pvs.pv_pq_ss`:
+discrete time-domain relay — is shared grid-following-converter behaviour, in
+{mod}`pydae.bps.utils.frt` (re-exported by {mod}`pydae.bps.pvs.pv_pq_ss` and
+{mod}`pydae.bps.vscs.bess_pq_ss`, which share the LVRT interface):
 
-- {func}`~pydae.bps.pvs.pv_pq_ss.iq_po123` — the Spanish REE **PO 12.3**
+- {func}`~pydae.bps.utils.frt.iq_po123` — the Spanish REE **PO 12.3**
   reactive-current-vs-voltage curve: a dead band above `v_dead` (0.85), a linear
   ramp down to `v_full` (0.5), saturated at `iq_max` below it.
-- {func}`~pydae.bps.pvs.pv_pq_ss.vrt` — the discrete FRT relay run **once per
+- {func}`~pydae.bps.utils.frt.vrt` — the discrete FRT relay run **once per
   time step**: hysteresis (`v_enter`/`v_exit`) plus rate-limited commutation of
-  both `lvrt_ext` and `i_sr_ref = iq_po123(V)`.
+  both `lvrt_ext` and `i_sr_ref = iq_po123(V)`. Wrapped as
+  {class}`~pydae.bps.utils.frt.VrtController` it is driven generically by the
+  {doc}`discrete control orchestrator <discrete>`, so the time-stepping loop
+  (offline or the real-time API) calls it without knowing the grid-code law.
 
 The **same** `iq_po123` law is applied two ways by two owners: relaxed to a
 fixed point by `FaultManager` during the fault switch, and rate-limited by `vrt`
@@ -178,6 +182,40 @@ then only *maintains* it. Sweeping the fault depth this way traces the whole
 PO 12.3 characteristic — full reactive for deep dips, tapering through the
 linear band, dead band above ~0.85 — with every depth converging.
 ```
+
+## Real-time faults
+
+For event-driven or **real-time** simulation the hold cannot be a blocking
+`model.run` -- the integrator advances on its own (a background thread in the
+[real-time API](https://pydae-core.readthedocs.io/en/latest/realtime_api.html)).
+{class}`~pydae.bps.utils.faults.FaultController` wraps `FaultManager` +
+`lvrt_response` so a fault can be switched on and off on a **live** model, in
+place, without owning the time loop:
+
+```python
+from pydae.bps.utils.faults import FaultController
+from pydae.bps.pvs.pv_pq_ss import iq_po123
+
+faults = FaultController(model, iq=iq_po123)   # discovers converters once
+faults.apply("POI")     # frozen-time continuation on the current operating point
+# ... the integrator keeps running; clear whenever ...
+faults.clear("POI")
+```
+
+`apply(bus)` / `clear(bus)` each run the robust continuation and drive the
+converter LVRT response, returning a small status dict; `buses` lists the
+declared fault buses. It holds no lock and no time loop -- the caller owns both.
+`apply(bus, X_fault=..., fault_steps=...)` overrides the fault reactance (a
+larger `X_fault` is a softer fault) and the continuation resolution per event --
+a soft fault needs fewer steps, so it applies faster.
+{func}`~pydae.bps.utils.faults.fault_admittance` recomputes the shunt `(g, b)`
+for the overridden reactance (the builder records `R_pu`/`X_pu`/`S_mva`/`S_base`
+in `model.sys_dict['faults'][bus]` for this).
+
+This is the object the real-time API takes on `app.state.faults`; its background
+loop calls `apply` / `clear` under the integrator lock, so a fault can be
+injected over REST (`POST /faults/apply`, `POST /faults/clear`) mid-simulation.
+See the [real-time API guide](https://pydae-core.readthedocs.io/en/latest/realtime_api.html).
 
 ## Notes and limitations
 

@@ -7,6 +7,7 @@ Runnable examples that demonstrate the public API of the `pydae` packages.
 | `pendulum.py` | Damped pendulum DAE — the example from the project README. Builds the system, compiles the C solver, and simulates 21 s of motion. |
 | `milano4ord_saturation.py` | Milano 4th-order synchronous-machine model built with `pydae.bps`. Steps mechanical power and plots speed, $e'_q$, and saturation factor to SVG. |
 | `milano2ord_pm.py` | Milano 2nd-order synchronous-machine model built with `pydae.bps`. Steps mechanical power with increased damping and plots $\omega_1$ to SVG. |
+| `mlx_sweep.py` | Batched parameter sweeps on the MLX (Apple Silicon) backend: 10,000 initializations for a capability curve, 200 transients in lockstep over machine inertia, and an eigenvalue locus. Needs `pip install pydae[mlx]`. |
 
 ## Running
 

@@ -6,11 +6,18 @@
 
 PV inverter with VRT and optional state-space p/q reference filter.
 
-Combines the VRT ramp and soft-saturation blending of ``pv_dq_vrt`` with the
+Combines the VRT blending and soft saturation of ``pv_dq_vrt`` with the
 optional state-space low-pass filter for active/reactive power references from
 ``pv_dq_ss``.  No DC-link, PV-array physics, or L-filter — the model is purely
-algebraic in p/q injection with one VRT dynamic state plus the optional SS
-filter states.
+algebraic in p/q injection, and its only dynamic states are those of the
+optional SS filter.
+
+Unlike ``pv_dq_vrt``, the LVRT trigger has **no ramp state**: ``lvrt_ext``
+enters the blend directly.  The commutation is rate-limited outside the DAE
+instead, by the discrete relay in `pydae.bps.utils.frt`, which steps
+``lvrt_ext`` toward its target once per time step.  Keeping it out of the DAE
+means the relay's hysteresis and rate limit can be retuned without rebuilding
+the model.
 
 **Auxiliary equations**
 
@@ -19,8 +26,6 @@ $$v_{sq\_mag} = v_{sr}^2 + v_{si}^2 + \epsilon$$
 $$v_m = \sqrt{v_{sq\_mag}}$$
 
 **Dynamic equations**
-
-$$\frac{d\,\text{lvrt\_ext\_ramp}}{dt} = \frac{\text{lvrt\_ext} - \text{lvrt\_ext\_ramp}}{T_{lvrt}}$$
 
 Optional state-space filter for p/q references (active when ``A_pq`` or
 ``A_p`` are supplied in data_dict):
@@ -72,8 +77,9 @@ section of the network JSON (see [Overview](../../overview.md)).
 |---|---|---|---|---|
 | $S_n$ | `S_n` | 1000000.0 | VA | Nominal power |
 | $I_{max}$ | `I_max` | 1.2 | pu | Maximum current magnitude |
-| $T_{lvrt}$ | `T_lvrt` | 0.02 | s | LVRT ramp time constant |
 | $\epsilon$ | `Epsilon` | 1e-08 | - | Regularization for soft saturation |
+| $K_{qv}$ | `K_qv` | 0.0 | pu/pu | Q-V droop gain (reactive absorbed per pu overvoltage) |
+| $V_{qref}$ | `V_qref` | 1.0 | pu | Q-V droop reference voltage |
 
 ### Inputs
 
@@ -89,7 +95,6 @@ section of the network JSON (see [Overview](../../overview.md)).
 
 | Symbol | Variable | Default | Units | Description |
 |---|---|---|---|---|
-| $\text{lvrt}_{\text{ext,ramp}}$ | `lvrt_ext_ramp` |  | - | LVRT trigger ramped signal |
 | $x_{pq}$ | `x_pq` |  | - | State-space filter states (when A_pq/A_p provided) |
 
 ### Algebraic States

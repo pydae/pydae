@@ -26,6 +26,7 @@ from pydae.bps.pods.pods import add_pods
 from pydae.bps.miscellaneous.banks import add_banks
 from pydae.bps.miscellaneous.agc import add_agc
 from pydae.bps.lines.lines import add_lines
+from pydae.bps.lines.branch_current import line_currents_pu, current_magnitude
 
 # todo:
     # S_base can't be modified becuase impedances in element base are computed
@@ -120,6 +121,10 @@ class BpsBuilder:
             self.fault_targets[bus_f] = {
                 'g':  R/(R**2 + X**2),
                 'b': -X/(R**2 + X**2),
+                # Raw parameters so the fault reactance can be overridden at
+                # apply time (pydae.bps.utils.faults.fault_admittance).
+                'R_pu': R_pu, 'X_pu': X_pu, 'S_mva': S_mva,
+                'S_base': self.system['S_base'],
             }
 
         self.use_casadi = use_casadi
@@ -534,63 +539,22 @@ class BpsBuilder:
                     # The two agree exactly when bs = 0.
                     #
                     # It is a *monitoring* quantity, so it is an h_dict output
-                    # and not an algebraic variable. In amperes it runs 3-5
-                    # orders above the per-unit voltages and powers beside it
-                    # in y, so as a member of y it put entries of ~1e5 into a
-                    # Gy row whose own diagonal is 1 -- bad scaling every solve
-                    # then paid for. Measured on a 14-branch PV plant:
-                    # cond(Gy) = 1.2e10 with these in y, 1.4e5 without.
-                    #
-                    # The +EPS only keeps d|I|/dI_r bounded at exactly zero
-                    # current (reachable: a grid-following converter commanded
-                    # to zero current leaves its branch at exactly zero flow),
-                    # which would otherwise put a NaN in Hy. At 1e-18 pu**2 it
-                    # is ~1e-9 pu -- nine orders below anything meaningful.
-                    g_jk  = self.backend.symbols(f"g_{line_name}")
-                    b_jk  = self.backend.symbols(f"b_{line_name}")
-                    bs_jk = self.backend.symbols(f"bs_{line_name}")
+                    # and never an algebraic variable -- including on a DTR
+                    # branch, where the thermal model inlines the same
+                    # expression (it needs I**2, so it never forms the square
+                    # root at all). In amperes it runs 3-5 orders above the
+                    # per-unit voltages and powers beside it in y, so as a
+                    # member of y it put entries of ~1e5 into a Gy row whose
+                    # own diagonal is 1 -- bad scaling every solve then paid
+                    # for. Measured on a 14-branch PV plant: cond(Gy) = 1.2e10
+                    # with these in y, 1.4e5 without.
+                    i_jk, i_kj = line_currents_pu(
+                        self.backend, bus_j, bus_k, line_name)
 
-                    v_jr = V_j*self.backend.cos(theta_j)
-                    v_ji = V_j*self.backend.sin(theta_j)
-                    v_kr = V_k*self.backend.cos(theta_k)
-                    v_ki = V_k*self.backend.sin(theta_k)
-
-                    dv_r = v_jr - v_kr
-                    dv_i = v_ji - v_ki
-
-                    # (g + jb)*(V_j - V_k) + j*(bs/2)*V_j
-                    i_jk_r = g_jk*dv_r - b_jk*dv_i - bs_jk/2*v_ji
-                    i_jk_i = g_jk*dv_i + b_jk*dv_r + bs_jk/2*v_jr
-                    # (g + jb)*(V_k - V_j) + j*(bs/2)*V_k
-                    i_kj_r = -g_jk*dv_r + b_jk*dv_i - bs_jk/2*v_ki
-                    i_kj_i = -g_jk*dv_i - b_jk*dv_r + bs_jk/2*v_kr
-
-                    EPS = 1e-18
-                    I_j_k_eq = (i_jk_r**2 + i_jk_i**2 + EPS)**0.5*I_base_j
-                    I_k_j_eq = (i_kj_r**2 + i_kj_i**2 + EPS)**0.5*I_base_k
-
-                    if line.get('dtr'):
-                        # A DTR branch is the exception: there the current
-                        # drives the conductor thermal state, so it is a real
-                        # DAE quantity and line_dtr / line_dtr_cable need a
-                        # symbol to write their heat-balance equations against.
-                        I_j_k, I_k_j = self.backend.symbols(
-                            f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
-
-                        self.dae['g'] += [I_j_k_eq - I_j_k, I_k_j_eq - I_k_j]
-
-                        self.dae['y_ini'] += [I_j_k, I_k_j]
-                        self.dae['y_run'] += [I_j_k, I_k_j]
-
-                        self.dae['xy_0_dict'].update({str(I_j_k):0.1})
-                        self.dae['xy_0_dict'].update({str(I_k_j):-0.1})
-
-                        I_j_k_out, I_k_j_out = I_j_k, I_k_j
-                    else:
-                        I_j_k_out, I_k_j_out = I_j_k_eq, I_k_j_eq
-
-                    self.dae['h_dict'].update({f'I_line_{bus_j}_{bus_k}':I_j_k_out})
-                    self.dae['h_dict'].update({f'I_line_{bus_k}_{bus_j}':I_k_j_out})
+                    self.dae['h_dict'].update({
+                        f'I_line_{bus_j}_{bus_k}': current_magnitude(*i_jk, I_base_j),
+                        f'I_line_{bus_k}_{bus_j}': current_magnitude(*i_kj, I_base_k),
+                    })
 
                     self.dae['xy_0_dict'].update({str(p_line_to_pu):0.1})
                     self.dae['xy_0_dict'].update({str(p_line_from_pu):-0.1})
@@ -830,7 +794,8 @@ class BpsBuilder:
                          'u_ini_dict': self.dae['u_ini_dict'],
                          'h_dict': self.dae['h_dict'],
                          'xy_0_dict': self.dae['xy_0_dict'],
-                         'faults': self.fault_targets}
+                         'faults': self.fault_targets,
+                         'sppc': self.dae.get('sppc', {})}
         if self.testing:
             self.sys_dict.update({'testing':True})
 
@@ -859,10 +824,51 @@ class BpsBuilder:
         self.construct(name)    
         self.compile(API=False)  
 
+    def build_mlx(self, name, **kwargs):
+        """Construct the grid and build it on the MLX backend (Apple Silicon).
+
+        Collapses the two usual steps into one::
+
+            model = BpsBuilder('genrou.hjson').build_mlx('genrou')
+            model.ini({})                     # seeded from sys_dict['xy_0_dict']
+            model.run(5.0, {'p_m_1': 0.65})
+
+        which is the same as ``construct(name)`` followed by
+        ``MlxBuilder(self.sys_dict, **kwargs).build()``. Unlike :meth:`build`,
+        nothing is compiled to C and no shared library is written -- MLX lowers
+        the equations to Metal kernels in-process.
+
+        Parameters
+        ----------
+        name : str
+            Model name, passed to :meth:`construct`.
+        **kwargs
+            Forwarded to :class:`~pydae.core.builder.mlx_builder.MlxBuilder`
+            (``dtype``, ``Dt``, ``alpha``, ``decimation``, ``verbose``, ...).
+
+        Returns
+        -------
+        MlxBuilder
+            Built and ready for ``ini()`` / ``run()`` / ``sweep()`` /
+            ``small_signal()``.
+
+        Notes
+        -----
+        Works from either symbolic front end: this builder's default SymPy
+        expressions, or CasADi ``SX`` when constructed with ``use_casadi=True``.
+        ``MlxBuilder`` detects which it was handed and lowers accordingly.
+        """
+        # Imported here, not at module scope: mlx is an Apple Silicon extra and
+        # pydae-bps has to import on every platform.
+        from pydae.core.builder.mlx_builder import MlxBuilder
+
+        self.construct(name)
+        return MlxBuilder(self.sys_dict, **kwargs).build()
+
     def build_mkl_win(self, name =''):
         if name == '':
             print('Error: name is not provided.')
-        self.construct(name)    
+        self.construct(name)
         self.compile_mkl(name)
 
     def checker(self):

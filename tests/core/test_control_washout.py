@@ -27,7 +27,7 @@ def washout_model():
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    washout(dae, '1', {'T_wo': 2.0, 'u': 0.0}, backend)
+    washout(dae, '1', backend, {'T_wo': 2.0, 'u': 0.0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])

@@ -9,16 +9,27 @@ for standalone control systems.
 Run selectively:
     uv run pytest tests/core/test_control_builder.py -v
 """
+import pkgutil
+
 import pytest
 
+import pydae.control.continuos as continuos
 from pydae.control.control_builder import ControlBuilder, BUILDERS
 
 
 @pytest.mark.parse
 def test_builders_cover_continuos_modules():
-    """All continuous control blocks are registered under their module
-    name."""
-    assert set(BUILDERS) == {'pi', 'pid', 'lpf1', 'lpf2', 'leadlag', 'washout', 'stab_1lpf_2wo_3ll'}
+    """All continuous control blocks are registered under their module name.
+
+    Derived from the package contents rather than hard-coded, so adding a
+    block module without registering it in BUILDERS (or vice versa) fails
+    here instead of silently leaving the block unreachable from HJSON.
+    """
+    modules = {
+        name for _, name, _ in pkgutil.iter_modules(continuos.__path__)
+        if not name.startswith('_')
+    }
+    assert set(BUILDERS) == modules
 
 
 @pytest.mark.parse

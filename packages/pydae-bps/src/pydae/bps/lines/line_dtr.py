@@ -41,6 +41,9 @@ Originally created 2022-08-10 (@jmmauricio).
 
 import numpy as np
 
+from pydae.bps.lines.branch_current import (line_currents_pu,
+                                            current_magnitude_sq)
+
 
 def descriptions():
     """
@@ -163,12 +166,23 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k, dtr_data):
     self.t_conductor = backend.symbols(f't_conductor_{name}')
 
     # Inputs (Control or Disturbance) - Lowercase
-    I_j_k,I_k_j = backend.symbols(f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
-    #I_j_k,I_k_j = backend.symbols(f"I_{bus_j}_{bus_k}_aux, I_{bus_k}_{bus_j}_aux")
-
     self.K_dtr = backend.symbols(f'K_dtr_{name}')
 
-    self.i_line = I_j_k*self.K_dtr
+    # Network current, inlined from the branch admittance and the bus voltages
+    # instead of carried as an algebraic variable. In amperes it is 3-5 orders
+    # above the per-unit quantities beside it in y and wrecks cond(Gy); see
+    # lines/branch_current.py. Nothing is lost by inlining: the current is a
+    # function of the bus voltages and the branch primitive, and g_/b_ resolve
+    # to this line's own (temperature-dependent) algebraic variables, so the
+    # current still reflects R(T).
+    #
+    # The heat balance only ever needs the SQUARE of the current, so the
+    # magnitude's square root -- and its 0/0 derivative at exactly zero flow --
+    # never has to be formed at all.
+    idx_j = self.buses_list.index(bus_j)
+    I_base = self.system['S_base']/(np.sqrt(3)*self.buses[idx_j]['U_kV']*1000)
+    i_j_k, _i_k_j = line_currents_pu(backend, bus_j, bus_k, name)
+    self.i_line_sq = current_magnitude_sq(*i_j_k, I_base*self.K_dtr)
     self.t_ambient = backend.symbols(f't_ambient_{name}')
     self.v_wind = backend.symbols(f'v_wind_{name}')
     self.angle_wind = backend.symbols(f'angle_wind_{name}')
@@ -419,7 +433,8 @@ def DTR_Symbolic(self, line_name, bus_j, bus_k, dtr_data):
         R_ac = self.R_ac
 
     # Joule heating: q_j = i_cond^2 · R_ac(T), with i_cond = I_line·K_dtr.
-    self.p_j = self.i_line**2 * self.R_ac
+    # i_line_sq is |i_cond|^2 built without a square root (branch_current.py).
+    self.p_j = self.i_line_sq * self.R_ac
     if 'p_j' in y_list_considered:
         p_j = backend.symbols(f'p_j_{line_name}')
         self.dae['g'] += [self.p_j - p_j]

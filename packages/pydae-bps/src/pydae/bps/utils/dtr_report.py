@@ -111,7 +111,9 @@ def report_dtr(model, data, print_table=True):
 
         t_cond = _get(model, f't_conductor_{name}')
         t_amb  = _get(model, f't_ambient_{name}')
-        i_line = _get(model, f'I_{bus_j}_{bus_k}')
+        # I_line_{j}_{k} is the h_dict output; the old I_{j}_{k} algebraic
+        # variable no longer exists (the thermal model inlines the current).
+        i_line = _get(model, f'I_line_{bus_j}_{bus_k}')
         k_dtr  = _get(model, f'K_dtr_{name}')
         i_cond = i_line * k_dtr if not (math.isnan(i_line) or math.isnan(k_dtr)) else float('nan')
         d_t    = t_cond - t_amb if not (math.isnan(t_cond) or math.isnan(t_amb)) else float('nan')

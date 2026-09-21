@@ -38,6 +38,7 @@ getting_started
 
 dtr
 faults
+discrete
 ```
 
 ```{toctree}

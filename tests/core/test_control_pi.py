@@ -36,9 +36,9 @@ def _build_pi_loop_model(name='1', K_p=2.0, K_i=0.5, K_aw=2.0,
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    pi(dae, name, {'K_p': K_p, 'K_i': K_i, 'K_aw': K_aw,
-                    'z_min': z_min, 'z_max': z_max,
-                    'u': 0.0, 'xi_0': 0.0}, backend)
+    pi(dae, name, backend, {'K_p': K_p, 'K_i': K_i, 'K_aw': K_aw,
+                            'z_min': z_min, 'z_max': z_max,
+                            'u': 0.0, 'xi_0': 0.0})
 
     xi = dae['x_list'][-1]
     z = dae['h_dict'][f'z_pi_{name}']

@@ -11,6 +11,7 @@ Analogous to ``syns/syns.py`` for generators, but operating at plant level.
 
 from pydae.bps.ppcs.repc_a import repc_a as _repc_a
 from pydae.bps.ppcs.repc_d import repc_d as _repc_d
+from pydae.bps.ppcs.sppc import sppc as _sppc
 
 
 def add_ppcs(grid):
@@ -24,5 +25,7 @@ def add_ppcs(grid):
             _repc_a(grid.dae, item, name, grid.backend)
         elif ppc_type == 'repc_d':
             _repc_d(grid.dae, item, name, grid.backend)
+        elif ppc_type == 'sppc':
+            _sppc(grid.dae, item, name, grid.backend)
         else:
             raise ValueError(f"Unknown ppcs type: {ppc_type!r}")

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Dynamic Thermal Rating for **underground cables** — IEC 60853 two-node model.
+Dynamic Thermal Rating for **underground cables** — IEC 60853 two-node model,
+or an n-stage Cauer ladder when two nodes are not enough.
 
 This is the buried-cable counterpart of the overhead IEEE-738 model in
 :mod:`pydae.bps.lines.line_dtr`. A cable is not air-cooled: heat is *conducted*
@@ -41,6 +42,57 @@ the network current and the soil temperature remain symbolic.
 Selected by ``dtr: {model: "cable", ...}`` (or a ``dtr_codes`` entry whose
 ``model`` is ``"cable"``) on a ``lines[]`` entry.
 
+n-stage ladder form
+-------------------
+Two nodes cannot span the insulation and the soil at once. Their time constants
+here are ~2 min and ~1.5 days, and a daily load cycle falls straight into the
+gap between them: on the CIGRE MV benchmark the two-node model reproduces the
+steady state exactly but **under-predicts the daily conductor swing by about
+2x**, which under-predicts the peak — the unsafe direction for a rating study.
+
+Supplying ``R`` and ``C`` as lists instead of ``T1/T4/Q1/Q2`` builds an
+n-stage Cauer ladder, which fixes that::
+
+    dtr: {model: "cable", R: [0.070, 0.478, 0.409, 0.561, 0.099],
+                          C: [5.1e2, 9.5e2, 8.6e4, 9.4e5, 3.4e7],
+                          lambda1: 0.4822, t_soil: 18.94, ...}
+
+Network (per unit length)::
+
+    W_tot --+--[R1]--+--[R2]--+-- ... --+--[R_{n-1}]--+--[Rn]--+
+            |        |        |         |             |        |
+           C1       C2       C3        ...           Cn        |
+            |        |        |         |             |        |
+            +--------+--------+---------+-------------+--------+  theta_soil
+
+    theta_1 = conductor temperature (state, named t_conductor_{line})
+    theta_i = i-th ladder node       (state, named t_ladder_{i}_{line})
+    W_tot   = (1 + lambda1)*W_c + W_d   total loss, injected at node 1
+
+State equations::
+
+    C1 dtheta_1/dt = W_tot                        - (theta_1-theta_2)/R1
+    Ci dtheta_i/dt = (theta_{i-1}-theta_i)/R_{i-1} - (theta_i-theta_{i+1})/Ri
+    Cn dtheta_n/dt = (theta_{n-1}-theta_n)/R_{n-1} - (theta_n-theta_soil)/Rn
+
+``sum(R)`` is the steady conductor-to-soil thermal resistance per unit of total
+loss, so the DC behaviour is set by the R list alone.
+
+Note the one modelling difference from the two-node form: the ladder takes the
+**total** loss at node 1, rather than splitting W_c into the conductor and
+lambda1*W_c into the sheath. That is not an approximation being added — it is
+where the R/C values come from. :func:`pydae.bps.lines.cable_fem.identify_ladder`
+drives the finite-element model with the real spatial loss distribution (W_c in
+the conductor, W_s at the screen) and reduces the result, so the identified
+R and C already carry the split. Re-injecting it here would double-count it.
+
+``R``/``C`` and ``T1``/``T4``/``Q1``/``Q2``/``p`` are mutually exclusive; giving
+both raises, rather than silently honouring one and dropping the other.
+
+:mod:`pydae.bps.lines.cable_fem` derives either form from a 2D finite-element
+solution of the real cable geometry — see its ``TwoNodeFit.as_dtr()`` and
+``ladder_dtr()``.
+
 .. note::
    The soil capacitance ``Q_soil`` is lumped over a finite shell of outer
    diameter ``soil_shell × De`` — a transparent approximation of the
@@ -57,6 +109,10 @@ IEC typical values (not given by the benchmark).
 import math
 
 import numpy as np
+
+from pydae.bps.lines.branch_current import (line_currents_pu,
+                                            current_magnitude,
+                                            current_magnitude_sq)
 
 
 # Material / installation defaults (SI). Overridable via the dtr data dict.
@@ -82,15 +138,18 @@ _DEFAULTS = {
 
 def descriptions():
     """
-    Single source of truth for the underground-cable (IEC 60853 two-node) DTR
-    parameters, inputs, states and outputs. Consumed by the docs autosummary
-    generator.
+    Single source of truth for the underground-cable DTR parameters, inputs,
+    states and outputs. Consumed by the docs autosummary generator.
 
     Geometry/material values are supplied per line through the ``dtr`` field
     (inline dict, ``dtr_codes`` reference, or reference with overrides) whose
     ``model: "cable"`` routes here; the ``data`` column is the corresponding key.
     The lumped network coefficients T1/T4/Q1/Q2/p are derived from the geometry
     (see :func:`_cable_thermal_network`) but may also be supplied directly.
+
+    ``R``/``C`` select the n-stage ladder instead, in which case T1/T4/Q1/Q2/p
+    and the ``t_sheath`` output do not exist and the ladder-node states
+    ``t_ladder_{i}`` take their place.
     """
     d = []
 
@@ -118,13 +177,17 @@ def descriptions():
     d += [{"type": "Parameter", "tex": "Q_1", "data": "Q1", "model": "Q1", "default": "", "description": "Conductor-node thermal capacitance", "units": "J/(m·K)"}]
     d += [{"type": "Parameter", "tex": "Q_2", "data": "Q2", "model": "Q2", "default": "", "description": "External-node thermal capacitance", "units": "J/(m·K)"}]
     d += [{"type": "Parameter", "tex": "p",   "data": "p",  "model": "p_vw", "default": "", "description": "Van Wormer capacitance-split factor", "units": "-"}]
+    # Parameters — n-stage ladder (alternative to T1/T4/Q1/Q2/p; mutually exclusive)
+    d += [{"type": "Parameter", "tex": "R_i", "data": "R", "model": "R1..Rn", "default": "", "description": "Cauer ladder series thermal resistances, cable outwards — selects the n-stage form", "units": "K·m/W"}]
+    d += [{"type": "Parameter", "tex": "C_i", "data": "C", "model": "C1..Cn", "default": "", "description": "Cauer ladder shunt thermal capacitances, cable outwards — selects the n-stage form", "units": "J/(m·K)"}]
 
     # Input
     d += [{"type": "Input", "tex": "T_{soil}", "data": "t_soil", "model": "t_soil", "default": 15.0, "description": "Ambient soil temperature", "units": "°C"}]
 
     # Dynamic states
     d += [{"type": "Dynamic State", "tex": "T_{cond}",  "data": "", "model": "t_conductor", "default": "", "description": "Conductor temperature", "units": "°C"}]
-    d += [{"type": "Dynamic State", "tex": "T_{sheath}","data": "", "model": "t_sheath",    "default": "", "description": "External/sheath-region temperature", "units": "°C"}]
+    d += [{"type": "Dynamic State", "tex": "T_{sheath}","data": "", "model": "t_sheath",    "default": "", "description": "External/sheath-region temperature (two-node form only)", "units": "°C"}]
+    d += [{"type": "Dynamic State", "tex": "T_{i}",     "data": "", "model": "t_ladder_{i}","default": "", "description": "i-th ladder node temperature, i = 2..n (n-stage form only)", "units": "°C"}]
 
     # Outputs
     d += [{"type": "Output", "tex": "W_c",     "data": "", "model": "W_c",     "default": "", "description": "Conductor (Joule) loss", "units": "W/m"}]
@@ -175,13 +238,206 @@ def _cable_thermal_network(d):
     }
 
 
+#: Keys whose presence selects the n-stage ladder form.
+_LADDER_KEYS = ('R', 'C')
+
+#: Keys that only exist in the two-node form, and so may not be combined
+#: with an ``R``/``C`` ladder.
+_TWO_NODE_KEYS = ('T1', 'T4', 'Q1', 'Q2', 'p')
+
+
+def _resolve_ladder(dtr_data):
+    """
+    Pull an n-stage ladder out of the ``dtr`` data, or ``None`` for the
+    two-node form.
+
+    Returns ``(R, C)`` as lists of floats, cable outwards. Raises on anything
+    ambiguous or unphysical rather than falling back quietly: an ignored
+    parameter here means a cable silently running on the wrong thermal model,
+    which shows up as a plausible-looking temperature rather than as an error.
+    """
+    R, C = dtr_data.get('R'), dtr_data.get('C')
+    if R is None and C is None:
+        return None
+    if R is None or C is None:
+        raise ValueError(
+            "the n-stage cable ladder needs BOTH 'R' and 'C'; got only "
+            f"{'R' if C is None else 'C'}")
+    both = [k for k in _TWO_NODE_KEYS if k in dtr_data]
+    if both:
+        raise ValueError(
+            f"a cable dtr block gives the ladder 'R'/'C' and also {both}. "
+            "Those are alternative models — the ladder takes the TOTAL loss at "
+            "node 1 while the two-node form splits W_c and lambda1*W_c across "
+            "its two nodes — so pick one rather than have the other silently "
+            "dropped.")
+    try:
+        R = [float(v) for v in R]
+        C = [float(v) for v in C]
+    except (TypeError, ValueError) as exc:
+        raise ValueError("cable ladder 'R' and 'C' must be lists of "
+                         f"numbers: {exc}") from exc
+    if len(R) != len(C):
+        raise ValueError(f"cable ladder 'R' has {len(R)} entries but 'C' has "
+                         f"{len(C)}; they are stage-by-stage pairs")
+    if not R:
+        raise ValueError("cable ladder 'R'/'C' are empty")
+    bad = [i + 1 for i, (r, c) in enumerate(zip(R, C)) if r <= 0.0 or c <= 0.0]
+    if bad:
+        raise ValueError(
+            f"cable ladder stages {bad} have a non-positive R or C; a passive "
+            "thermal ladder has strictly positive elements throughout "
+            "(pydae.bps.lines.cable_fem checks this when it identifies one)")
+    return R, C
+
+
 def DTR_Cable_Symbolic(self, line_name, bus_j, bus_k, dtr_data):
     r"""
-    Append the IEC 60853 two-node cable thermal model for one DTR cable line.
+    Append the cable thermal model for one DTR cable line.
+
+    Dispatches on the data: ``R``/``C`` lists build the n-stage Cauer ladder,
+    anything else the IEC 60853 two-node form. Both define
+    ``t_conductor_{line}``, which the network admittance in
+    :func:`pydae.bps.lines.line_dtr.add_line_dtr` depends on.
 
     *dtr_data* is the already-resolved ``dtr`` data dict (see
     :func:`pydae.bps.lines.line_dtr._resolve_dtr_data`); ``model: "cable"`` has
     already routed us here.
+    """
+    ladder = _resolve_ladder(dtr_data)
+    if ladder is not None:
+        return _dtr_cable_ladder(self, line_name, bus_j, bus_k, dtr_data,
+                                 *ladder)
+    return _dtr_cable_two_node(self, line_name, bus_j, bus_k, dtr_data)
+
+
+def _dtr_cable_common(self, line_name, bus_j, bus_k, dtr_data):
+    """
+    The pieces both forms share: the conductor current, the soil-temperature
+    input and the loss parameters.
+
+    Returns ``(i_cond, i_cond_sq, t_soil, syms)`` with *syms* holding
+    ``lambda1``, ``Wd``, ``R_ac_20`` and ``alpha_R``. ``i_cond_sq`` is
+    :math:`|i_{cond}|^2` formed *without* a square root and is what the loss
+    terms must use; ``i_cond`` carries the root and is for reporting only.
+    """
+    backend = self.backend
+    name = line_name
+
+    # --- Network current (A) and conductor-current scaling ------------------
+    # Inlined from the branch admittance and the bus voltages rather than read
+    # from an algebraic variable: in amperes it is 3-5 orders above the
+    # per-unit quantities beside it in y and wrecks cond(Gy). See
+    # lines/branch_current.py. The losses need I**2, so the square root is
+    # only ever formed for the reported current.
+    idx_j = self.buses_list.index(bus_j)
+    I_base = self.system['S_base']/(np.sqrt(3)*self.buses[idx_j]['U_kV']*1000)
+    K_dtr = backend.symbols(f'K_dtr_{name}')
+    i_j_k, _i_k_j = line_currents_pu(backend, bus_j, bus_k, name)
+    i_cond_sq = current_magnitude_sq(*i_j_k, I_base*K_dtr)
+    i_cond = current_magnitude(*i_j_k, I_base*K_dtr)
+
+    # --- Ambient soil temperature (input) -----------------------------------
+    t_soil = backend.symbols(f't_soil_{name}')
+
+    syms = {
+        'K_dtr': K_dtr,
+        'lambda1': backend.symbols(f'lambda1_{name}'),
+        'Wd': backend.symbols(f'Wd_{name}'),
+        'R_ac_20': backend.symbols(f'R_ac_20_{name}'),
+        'alpha_R': backend.symbols(f'alpha_R_{name}'),
+    }
+    return i_cond, i_cond_sq, t_soil, syms
+
+
+def _dtr_cable_ladder(self, line_name, bus_j, bus_k, dtr_data, R, C):
+    r"""
+    Append an n-stage Cauer ladder for one DTR cable line.
+
+    .. math::
+        C_1\dot\theta_1 &= W_{\rm tot} - (\theta_1-\theta_2)/R_1 \\
+        C_i\dot\theta_i &= (\theta_{i-1}-\theta_i)/R_{i-1}
+                           - (\theta_i-\theta_{i+1})/R_i \\
+        C_n\dot\theta_n &= (\theta_{n-1}-\theta_n)/R_{n-1}
+                           - (\theta_n-\theta_{\rm soil})/R_n
+
+    with :math:`W_{\rm tot} = (1+\lambda_1)W_c + W_d` injected at node 1 and
+    :math:`\theta_1` the conductor. See the module docstring for why the loss
+    is *not* re-split across the nodes here.
+    """
+    backend = self.backend
+    name = line_name
+    n = len(R)
+
+    g = lambda k: dtr_data.get(k, _DEFAULTS[k])
+    i_cond, i_cond_sq, t_soil, syms = _dtr_cable_common(
+        self, name, bus_j, bus_k, dtr_data)
+
+    # --- States: node 1 is the conductor, the rest are ladder nodes ---------
+    # Node 1 must be called t_conductor_{name}: the temperature-dependent line
+    # admittance is written against that symbol.
+    theta = [backend.symbols(f't_conductor_{name}' if i == 0
+                             else f't_ladder_{i + 1}_{name}')
+             for i in range(n)]
+    R_s = [backend.symbols(f'R{i + 1}_{name}') for i in range(n)]
+    C_s = [backend.symbols(f'C{i + 1}_{name}') for i in range(n)]
+
+    # --- Losses -------------------------------------------------------------
+    R_ac = syms['R_ac_20'] * (1.0 + syms['alpha_R'] * (theta[0] - 20.0))
+    W_c = i_cond_sq * R_ac                            # conductor loss [W/m]
+    W_total = W_c * (1.0 + syms['lambda1']) + syms['Wd']
+
+    # --- Heat balance -------------------------------------------------------
+    # flow[i] leaves node i through R[i]; the last stage returns to the soil,
+    # whose temperature is an input, and that grounding term is what makes the
+    # steady state finite (sum(R) is the DC thermal resistance).
+    flow = [(theta[i] - theta[i + 1]) / R_s[i] for i in range(n - 1)]
+    flow.append((theta[n - 1] - t_soil) / R_s[n - 1])
+
+    self.dae['f'] += [((W_total if i == 0 else flow[i - 1]) - flow[i]) / C_s[i]
+                      for i in range(n)]
+    self.dae['x'] += theta
+
+    # --- Inputs (runtime settable: soil temperature) ------------------------
+    self.dae['u_ini_dict'].update({str(t_soil): g('t_soil')})
+    self.dae['u_run_dict'].update({str(t_soil): g('t_soil')})
+
+    # --- Parameters ---------------------------------------------------------
+    params = {str(s): float(v) for s, v in zip(R_s, R)}
+    params.update({str(s): float(v) for s, v in zip(C_s, C)})
+    params.update({
+        str(syms['lambda1']): g('lambda1'), str(syms['Wd']): g('Wd'),
+        str(syms['R_ac_20']): g('R_ac_20'), str(syms['alpha_R']): g('alpha_R'),
+        str(syms['K_dtr']): g('K_dtr'),
+    })
+    self.dae['params_dict'].update(params)
+
+    # --- Initial guesses ----------------------------------------------------
+    # Shape the guess like the ladder itself: node i sits above the soil by the
+    # resistance still downstream of it. A flat guess makes the Newton solve
+    # start with heat flowing the wrong way through the outer stages.
+    r_total = sum(R)
+    rise = 20.0
+    self.dae['xy_0_dict'].update({
+        str(theta[i]): g('t_soil') + rise * sum(R[i:]) / r_total
+        for i in range(n)
+    })
+
+    # --- Outputs ------------------------------------------------------------
+    outputs = {
+        f't_conductor_{name}': theta[0],
+        f'W_c_{name}': W_c,                       # conductor loss [W/m]
+        f'W_total_{name}': W_total,               # total heat input [W/m]
+        f'R_ac_{name}': R_ac,                     # [Ω/m]
+        f'I_cond_{name}': i_cond,                 # conductor current [A]
+    }
+    outputs.update({f't_ladder_{i + 1}_{name}': theta[i] for i in range(1, n)})
+    self.dae['h_dict'].update(outputs)
+
+
+def _dtr_cable_two_node(self, line_name, bus_j, bus_k, dtr_data):
+    r"""
+    Append the IEC 60853 two-node cable thermal model for one DTR cable line.
     """
     backend = self.backend
     name = line_name
@@ -189,17 +445,14 @@ def DTR_Cable_Symbolic(self, line_name, bus_j, bus_k, dtr_data):
     g = lambda k: dtr_data.get(k, _DEFAULTS[k])
     net = _cable_thermal_network(dtr_data)
 
+    i_cond, i_cond_sq, t_soil, syms = _dtr_cable_common(
+        self, name, bus_j, bus_k, dtr_data)
+    lambda1, Wd = syms['lambda1'], syms['Wd']
+    R_ac_20, alpha_R, K_dtr = syms['R_ac_20'], syms['alpha_R'], syms['K_dtr']
+
     # --- States: conductor and external/sheath temperatures -----------------
     t_cond   = backend.symbols(f't_conductor_{name}')
     t_sheath = backend.symbols(f't_sheath_{name}')
-
-    # --- Network current (A) and conductor-current scaling ------------------
-    I_j_k, _I_k_j = backend.symbols(f"I_{bus_j}_{bus_k}, I_{bus_k}_{bus_j}")
-    K_dtr = backend.symbols(f'K_dtr_{name}')
-    i_cond = I_j_k * K_dtr
-
-    # --- Ambient soil temperature (input) -----------------------------------
-    t_soil = backend.symbols(f't_soil_{name}')
 
     # --- Lumped thermal-network parameters ----------------------------------
     T1 = backend.symbols(f'T1_{name}')
@@ -207,14 +460,10 @@ def DTR_Cable_Symbolic(self, line_name, bus_j, bus_k, dtr_data):
     Q1 = backend.symbols(f'Q1_{name}')
     Q2 = backend.symbols(f'Q2_{name}')
     p  = backend.symbols(f'p_vw_{name}')
-    lambda1 = backend.symbols(f'lambda1_{name}')
-    Wd = backend.symbols(f'Wd_{name}')
-    R_ac_20 = backend.symbols(f'R_ac_20_{name}')
-    alpha_R = backend.symbols(f'alpha_R_{name}')
 
     # --- Losses -------------------------------------------------------------
     R_ac = R_ac_20 * (1.0 + alpha_R * (t_cond - 20.0))   # [Ω/m]
-    W_c = i_cond ** 2 * R_ac                              # conductor loss [W/m]
+    W_c = i_cond_sq * R_ac                              # conductor loss [W/m]
 
     # --- Two-node heat balance ----------------------------------------------
     q_cond_node = W_c + p * Wd
@@ -301,5 +550,91 @@ def test():
     print("cable DTR test passed")
 
 
+def test_ladder():
+    """Build + ini + dynamic run for an n-stage ladder cable line."""
+    from pydae.bps import BpsBuilder
+    from pydae.core.builder.casadi_builder import CasadiBuilder
+    from pydae.core.model.casadi_model import CasadiModel
+
+    # A five-stage ladder identified from the CIGRE MV benchmark by
+    # pydae.bps.lines.cable_fem (see its ladder_dtr()).
+    R = [0.06962, 0.4661, 0.40922, 0.56014, 0.0987]
+    C = [530.14, 962.03, 86095.2, 937163.5, 34453437.0]
+    dtr = {"model": "cable", "R": R, "C": C, "lambda1": 0.4822,
+           "R_ac_20": 2.6406e-4, "alpha_R": 0.004, "Wd": 0.0, "K_dtr": 1.0,
+           "t_soil": 18.94}
+
+    data = {
+        "system": {"name": "cable_ladder_test", "S_base": 25e6, "K_xif": 0.01},
+        "buses": [{"name": "1", "P_W": 0.0, "Q_var": 0.0, "U_kV": 20.0},
+                  {"name": "2", "P_W": 6.7e6, "Q_var": 1.7e6, "U_kV": 20.0}],
+        "lines": [{"bus_j": "1", "bus_k": "2", "R_km": 0.501, "X_km": 0.12,
+                   "Bs_km": 4.7e-5, "km": 2.0, "monitor": True, "dtr": dtr}],
+        "sources": [{"type": "genape", "bus": "1", "S_n": 1e9, "F_n": 50.0,
+                     "X_v": 0.001, "R_v": 0.0, "K_delta": 0.001,
+                     "K_alpha": 1e-6}],
+    }
+    grid = BpsBuilder(data, use_casadi=True)
+    grid.construct('cable_ladder_test')
+    model = CasadiModel(CasadiBuilder(grid.sys_dict).build())
+    model.ini({}, newton_tol=1e-10)
+
+    n = len(R)
+    g = lambda k: float(model.get_value(f'{k}_1_2'))
+    nodes = [g('t_conductor')] + [g(f't_ladder_{i}') for i in range(2, n + 1)]
+    t_soil, w_total = g('t_soil'), g('W_total')
+    print("ladder nodes [degC]: " + ", ".join(f"{v:.2f}" for v in nodes)
+          + f"   t_soil {t_soil:.2f}, W_total {w_total:.2f} W/m")
+
+    # Steady state: every node sits above the soil by the resistance still
+    # downstream of it, driven by the TOTAL loss. sum(R) is therefore the DC
+    # conductor-to-soil thermal resistance.
+    for i, theta in enumerate(nodes):
+        expect = t_soil + w_total * sum(R[i:])
+        assert abs(theta - expect) < 1e-6, \
+            f"node {i + 1}: {theta:.6f} vs {expect:.6f} degC"
+    # Monotonically cooler outward, and hotter than the soil throughout.
+    assert all(a > b for a, b in zip(nodes, nodes[1:])), "not monotonic outward"
+    assert nodes[-1] > t_soil
+
+    # Losses consistent with the conductor temperature.
+    assert abs(g('W_total') - g('W_c') * (1.0 + 0.4822)) < 1e-9
+    assert abs(g('R_ac') - 2.6406e-4 * (1.0 + 0.004 * (nodes[0] - 20.0))) < 1e-15
+
+    # A soil-temperature step must propagate to the conductor. The outer
+    # stages have time constants of days, so 6 h moves it only a little --
+    # which is the entire point of having them.
+    model.Dt = 1800.0
+    model.run(6 * 3600.0, {'t_soil_1_2': t_soil + 10.0})
+    model.post()
+    t_after = float(model.get_value('t_conductor_1_2'))
+    assert nodes[0] < t_after < nodes[0] + 10.0, \
+        f"conductor went from {nodes[0]:.2f} to {t_after:.2f} degC in 6 h"
+
+    # R/C and T1/T4 are alternative models, so mixing them must raise rather
+    # than silently honouring one.
+    for clash in ({'T1': 0.37}, {'Q2': 1e5}, {'p': 0.4}):
+        try:
+            _resolve_ladder({'R': R, 'C': C, **clash})
+        except ValueError:
+            pass
+        else:                                          # pragma: no cover
+            raise AssertionError(f"mixing R/C with {clash} was accepted")
+    # ... and so must a malformed ladder.
+    for bad in ({'R': R}, {'C': C}, {'R': R, 'C': C[:-1]},
+                {'R': [0.1, -0.2], 'C': [1.0, 2.0]}, {'R': [], 'C': []}):
+        try:
+            _resolve_ladder(bad)
+        except ValueError:
+            pass
+        else:                                          # pragma: no cover
+            raise AssertionError(f"malformed ladder accepted: {bad}")
+    assert _resolve_ladder({'T1': 0.37, 'T4': 1.3}) is None, \
+        "a two-node block must not be read as a ladder"
+
+    print("cable ladder DTR test passed")
+
+
 if __name__ == "__main__":
     test()
+    test_ladder()

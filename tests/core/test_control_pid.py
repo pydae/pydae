@@ -36,9 +36,9 @@ def _build_pid_loop_model(name='1', K_p=2.0, K_i=0.5, K_d=0.1, T_f=0.1, K_aw=2.0
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    pid(dae, name, {'K_p': K_p, 'K_i': K_i, 'K_d': K_d, 'T_f': T_f, 'K_aw': K_aw,
-                     'z_min': z_min, 'z_max': z_max,
-                     'u': 0.0, 'xi_0': 0.0}, backend)
+    pid(dae, name, backend, {'K_p': K_p, 'K_i': K_i, 'K_d': K_d, 'T_f': T_f,
+                             'K_aw': K_aw, 'z_min': z_min, 'z_max': z_max,
+                             'u': 0.0, 'xi_0': 0.0})
 
     xi = dae['x_list'][-2]
     z = dae['h_dict'][f'z_pid_{name}']

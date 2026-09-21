@@ -27,6 +27,11 @@ Usage
     from pydae.api.realtime_api import app
     app.state.model    = my_casadi_model   # CasadiModel, already ini()-ed
     app.state.chunk_ms = 50.0             # optional, default 50 ms
+    app.state.solver   = "trapezoidal"    # optional: "idas" (default) or "trapezoidal"
+
+    # optional: run each model's discrete control part every chunk
+    from pydae.bps.discrete import DiscreteOrchestrator
+    app.state.discrete = DiscreteOrchestrator.from_model(my_casadi_model)
 
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
@@ -37,27 +42,37 @@ REST endpoints
     All h_dict outputs (browser-friendly).
 ``POST /measurements``
     Selective h_dict outputs: ``{"names": ["E_p", "E_k"]}``
+``GET  /inputs``
+    All runtime input (u_run setpoint) values.
 ``GET  /cosim/measurements``
     Only the measurements declared in ``configs`` (co-simulation subset).
 ``POST /set_input``
     Write a single setpoint: ``{"name": "f_x", "value": 0.5}``
 ``POST /setpoints``
-    Write multiple setpoints: ``{"setpoints": {"f_x": 0.5}, "timestamp": 1.0}``
+    Write multiple setpoints — envelope ``{"setpoints": {"f_x": 0.5}, "timestamp": 1.0}``
+    or flat ``{"f_x": 0.5}``.
 ``POST /cosim/setpoints``
     Write setpoints restricted to those declared in ``configs``; rejects unknown keys.
 ``GET  /status``
     Returns ``{"is_running": bool, "t_sim": float}``
+``GET  /faults``
+    Declared and currently-active fault buses (needs ``app.state.faults``).
+``POST /faults/apply``
+    Apply a shunt fault: ``{"bus": "POI", "t_clear": 0.2}`` (``t_clear`` optional).
+``POST /faults/clear``
+    Clear a shunt fault: ``{"bus": "POI"}``
 """
 
 import re
 import time
+import inspect
 import threading
 from contextlib import asynccontextmanager
 
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 def _resolve_emec_names(entry: dict, candidate_names: set[str]) -> list[str]:
@@ -126,18 +141,89 @@ class RealTimeSimulator:
     chunk_ms:
         Wall-clock chunk size in milliseconds.  Smaller values give finer
         time resolution but more OS scheduler overhead.
+    solver:
+        Per-chunk integrator: ``"idas"`` (default; adaptive SUNDIALS BDF, most
+        robust) or ``"trapezoidal"`` (fixed-step implicit trapezoid).  The
+        trapezoid reuses the model's cached fixed-step CasADi functions and is
+        usually faster in real time because it avoids IDAS's per-chunk cold
+        restart (``calc_ic`` + BDF ramp-up).
+    trapezoidal_substeps:
+        Number of implicit-trapezoid sub-steps per chunk when
+        ``solver="trapezoidal"``.  ``None`` (default) picks
+        ``round(chunk_sec / model.Dt)`` so accuracy matches the model's ``Dt``.
+    trapezoidal_linsol:
+        Linear-solver backend for the trapezoid's Newton step: ``"scipy"``
+        (default, ``scipy.sparse.linalg.splu``) or any ``ca.Linsol`` plugin
+        (``"qr"`` — recommended CasADi-native — ``"lapacklu"``, ``"csparse"``,
+        ``"ma27"``, ...).  An unavailable plugin falls back to SciPy with a warning.
+    discrete:
+        Optional discrete-control orchestrator.  Any object exposing
+        ``step(model)`` (typically a
+        :class:`pydae.bps.discrete.DiscreteOrchestrator`).  It is called once
+        per chunk, *before* the integration step, so the model's discrete
+        control parts (e.g. a fault-ride-through relay) can update the runtime
+        inputs the next step will integrate with.  Kept duck-typed so this
+        module has no dependency on ``pydae-bps``.
+    faults:
+        Optional fault controller.  Any object exposing ``apply(bus)`` /
+        ``clear(bus)`` and a ``buses`` property (typically a
+        :class:`pydae.bps.utils.faults.FaultController`).  Its methods run a
+        frozen-time continuation on the live model and are invoked under the
+        integrator lock by :meth:`apply_fault` / :meth:`clear_fault`.  Kept
+        duck-typed for the same bps-independence reason.
     """
 
-    def __init__(self, model, chunk_ms: float = 50.0, ramp_chunks: int = 20):
+    def __init__(self, model, chunk_ms: float = 50.0, ramp_chunks: int = 20,
+                 discrete=None, faults=None, solver: str = "idas",
+                 trapezoidal_substeps: int | None = None,
+                 trapezoidal_linsol: str = "scipy"):
         self.model = model
         self.chunk_sec = chunk_ms / 1000.0
         self.t_sim: float = 0.0
         self._lock = threading.Lock()
         self.is_running: bool = False
         self._thread: threading.Thread | None = None
-        self._integrator = None
+        # Per-chunk integrator: 'idas' (adaptive SUNDIALS, robust) or
+        # 'trapezoidal' (fixed-step implicit trapezoid, typically faster in RT
+        # because it avoids IDAS's per-chunk cold restart / calc_ic).
+        self.solver = solver
+        self._integrator = None          # IDAS integrator (built for 'idas')
+        self._trap = None                # cached trapezoidal machinery
+        self._trap_substeps = trapezoidal_substeps
+        # Linear-solver backend for the trapezoid's Newton step: "scipy"
+        # (scipy sparse LU) or any ca.Linsol plugin ("qr", "lapacklu", ...).
+        self._trap_linsol = trapezoidal_linsol
+        self._trap_tol = 1e-9
+        self._trap_max_iter = 10
+        # Modified-Newton factorization reuse: refresh the iteration matrix every
+        # N sub-steps, or adaptively when a step needs > refactor_iters iterations
+        # (this reuse is what makes the trapezoid fast). _trap_sc counts sub-steps.
+        self._trap_refactor_every = 25
+        self._trap_refactor_iters = 4
+        self._trap_sc = 0
         self._ramp_chunks = ramp_chunks
         self._ramp_queue: list[dict[str, float]] = []
+        # Discrete-control orchestrator (optional; falls back to a `discrete`
+        # attribute the model itself may carry). None => no discrete step.
+        self._discrete = discrete if discrete is not None else getattr(
+            model, "discrete", None)
+        # Latency-tier orchestrators gate on the sim clock via step(model, t).
+        # Decide once whether this (duck-typed) hook accepts the time argument,
+        # so a legacy step(model)-only hook is still called correctly.
+        self._discrete_pass_t = self._hook_accepts_time(self._discrete)
+        # Fault controller (optional; falls back to a `fault_controller` attribute
+        # the model may carry). Duck-typed: apply(bus)/clear(bus)/buses. Kept
+        # bps-agnostic so this module has no dependency on pydae-bps.
+        self._faults = faults if faults is not None else getattr(
+            model, "fault_controller", None)
+        self._active_faults: set[str] = set()
+        # Bus -> sim time at which an auto-clear is due (set by apply_fault's
+        # t_clear). Serviced under the lock in the sim loop.
+        self._scheduled_clears: dict[str, float] = {}
+        # Wall-clock pacing baseline (set when the loop starts) and a one-shot
+        # flag asking the loop to re-baseline after a blocking fault event.
+        self._wall_t0: float = 0.0
+        self._rebase_pacing: bool = False
         # Co-simulation variable lists — populated by load_cosim_config().
         self._cosim_meas_names: list[str] = []
         self._cosim_setp_names: list[str] = []
@@ -168,17 +254,46 @@ class RealTimeSimulator:
             "idas_rt", "idas", self.model.dae_dict, 0.0, self.chunk_sec, opts
         )
 
+    def _build_trapezoidal(self):
+        """Build and cache the fixed-step implicit-trapezoid machinery.
+
+        Reuses the model's own CasADi function builders — ``_build_fixed_step_fns``
+        (residual ``R``, iteration matrix ``J``, slope ``f`` for ``alpha=0.5``) and
+        ``_make_lin_backend`` (the linear-solver backend) — so the DAE maths is
+        never re-derived here; only the per-chunk in-place stepping lives in this
+        module (symmetric to how ``_build_integrator`` inlines the IDAS call).
+        """
+        fns = self.model._build_fixed_step_fns(0.5)          # alpha=0.5 (trapezoid)
+        backend = self.model._make_lin_backend(
+            self._trap_linsol, fns["J"].sparsity_out(0))
+        Dt = getattr(self.model, "Dt", 0.01) or 0.01
+        n = self._trap_substeps or max(1, int(round(self.chunk_sec / Dt)))
+        self._trap = {"fns": fns, "backend": backend,
+                      "n": n, "dt": self.chunk_sec / n}
+
+    def _build_stepper(self):
+        """Build whichever per-chunk integrator ``self.solver`` selects."""
+        if self.solver == "trapezoidal":
+            self._build_trapezoidal()
+        else:
+            self._build_integrator()
+
     # ── single integration step ────────────────────────────────────────────
 
     def _step(self):
-        """Advance ``model.x`` and ``model.y_run`` by one chunk.
+        """Advance ``model.x`` / ``model.y_run`` by one chunk with the selected
+        solver. Nothing is appended to ``Time/X/Y/Z`` — memory stays O(1)."""
+        if self.solver == "trapezoidal":
+            self._step_trapezoidal()
+        else:
+            self._step_idas()
+
+    def _step_idas(self):
+        """One chunk via the cached IDAS integrator (adaptive, robust).
 
         CasADi's IDAS integrator expects the parameter vector to be the
         concatenation of physical parameters and runtime inputs, matching the
         ``dae_dict['p']`` symbol list built by ``CasadiBuilder``.
-
-        Nothing is appended to ``model.Time``, ``model.X``, ``model.Y``, or
-        ``model.Z`` — memory consumption is O(1) over the lifetime of the run.
         """
         # CasADi convention: p = [p_vals | u_run_vals]
         p_run_vec = np.concatenate((self.model.p_vals, self.model.u_run_vals))
@@ -187,7 +302,53 @@ class RealTimeSimulator:
         self.model.x = np.array(res["xf"]).flatten()
         self.model.y_run = np.array(res["zf"]).flatten()
 
-    # ── background simulation loop ─────────────────────────────────────────
+    def _step_trapezoidal(self):
+        """One chunk via the fixed-step implicit trapezoid, in place.
+
+        Advances over ``n`` sub-steps of ``dt``; each sub-step is a modified-Newton
+        solve of the coupled ``[differential; algebraic]`` residual (so algebraic
+        consistency is maintained without a separate ``calc_ic``). The iteration
+        matrix is factorized on a schedule and reused across steps (that reuse is
+        the speed win); a step that fails to converge is retried once with a fresh
+        factorization before raising.
+        """
+        m = self.model
+        fns, backend = self._trap["fns"], self._trap["backend"]
+        n, dt = self._trap["n"], self._trap["dt"]
+        nx, _f, _R, _J = fns["nx"], fns["f"], fns["R"], fns["J"]
+        p = np.concatenate((m.p_vals, m.u_run_vals))
+        x = np.asarray(m.x, float).flatten()
+        z = np.asarray(m.y_run, float).flatten()
+
+        def newton(w, xf, fnv):
+            for it in range(self._trap_max_iter):
+                R = np.array(_R(w, xf, fnv, p, dt)).flatten()
+                if np.linalg.norm(R) < self._trap_tol:
+                    return it
+                if backend.stale or (self._trap_sc % self._trap_refactor_every == 0 and it == 0):
+                    backend.refresh(_J(w, xf, fnv, p, dt))
+                w += backend.solve(-R)
+            return None
+
+        for _ in range(n):
+            fnv = np.array(_f(x, z, p)).flatten()   # frozen slope f(x_n, z_n)
+            w = np.concatenate((x, z))
+            iters = newton(w, x, fnv)
+            if iters is None:                       # stale/ill-conditioned -> fresh J, retry
+                backend.mark_stale()
+                w = np.concatenate((x, z))
+                iters = newton(w, x, fnv)
+                if iters is None:
+                    raise RuntimeError(
+                        f"RT trapezoidal did not converge at t_sim={self.t_sim:.4f} s "
+                        "(try solver='idas', a smaller chunk_ms, or more substeps)")
+            elif iters > self._trap_refactor_iters:  # hard step -> refresh next time
+                backend.mark_stale()
+            x, z = w[:nx], w[nx:]
+            self._trap_sc += 1
+        m.x, m.y_run = x, z
+
+    # ── per-chunk helpers (ramp, discrete) ─────────────────────────────────
 
     def _apply_next_ramp_step(self):
         """Pop and apply one chunk's worth of ramped setpoint deltas.
@@ -203,14 +364,156 @@ class RealTimeSimulator:
                 else:
                     self.model.set_value(name, self.model.get_value(name) + delta)
 
+    @staticmethod
+    def _hook_accepts_time(discrete) -> bool:
+        """Whether the discrete hook's ``step`` takes a time argument.
+
+        Returns ``True`` if ``discrete.step`` accepts a second positional/keyword
+        parameter (so it can be called as ``step(model, t_sim)``), ``False`` for
+        a legacy ``step(model)``-only hook.  On any introspection failure it
+        defaults to ``False`` (the safe, always-callable single-arg form).
+        """
+        if discrete is None:
+            return False
+        step = getattr(discrete, "step", None)
+        if step is None:
+            return False
+        try:
+            params = list(inspect.signature(step).parameters.values())
+        except (ValueError, TypeError):
+            return False
+        # `step` is bound, so `self`/`model` is already peeled off. It can be
+        # called as step(model, t_sim) if a *second* positional slot exists:
+        # either >=2 positionally-fillable params, or a *args catch-all.
+        positional = [p for p in params
+                      if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)]
+        has_varargs = any(p.kind == p.VAR_POSITIONAL for p in params)
+        return has_varargs or len(positional) >= 2
+
+    def _run_discrete(self):
+        """Run the model's discrete control parts for this chunk.
+
+        Delegates to the injected orchestrator's ``step(model, t_sim)`` (or
+        ``step(model)`` for a legacy hook).  ``t_sim`` is the latency-tier clock,
+        so tiered controllers fire at their own cadence.  It writes runtime
+        inputs (``model.u_run_vals`` / via ``set_value``) that the upcoming
+        :meth:`_step` integrates with.  A failure here is logged and swallowed so
+        a single misbehaving controller cannot kill the real-time loop.  Must be
+        called with ``self._lock`` already held.
+        """
+        if self._discrete is None:
+            return
+        try:
+            if self._discrete_pass_t:
+                self._discrete.step(self.model, self.t_sim)
+            else:
+                self._discrete.step(self.model)
+        except Exception as exc:  # noqa: BLE001 - keep the RT loop alive
+            print(f"[RT discrete step failed at t_sim={self.t_sim:.3f} s] {exc}")
+
+    # ── fault application ──────────────────────────────────────────────────
+
+    def _sync_discrete_after_event(self):
+        """Re-seed the discrete orchestrator after an out-of-band model change.
+
+        A fault apply/clear jumps the operating point (and the converters' LVRT
+        inputs) via the continuation.  Re-seed the discrete controllers from the
+        new state so the per-chunk relay does not fight it, and reset their tier
+        timers so slow tiers re-evaluate immediately.  Must hold ``self._lock``.
+        """
+        # The fault continuation jumped the operating point, so a cached
+        # trapezoidal factorization is stale — force a refresh on the next step.
+        if self._trap is not None:
+            self._trap["backend"].mark_stale()
+        if self._discrete is None:
+            return
+        sync = getattr(self._discrete, "sync", None)
+        if callable(sync):
+            sync(self.model)
+        reset = getattr(self._discrete, "reset_schedule", None)
+        if callable(reset):
+            reset()
+
+    def _apply_fault_locked(self, bus, t_clear=None, **kw):
+        """Apply a fault and (optionally) schedule its auto-clear. Lock held."""
+        result = self._faults.apply(bus, **kw)
+        self._sync_discrete_after_event()
+        self._active_faults.add(bus)
+        if t_clear is not None:
+            self._scheduled_clears[bus] = self.t_sim + float(t_clear)
+        else:
+            self._scheduled_clears.pop(bus, None)
+        self._rebase_pacing = True  # drop the wall-clock lag this just caused
+        return result
+
+    def _clear_fault_locked(self, bus, **kw):
+        """Clear a fault and drop any pending auto-clear. Lock held."""
+        result = self._faults.clear(bus, **kw)
+        self._sync_discrete_after_event()
+        self._active_faults.discard(bus)
+        self._scheduled_clears.pop(bus, None)
+        self._rebase_pacing = True  # drop the wall-clock lag this just caused
+        return result
+
+    def _run_due_fault_clears(self):
+        """Auto-clear faults whose scheduled ``t_sim`` has arrived. Lock held."""
+        if not self._scheduled_clears:
+            return
+        due = [bus for bus, t in self._scheduled_clears.items()
+               if self.t_sim >= t - 1e-9]
+        for bus in due:
+            try:
+                self._clear_fault_locked(bus)
+            except Exception as exc:  # noqa: BLE001 - keep the RT loop alive
+                print(f"[RT auto-clear failed for '{bus}' at "
+                      f"t_sim={self.t_sim:.3f} s] {exc}")
+
+    def apply_fault(self, bus, t_clear=None, **kw):
+        """Apply a shunt fault at ``bus`` on the live model, thread-safely.
+
+        Runs the fault controller's frozen-time continuation under the integrator
+        lock (so it never races a chunk), then re-seeds the discrete layer.  With
+        ``t_clear`` set, the fault self-clears after that many seconds of sim
+        time; otherwise it stays until :meth:`clear_fault`.  Extra ``kw`` are
+        forwarded to the controller — e.g. ``X_fault`` (override the fault
+        reactance; larger = softer) and ``fault_steps`` (continuation steps;
+        fewer = faster, so a soft fault causes a smaller under-lock pause), plus
+        ``iq`` / ``v_lvrt``.
+        """
+        if self._faults is None:
+            raise RuntimeError("No fault controller attached "
+                               "(set app.state.faults).")
+        with self._lock:
+            return self._apply_fault_locked(bus, t_clear=t_clear, **kw)
+
+    def clear_fault(self, bus, **kw):
+        """Clear the shunt fault at ``bus`` on the live model, thread-safely."""
+        if self._faults is None:
+            raise RuntimeError("No fault controller attached "
+                               "(set app.state.faults).")
+        with self._lock:
+            return self._clear_fault_locked(bus, **kw)
+
+    def declared_fault_buses(self):
+        """Buses that have a fault declared (empty if no controller attached)."""
+        return list(getattr(self._faults, "buses", []) or [])
+
+    def active_faults(self):
+        """Buses currently faulted, sorted."""
+        return sorted(self._active_faults)
+
+    # ── background simulation loop ─────────────────────────────────────────
+
     def _sim_loop(self):
         """Main loop executed in the background daemon thread."""
-        self._build_integrator()
-        wall_t0 = time.perf_counter()
+        self._build_stepper()
+        self._wall_t0 = time.perf_counter()
 
         while self.is_running:
             with self._lock:
                 self._apply_next_ramp_step()
+                self._run_due_fault_clears()
+                self._run_discrete()
                 t_next = self.t_sim + self.chunk_sec
                 try:
                     self._step()
@@ -218,16 +521,29 @@ class RealTimeSimulator:
                 except RuntimeError as exc:
                     print(f"[RT step failed at t_sim={self.t_sim:.3f} s] {exc}")
 
-            target_wall_time = wall_t0 + self.t_sim
+            # A fault apply/clear runs a blocking continuation under the lock,
+            # stalling the loop for much longer than a chunk. Rather than
+            # fast-forwarding to reclaim that wall-clock lag (a burst of
+            # [RT overrun] warnings that also compresses any short fault out of a
+            # polling client's view), re-baseline the schedule so real time
+            # simply resumes from here.
+            if self._rebase_pacing:
+                self._rebase_pacing = False
+                self._wall_t0 = time.perf_counter() - self.t_sim
+
+            target_wall_time = self._wall_t0 + self.t_sim
             sleep_time = target_wall_time - time.perf_counter()
             if sleep_time > 0:
                 time.sleep(sleep_time)
             else:
                 overrun_ms = -sleep_time * 1000.0
-                print(
-                    f"[RT overrun] {overrun_ms:.2f} ms behind schedule"
-                    f" at t_sim={self.t_sim:.3f} s"
-                )
+                # Ignore sub-millisecond overshoot (scheduler jitter and the
+                # exact-zero at a pacing re-baseline) — only report real lag.
+                if overrun_ms > 1.0:
+                    print(
+                        f"[RT overrun] {overrun_ms:.2f} ms behind schedule"
+                        f" at t_sim={self.t_sim:.3f} s"
+                    )
 
     # ── co-simulation config ───────────────────────────────────────────────
 
@@ -377,6 +693,25 @@ class RealTimeSimulator:
         with self._lock:
             self._enqueue_ramp(setpoints_dict)
 
+    # ── thread-safe input reader ──────────────────────────────────────────
+
+    def inputs(self, names: list[str] | None = None) -> dict[str, float | None]:
+        """Return current runtime input (``u_run``) values, thread-safely.
+
+        These are the writable setpoints (the entries of ``u_run_dict``), the
+        counterpart to :meth:`setpoints`.  With ``names=None`` every input is
+        returned; otherwise only the requested names, with ``None`` for any name
+        that is not a runtime input.
+        """
+        with self._lock:
+            u_names = list(self.model.u_run_names)
+            u_vals = np.asarray(self.model.u_run_vals).flatten()
+            index = {n: i for i, n in enumerate(u_names)}
+            if names is None:
+                names = u_names
+            return {n: (float(u_vals[index[n]]) if n in index else None)
+                    for n in names}
+
     # ── thread-safe measurement reader ────────────────────────────────────
 
     def measurements(self, names: list[str]) -> dict[str, float | None]:
@@ -438,16 +773,50 @@ class InputPayload(BaseModel):
 
 
 class SetpointsPayload(BaseModel):
-    """Payload for ``POST /setpoints`` — one or more name/value pairs."""
+    """Payload for ``POST /setpoints`` — one or more name/value pairs.
+
+    Two equivalent body shapes are accepted:
+
+    - **envelope** — ``{"setpoints": {"f_x": 0.5}, "timestamp": 1.0}``
+    - **flat** — ``{"f_x": 0.5}`` — the whole body is the setpoints mapping
+      (convenience; no ``timestamp``).
+
+    A body without a ``"setpoints"`` key is treated as the flat form, so an input
+    literally named ``setpoints`` must use the envelope form.
+    """
 
     setpoints: dict[str, float]
     timestamp: float | None = None  # optional wall-clock time from the sender
+
+    @model_validator(mode="before")
+    @classmethod
+    def _accept_flat(cls, data):
+        # Wrap a flat {name: value} body into the envelope so both shapes parse.
+        if isinstance(data, dict) and "setpoints" not in data:
+            return {"setpoints": data}
+        return data
 
 
 class MeasurementsRequest(BaseModel):
     """Request body for ``POST /measurements`` — a list of output names."""
 
     names: list[str]
+
+
+class FaultApplyPayload(BaseModel):
+    """Payload for ``POST /faults/apply``."""
+
+    bus: str
+    t_clear: float | None = None       # auto-clear after this many sim seconds
+    X_fault: float | None = None       # override fault reactance (pu); larger = softer
+    fault_steps: int | None = None     # continuation steps; fewer = faster (soft faults)
+
+
+class FaultClearPayload(BaseModel):
+    """Payload for ``POST /faults/clear``."""
+
+    bus: str
+    fault_steps: int | None = None     # continuation steps; fewer = faster
 
 
 # ── Module-level simulator reference ──────────────────────────────────────────
@@ -480,7 +849,21 @@ async def lifespan(app: FastAPI):
 
     chunk_ms: float = getattr(app.state, "chunk_ms", 50.0)
     ramp_chunks: int = getattr(app.state, "ramp_chunks", 20)
-    simulator = RealTimeSimulator(model, chunk_ms=chunk_ms, ramp_chunks=ramp_chunks)
+    solver: str = getattr(app.state, "solver", "idas")
+    trapezoidal_substeps = getattr(app.state, "trapezoidal_substeps", None)
+    trapezoidal_linsol = getattr(app.state, "trapezoidal_linsol", "scipy")
+    # Optional discrete-control orchestrator (e.g. pydae.bps.discrete
+    # .DiscreteOrchestrator). Duck-typed: any object with step(model). Falls
+    # back to a `discrete` attribute on the model if app.state has none.
+    discrete = getattr(app.state, "discrete", None)
+    # Optional fault controller (e.g. pydae.bps.utils.faults.FaultController).
+    # Duck-typed: any object with apply(bus)/clear(bus)/buses.
+    faults = getattr(app.state, "faults", None)
+    simulator = RealTimeSimulator(model, chunk_ms=chunk_ms,
+                                  ramp_chunks=ramp_chunks, discrete=discrete,
+                                  faults=faults, solver=solver,
+                                  trapezoidal_substeps=trapezoidal_substeps,
+                                  trapezoidal_linsol=trapezoidal_linsol)
 
     cosim_config = getattr(app.state, "cosim_config", None)
     if cosim_config:
@@ -568,6 +951,19 @@ def measurements_get():
     return {"data": data, "t_sim": simulator.t_sim}
 
 
+@app.get("/inputs", summary="Read current runtime input (setpoint) values")
+def inputs_get():
+    """Return the current value of every runtime input (``u_run``).
+
+    These are the writable setpoints — the counterpart to ``/setpoints``.
+    Callable from a browser or any GET client without a request body.
+    """
+    if simulator is None:
+        raise HTTPException(status_code=503, detail="Simulator not running")
+    data = simulator.inputs()
+    return {"data": data, "t_sim": simulator.t_sim}
+
+
 @app.get("/cosim/measurements", summary="Co-simulation measurements (configs subset)")
 def cosim_measurements_get():
     """Return current values for the measurements declared in the co-simulation config.
@@ -619,6 +1015,61 @@ def status():
     if simulator is None:
         return {"is_running": False, "t_sim": 0.0}
     return {"is_running": simulator.is_running, "t_sim": simulator.t_sim}
+
+# ── Fault endpoints ────────────────────────────────────────────────────────────
+
+def _require_fault_controller():
+    """Common guards for the fault endpoints; returns the live simulator."""
+    if simulator is None:
+        raise HTTPException(status_code=503, detail="Simulator not running")
+    if simulator._faults is None:
+        raise HTTPException(
+            status_code=501,
+            detail="No fault controller attached (set app.state.faults)",
+        )
+    return simulator
+
+
+@app.get("/faults", summary="List declared and active faults")
+def faults_list():
+    """Return the buses with a declared fault and those currently faulted."""
+    sim = _require_fault_controller()
+    return {
+        "declared": sim.declared_fault_buses(),
+        "active": sim.active_faults(),
+        "t_sim": sim.t_sim,
+    }
+
+
+@app.post("/faults/apply", summary="Apply a shunt fault on the live model")
+def faults_apply(payload: FaultApplyPayload):
+    """Apply a shunt fault at ``bus``, optionally auto-clearing after ``t_clear``.
+
+    The fault is switched on with a frozen-time continuation run under the
+    integrator lock (robust for deep faults; it drives converter ride-through).
+    Unknown buses are rejected with **422**.
+    """
+    sim = _require_fault_controller()
+    try:
+        result = sim.apply_fault(payload.bus, t_clear=payload.t_clear,
+                                 X_fault=payload.X_fault,
+                                 fault_steps=payload.fault_steps)
+    except ValueError as exc:  # undeclared fault bus
+        raise HTTPException(status_code=422, detail=str(exc))
+    return {"status": "ok", "fault": result,
+            "active": sim.active_faults(), "t_sim": sim.t_sim}
+
+
+@app.post("/faults/clear", summary="Clear a shunt fault on the live model")
+def faults_clear(payload: FaultClearPayload):
+    """Clear the shunt fault at ``bus`` (frozen-time continuation under the lock)."""
+    sim = _require_fault_controller()
+    try:
+        result = sim.clear_fault(payload.bus, fault_steps=payload.fault_steps)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    return {"status": "ok", "fault": result,
+            "active": sim.active_faults(), "t_sim": sim.t_sim}
 
 
 # ── Standalone entry point ─────────────────────────────────────────────────────

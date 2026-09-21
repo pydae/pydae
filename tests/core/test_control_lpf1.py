@@ -27,7 +27,7 @@ def lpf1_model():
            'xy_0_dict': {}}
 
     backend = MathBackend(use_casadi=True)
-    lpf1(dae, '1', {'T': 0.5, 'u': 0.0}, backend)
+    lpf1(dae, '1', backend, {'T': 0.5, 'u': 0.0})
 
     model = CasadiModel(CasadiBuilder(dae).build())
     model.ini({}, dae['xy_0_dict'])
