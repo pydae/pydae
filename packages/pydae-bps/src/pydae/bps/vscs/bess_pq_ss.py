@@ -89,6 +89,11 @@ def descriptions():
         {"type": "Parameter", "tex": "K_i", "data": "K_i",
          "model": "K_i", "default": 1e-6,
          "description": "SOC integral gain", "units": "-"}]
+    descriptions_list += [
+        {"type": "Parameter", "tex": "soc_{frz}", "data": "soc_frz",
+         "model": "soc_frz", "default": 0.0,
+         "description": "Freeze SOC dynamics (1 during ini, 0 during run)",
+         "units": "-"}]
 
     # Parameters - OCV-SOC interpolation
     descriptions_list += [
@@ -257,6 +262,7 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     K_p = backend.symbols(f"K_p_{name}")
     K_i = backend.symbols(f"K_i_{name}")
     R_bat = backend.symbols(f"R_bat_{name}")
+    soc_frz = backend.symbols(f"soc_frz_{name}")
 
     # 7. OCV-SOC curve (piecewise interpolation or linear model)
     soc_sym = sym.Symbol(f"soc_{name}", real=True)
@@ -366,8 +372,10 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     p_loss = A_loss * i_s**2 + B_loss * i_s + C_loss
 
     # 12. Dynamic equations
-    dsoc = 1 / H * (-i_dc * e)
-    dxi_soc = epsilon
+    # soc_frz = 1 pins soc = soc_ref and xi_soc = 0, so a steady state
+    # exists at any P (used during ini); soc_frz = 0 is the physical model.
+    dsoc = (1 - soc_frz) / H * (-i_dc * e) + soc_frz * epsilon
+    dxi_soc = (1 - soc_frz) * epsilon - soc_frz * xi_soc
 
     # 13. Algebraic equations - DC side
     g_p_dc = p_s + p_loss - p_dc
@@ -418,6 +426,7 @@ def bess_pq_ss(grid, name, bus_name, data_dict):
     soc_max_val = data_dict.get("soc_max", default_map.get("soc_max", 1.0))
     grid.dae["params_dict"].update({str(K_p): K_p_val})
     grid.dae["params_dict"].update({str(K_i): K_i_val})
+    grid.dae["params_dict"].update({str(soc_frz): data_dict.get("soc_frz", 0.0)})
     grid.dae["params_dict"].update({str(soc_min): soc_min_val})
     grid.dae["params_dict"].update({str(soc_max): soc_max_val})
 
