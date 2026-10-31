@@ -27,8 +27,11 @@ def add_loads(grid):
             
 
 
-        if item['type'] == 'zip':                    
+        if item['type'] == 'zip':
             p_W, q_var = load_zip(grid,name,bus_name,data_dict)
+        if item['type'] == 'dc_jrm':
+            from pydae.bps.loads.dc_jrm import dc_jrm
+            p_W, q_var = dc_jrm(grid,name,bus_name,data_dict)
 
 
         # grid power injection
