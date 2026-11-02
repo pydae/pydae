@@ -218,7 +218,7 @@ transfers values between initialization and runtime phases, including:
 #### Time-domain solver selection
 
 `method` (falling back to the instance attribute `self.run_method`, default
-`'idas_grid'`) picks one of four integration strategies. All four append to the
+`'idas_grid'`) picks one of five integration strategies. All five append to the
 same `Time/X/Y/Z` storage and advance `x/y_run/t` identically, so they are
 drop-in interchangeable:
 
@@ -228,6 +228,7 @@ drop-in interchangeable:
 | `'idas'` | legacy: stateless IDAS call once per `Dt` | exact bit-for-bit reproduction of historical behaviour |
 | `'trapezoidal'` | fixed-step implicit θ-method, `alpha=0.5` (2nd order) | many short / interactive / real-time steps |
 | `'backward_euler'` | fixed-step implicit θ-method, `alpha=1.0` (1st order) | stiff systems needing a robust, damped step |
+| `'rk4'` | compiled explicit RK4 on the **reduced** DAE, whole run in one `mapaccum` call | non-stiff models with explicit algebraics (machines from look-up tables, control chains): often no Newton at all |
 
 **Why the legacy per-`Dt` loop was slow.** A CasADi integrator is a *stateless*
 function `(x0, z0, p) → (xf, zf)`: it does **not** carry SUNDIALS' internal BDF
@@ -268,6 +269,48 @@ schedule, after a `set_value` discontinuity (which marks the linear-solver
 backend stale), or adaptively when a step exceeds `refactor_iters` Newton
 iterations; a step that fails is retried once with a fresh factorization before
 raising. Constant per-step cost, no adaptive restart.
+
+**`'rk4'`** first reduces the DAE (`pydae/core/builder/dae_reduce.py`): every
+algebraic equation that is *affine* in one of its variables, with a coefficient
+free of states and algebraics (a number or a parameter such as an inductance),
+is solved for it and substituted into everything else, repeatedly, so chains and
+linear loops resolve too. Affinity is read from the expression **tree** (sums,
+negations, products and quotients by factors free of the variable), not from the
+derivative: CasADi's derivative of an interpolant call keeps zero-seeded
+forward nodes (`1 - fwd_lut(..., 0)`) that make a constant coefficient look
+state-dependent, which would leave every table-driven current implicit. What is
+nonlinear in its own unknown stays implicit, so the reduction never changes the
+solution. The runtime (`pydae/core/model/explicit_runner.py`) then integrates
+the reduced system with classical RK4 at `Dt` (option `substeps` divides it),
+solving any implicit remainder by Newton inside each stage, and chains the whole
+run in **one** `mapaccum` call: no Python per step. The algebraics come from the
+state at every step, so no `recalculate_algebraics()` is needed after a
+discontinuity. Explicit means conditionally stable: a run that diverges raises
+and leaves the model's state untouched.
+
+Measured on a field-oriented PMSM drive from FEA tables (4 states, 6 algebraics,
+all eliminated; 0.6 s at 50 µs, same trajectory to 1e-6 A):
+
+| method | µs/step |
+|---|---|
+| `'trapezoidal'` | 53 |
+| `'idas_grid'` | 15–18 |
+| RK4 with Newton on all 6 algebraics (compiled) | 14 |
+| **`'rk4'`** (reduced to an ODE) | **3.0**, of which 1.4 integration and 1.0 evaluating `h_dict` |
+
+**One step per call.** A control loop written in Python -- read the
+measurements, compute, set the inputs, `run(t + Dt, ..., method='rk4')` every
+period -- pays the call, not the integration. For a single step the runner
+evaluates its step function (next state, all algebraics and the `h_dict`
+outputs together) through a CasADi `FunctionBuffer` on preallocated NumPy
+arrays: 5.5 µs per `run()` step on the drive above, against 38 µs through
+ordinary calls. Inside such a loop, read outputs from the row `run()` just
+stored (`model.Z[-1]`); `get_value()` evaluates `h_dict` again.
+
+A unity-feedback PI with output saturation (`pydae.control` `pi`) is the
+counterexample: `z = clip(K_p u + K_i xi)` with `u = r - z` is a genuine
+algebraic loop through the saturation, and one variable correctly stays
+implicit.
 
 #### Pluggable linear solver (`linsol`)
 

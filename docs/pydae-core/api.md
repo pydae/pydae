@@ -19,8 +19,12 @@ The main public names are:
 - **`pydae.core.builder.CasadiBuilder`** — CasADi → SX graph pipeline.
   No C compiler required.
 - **`pydae.core.model.CasadiModel`** — CasADi runtime. Time-domain `run` offers
-  IDAS (grid or per-`Dt`) and fixed-step implicit (trapezoidal / backward-Euler,
-  with a pluggable scipy/`ca.Linsol` solver) integration.
+  IDAS (grid or per-`Dt`), fixed-step implicit (trapezoidal / backward-Euler,
+  with a pluggable scipy/`ca.Linsol` solver) and compiled explicit RK4 on the
+  reduced DAE (`method='rk4'`) integration.
+- **`pydae.core.builder.dae_reduce`** — `reduce_explicit_algebraics`: eliminate
+  the algebraic variables a DAE gives explicitly (`ReducedDAE`).
+- **`pydae.core.model.explicit_runner`** — `ExplicitRunner`, the `'rk4'` runtime.
 - **`pydae.core.common`** — shared parser and symbolic utilities.
 - **`pydae.core.diagnostics`** — Jacobian health checks and structural
   analysis helpers.

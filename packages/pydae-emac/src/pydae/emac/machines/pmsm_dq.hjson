@@ -1,0 +1,12 @@
+{
+  // A 4-pole-pair interior PM machine on a 540 V DC link, its speed imposed,
+  // under a 500 Hz FOC current loop.  pmsm_dq.test() checks the steady state.
+  machines: [
+    {type: "pmsm_dq", name: "1", R_s: 0.12, L_d: 2.0e-3, L_q: 3.5e-3, Psi_pm: 0.12, p: 4,
+     mech: "imposed", omega_m: 150.0}
+  ]
+  ctrls: [
+    {type: "foc_pi", name: "1", machine: "1", bandwidth: 500.0, V_dc: 540.0,
+     i_d_ref: -5.0, i_q_ref: 20.0}
+  ]
+}

@@ -7,6 +7,7 @@ Usage:
     uv run pytest -m parse                     # only parser tests
     uv run pytest -m "not slow"                # skip slow tests
     uv run pytest tests/core/                  # only core package
+    uv run pytest -m emac                      # only electric machines
     uv run pytest tests/core/test_pendulum.py  # one file
     uv run pytest -k "test_build"              # match by name
 """
@@ -22,4 +23,5 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "core: core solver and DAE pipeline tests")
     config.addinivalue_line("markers", "bps: balanced power systems tests")
     config.addinivalue_line("markers", "uds: unbalanced distribution tests")
+    config.addinivalue_line("markers", "emac: electric machines and drives tests")
     config.addinivalue_line("markers", "slow: tests that take > 5 seconds")

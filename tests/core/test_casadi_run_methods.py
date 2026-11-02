@@ -120,7 +120,7 @@ def test_default_method_is_idas_grid(builder_xy0):
 def test_unknown_method_raises(builder_xy0):
     m = _model(builder_xy0)
     with pytest.raises(ValueError, match="unknown run method"):
-        m.run(1.0, method="rk4")
+        m.run(1.0, method="no_such_method")
 
 
 # ─── 3. Discontinuity handling: step + recalc + refactor + continue ───────

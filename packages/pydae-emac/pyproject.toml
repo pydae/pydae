@@ -1,0 +1,51 @@
+# =============================================================================
+# pydae-emac: Electric Machines and their Controllers
+# =============================================================================
+# Builds DAE system dictionaries for electric machines (linear dq and FEA
+# look-up-table models) and their controllers, solved by pydae's own solvers;
+# plus a multirate switched-PWM drive solver for what a mean-value DAE cannot
+# show (switching, sampling, computation delay, dead time, spatial ripple).
+#
+# Users install with: pip install pydae-emac
+# Import with:        from pydae.emac import EmacBuilder
+# =============================================================================
+
+[project]
+name = "pydae-emac"
+version = "0.1.0"
+description = "Electric machines and drive controllers for the pydae DAE solver"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Juan Manuel Mauricio", email = "jmmauricio6@gmail.com"}
+]
+keywords = ["electric-machines", "DAE", "motor-drives", "PMSM", "SynRM", "FEA", "look-up-tables"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "pydae>=1.8.0",
+    "numpy>=1.26.0",
+    "scipy>=1.13.0",
+    "matplotlib>=3.8.0",  # flux_tables uses matplotlib.path for the reachable-flux test
+    "hjson>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/pydae/pydae"
+Repository = "https://github.com/pydae/pydae"
+Issues = "https://github.com/pydae/pydae/issues"
+
+[tool.uv.sources]
+pydae = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pydae"]

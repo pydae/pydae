@@ -1,0 +1,9 @@
+# Build-time requirements for the pydae-uds docs on ReadTheDocs.
+sphinx>=7.2
+furo>=2024.1.29
+myst-parser>=3.0
+myst-nb>=1.1
+sphinx-copybutton>=0.5
+sphinx-design>=0.5
+sphinxcontrib-mermaid>=0.9
+linkify-it-py>=2.0

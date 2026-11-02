@@ -20,6 +20,7 @@ uv run pytest -m model        # end-to-end simulation
 uv run pytest -m core         # core solver / DAE pipeline
 uv run pytest -m bps          # balanced power systems
 uv run pytest -m uds          # unbalanced distribution
+uv run pytest -m emac         # electric machines and drives
 uv run pytest -m slow         # tests that take > 5 seconds
 
 # Run a single test file
@@ -31,13 +32,14 @@ uv run ruff check .
 
 ## Architecture
 
-**Monorepo with three independent PyPI packages** sharing a single `uv` workspace. All three use Python [native namespace packages](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/) under the `pydae` namespace — there is intentionally **no `__init__.py`** in `packages/*/src/pydae/`. Never add one there; it would break namespace merging.
+**Monorepo with four independent PyPI packages** sharing a single `uv` workspace. All four use Python [native namespace packages](https://packaging.python.org/en/latest/guides/packaging-namespace-packages/) under the `pydae` namespace — there is intentionally **no `__init__.py`** in `packages/*/src/pydae/`. Never add one there; it would break namespace merging.
 
 | Package dir | PyPI name | Import root | Purpose |
 |---|---|---|---|
 | `packages/pydae-core` | `pydae` | `pydae.core` | DAE solver engine |
 | `packages/pydae-bps` | `pydae-bps` | `pydae.bps` | Balanced power systems |
 | `packages/pydae-uds` | `pydae-uds` | `pydae.uds` | Unbalanced distribution systems |
+| `packages/pydae-emac` | `pydae-emac` | `pydae.emac` | Electric machines and their controllers |
 
 ### DAE System Form
 
@@ -279,6 +281,14 @@ xy = {n: float(m.get_value(n)) for n in m.x_list + m.y_run_list}
 mc.ini({}, xy_0=xy)   # full-coverage seed → step 1 converges
 ```
 
+**`run(method='rk4')` — reduced-DAE explicit runtime** (`builder/dae_reduce.py` + `model/explicit_runner.py`). `reduce_explicit_algebraics` solves every algebraic equation that is affine in one of its variables with a coefficient free of x and z (number or parameter), substitutes it everywhere and repeats; the rest stays implicit (Newton inside each RK4 stage). `ExplicitRunner` integrates with RK4 and chains the whole run in one `mapaccum`. Measured 3.0 µs/step against 53 (`trapezoidal`) and 15–18 (`idas_grid`) on a 4-state/6-algebraic PMSM drive from FEA tables. Load-bearing:
+- **Affinity is read from the expression tree, not the Jacobian.** `ca.jacobian` of an interpolant call returns `1 - fwd_lut(..., 0)` (zero-seeded forward node, never simplified), so a Jacobian test calls a constant coefficient state-dependent and leaves every table-driven current implicit (it did: 4 of 6 eliminated, 13 µs/step). The Jacobian is only the fallback.
+- **Equation and variable indices overlap** in the elimination bookkeeping; keep the two dicts apart.
+- **`s[nx:]` on a length-nx SX gives a 1×1 zero, not 0×1** — slice explicitly when the implicit remainder is empty.
+- **`CasadiBuilder.build()` fails on a model with no algebraic equations** (`symvar` on the empty `DM` from `ca.vertcat()`), pre-existing; `dae_reduce` coerces empty pieces to SX for when that is fixed.
+- A unity-feedback PI with saturation is a real algebraic loop (one implicit variable), not a reduction failure.
+- **One step per call is the control-loop case** (`run(t + Dt)` every period from a user's Python loop): there the CasADi call overhead dominates, so `n == 1` evaluates the step (state, all algebraics, `h_dict`, one function) through a `FunctionBuffer` on preallocated arrays (0.04 µs vs ~6.5 µs per ordinary call). One `run()` step went 37.9 → 5.5 µs; a full DSP-style loop on an FEA drive runs at ~20 µs per 50 µs period. Read outputs in such a loop from `model.Z[-1]`, not `get_value()` (which re-evaluates `h_dict`, ~14 µs).
+
 ### MLX backend (Apple Silicon) — `builder/mlx_builder.py`, `builder/mlx_sparsity.py`, `builder/mlx_sweep.py`
 
 A third backend alongside SymPy→C and CasADi. `MlxBuilder(sys_dict).build()` lowers the equations onto `mlx.core` graphs (accepting **either** SymPy or CasADi `SX` expressions — `_sympy_to_mlx` uses `lambdify` onto an mlx-backed numpy shim, `_casadi_to_mlx` replays the `SX` instruction tape), takes Jacobians by MLX autodiff, and wraps the Newton iteration in `@mx.compile`. Both classes are exported lazily from `pydae.core.builder` so importing pydae on non-Apple platforms still works; install with `pip install pydae[mlx]`.
@@ -417,6 +427,18 @@ Two cooperating subsystems in `pydae-bps` model **discrete control** and **shunt
   - `Ted749Controller.sync(model)` must latch the pre-disturbance operating point (`U1i`, `I1i`, active current) from its last undisturbed sample when the continuation armed the control, or the relay resumes against its defaults, commands zero active current, and steps straight off the point `apply()` just reached.
 - `FaultController(model, iq=...)` — the **live-model** wrapper (apply/clear a fault without owning the time loop); it is what the real-time API takes on `app.state.faults`, running the continuation under the integrator lock. `apply(bus, X_fault=, fault_steps=, ...)` can override the reactance (softer fault) and continuation resolution per event; `fault_admittance(R_pu, X_pu, S_mva, S_base)` recomputes the shunt `(g, b)` for an overridden `X` (the builder stores `R_pu`/`X_pu`/`S_mva`/`S_base` in `sys_dict['faults'][bus]` for this). `apply_fault(model, bus, t_clear, ...)` is the older offline convenience wrapper that advances `model.run` itself.
 
+### Electric machines (pydae-emac)
+
+`EmacBuilder(data).construct(name)` → `sys_dict`, same shape as `BpsBuilder`; `build(name)` returns a ready `CasadiModel` (CasADi is the default backend because `machines/pmsm_lut` is a CasADi B-spline; `use_casadi=False` compiles the linear models to C). Families: `machines/` (`pmsm_dq` linear, `pmsm_lut` from FEA tables, rotor in `mechanics.py`), `ctrls/` (`foc_pi`). Beside the DAE side sit `luts/` (FEA tables: load, invert currents→fluxes to fluxes→currents, Fourier in the rotor angle, pack for one B-spline; `synthetic.linear_fea_lut` writes a linear machine in the FEA format so every mean is known in closed form) and `drive/`, a **multirate switched-PWM solver** that is deliberately *not* a pydae DAE (one CasADi function per control period: DSP sample, controller, SVPWM, carrier comparison, 4 RK4 pieces; `mapaccum` chains them). It was ported verbatim from the DICORCA project's `simulation/` and reproduces its runs bit for bit.
+
+Load-bearing choices:
+- **The DAE machines are angle-averaged (no θ state).** A rotating angle has no equilibrium, and `CasadiModel.ini2run` copies every `u_ini` value into `u_run` (rule 5), so a "freeze θ during ini" flag input cannot work. Spatial ripple, sampling, carrier, dead time are the `drive/` solver's job, built from the same tables. Don't add θ to the DAE machines without solving ini first.
+- **`mech: "free"` uses the ini/run swap**: ini has `omega_ini` in `u_ini` and `T_l` in `y_ini` (the speed is given, the load solved); run has `T_l` in `u_run` (copied by rule 6) and `omega_ini` in `y_run`, following ω through `g = ω − omega_ini`.
+- **The builder's `dae` uses `sys_dict` keys** (`f_list`, `x_list`, …), not bps's `f`/`x`, so `pydae.control.continuos` blocks append straight in: `foc_pi` is two `pi` blocks (+ optional `lpf1` as the inverter delay) promoting the machine's `v_d`/`v_q` from inputs to algebraics.
+- **Measuring the switched drive:** with pole-zero-cancelling gains (`K_i = K_p R/L`) the loop rejects its decoupling error only at the machine's own L/R, so settle ~5 L/R; and average over whole electrical periods or the ripple biases the mean. Both bit the first version of `tests/emac/test_drive.py`.
+- **`drive.PwmPlant`** is the PWM modulator + inverter + ripple-resolved machine as a plant a Python loop steps once per control period (`step(duties)`), via a `FunctionBuffer`. Its PWM is `drive_model.pwm_pieces`, the same function `build_control_period` calls (moved there, bit-identical to the port in all six switched/averaged × dead-time × compensation cases), so the two cannot drift apart. `tests/emac/test_drive.py` checks a Python PI loop around it reproduces `simulate()`.
+- **Step inputs on a fixed-step run:** call `recalculate_algebraics()` after `set_value`, or the first step integrates the pre-step algebraics (a PI's proportional path is algebraic).
+
 ## Import Paths
 
 ```python
@@ -430,6 +452,9 @@ from pydae.bps.utils.frt import vrt, VrtController, iq_po123     # shared FRT re
 from pydae.bps.utils.frt import Ted749Controller, iq_ted749      # Orden TED/749/2020 relay + law
 from pydae.bps.lines.cable_fem import CableCase, run_suite, ladder_dtr  # FEM -> dtr identification (needs pydae-bps[fem])
 from pydae.uds import UdsBuilder
+from pydae.emac import EmacBuilder
+from pydae.emac.luts import load_fea_lut, build_flux_tables, linear_fea_lut
+from pydae.emac.drive import build_machine, build_window, build_control_period, simulate, PIController
 from pydae.ssa.ssa import eig, damp, participation
 from pydae.control.control_builder import ControlBuilder
 from pydae.control.continuos.stab_1lpf_2wo_3ll import stab_1lpf_2wo_3ll  # and pi, pid, lpf1, lpf2, leadlag, washout
@@ -497,9 +522,10 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 - `packages/pydae-core/src/pydae/daesolver/` — C runtime: `daesolver.c/.h`, `daesolver_dense.{c,h}`, `daesolver_dlu_klu.c`, `daesolver_run_lapack.{c,h}`.
 - `packages/pydae-bps/src/pydae/bps/` — power-system component library. `avrs/`, `govs/`, `syns/`, `vscs/`, `vsc_ctrls/`, `vsc_models/`, `vsgs/`, `wecs/`, `weccs/`, `ppcs/`, `pvs/`, `psss/`, `pssdesigner/`, `pods/`, `loads/`, `lines/`, `sources/`, `miscellaneous/`. Each module ships with a sibling `.hjson` fixture used by its in-module `test()`. `discrete.py` (the `DiscreteOrchestrator` per-step control hook) sits at the package root. `lines/` also holds the DTR stack: `line_dtr.py` (IEEE-738 overhead), `line_dtr_cable.py` (IEC 60853 two-node / n-stage Cauer cable), `cable_fem.py` (the scikit-fem identification suite behind the `[fem]` extra) and `cable_fem_example.py` (the narrated end-to-end walkthrough; `--plot` writes `cable_cycle.png` / `cable_field.png`, both gitignorable artefacts). `utils/` contains `visualizer.py` (`PowerSystemVisualizer` — draws reactance-weighted topology diagrams via networkx), `faults.py` (`FaultManager` / `FaultController` / `lvrt_response`), `frt.py` (the shared grid-following FRT relays: `vrt` / `VrtController` / `iq_po123` for PO 12.3 and `Ted749Controller` / `iq_ted749` for Orden TED/749/2020, re-exported by `pvs/pv_pq_ss` and `vscs/bess_pq_ss`), `ss_num2sym.py`, `reporter.py`, and `validator.py`.
 - `packages/pydae-uds/src/pydae/uds/` — unbalanced (three-phase) distribution builder. Component families: `vscs/` (largest), `vsgs/` (grid-forming), `genapes/`, `ess/`, `fcs/`, `pvs/`, `loads/`, `lines/`, `transformers/`, `shunts/`, `sources/`, `vsc_ctrls/`, `miscellaneous/`.
-- `tests/{core,bps,uds}/` — pytest suite. Markers declared in `tests/conftest.py`.
+- `packages/pydae-emac/src/pydae/emac/` — electric machines and drives: `machines/`, `ctrls/` (DAE components), `luts/` (FEA tables), `drive/` (switched multirate solver), `utils/`.
+- `tests/{core,bps,uds,emac}/` — pytest suite. Markers declared in `tests/conftest.py`.
 - `examples/` — standalone scripts (`pendulum.py`, `milano*ord*.py`). Build artefacts (`*_data.json`, `*.svg`) are gitignored.
-- `docs/pydae-{core,bps,uds}/` — three independent Sphinx projects (each with its own `conf.py` and `.readthedocs.yaml`).
+- `docs/pydae-{core,bps,uds,emac}/` — four independent Sphinx projects (each with its own `conf.py` and `.readthedocs.yaml`).
 
 ## Conventions
 
@@ -525,6 +551,7 @@ uv run pytest -m "build or model"   # requires gcc / MSVC
 uv run sphinx-build -b html docs/pydae-core docs/pydae-core/_build/html
 uv run sphinx-build -b html docs/pydae-bps  docs/pydae-bps/_build/html
 uv run sphinx-build -b html docs/pydae-uds  docs/pydae-uds/_build/html
+uv run sphinx-build -b html docs/pydae-emac docs/pydae-emac/_build/html
 ```
 
 **Auto-generated model pages** — `pydae-bps` and `pydae-uds` ship a model-doc generator that walks the component sources, extracts each file's raw module docstring (preserving LaTeX) and its `descriptions()` list, and writes one Markdown page per model under `docs/<pkg>/models/<family>/`. Regenerate any time a model is added or its docstring/descriptions changes:
@@ -548,6 +575,7 @@ git tag pydae-bps-vX.Y.Z
 # build + publish (PyPI token in ~/.pypirc)
 uv build --package pydae     packages/pydae-core
 uv build --package pydae-bps packages/pydae-bps
+uv build --package pydae-emac packages/pydae-emac
 uvx twine upload dist/pydae-X.Y.Z*       --repository pypi
 uvx twine upload dist/pydae_bps-X.Y.Z*   --repository pypi
 ```

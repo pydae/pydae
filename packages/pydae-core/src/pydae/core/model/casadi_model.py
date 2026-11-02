@@ -119,6 +119,7 @@ class CasadiModel:
         self._lin_backend = None       # pluggable linear-solver backend (scipy / ca.Linsol)
         self._lin_backend_key = None   # (alpha, linsol) the backend was built for
         self._sc = 0                   # fixed-step step counter (drives scheduled refactors)
+        self._explicit_runner = None   # 'rk4': reduced-DAE compiled runtime (built on first use)
 
     def _build_alg_fn(self):
         """Build the algebraic equation evaluation function from dae_dict."""
@@ -635,7 +636,7 @@ class CasadiModel:
         update_dict : dict, optional
             Name -> value overrides applied via :meth:`_route_dict` before
             stepping (same semantics as the previous ``run(t_end, inputs)``).
-        method : {'idas_grid', 'idas', 'trapezoidal', 'backward_euler'}, optional
+        method : {'idas_grid', 'idas', 'trapezoidal', 'backward_euler', 'rk4'}, optional
             Time-domain integration strategy. ``None`` falls back to
             ``self.run_method`` (default ``'idas_grid'``).
 
@@ -649,6 +650,15 @@ class CasadiModel:
               it is slow, but bit-for-bit reproduces the historical behaviour.
             - ``'trapezoidal'`` — fixed-step implicit trapezoid (``alpha=0.5``).
             - ``'backward_euler'`` — fixed-step implicit Euler (``alpha=1.0``).
+            - ``'rk4'`` — compiled explicit RK4 on the *reduced* DAE
+              (:mod:`pydae.core.model.explicit_runner`): every algebraic
+              variable an equation gives explicitly is substituted away
+              (:mod:`pydae.core.builder.dae_reduce`), the rest is solved by
+              Newton inside each stage, and the whole run is one CasADi
+              ``mapaccum`` call. Much faster for non-stiff models (often no
+              Newton at all); unstable for stiff ones at large ``Dt`` (it
+              raises). Algebraics are recomputed from the state every step, so
+              no ``recalculate_algebraics`` is needed after a discontinuity.
 
             The fixed-step solvers build the iteration matrix from CasADi AD,
             factorize it once with SciPy ``splu`` and reuse it (modified Newton):
@@ -684,10 +694,25 @@ class CasadiModel:
         elif method in ('trapezoidal', 'backward_euler'):
             alpha = opts.pop('alpha', 0.5 if method == 'trapezoidal' else 1.0)
             self._run_fixed_step(t_end, alpha=alpha, **opts)
+        elif method == 'rk4':
+            self._run_explicit(t_end, **opts)
         else:
             raise ValueError(
                 f"unknown run method {method!r}; expected one of "
-                "'idas_grid', 'idas', 'trapezoidal', 'backward_euler'")
+                "'idas_grid', 'idas', 'trapezoidal', 'backward_euler', 'rk4'")
+
+    def _run_explicit(self, t_end, substeps=1, newton_opts=None):
+        """``run(method='rk4')``: build the reduced-DAE runtime once (per
+        ``substeps``) and advance with it. ``'rk4'`` options: ``substeps`` (RK4
+        steps per ``Dt``), ``newton_opts`` (rootfinder options for the
+        implicit remainder)."""
+        from pydae.core.model.explicit_runner import ExplicitRunner
+        r = self._explicit_runner
+        if r is None or r.substeps != int(substeps):
+            h_fn = self._h_fn if self.sys_dict.get('h_dict') else None
+            r = self._explicit_runner = ExplicitRunner(self.dae_dict, h_fn=h_fn, substeps=substeps,
+                                                       newton_opts=newton_opts)
+        r.run(self, t_end)
 
     def _append_output(self, xk, zk, tk, p_run_vec):
         """Append one solved output point to the Time/X/Y/Z storage."""

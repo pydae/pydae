@@ -39,6 +39,7 @@ pip install -r docs/pydae-core/requirements.txt
 sphinx-build -b html docs/pydae-core docs/pydae-core/_build/html
 sphinx-build -b html docs/pydae-bps  docs/pydae-bps/_build/html
 sphinx-build -b html docs/pydae-uds  docs/pydae-uds/_build/html
+sphinx-build -b html docs/pydae-emac docs/pydae-emac/_build/html
 ```
 
 Open `docs/<pkg>/_build/html/index.html` in a browser.
@@ -66,6 +67,7 @@ Each package is a **separate ReadTheDocs project**. Do this once per package:
    | pydae-core  | `docs/pydae-core/.readthedocs.yaml`      |
    | pydae-bps   | `docs/pydae-bps/.readthedocs.yaml`       |
    | pydae-uds   | `docs/pydae-uds/.readthedocs.yaml`       |
+   | pydae-emac  | `docs/pydae-emac/.readthedocs.yaml`      |
 
 4. Trigger the first build from **Builds → Build version**.
 
